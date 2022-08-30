@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Premium Corporate — RPI default palette */
+    --primary: #0a2540;
+    --primary-foreground: #ffffff;
+    --secondary: #c9a961;
+    --secondary-foreground: #0a2540;
+    --accent: #635bff;
+    --accent-foreground: #ffffff;
+
+    --background: #ffffff;
+    --foreground: #0a2540;
+
+    --card: #ffffff;
+    --card-foreground: #0a2540;
+
+    --popover: #ffffff;
+    --popover-foreground: #0a2540;
+
+    --muted: #f5f5f4;
+    --muted-foreground: #6b7280;
+
+    --border: #e5e7eb;
+    --input: #e5e7eb;
+    --ring: #c9a961;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --success: #10b981;
+    --warning: #f59e0b;
+
+    --radius: 12px;
+  }
+
+  .dark {
+    --primary: #c9a961;
+    --primary-foreground: #0a2540;
+    --secondary: #0a2540;
+    --secondary-foreground: #c9a961;
+    --accent: #635bff;
+    --accent-foreground: #ffffff;
+
+    --background: #0a1628;
+    --foreground: #f5f5f4;
+
+    --card: #0f1d35;
+    --card-foreground: #f5f5f4;
+
+    --popover: #0f1d35;
+    --popover-foreground: #f5f5f4;
+
+    --muted: #1a2a44;
+    --muted-foreground: #9ca3af;
+
+    --border: #1f2f4d;
+    --input: #1f2f4d;
+    --ring: #c9a961;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --success: #10b981;
+    --warning: #f59e0b;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+}
+
+@layer utilities {
+  .marquee {
+    animation: marquee 30s linear infinite;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .container-prose {
+    @apply mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8;
+  }
+}
