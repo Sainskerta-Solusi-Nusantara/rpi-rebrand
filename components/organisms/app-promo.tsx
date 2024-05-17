@@ -1,0 +1,312 @@
+'use client'
+
+import * as React from 'react'
+import { motion } from 'framer-motion'
+import {
+  Smartphone,
+  Bell,
+  Heart,
+  Send,
+  Apple,
+  Play,
+  CheckCircle2,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+export interface AppPromoProps {
+  className?: string
+}
+
+const features: string[] = [
+  'Apply 1-klik dimana saja',
+  'Notifikasi real-time untuk lowongan baru',
+  'Pelajari kursus offline',
+  'Sinkron otomatis dengan web',
+]
+
+const miniJobs: Array<{ title: string; company: string; tag: string }> = [
+  { title: 'Frontend Engineer', company: 'PT Maju Digital', tag: 'Remote' },
+  { title: 'UI/UX Designer', company: 'Kreasi Studio', tag: 'Hybrid' },
+  { title: 'Data Analyst', company: 'Data Cerdas', tag: 'Onsite' },
+]
+
+export function AppPromo(props: AppPromoProps): JSX.Element {
+  const { className } = props
+
+  return (
+    <section
+      aria-labelledby="app-promo-heading"
+      className={cn(
+        'relative overflow-hidden bg-gradient-to-br from-primary via-primary to-[#061a30] py-20 text-primary-foreground md:py-28',
+        className,
+      )}
+    >
+      {/* Decorative radial gradients */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+      >
+        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-[radial-gradient(circle_at_center,theme(colors.secondary.DEFAULT)/0.25,transparent_70%)] blur-3xl" />
+        <div className="absolute -bottom-40 right-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle_at_center,theme(colors.accent.DEFAULT)/0.25,transparent_70%)] blur-3xl" />
+        <div className="absolute top-1/2 left-1/3 h-72 w-72 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,theme(colors.secondary.DEFAULT)/0.15,transparent_70%)] blur-3xl" />
+      </div>
+
+      <div className="container relative mx-auto grid max-w-7xl gap-12 px-6 md:grid-cols-2 md:items-center md:gap-8">
+        {/* LEFT */}
+        <div className="relative">
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur">
+            <Smartphone className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
+            Aplikasi Mobile
+          </span>
+
+          <h2
+            id="app-promo-heading"
+            className="mt-4 font-heading text-3xl font-bold tracking-tight text-primary-foreground md:text-5xl"
+          >
+            Karier di Genggamanmu
+          </h2>
+
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-primary-foreground/80 md:text-lg">
+            Lamar pekerjaan, terima notifikasi tawaran, dan ikuti kursus — semua
+            dari smartphone-mu. Tersedia di Android & iOS.
+          </p>
+
+          <ul className="mt-8 space-y-3">
+            {features.map((feature) => (
+              <li
+                key={feature}
+                className="flex items-start gap-3 text-sm md:text-base"
+              >
+                <CheckCircle2
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-secondary"
+                  aria-hidden="true"
+                />
+                <span className="text-primary-foreground/90">{feature}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Download buttons */}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href="#"
+              aria-label="Unduh di App Store"
+              className="inline-flex items-center gap-3 rounded-xl border border-border bg-background px-5 py-3 text-foreground shadow-lg transition-transform hover:-translate-y-0.5 hover:shadow-xl"
+            >
+              <Apple className="h-7 w-7" aria-hidden="true" />
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Unduh di
+                </span>
+                <span className="text-base font-semibold">App Store</span>
+              </span>
+            </a>
+
+            <a
+              href="#"
+              aria-label="Tersedia di Google Play"
+              className="inline-flex items-center gap-3 rounded-xl border border-border bg-background px-5 py-3 text-foreground shadow-lg transition-transform hover:-translate-y-0.5 hover:shadow-xl"
+            >
+              <Play className="h-7 w-7" aria-hidden="true" />
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Tersedia di
+                </span>
+                <span className="text-base font-semibold">Google Play</span>
+              </span>
+            </a>
+          </div>
+
+          {/* Stats row */}
+          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-primary-foreground/70">
+            <span className="font-semibold text-secondary">
+              <span aria-hidden="true">★</span> 4.9 di App Store
+            </span>
+            <span aria-hidden="true">•</span>
+            <span>5K+ ulasan</span>
+            <span aria-hidden="true">•</span>
+            <span>100K+ unduhan</span>
+          </div>
+        </div>
+
+        {/* RIGHT: Phone mockup */}
+        <div className="relative mx-auto flex h-[28rem] w-full max-w-md items-center justify-center md:h-[34rem]">
+          {/* Back phone */}
+          <motion.div
+            initial={{ y: 0, rotate: -8 }}
+            animate={{ y: [0, -10, 0] }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            style={{ rotate: '-8deg' }}
+            className="absolute right-1/2 top-4 translate-x-[10%] scale-90 opacity-90"
+            aria-hidden="true"
+          >
+            <PhoneMockup variant="back" />
+          </motion.div>
+
+          {/* Front phone */}
+          <motion.div
+            initial={{ y: 0, rotate: 4 }}
+            animate={{ y: [0, -14, 0] }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 0.6,
+            }}
+            style={{ rotate: '4deg' }}
+            className="relative z-10"
+          >
+            <PhoneMockup variant="front" />
+          </motion.div>
+
+          {/* Floating chip: Wawancara berhasil */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="absolute top-8 -left-2 z-20 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground shadow-xl md:-left-4"
+          >
+            Wawancara berhasil! 🎉
+          </motion.div>
+
+          {/* Floating chip: Lamaran terkirim */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="absolute bottom-12 -right-2 z-20 inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground shadow-xl md:-right-4"
+          >
+            <Send className="h-3 w-3" aria-hidden="true" />
+            Lamaran terkirim
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+interface PhoneMockupProps {
+  variant: 'front' | 'back'
+}
+
+function PhoneMockup({ variant }: PhoneMockupProps): JSX.Element {
+  const isFront = variant === 'front'
+  return (
+    <div
+      className={cn(
+        'relative aspect-[9/19] overflow-hidden rounded-[2.5rem] border-[6px] border-foreground/40 bg-black shadow-2xl dark:border-foreground/20',
+        isFront ? 'w-48 md:w-56' : 'w-44 md:w-52',
+      )}
+    >
+      {/* Notch */}
+      <div className="absolute left-1/2 top-1 z-30 h-5 w-24 -translate-x-1/2 rounded-full bg-black" />
+
+      {/* Screen */}
+      <div className="absolute inset-0 flex flex-col bg-background">
+        {/* Status bar spacer */}
+        <div className="h-7 w-full bg-background" />
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pt-2 pb-3">
+          <div className="flex flex-col leading-tight">
+            <span className="text-[10px] text-muted-foreground">Selamat pagi</span>
+            <span className="text-sm font-semibold text-foreground">
+              Hai, Sinta!
+            </span>
+          </div>
+          <div className="relative">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+              <Bell className="h-4 w-4 text-foreground" aria-hidden="true" />
+            </div>
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-destructive" />
+          </div>
+        </div>
+
+        {/* Floating notification toast */}
+        {isFront && (
+          <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-md">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary/20">
+              <Bell className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-semibold text-foreground">
+                Lowongan baru
+              </span>
+              <span className="text-[9px] text-muted-foreground">
+                Cocok dengan profilmu
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Search bar */}
+        <div className="mx-3 mb-3 flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
+          <div className="h-3 w-3 rounded-full border-2 border-muted-foreground" />
+          <span className="text-[10px] text-muted-foreground">Cari pekerjaan...</span>
+        </div>
+
+        {/* Section title */}
+        <div className="flex items-center justify-between px-3 pb-2">
+          <span className="text-[10px] font-semibold text-foreground">
+            Rekomendasi
+          </span>
+          <span className="text-[9px] text-primary">Lihat semua</span>
+        </div>
+
+        {/* Mini job cards */}
+        <div className="flex flex-1 flex-col gap-2 px-3 pb-3">
+          {miniJobs.map((job) => (
+            <div
+              key={job.title}
+              className="flex items-center gap-2 rounded-lg border border-border bg-card p-2"
+            >
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
+                <div className="h-4 w-4 rounded bg-primary/40" />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col leading-tight">
+                <span className="truncate text-[10px] font-semibold text-foreground">
+                  {job.title}
+                </span>
+                <span className="truncate text-[9px] text-muted-foreground">
+                  {job.company}
+                </span>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <Heart className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                <span className="rounded-full bg-secondary/20 px-1.5 py-0.5 text-[8px] font-medium text-secondary">
+                  {job.tag}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom nav */}
+        <div className="flex h-12 items-center justify-around border-t border-border bg-card px-2">
+          <div className="flex flex-col items-center gap-0.5">
+            <div className="h-3 w-3 rounded-sm bg-primary" />
+            <span className="text-[8px] text-primary">Home</span>
+          </div>
+          <div className="flex flex-col items-center gap-0.5">
+            <div className="h-3 w-3 rounded-sm bg-muted-foreground/40" />
+            <span className="text-[8px] text-muted-foreground">Cari</span>
+          </div>
+          <div className="flex flex-col items-center gap-0.5">
+            <div className="h-3 w-3 rounded-sm bg-muted-foreground/40" />
+            <span className="text-[8px] text-muted-foreground">Kursus</span>
+          </div>
+          <div className="flex flex-col items-center gap-0.5">
+            <div className="h-3 w-3 rounded-full bg-muted-foreground/40" />
+            <span className="text-[8px] text-muted-foreground">Profil</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default AppPromo
