@@ -1,19 +1,17 @@
 'use client'
 
 import * as React from 'react'
-import Image from 'next/image'
+import type { Route } from 'next'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  Bookmark,
-  MapPin,
-  Briefcase,
-  Building2,
-  Clock,
   ArrowRight,
+  BadgeCheck,
+  Briefcase,
   ChevronLeft,
   ChevronRight,
-  BadgeCheck,
+  Clock,
+  MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -32,19 +30,18 @@ export interface JobItem {
   category?: { name?: string | null; slug?: string | null } | null
 }
 
-export interface JobsCarouselProps {
-  jobs?: JobItem[]
-  className?: string
+export interface JobsCategory {
+  id: string
+  name: string
+  slug: string
+  _count?: { jobs?: number }
 }
 
-const GRADIENTS = [
-  'from-indigo-500 to-violet-600',
-  'from-amber-400 to-orange-600',
-  'from-emerald-500 to-teal-600',
-  'from-rose-500 to-pink-600',
-  'from-blue-500 to-cyan-600',
-  'from-fuchsia-500 to-purple-600',
-] as const
+export interface JobsCarouselProps {
+  jobs?: JobItem[]
+  categories?: JobsCategory[]
+  className?: string
+}
 
 const PLACEHOLDER_JOBS: JobItem[] = [
   {
@@ -52,7 +49,7 @@ const PLACEHOLDER_JOBS: JobItem[] = [
     title: 'Senior Software Engineer',
     slug: 'senior-software-engineer',
     location: 'Jakarta',
-    locationType: 'On-site',
+    locationType: 'WFH',
     employmentType: 'Full-time',
     salaryMin: 18_000_000,
     salaryMax: 25_000_000,
@@ -65,57 +62,57 @@ const PLACEHOLDER_JOBS: JobItem[] = [
     id: 'p2',
     title: 'Product Designer',
     slug: 'product-designer',
-    location: 'Bandung',
+    location: 'Remote',
     locationType: 'Remote',
-    employmentType: 'Remote',
+    employmentType: 'Full-time',
     salaryMin: 12_000_000,
     salaryMax: 18_000_000,
     salaryCurrency: 'IDR',
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5),
-    tenant: { name: 'Tokopedia', slug: 'tokopedia' },
+    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1),
+    tenant: { name: 'GoTo', slug: 'goto' },
     category: { name: 'Desain', slug: 'desain' },
   },
   {
     id: 'p3',
-    title: 'Marketing Specialist',
-    slug: 'marketing-specialist',
+    title: 'Product Manager',
+    slug: 'product-manager',
     location: 'Jakarta',
     locationType: 'Hybrid',
-    employmentType: 'Hybrid',
-    salaryMin: 8_000_000,
-    salaryMax: 12_000_000,
+    employmentType: 'Full-time',
+    salaryMin: 22_000_000,
+    salaryMax: 30_000_000,
     salaryCurrency: 'IDR',
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1),
-    tenant: { name: 'BCA', slug: 'bca' },
-    category: { name: 'Marketing', slug: 'marketing' },
+    publishedAt: new Date(),
+    tenant: { name: 'Bibit', slug: 'bibit' },
+    category: { name: 'Produk', slug: 'produk' },
   },
   {
     id: 'p4',
-    title: 'Data Analyst',
-    slug: 'data-analyst',
-    location: 'Surabaya',
+    title: 'Data Engineer',
+    slug: 'data-engineer',
+    location: 'Bandung',
     locationType: 'On-site',
     employmentType: 'Full-time',
-    salaryMin: 10_000_000,
-    salaryMax: 15_000_000,
+    salaryMin: 15_000_000,
+    salaryMax: 22_000_000,
     salaryCurrency: 'IDR',
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
-    tenant: { name: 'Pertamina', slug: 'pertamina' },
+    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
+    tenant: { name: 'Tokopedia', slug: 'tokopedia' },
     category: { name: 'Data', slug: 'data' },
   },
   {
     id: 'p5',
-    title: 'Customer Success Manager',
-    slug: 'customer-success-manager',
+    title: 'Marketing Lead',
+    slug: 'marketing-lead',
     location: 'Jakarta',
-    locationType: 'Remote',
-    employmentType: 'Remote',
-    salaryMin: 11_000_000,
-    salaryMax: 16_000_000,
+    locationType: 'Hybrid',
+    employmentType: 'Full-time',
+    salaryMin: 14_000_000,
+    salaryMax: 20_000_000,
     salaryCurrency: 'IDR',
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
-    tenant: { name: 'GoTo', slug: 'goto' },
-    category: { name: 'Operasional', slug: 'operasional' },
+    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4),
+    tenant: { name: 'BCA', slug: 'bca' },
+    category: { name: 'Marketing', slug: 'marketing' },
   },
   {
     id: 'p6',
@@ -123,14 +120,25 @@ const PLACEHOLDER_JOBS: JobItem[] = [
     slug: 'devops-engineer',
     location: 'Bekasi',
     locationType: 'Hybrid',
-    employmentType: 'Hybrid',
+    employmentType: 'Full-time',
     salaryMin: 15_000_000,
     salaryMax: 22_000_000,
     salaryCurrency: 'IDR',
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4),
+    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5),
     tenant: { name: 'Astra', slug: 'astra' },
     category: { name: 'Teknologi', slug: 'teknologi' },
   },
+]
+
+const FALLBACK_CATEGORIES: JobsCategory[] = [
+  { id: 'c-tech', name: 'Teknologi', slug: 'teknologi' },
+  { id: 'c-mkt', name: 'Marketing', slug: 'marketing' },
+  { id: 'c-sales', name: 'Sales', slug: 'sales' },
+  { id: 'c-design', name: 'Desain', slug: 'desain' },
+  { id: 'c-finance', name: 'Keuangan', slug: 'keuangan' },
+  { id: 'c-hr', name: 'HR', slug: 'hr' },
+  { id: 'c-ops', name: 'Operasional', slug: 'operasional' },
+  { id: 'c-fresh', name: 'Fresh Graduate', slug: 'fresh-graduate' },
 ]
 
 function toNumber(value: number | bigint | null | undefined): number | null {
@@ -139,75 +147,48 @@ function toNumber(value: number | bigint | null | undefined): number | null {
   return value
 }
 
-function formatRupiahRange(
+function formatSalaryShort(
   min: number | bigint | null | undefined,
-  max: number | bigint | null | undefined
+  max: number | bigint | null | undefined,
 ): string | null {
   const lo = toNumber(min)
   const hi = toNumber(max)
   if (lo === null && hi === null) return null
 
-  const toShort = (n: number) => {
-    if (n >= 1_000_000_000) {
-      const v = n / 1_000_000_000
-      return `${Number.isInteger(v) ? v : v.toFixed(1)} M`
-    }
-    if (n >= 1_000_000) {
-      const v = n / 1_000_000
-      return `${Number.isInteger(v) ? v : v.toFixed(1)} Jt`
-    }
-    if (n >= 1_000) {
-      const v = n / 1_000
-      return `${Number.isInteger(v) ? v : v.toFixed(1)} Rb`
-    }
-    return `${n}`
+  const toJt = (n: number) => {
+    const v = n / 1_000_000
+    return Number.isInteger(v) ? `${v}` : v.toFixed(1)
   }
 
-  if (lo !== null && hi !== null) {
-    if (lo >= 1_000_000 && hi >= 1_000_000) {
-      const loV = lo / 1_000_000
-      const hiV = hi / 1_000_000
-      const loStr = Number.isInteger(loV) ? `${loV}` : loV.toFixed(1)
-      const hiStr = Number.isInteger(hiV) ? `${hiV}` : hiV.toFixed(1)
-      return `Rp ${loStr}-${hiStr} Jt`
-    }
-    return `Rp ${toShort(lo)} - ${toShort(hi)}`
+  if (lo !== null && hi !== null && lo >= 1_000_000 && hi >= 1_000_000) {
+    return `Rp ${toJt(lo)}–${toJt(hi)} Jt`
   }
   const single = (lo ?? hi) as number
-  return `Rp ${toShort(single)}`
+  return `Rp ${toJt(single)} Jt`
 }
 
 function relativeTimeId(date: Date | string | null | undefined): string {
-  if (!date) return 'Baru saja'
+  if (!date) return 'Baru'
   const d = typeof date === 'string' ? new Date(date) : date
-  if (Number.isNaN(d.getTime())) return 'Baru saja'
+  if (Number.isNaN(d.getTime())) return 'Baru'
 
   const diffMs = Date.now() - d.getTime()
-  const sec = Math.floor(diffMs / 1000)
-  const min = Math.floor(sec / 60)
+  const min = Math.floor(diffMs / 60000)
   const hr = Math.floor(min / 60)
   const day = Math.floor(hr / 24)
-  const week = Math.floor(day / 7)
-  const month = Math.floor(day / 30)
 
-  if (sec < 60) return 'Baru saja'
-  if (min < 60) return `${min} menit lalu`
+  if (min < 60) return 'Baru'
   if (hr < 24) return `${hr} jam lalu`
   if (day < 7) return `${day} hari lalu`
-  if (week < 4) return `${week} minggu lalu`
-  if (month < 12) return `${month} bulan lalu`
-  return `${Math.floor(day / 365)} tahun lalu`
+  return `${Math.floor(day / 7)} minggu lalu`
 }
 
-function avatarUrl(name: string | null | undefined): string {
-  const display = (name && name.trim()) || 'RPI'
-  return `https://ui-avatars.com/api/?background=0A2540&color=C9A961&bold=true&name=${encodeURIComponent(
-    display
-  )}`
-}
-
-export function JobsCarousel({ jobs, className }: JobsCarouselProps) {
+export function JobsCarousel({ jobs, categories, className }: JobsCarouselProps) {
   const data = jobs && jobs.length > 0 ? jobs : PLACEHOLDER_JOBS
+  const cats =
+    categories && categories.length > 0
+      ? categories.slice(0, 8)
+      : FALLBACK_CATEGORIES
   const scrollerRef = React.useRef<HTMLDivElement | null>(null)
 
   const scrollBy = (delta: number) => {
@@ -215,163 +196,139 @@ export function JobsCarousel({ jobs, className }: JobsCarouselProps) {
   }
 
   return (
-    <section className={cn('bg-background py-16 md:py-24', className)}>
-      <div className="container mx-auto px-6">
-        {/* Header */}
-        <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium uppercase tracking-wider text-secondary">
-              <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-              Lowongan Pilihan
-            </span>
-            <h2 className="font-heading mt-4 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-              Lowongan Terbaru untuk Kamu
-            </h2>
-            <p className="mt-3 text-base text-muted-foreground">
-              Temukan peluang karir terbaik dari perusahaan ternama di Indonesia,
-              dikurasi khusus sesuai keahlian dan minat kamu.
-            </p>
-          </div>
+    <section className={cn('bg-background py-16 md:py-20', className)}>
+      <div className="container mx-auto w-full max-w-6xl px-6">
+        {/* Eyebrow + heading + CTA */}
+        <div className="mb-6 flex items-center gap-3">
+          <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+          <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            Lowongan
+          </span>
+        </div>
 
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            Yang sedang dicari minggu ini.
+          </h2>
           <div className="flex items-center gap-3">
             <Link
               href="/jobs"
-              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-secondary"
+              className="group inline-flex items-center gap-1.5 text-sm font-medium text-foreground transition-colors hover:text-[color:var(--ring)]"
             >
-              Lihat Semua
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              Lihat semua lowongan
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 aria-label="Sebelumnya"
                 onClick={() => scrollBy(-360)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-all hover:border-secondary hover:text-secondary hover:shadow-md"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:border-[color:var(--ring)] hover:text-[color:var(--ring)]"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 aria-label="Berikutnya"
                 onClick={() => scrollBy(360)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-all hover:border-secondary hover:text-secondary hover:shadow-md"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:border-[color:var(--ring)] hover:text-[color:var(--ring)]"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Carousel */}
+        {/* Category chips strip */}
+        <div className="mb-8 -mx-6 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <ul className="flex w-max items-center gap-2">
+            {cats.map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`/jobs?category=${c.slug}`}
+                  className="inline-flex items-center rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:border-[color:var(--ring)] hover:text-foreground"
+                >
+                  {c.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Cards carousel */}
         <div
           ref={scrollerRef}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          className="-mx-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 pb-4 [&::-webkit-scrollbar]:hidden"
+          className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [&::-webkit-scrollbar]:hidden"
         >
           {data.map((job, i) => {
-            const gradient = GRADIENTS[i % GRADIENTS.length]
             const tenantName = job.tenant?.name ?? 'RPI'
             const href = `/jobs/${job.slug || job.id}`
-            const salary = formatRupiahRange(job.salaryMin, job.salaryMax)
+            const salary = formatSalaryShort(job.salaryMin, job.salaryMax)
 
             return (
               <motion.article
                 key={job.id}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.5, delay: i * 0.05, ease: 'easeOut' }}
-                className="group relative w-[300px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl md:w-[340px]"
+                transition={{ duration: 0.45, delay: i * 0.04, ease: 'easeOut' }}
+                className="group relative w-[300px] shrink-0 snap-start rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--ring)] md:w-[320px]"
               >
-                {/* Top gradient strip */}
-                <div
-                  className={cn(
-                    'relative h-24 bg-gradient-to-br transition-all duration-300 group-hover:brightness-110',
-                    gradient
-                  )}
-                >
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.25),transparent_60%)]" />
-                  <div className="absolute right-4 top-4">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
-                      <Building2 className="h-3 w-3" />
-                      {job.locationType || 'On-site'}
-                    </span>
-                  </div>
-                </div>
+                <Link
+                  href={href as Route}
+                  className="absolute inset-0 z-10"
+                  aria-label={job.title}
+                />
 
-                {/* Logo */}
-                <div className="relative -mt-7 ml-5 h-14 w-14 overflow-hidden rounded-xl border-4 border-card bg-card shadow-md">
-                  <Image
-                    src={avatarUrl(tenantName)}
-                    alt={tenantName}
-                    fill
-                    sizes="56px"
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-
-                {/* Body */}
-                <div className="p-5 pt-2">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:color-mix(in_oklab,var(--ring)_14%,transparent)] px-2.5 py-1 text-xs font-medium text-[color:var(--ring)]">
+                    <BadgeCheck className="h-3.5 w-3.5" />
+                    Verified
+                  </span>
                   {job.category?.name ? (
-                    <span className="inline-flex rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                      {job.category.name}
-                    </span>
+                    <span className="text-xs text-muted-foreground">{job.category.name}</span>
                   ) : null}
+                </div>
 
-                  <h3 className="font-heading mt-2 line-clamp-2 text-base font-semibold leading-snug text-foreground">
-                    {job.title}
-                  </h3>
+                <h3 className="font-heading mt-4 line-clamp-2 text-lg font-semibold leading-snug text-foreground">
+                  {job.title}
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">{tenantName}</p>
 
-                  <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                    <span className="truncate">{tenantName}</span>
-                    <BadgeCheck className="h-4 w-4 shrink-0 text-secondary" />
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                    {job.location ? (
-                      <span className="inline-flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5" />
+                <dl className="mt-4 space-y-1.5 text-sm">
+                  {job.location ? (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" aria-hidden />
+                      <span>
                         {job.location}
-                      </span>
-                    ) : null}
-                    {job.employmentType ? (
-                      <span className="inline-flex items-center gap-1">
-                        <Briefcase className="h-3.5 w-3.5" />
-                        {job.employmentType}
-                      </span>
-                    ) : null}
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {relativeTimeId(job.publishedAt)}
-                    </span>
-                  </div>
-
-                  {salary ? (
-                    <div className="mt-3">
-                      <span className="inline-flex items-center rounded-md bg-secondary/15 px-2.5 py-1 text-sm font-medium text-secondary">
-                        {salary}
+                        {job.locationType ? ` · ${job.locationType}` : ''}
                       </span>
                     </div>
                   ) : null}
+                  {job.employmentType ? (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Briefcase className="h-3.5 w-3.5" aria-hidden />
+                      <span>{job.employmentType}</span>
+                    </div>
+                  ) : null}
+                </dl>
 
-                  {/* Footer */}
-                  <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-                    <button
-                      type="button"
-                      aria-label="Simpan lowongan"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-secondary"
-                    >
-                      <Bookmark className="h-4 w-4" />
-                    </button>
-                    <Link
-                      href={href}
-                      className="group/link inline-flex items-center gap-1 text-sm font-semibold text-foreground transition-colors hover:text-secondary"
-                    >
-                      Lihat Detail
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
-                    </Link>
-                  </div>
+                {salary ? (
+                  <p className="font-heading mt-4 text-lg font-semibold text-[color:var(--ring)]">
+                    {salary}
+                  </p>
+                ) : null}
+
+                <div className="mt-5 flex items-center justify-between border-t border-border/60 pt-3 text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" aria-hidden />
+                    {relativeTimeId(job.publishedAt)}
+                  </span>
+                  <span className="relative z-20 inline-flex items-center gap-1 font-medium text-foreground transition-colors group-hover:text-[color:var(--ring)]">
+                    Lihat detail
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </span>
                 </div>
               </motion.article>
             )

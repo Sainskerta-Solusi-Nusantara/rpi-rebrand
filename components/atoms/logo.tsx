@@ -30,7 +30,7 @@ export function Logo({ src, mark = false, href, className, alt = 'Rumah Pekerja 
       )}
     >
       <span>RPI</span>
-      <span className="h-1.5 w-1.5 rounded-full bg-secondary" aria-hidden="true" />
+      <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--ring)]" aria-hidden="true" />
     </span>
   )
 

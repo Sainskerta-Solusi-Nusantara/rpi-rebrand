@@ -2,21 +2,11 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { HeroBanner } from '@/components/organisms/hero-banner'
-import { SkillChips } from '@/components/organisms/skill-chips'
-import { LiveJobTicker } from '@/components/organisms/live-job-ticker'
-import { StatsStrip } from '@/components/organisms/stats-strip'
-import { CategoriesGrid } from '@/components/organisms/categories-grid'
 import { JobsCarousel } from '@/components/organisms/jobs-carousel'
 import { HowItWorks } from '@/components/organisms/how-it-works'
 import { WhyChooseUs } from '@/components/organisms/why-choose-us'
-import { IndustrySpotlight } from '@/components/organisms/industry-spotlight'
 import { LMSPathTimeline } from '@/components/organisms/lms-path-timeline'
 import { SuccessStories } from '@/components/organisms/success-stories'
-import { TestimonialVideo } from '@/components/organisms/testimonial-video'
-import { FeaturedPartners } from '@/components/organisms/featured-partners'
-import { CareerInsights } from '@/components/organisms/career-insights'
-import { AppPromo } from '@/components/organisms/app-promo'
-import { NewsletterSignup } from '@/components/organisms/newsletter-signup'
 import { FAQAccordion } from '@/components/organisms/faq-accordion'
 import { CTABanner } from '@/components/organisms/cta-banner'
 
@@ -53,7 +43,6 @@ export default async function HomePage() {
 
   const [
     latestJobs,
-    tickerJobs,
     categories,
     courses,
     jobsCount,
@@ -83,25 +72,10 @@ export default async function HomePage() {
         },
       })
       .catch(() => []),
-    prisma.job
-      .findMany({
-        where: jobWhere,
-        take: 20,
-        orderBy: { publishedAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          location: true,
-          tenant: { select: { name: true } },
-          publishedAt: true,
-        },
-      })
-      .catch(() => []),
     prisma.jobCategory
       .findMany({
         where: { parentId: null },
-        take: 12,
+        take: 8,
         include: { _count: { select: { jobs: true } } },
         orderBy: { name: 'asc' },
       })
@@ -109,7 +83,7 @@ export default async function HomePage() {
     prisma.course
       .findMany({
         where: courseWhere,
-        take: 6,
+        take: 3,
         orderBy: { publishedAt: 'desc' },
         select: {
           id: true,
@@ -139,13 +113,6 @@ export default async function HomePage() {
       })
       .catch(() => null),
   ])
-
-  const stats = [
-    { label: 'Lowongan Aktif', value: jobsCount > 0 ? jobsCount : 12000, icon: 'jobs' as const, suffix: '+' },
-    { label: 'Pekerja Terdaftar', value: usersCount > 0 ? usersCount : 240000, icon: 'talents' as const, suffix: '+' },
-    { label: 'Mitra Terverifikasi', value: partnersCount > 0 ? partnersCount : 850, icon: 'partners' as const, suffix: '+' },
-    { label: 'Kursus Tersedia', value: coursesCount > 0 ? coursesCount : 500, icon: 'courses' as const, suffix: '+' },
-  ]
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -205,68 +172,31 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* 1. Hero — search + stats + portrait */}
+      {/* 1. Hero — stats-forward */}
       <HeroBanner
         stats={{
-          jobs: jobsCount > 0 ? `${jobsCount}+` : '12K+',
-          partners: partnersCount > 0 ? `${partnersCount}+` : '850+',
-          talents: usersCount > 0 ? `${usersCount}+` : '240K',
+          talents: usersCount > 0 ? usersCount : 240000,
+          jobs: jobsCount > 0 ? jobsCount : 12000,
+          partners: partnersCount > 0 ? partnersCount : 850,
+          courses: coursesCount > 0 ? coursesCount : 500,
         }}
       />
 
-      {/* 2. Skill quick-filter chips */}
-      <SkillChips />
+      {/* 2. Jobs — kategori chips + carousel */}
+      <JobsCarousel jobs={latestJobs} categories={categories} />
 
-      {/* 3. Live job ticker (marquee) */}
-      <section aria-label="Lowongan live" className="border-b border-border bg-background">
-        <div className="mx-auto w-full max-w-7xl px-6 py-6">
-          <LiveJobTicker jobs={tickerJobs} />
-        </div>
-      </section>
-
-      {/* 4. Stats strip (animated counters, overlaps hero) */}
-      <StatsStrip stats={stats} />
-
-      {/* 5. Categories grid */}
-      <CategoriesGrid categories={categories} />
-
-      {/* 6. Jobs carousel */}
-      <JobsCarousel jobs={latestJobs} />
-
-      {/* 7. How it works (4-step process) */}
+      {/* 3. How it works — 4 linear steps */}
       <HowItWorks />
 
-      {/* 8. Why choose us (benefits) */}
+      {/* 4. Why RPI — 4 value props */}
       <WhyChooseUs />
 
-      {/* 9. Industry spotlight */}
-      <IndustrySpotlight />
-
-      {/* 10. LMS courses */}
+      {/* 5. LMS — 3 featured courses */}
       <LMSPathTimeline courses={courses} />
 
-      {/* 11. Success stories wall */}
-      <SuccessStories />
-
-      {/* 12. Featured testimonial (video) */}
-      <TestimonialVideo testimonial={featuredTestimonial} />
-
-      {/* 13. Featured partners marquee */}
-      <FeaturedPartners />
-
-      {/* 14. Career insights blog */}
-      <CareerInsights />
-
-      {/* 15. Mobile app promo */}
-      <AppPromo />
-
-      {/* 16. Newsletter signup */}
-      <NewsletterSignup />
-
-      {/* 17. FAQ */}
+      {/* 6. Social proof + FAQ + CTA closer */}
+      <SuccessStories testimonial={featuredTestimonial} />
       <FAQAccordion />
-
-      {/* 18. Final CTA banner */}
       <CTABanner />
     </>
   )
