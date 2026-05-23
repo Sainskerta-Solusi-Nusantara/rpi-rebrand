@@ -46,10 +46,8 @@ export function NavbarPublic({ tenant, links, className }: NavbarPublicProps) {
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 w-full transition-all duration-300',
-        scrolled
-          ? 'border-b border-border bg-background/85 backdrop-blur-md shadow-sm'
-          : 'bg-background/40 backdrop-blur',
+        'sticky top-0 z-40 w-full bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 transition-shadow duration-300',
+        scrolled ? 'border-b border-border shadow-sm' : 'border-b border-transparent',
         className,
       )}
     >
