@@ -383,9 +383,9 @@ export function ContactFormSection() {
                 />
                 <span>
                   Saya menyetujui{' '}
-                  <Link href="/privacy" className="text-foreground underline underline-offset-2">
+                  <a href="/privacy" className="text-foreground underline underline-offset-2">
                     Kebijakan Privasi
-                  </Link>{' '}
+                  </a>{' '}
                   dan pemrosesan data oleh Rumah Pekerja Indonesia untuk tujuan
                   korespondensi.
                 </span>
@@ -634,15 +634,13 @@ export function ContactAudience() {
         <div className="grid gap-4 sm:grid-cols-2">
           {AUDIENCES.map((a, i) => {
             const Icon = a.icon
-            const isExternal = a.href.startsWith('mailto') || a.href.startsWith('http')
-            const Wrapper = isExternal ? 'a' : Link
             return (
               <motion.div
                 key={a.title}
                 {...fadeUp}
                 transition={{ duration: 0.5, delay: 0.05 * i }}
               >
-                <Wrapper
+                <a
                   href={a.href}
                   className={cn(
                     'border-border bg-card hover:border-[color:var(--ring)] hover:shadow-md group flex h-full items-start gap-5 rounded-2xl border p-6 transition',
@@ -664,7 +662,7 @@ export function ContactAudience() {
                       <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                     </span>
                   </div>
-                </Wrapper>
+                </a>
               </motion.div>
             )
           })}

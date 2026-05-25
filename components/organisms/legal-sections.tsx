@@ -538,7 +538,7 @@ export function LegalDocuments() {
                 {...fadeUp}
                 transition={{ duration: 0.4, delay: 0.03 * i }}
               >
-                <Link
+                <a
                   href={d.href}
                   className="border-border bg-card hover:border-[color:var(--ring)] group flex h-full items-start gap-4 rounded-2xl border p-5 transition"
                 >
@@ -565,7 +565,7 @@ export function LegalDocuments() {
                       {d.lastUpdated}
                     </p>
                   </div>
-                </Link>
+                </a>
               </motion.li>
             )
           })}

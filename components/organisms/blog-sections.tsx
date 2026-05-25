@@ -11,8 +11,6 @@ import {
   Clock,
   Compass,
   GraduationCap,
-  Lightbulb,
-  Megaphone,
   Search,
   Sparkles,
   TrendingUp,
@@ -20,8 +18,6 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/atoms/button'
-import { Input } from '@/components/atoms/input'
-import { Badge } from '@/components/atoms/badge'
 import { cn } from '@/lib/utils'
 import {
   BLOG_CATEGORIES,

@@ -22,7 +22,6 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/atoms/button'
-import { Badge } from '@/components/atoms/badge'
 import { cn } from '@/lib/utils'
 import {
   PRESS_CATEGORIES,

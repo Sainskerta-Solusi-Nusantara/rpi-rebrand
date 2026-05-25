@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Award,
   BadgeCheck,
-  Banknote,
   Building2,
   Cloud,
   Database,
@@ -18,24 +17,20 @@ import {
   Lock,
   MapPin,
   Network,
-  Plug,
   Quote,
   Send,
-  Server,
   ServerCog,
   ShieldCheck,
   Sparkles,
   Star,
   Users,
   Workflow,
-  Zap,
 } from 'lucide-react'
 
 import { Button } from '@/components/atoms/button'
 import { Input } from '@/components/atoms/input'
 import { Textarea } from '@/components/atoms/textarea'
 import { Label } from '@/components/atoms/label'
-import { cn } from '@/lib/utils'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -286,8 +281,8 @@ export function EnterpriseCapabilities() {
             Dibangun untuk skala enterprise
           </h2>
           <p className="text-muted-foreground mt-3">
-            Bukan paket "Pro plus" — arsitektur, kontrak, dan tim yang berbeda
-            dari produk SaaS biasa.
+            Bukan paket &ldquo;Pro plus&rdquo; — arsitektur, kontrak, dan tim yang
+            berbeda dari produk SaaS biasa.
           </p>
         </motion.div>
 
@@ -649,9 +644,9 @@ export function EnterpriseCaseStudy() {
             <blockquote className="border-l-[color:var(--ring)] my-6 border-l-2 pl-5">
               <Quote className="text-[color:var(--ring)]/30 -ml-1 h-7 w-7" aria-hidden />
               <p className="text-foreground/90 font-heading mt-2 text-base italic md:text-lg">
-                "Yang membuat RPI berbeda bukan fitur — semua vendor punya fitur.
-                Yang berbeda adalah cara mereka memahami kompleksitas grup kami
-                dan tetap merilis dengan kualitas mingguan."
+                &ldquo;Yang membuat RPI berbeda bukan fitur — semua vendor punya
+                fitur. Yang berbeda adalah cara mereka memahami kompleksitas
+                grup kami dan tetap merilis dengan kualitas mingguan.&rdquo;
               </p>
               <footer className="text-muted-foreground mt-4 text-xs">
                 <strong className="text-foreground font-medium">Rina Adriani</strong>{' '}
@@ -902,12 +897,12 @@ export function EnterpriseContact() {
               />
               <span>
                 Saya menyetujui{' '}
-                <Link
+                <a
                   href="/privacy"
                   className="text-foreground underline underline-offset-2"
                 >
                   Kebijakan Privasi
-                </Link>{' '}
+                </a>{' '}
                 dan pemrosesan data untuk keperluan korespondensi sales.
               </span>
             </label>

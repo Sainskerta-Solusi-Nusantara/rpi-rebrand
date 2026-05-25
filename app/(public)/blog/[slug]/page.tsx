@@ -16,7 +16,6 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 
-import { Button } from '@/components/atoms/button'
 import { NewsletterSignup } from '@/components/organisms/newsletter-signup'
 import {
   BLOG_ARTICLES,

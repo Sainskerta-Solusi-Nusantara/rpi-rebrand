@@ -16,12 +16,10 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
-  X,
   Zap,
 } from 'lucide-react'
 
 import { Button } from '@/components/atoms/button'
-import { Badge } from '@/components/atoms/badge'
 import { cn } from '@/lib/utils'
 
 const fadeUp = {
@@ -425,10 +423,10 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: Billing }) {
         variant={plan.highlight ? 'default' : 'outline'}
         className="mt-6 w-full"
       >
-        <Link href={plan.href}>
+        <a href={plan.href}>
           {plan.cta}
           <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-        </Link>
+        </a>
       </Button>
 
       <ul className="mt-6 space-y-3 text-sm">

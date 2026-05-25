@@ -737,9 +737,9 @@ export function TimOpenRoles() {
           <div className="border-border relative mt-10 border-t pt-8">
             <Quote className="text-[color:var(--ring)]/30 -ml-1 h-7 w-7" aria-hidden />
             <p className="text-foreground/90 font-heading mt-2 max-w-3xl text-base italic leading-relaxed md:text-lg">
-              "Kami merekrut pelan dengan standar tinggi — tapi sekali Anda di
-              dalam, Anda dapat kepercayaan penuh untuk membuat dampak. Bukan
-              kebalikannya."
+              &ldquo;Kami merekrut pelan dengan standar tinggi — tapi sekali Anda
+              di dalam, Anda dapat kepercayaan penuh untuk membuat dampak.
+              Bukan kebalikannya.&rdquo;
             </p>
             <footer className="text-muted-foreground mt-3 text-xs">
               — Anya Kusumawardhani, VP People RPI

@@ -1112,5 +1112,5 @@ export function relatedArticles(slug: string, n = 3): BlogArticle[] {
     .slice(0, n)
 }
 
-export const FEATURED_ARTICLE: BlogArticle = BLOG_ARTICLES[0]
+export const FEATURED_ARTICLE: BlogArticle = BLOG_ARTICLES[0]!
 export const REGULAR_ARTICLES: BlogArticle[] = BLOG_ARTICLES.slice(1)

@@ -481,7 +481,7 @@ export function KarierGrowth() {
                   aria-hidden
                 />
                 <p className="text-foreground/85 mt-1 text-sm italic leading-relaxed">
-                  "{s.quote}"
+                  &ldquo;{s.quote}&rdquo;
                 </p>
               </blockquote>
             </motion.article>
@@ -699,7 +699,7 @@ export function KarierAlumni() {
               </div>
 
               <blockquote className="text-muted-foreground mt-4 text-sm italic leading-relaxed">
-                "{a.quote}"
+                &ldquo;{a.quote}&rdquo;
               </blockquote>
             </motion.article>
           ))}

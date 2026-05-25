@@ -639,7 +639,7 @@ export function ValuesLiving() {
                 aria-hidden
               />
               <blockquote className="text-foreground/90 font-heading mt-4 flex-1 text-base italic leading-relaxed">
-                "{l.quote}"
+                &ldquo;{l.quote}&rdquo;
               </blockquote>
               <figcaption className="border-border mt-5 flex items-center gap-3 border-t pt-5">
                 <span
@@ -739,7 +739,7 @@ export function ValuesAccountability() {
                 {...fadeUp}
                 transition={{ duration: 0.4, delay: 0.03 * i }}
               >
-                <Link
+                <a
                   href={a.href}
                   className="border-border bg-card hover:border-[color:var(--ring)] group flex h-full items-start gap-4 rounded-2xl border p-6 transition"
                 >
@@ -763,7 +763,7 @@ export function ValuesAccountability() {
                       {a.desc}
                     </p>
                   </div>
-                </Link>
+                </a>
               </motion.li>
             )
           })}

@@ -63,10 +63,10 @@ function companyColor(company: string): string {
     '#0A2540', '#635BFF', '#10B981', '#F59E0B',
     '#EC4899', '#0EA5E9', '#8B5CF6', '#EF4444',
     '#003D7A', '#E60000',
-  ]
+  ] as const
   let h = 0
   for (let i = 0; i < company.length; i++) h = (h << 5) - h + company.charCodeAt(i)
-  return palette[Math.abs(h) % palette.length]
+  return palette[Math.abs(h) % palette.length] ?? palette[0]
 }
 
 export default function JobDetailPage({ params }: { params: Params }) {

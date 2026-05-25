@@ -8,8 +8,6 @@ import {
   Copy,
   Download,
   FileText,
-  Globe,
-  Linkedin,
   Mail,
   MapPin,
   Newspaper,
@@ -165,12 +163,14 @@ export default function PressDetailPage({ params }: { params: Params }) {
             <div className="flex flex-wrap items-center gap-2">
               <PrintButton />
               <CopyLinkButton slug={release.slug} />
-              <Button asChild size="sm" variant="outline">
-                <a href={release.downloads[0].href}>
-                  <Download className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                  PDF
-                </a>
-              </Button>
+              {release.downloads[0] && (
+                <Button asChild size="sm" variant="outline">
+                  <a href={release.downloads[0].href}>
+                    <Download className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                    PDF
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -446,7 +446,7 @@ function SectionRender({ section }: { section: PressSection }) {
         <blockquote className="border-l-[color:var(--ring)] my-2 border-l-2 pl-6">
           <Quote className="text-[color:var(--ring)]/40 -ml-1 h-7 w-7" aria-hidden />
           <p className="font-heading text-foreground/95 mt-2 text-lg italic leading-relaxed md:text-xl">
-            "{section.text}"
+            &ldquo;{section.text}&rdquo;
           </p>
           <footer className="text-muted-foreground mt-4 text-xs">
             <strong className="text-foreground font-medium">

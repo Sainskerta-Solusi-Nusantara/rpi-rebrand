@@ -36,12 +36,6 @@ export type DummyJob = {
   benefits: string[]
 }
 
-function offsetDate(daysAgo: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() - daysAgo)
-  return d.toISOString()
-}
-
 export const DUMMY_JOBS: DummyJob[] = [
   {
     id: '1',
