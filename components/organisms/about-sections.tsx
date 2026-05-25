@@ -362,6 +362,19 @@ export function AboutValues() {
             )
           })}
         </div>
+
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-10 flex justify-center"
+        >
+          <Button asChild variant="outline" size="lg">
+            <Link href="/tentang/values">
+              Pelajari Nilai-Nilai Kami
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
+        </motion.div>
       </div>
     </section>
   )
@@ -494,7 +507,8 @@ export function AboutTeam() {
             Orang-orang di balik Rumah Pekerja.
           </motion.h2>
           <p className="mt-3 text-base text-muted-foreground md:text-lg">
-            Profil lengkap akan segera diperbarui.
+            120 anggota tim, 8 departemen, tersebar di 6 kota — bersatu dalam
+            satu misi.
           </p>
         </div>
 
@@ -521,6 +535,31 @@ export function AboutTeam() {
             </motion.article>
           ))}
         </div>
+
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap"
+        >
+          <Button asChild variant="outline" size="lg">
+            <Link href="/tentang/tim">
+              Bertemu Seluruh Tim
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/tentang/karier">
+              Karier di RPI
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="lg">
+            <Link href="/tentang/legal">
+              Legal & Kepatuhan
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
+        </motion.div>
       </div>
     </section>
   )

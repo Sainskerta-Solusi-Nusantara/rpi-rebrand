@@ -1,40 +1,7 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
-import { headers } from 'next/headers'
-import { prisma } from '@/lib/db'
-import type { Prisma } from '@prisma/client'
-
-function makeFallback(label: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function Fallback(_props: any) {
-    return (
-      <div
-        role="status"
-        aria-busy="true"
-        className="bg-muted my-4 h-32 w-full animate-pulse rounded-xl"
-        data-todo={`component:${label}`}
-      />
-    )
-  }
-}
-function safeRequire<T = unknown>(path: string, exportName: string): T {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require(path)
-    return (mod?.[exportName] ?? makeFallback(`${path}#${exportName}`)) as T
-  } catch {
-    return makeFallback(`${path}#${exportName}`) as unknown as T
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const JobCard: any = safeRequire('@/components/molecules/job-card', 'JobCard')
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CheckboxList: any = safeRequire('@/components/molecules/checkbox-list', 'CheckboxList')
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const PriceRangeSlider: any = safeRequire('@/components/molecules/price-range-slider', 'PriceRangeSlider')
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Pagination: any = safeRequire('@/components/molecules/pagination', 'Pagination')
+import Link from 'next/link'
+import { JobCard } from '@/components/molecules/job-card'
+import { DUMMY_JOBS } from '@/lib/jobs-data'
 
 export const metadata: Metadata = {
   title: 'Cari Lowongan Pekerjaan',
@@ -42,202 +9,125 @@ export const metadata: Metadata = {
     'Telusuri ribuan lowongan kerja terverifikasi di seluruh Indonesia. Saring berdasarkan kategori, lokasi, jenis pekerjaan, dan rentang gaji.',
 }
 
-const PAGE_SIZE = 20
+const CATEGORIES = [
+  { label: 'IT & Software',    count: 312 },
+  { label: 'Marketing',        count: 142 },
+  { label: 'Finance',          count: 98  },
+  { label: 'Human Resources',  count: 64  },
+  { label: 'Engineering',      count: 121 },
+  { label: 'Design',           count: 87  },
+  { label: 'Sales',            count: 134 },
+  { label: 'Healthcare',       count: 45  },
+  { label: 'Education',        count: 52  },
+  { label: 'Logistics',        count: 41  },
+]
 
-function parseList(v: string | string[] | undefined): string[] {
-  if (!v) return []
-  return Array.isArray(v) ? v : v.split(',').filter(Boolean)
-}
+const EMPLOYMENT = ['Penuh Waktu', 'Paruh Waktu', 'Kontrak', 'Magang', 'Lepas']
+const LOCATIONS = ['Di Tempat', 'Hibrida', 'Jarak Jauh']
+const LEVELS = ['Pemula', 'Junior', 'Menengah', 'Senior', 'Lead', 'Eksekutif']
 
-function parseNumber(v: string | string[] | undefined): number | undefined {
-  if (!v) return undefined
-  const s = Array.isArray(v) ? v[0] : v
-  const n = Number(s)
-  return Number.isFinite(n) ? n : undefined
-}
+const TOTAL = 1_356
 
-async function getTenantId(): Promise<string | null> {
-  const slug = headers().get('x-tenant-slug')
-  if (!slug) return null
-  const t = await prisma.tenant.findUnique({ where: { slug }, select: { id: true } }).catch(() => null)
-  return t?.id ?? null
-}
-
-export default async function JobsListPage({
-  searchParams,
-}: {
-  searchParams: Record<string, string | string[] | undefined>
-}) {
-  const tenantId = await getTenantId()
-  const q = typeof searchParams.q === 'string' ? searchParams.q : undefined
-  const categories = parseList(searchParams.category)
-  const employmentTypes = parseList(searchParams.type)
-  const locationTypes = parseList(searchParams.location)
-  const experienceLevels = parseList(searchParams.level)
-  const salaryMin = parseNumber(searchParams.salaryMin)
-  const salaryMax = parseNumber(searchParams.salaryMax)
-  const page = Math.max(1, parseNumber(searchParams.page) ?? 1)
-
-  const where: Prisma.JobWhereInput = {
-    status: 'PUBLISHED',
-    ...(tenantId ? { tenantId } : {}),
-    ...(q
-      ? {
-          OR: [
-            { title: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } },
-            { tags: { has: q } },
-          ],
-        }
-      : {}),
-    ...(categories.length ? { category: { slug: { in: categories } } } : {}),
-    ...(employmentTypes.length
-      ? { employmentType: { in: employmentTypes as Prisma.JobWhereInput['employmentType'] extends infer X ? never : never } }
-      : {}),
-    ...(locationTypes.length
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ({ locationType: { in: locationTypes as any } } as Prisma.JobWhereInput)
-      : {}),
-    ...(experienceLevels.length
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ({ experienceLevel: { in: experienceLevels as any } } as Prisma.JobWhereInput)
-      : {}),
-    ...(salaryMin !== undefined ? { salaryMin: { gte: salaryMin } } : {}),
-    ...(salaryMax !== undefined ? { salaryMax: { lte: salaryMax } } : {}),
-  }
-  // The above two ts-expect cast lanes for enums; Prisma client accepts the string values directly.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (employmentTypes.length) (where as any).employmentType = { in: employmentTypes }
-
-  const [jobs, total, allCategories] = await Promise.all([
-    prisma.job
-      .findMany({
-        where,
-        orderBy: { publishedAt: 'desc' },
-        take: PAGE_SIZE,
-        skip: (page - 1) * PAGE_SIZE,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          location: true,
-          locationType: true,
-          employmentType: true,
-          experienceLevel: true,
-          salaryMin: true,
-          salaryMax: true,
-          salaryCurrency: true,
-          publishedAt: true,
-          tags: true,
-          tenant: { select: { name: true, slug: true } },
-          category: { select: { name: true, slug: true } },
-        },
-      })
-      .catch(() => []),
-    prisma.job.count({ where }).catch(() => 0),
-    prisma.jobCategory
-      .findMany({
-        where: { parentId: null },
-        include: { _count: { select: { jobs: true } } },
-        orderBy: { name: 'asc' },
-      })
-      .catch(() => []),
-  ])
-
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+export default function JobsListPage() {
+  const jobs = DUMMY_JOBS
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
       <header className="mb-8">
         <h1 className="font-heading text-3xl md:text-4xl">Lowongan Pekerjaan</h1>
         <p className="text-muted-foreground mt-2">
-          {total.toLocaleString('id-ID')} lowongan tersedia
-          {q ? ` untuk "${q}"` : ''}
+          {TOTAL.toLocaleString('id-ID')} lowongan tersedia
         </p>
       </header>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
-        <aside aria-label="Filter" className="space-y-6">
-          <Suspense fallback={<div className="bg-muted h-32 animate-pulse rounded-xl" />}>
-            <CheckboxList
-              name="category"
-              label="Kategori"
-              options={allCategories.map((c) => ({
-                value: c.slug,
-                label: c.name,
-                count: c._count?.jobs ?? 0,
-              }))}
-              selected={categories}
-            />
-          </Suspense>
-          <CheckboxList
-            name="type"
-            label="Jenis Pekerjaan"
-            options={[
-              { value: 'FULL_TIME', label: 'Penuh Waktu' },
-              { value: 'PART_TIME', label: 'Paruh Waktu' },
-              { value: 'CONTRACT', label: 'Kontrak' },
-              { value: 'INTERNSHIP', label: 'Magang' },
-              { value: 'FREELANCE', label: 'Lepas' },
-            ]}
-            selected={employmentTypes}
-          />
-          <CheckboxList
-            name="location"
-            label="Lokasi"
-            options={[
-              { value: 'ONSITE', label: 'Di Tempat' },
-              { value: 'HYBRID', label: 'Hibrida' },
-              { value: 'REMOTE', label: 'Jarak Jauh' },
-            ]}
-            selected={locationTypes}
-          />
-          <CheckboxList
-            name="level"
-            label="Tingkat Pengalaman"
-            options={[
-              { value: 'ENTRY', label: 'Pemula' },
-              { value: 'JUNIOR', label: 'Junior' },
-              { value: 'MID', label: 'Menengah' },
-              { value: 'SENIOR', label: 'Senior' },
-              { value: 'LEAD', label: 'Lead' },
-              { value: 'EXECUTIVE', label: 'Eksekutif' },
-            ]}
-            selected={experienceLevels}
-          />
-          <PriceRangeSlider
-            name="salary"
-            label="Rentang Gaji (IDR/bulan)"
-            min={0}
-            max={50000000}
-            step={500000}
-            defaultMin={salaryMin}
-            defaultMax={salaryMax}
-          />
+        <aside aria-label="Filter" className="space-y-8">
+          <FilterGroup title="Kategori">
+            {CATEGORIES.map((c) => (
+              <FilterOption key={c.label} label={c.label} count={c.count} />
+            ))}
+          </FilterGroup>
+          <FilterGroup title="Jenis Pekerjaan">
+            {EMPLOYMENT.map((l) => (
+              <FilterOption key={l} label={l} />
+            ))}
+          </FilterGroup>
+          <FilterGroup title="Lokasi">
+            {LOCATIONS.map((l) => (
+              <FilterOption key={l} label={l} />
+            ))}
+          </FilterGroup>
+          <FilterGroup title="Tingkat Pengalaman">
+            {LEVELS.map((l) => (
+              <FilterOption key={l} label={l} />
+            ))}
+          </FilterGroup>
+          <FilterGroup title="Rentang Gaji (IDR/bulan)">
+            <div className="text-muted-foreground text-xs">Rp 0 – Rp 50.000.000</div>
+            <div className="bg-muted relative mt-3 h-1 rounded-full">
+              <div className="bg-primary absolute left-[10%] right-[20%] h-1 rounded-full" />
+            </div>
+          </FilterGroup>
         </aside>
 
         <section aria-label="Daftar lowongan">
-          {jobs.length === 0 ? (
-            <div className="border-border rounded-xl border p-8 text-center">
-              <p className="text-muted-foreground">
-                Tidak ada lowongan yang cocok dengan filter saat ini.
-              </p>
-            </div>
-          ) : (
-            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {jobs.map((j) => (
-                <li key={j.id}>
-                  <JobCard job={j} />
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {jobs.map((j) => (
+              <li key={j.id}>
+                <Link href={`/jobs/${j.slug}`} className="block">
+                  <JobCard
+                    title={j.title}
+                    company={j.company}
+                    location={j.location}
+                    locationType={j.locationType}
+                    employmentType={j.employmentType}
+                    salaryMin={j.salaryMin}
+                    salaryMax={j.salaryMax}
+                    tags={j.tags}
+                    postedAt={j.postedAt}
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
 
-          <div className="mt-8">
-            <Pagination page={page} totalPages={totalPages} />
-          </div>
+          <nav
+            aria-label="Pagination"
+            className="text-muted-foreground mt-10 flex items-center justify-center gap-2 text-sm"
+          >
+            <span className="border-border rounded-md border px-3 py-1.5">‹ Sebelumnya</span>
+            <span className="border-primary bg-primary text-primary-foreground rounded-md border px-3 py-1.5 font-medium">
+              1
+            </span>
+            <span className="border-border rounded-md border px-3 py-1.5">2</span>
+            <span className="border-border rounded-md border px-3 py-1.5">3</span>
+            <span className="px-2">…</span>
+            <span className="border-border rounded-md border px-3 py-1.5">68</span>
+            <span className="border-border rounded-md border px-3 py-1.5">Berikutnya ›</span>
+          </nav>
         </section>
       </div>
     </div>
+  )
+}
+
+function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-semibold">{title}</h3>
+      <div className="space-y-2">{children}</div>
+    </div>
+  )
+}
+
+function FilterOption({ label, count }: { label: string; count?: number }) {
+  return (
+    <label className="text-foreground/80 hover:text-foreground flex cursor-pointer items-center justify-between gap-2 text-sm">
+      <span className="inline-flex items-center gap-2">
+        <span className="border-border bg-background grid size-4 place-items-center rounded border" />
+        {label}
+      </span>
+      {count != null && <span className="text-muted-foreground text-xs">{count}</span>}
+    </label>
   )
 }

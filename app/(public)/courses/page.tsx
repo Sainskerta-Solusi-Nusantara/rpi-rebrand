@@ -1,34 +1,8 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Suspense } from 'react'
-import { headers } from 'next/headers'
-import { prisma } from '@/lib/db'
-import type { Prisma } from '@prisma/client'
-
-function makeFallback(label: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function Fallback(_props: any) {
-    return (
-      <div
-        role="status"
-        aria-busy="true"
-        className="bg-muted my-4 h-48 w-full animate-pulse rounded-xl"
-        data-todo={`component:${label}`}
-      />
-    )
-  }
-}
-function safeRequire<T = unknown>(path: string, exportName: string): T {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require(path)
-    return (mod?.[exportName] ?? makeFallback(`${path}#${exportName}`)) as T
-  } catch {
-    return makeFallback(`${path}#${exportName}`) as unknown as T
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CourseCard: any = safeRequire('@/components/molecules/course-card', 'CourseCard')
+import { CourseCard } from '@/components/molecules/course-card'
+import { DUMMY_COURSES } from '@/lib/courses-data'
 
 export const metadata: Metadata = {
   title: 'Kursus & Pelatihan',
@@ -36,46 +10,22 @@ export const metadata: Metadata = {
     'Tingkatkan keterampilan dengan kursus terstruktur, sertifikat, dan jalur karier yang dirancang untuk pekerja Indonesia.',
 }
 
-async function getTenantId(): Promise<string | null> {
-  const slug = headers().get('x-tenant-slug')
-  if (!slug) return null
-  const t = await prisma.tenant.findUnique({ where: { slug }, select: { id: true } }).catch(() => null)
-  return t?.id ?? null
-}
+const LEVELS = [
+  { v: '', l: 'Semua Tingkat' },
+  { v: 'beginner', l: 'Pemula' },
+  { v: 'intermediate', l: 'Menengah' },
+  { v: 'advanced', l: 'Lanjutan' },
+]
 
-export default async function CoursesPage({
+export default function CoursesPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
-  const tenantId = await getTenantId()
-  const level = typeof searchParams.level === 'string' ? searchParams.level : undefined
-
-  const where: Prisma.CourseWhereInput = {
-    status: 'PUBLISHED',
-    ...(tenantId ? { tenantId } : {}),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ...(level ? ({ level: level as any } as Prisma.CourseWhereInput) : {}),
-  }
-
-  const courses = await prisma.course
-    .findMany({
-      where,
-      orderBy: { publishedAt: 'desc' },
-      take: 60,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        description: true,
-        thumbnail: true,
-        level: true,
-        durationHours: true,
-        instructor: { select: { name: true, image: true } },
-        _count: { select: { enrollments: true, modules: true } },
-      },
-    })
-    .catch(() => [])
+  const level = typeof searchParams.level === 'string' ? searchParams.level.toLowerCase() : ''
+  const courses = level
+    ? DUMMY_COURSES.filter((c) => c.level === level)
+    : DUMMY_COURSES
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
@@ -87,12 +37,7 @@ export default async function CoursesPage({
       </header>
 
       <nav aria-label="Tingkat" className="mb-8 flex flex-wrap gap-2 text-sm">
-        {[
-          { v: '', l: 'Semua Tingkat' },
-          { v: 'BEGINNER', l: 'Pemula' },
-          { v: 'INTERMEDIATE', l: 'Menengah' },
-          { v: 'ADVANCED', l: 'Lanjutan' },
-        ].map((opt) => (
+        {LEVELS.map((opt) => (
           <a
             key={opt.v || 'all'}
             href={opt.v ? `?level=${opt.v}` : '?'}
@@ -116,7 +61,15 @@ export default async function CoursesPage({
           <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {courses.map((c) => (
               <li key={c.id}>
-                <CourseCard course={c} />
+                <Link href={`/courses/${c.slug}`} className="block">
+                  <CourseCard
+                    title={c.title}
+                    instructor={c.instructor.name}
+                    level={c.level}
+                    durationHours={c.durationHours}
+                    lessonsCount={c.lessonsCount}
+                  />
+                </Link>
               </li>
             ))}
           </ul>

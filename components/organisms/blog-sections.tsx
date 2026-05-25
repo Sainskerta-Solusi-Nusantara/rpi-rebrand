@@ -1,0 +1,602 @@
+'use client'
+
+import * as React from 'react'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import {
+  ArrowRight,
+  BookOpen,
+  Briefcase,
+  Calendar,
+  Clock,
+  Compass,
+  GraduationCap,
+  Lightbulb,
+  Megaphone,
+  Search,
+  Sparkles,
+  TrendingUp,
+  Users,
+} from 'lucide-react'
+
+import { Button } from '@/components/atoms/button'
+import { Input } from '@/components/atoms/input'
+import { Badge } from '@/components/atoms/badge'
+import { cn } from '@/lib/utils'
+import {
+  BLOG_CATEGORIES,
+  FEATURED_ARTICLE,
+  REGULAR_ARTICLES,
+} from '@/lib/blog-data'
+
+const fadeUp = {
+  initial: { opacity: 0, y: 12 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: '-80px' },
+} as const
+
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
+
+const CATEGORIES = BLOG_CATEGORIES
+
+type Article = {
+  slug: string
+  title: string
+  excerpt: string
+  category: string
+  author: string
+  authorRole: string
+  date: string
+  readMin: number
+  gradient: [string, string]
+  emoji: string
+}
+
+function toArticle(a: typeof FEATURED_ARTICLE): Article {
+  return {
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt,
+    category: a.category,
+    author: a.author.name,
+    authorRole: a.author.role,
+    date: a.date,
+    readMin: a.readMin,
+    gradient: a.gradient,
+    emoji: a.emoji,
+  }
+}
+
+const FEATURED: Article = toArticle(FEATURED_ARTICLE)
+
+const ARTICLES: Article[] = REGULAR_ARTICLES.map(toArticle)
+
+// ---------------------------------------------------------------------------
+// Hero
+// ---------------------------------------------------------------------------
+
+const BlogContext = React.createContext<{
+  active: string
+  setActive: (s: string) => void
+  query: string
+  setQuery: (s: string) => void
+}>({
+  active: 'all',
+  setActive: () => {},
+  query: '',
+  setQuery: () => {},
+})
+
+function BlogProvider({ children }: { children: React.ReactNode }) {
+  const [active, setActive] = React.useState('all')
+  const [query, setQuery] = React.useState('')
+  return (
+    <BlogContext.Provider value={{ active, setActive, query, setQuery }}>
+      {children}
+    </BlogContext.Provider>
+  )
+}
+
+export function BlogHero() {
+  return (
+    <BlogProvider>
+      <BlogHeroInner />
+    </BlogProvider>
+  )
+}
+
+function BlogHeroInner() {
+  const { active, setActive, query, setQuery } = React.useContext(BlogContext)
+  return (
+    <section
+      className="relative isolate overflow-hidden bg-background"
+      aria-labelledby="blog-hero-heading"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          backgroundImage:
+            'linear-gradient(to bottom, color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px)',
+          backgroundSize: '100% 96px',
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in oklab, var(--ring) 14%, transparent), transparent 65%)',
+        }}
+      />
+
+      <div className="container mx-auto w-full max-w-5xl px-6 pt-20 md:pt-28">
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.5 }}
+          className="mb-6 flex items-center justify-center gap-3"
+        >
+          <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+          <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            Blog & Insight
+          </span>
+          <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+        </motion.div>
+
+        <motion.h1
+          id="blog-hero-heading"
+          {...fadeUp}
+          transition={{ duration: 0.55, delay: 0.1 }}
+          className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
+        >
+          Cerita, riset, dan{' '}
+          <span className="text-[color:var(--ring)]">panduan praktis</span>
+          {' '}dari dunia kerja Indonesia.
+        </motion.h1>
+
+        <motion.p
+          {...fadeUp}
+          transition={{ duration: 0.55, delay: 0.15 }}
+          className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg"
+        >
+          Untuk pencari kerja, perekrut, dan pemimpin SDM. Ditulis tim editorial
+          RPI bersama praktisi industri — bukan konten generik AI.
+        </motion.p>
+
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.55, delay: 0.2 }}
+          className="mx-auto mt-10 flex w-full max-w-xl items-center"
+        >
+          <div className="border-border bg-card focus-within:border-[color:var(--ring)] flex w-full items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition">
+            <Search className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari artikel, topik, atau penulis…"
+              className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
+              aria-label="Cari artikel"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="text-muted-foreground hover:text-foreground text-xs"
+                aria-label="Hapus pencarian"
+              >
+                Bersihkan
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="container mx-auto w-full max-w-6xl px-6 pb-10 pt-12 md:pb-12 md:pt-16">
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="flex flex-wrap items-center justify-center gap-2"
+        >
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.slug}
+              type="button"
+              onClick={() => setActive(c.slug)}
+              className={cn(
+                'rounded-full border px-4 py-1.5 text-xs font-medium transition',
+                active === c.slug
+                  ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
+                  : 'border-border bg-background text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {c.label}
+            </button>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Featured Post
+// ---------------------------------------------------------------------------
+
+export function BlogFeatured() {
+  return (
+    <section
+      className="bg-background pb-12"
+      aria-labelledby="blog-featured-heading"
+    >
+      <div className="container mx-auto w-full max-w-6xl px-6">
+        <motion.h2
+          {...fadeUp}
+          transition={{ duration: 0.5 }}
+          id="blog-featured-heading"
+          className="sr-only"
+        >
+          Artikel Unggulan
+        </motion.h2>
+        <motion.article
+          {...fadeUp}
+          transition={{ duration: 0.5 }}
+          className="border-border bg-card group grid overflow-hidden rounded-3xl border lg:grid-cols-[1.05fr_0.95fr]"
+        >
+          <Link
+            href={`/blog/${FEATURED.slug}`}
+            aria-hidden
+            tabIndex={-1}
+            className="relative block aspect-[4/3] overflow-hidden lg:aspect-auto"
+            style={{
+              background: `linear-gradient(135deg, ${FEATURED.gradient[0]} 0%, ${FEATURED.gradient[1]} 100%)`,
+            }}
+          >
+            <div className="absolute inset-0 grid place-items-center text-7xl opacity-90 transition group-hover:scale-105">
+              {FEATURED.emoji}
+            </div>
+            <div className="absolute left-5 top-5">
+              <span className="bg-background/90 text-foreground inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
+                <Sparkles className="h-3 w-3" aria-hidden />
+                Unggulan
+              </span>
+            </div>
+          </Link>
+
+          <div className="flex flex-col justify-center gap-4 p-8 md:p-12">
+            <CategoryBadge slug={FEATURED.category} />
+            <Link href={`/blog/${FEATURED.slug}`}>
+              <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] text-balance text-2xl font-semibold leading-tight tracking-tight transition md:text-3xl">
+                {FEATURED.title}
+              </h3>
+            </Link>
+            <p className="text-muted-foreground text-base leading-relaxed">
+              {FEATURED.excerpt}
+            </p>
+
+            <div className="border-border text-muted-foreground mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 border-t pt-5 text-xs">
+              <span className="text-foreground/85 font-medium">
+                {FEATURED.author}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5" aria-hidden />
+                {FEATURED.date}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" aria-hidden />
+                {FEATURED.readMin} menit baca
+              </span>
+            </div>
+
+            <div>
+              <Button asChild variant="default" className="mt-2">
+                <Link href={`/blog/${FEATURED.slug}`}>
+                  Baca artikel
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </motion.article>
+      </div>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Article Grid
+// ---------------------------------------------------------------------------
+
+export function BlogGrid() {
+  return (
+    <BlogProvider>
+      <BlogGridInner />
+    </BlogProvider>
+  )
+}
+
+function BlogGridInner() {
+  // We render fresh provider here for isolation; in real app we'd lift state up.
+  // For dummy review, filtering uses local state.
+  const [active, setActive] = React.useState('all')
+  const [query, setQuery] = React.useState('')
+
+  const filtered = ARTICLES.filter((a) => {
+    if (active !== 'all' && a.category !== active) return false
+    if (query.trim()) {
+      const q = query.toLowerCase()
+      return (
+        a.title.toLowerCase().includes(q) ||
+        a.excerpt.toLowerCase().includes(q) ||
+        a.author.toLowerCase().includes(q)
+      )
+    }
+    return true
+  })
+
+  return (
+    <section
+      className="bg-background pb-20 md:pb-24"
+      aria-labelledby="blog-grid-heading"
+    >
+      <div className="container mx-auto w-full max-w-6xl px-6">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2
+              id="blog-grid-heading"
+              className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl"
+            >
+              Artikel Terbaru
+            </h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {filtered.length} artikel
+              {active !== 'all' &&
+                ` di kategori ${CATEGORIES.find((c) => c.slug === active)?.label}`}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground text-xs">Filter:</span>
+            <select
+              value={active}
+              onChange={(e) => setActive(e.target.value)}
+              className="border-border bg-background text-foreground focus-visible:ring-ring/40 h-9 rounded-md border px-3 text-xs focus-visible:outline-none focus-visible:ring-2"
+              aria-label="Filter kategori"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <div className="border-border bg-card focus-within:border-[color:var(--ring)] hidden items-center gap-2 rounded-md border px-3 sm:flex">
+              <Search className="text-muted-foreground h-3.5 w-3.5" aria-hidden />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Cari…"
+                className="text-foreground placeholder:text-muted-foreground h-9 w-44 bg-transparent text-xs outline-none"
+                aria-label="Cari artikel"
+              />
+            </div>
+          </div>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="border-border bg-card rounded-2xl border p-12 text-center">
+            <Search className="text-muted-foreground mx-auto h-8 w-8" aria-hidden />
+            <h3 className="font-heading text-foreground mt-4 text-lg font-semibold">
+              Tidak ada artikel yang cocok
+            </h3>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Coba ubah kata kunci atau pilih kategori lain.
+            </p>
+          </div>
+        ) : (
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((a, i) => (
+              <motion.li
+                key={a.slug}
+                {...fadeUp}
+                transition={{ duration: 0.4, delay: 0.03 * (i % 6) }}
+              >
+                <ArticleCard article={a} />
+              </motion.li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function ArticleCard({ article }: { article: Article }) {
+  return (
+    <Link
+      href={`/blog/${article.slug}`}
+      className="border-border bg-card hover:border-[color:var(--ring)] group flex h-full flex-col overflow-hidden rounded-2xl border transition"
+    >
+      <div
+        aria-hidden
+        className="relative aspect-[16/10] overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${article.gradient[0]} 0%, ${article.gradient[1]} 100%)`,
+        }}
+      >
+        <div className="absolute inset-0 grid place-items-center text-5xl opacity-90 transition group-hover:scale-110">
+          {article.emoji}
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <CategoryBadge slug={article.category} />
+        <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] line-clamp-2 text-base font-semibold leading-snug transition">
+          {article.title}
+        </h3>
+        <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+          {article.excerpt}
+        </p>
+
+        <div className="border-border text-muted-foreground mt-auto flex items-center justify-between gap-2 border-t pt-3 text-xs">
+          <span className="text-foreground/80 truncate font-medium">
+            {article.author}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="h-3 w-3" aria-hidden />
+            {article.readMin} min
+          </span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+function CategoryBadge({ slug }: { slug: string }) {
+  const cat = CATEGORIES.find((c) => c.slug === slug)
+  if (!cat || cat.slug === 'all') return null
+  return (
+    <span
+      className="inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
+      style={{
+        background: `color-mix(in oklab, ${cat.color} 12%, transparent)`,
+        color: cat.color,
+      }}
+    >
+      <span
+        aria-hidden
+        className="size-1.5 rounded-full"
+        style={{ background: cat.color }}
+      />
+      {cat.label}
+    </span>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Topics & Most Popular
+// ---------------------------------------------------------------------------
+
+const POPULAR = [
+  { rank: 1, title: 'Negosiasi gaji untuk yang pertama kali', reads: '124K' },
+  { rank: 2, title: 'Membaca offer letter: 9 hal yang sering terlewat', reads: '98K' },
+  { rank: 3, title: 'Resign dengan elegan (tanpa membakar jembatan)', reads: '76K' },
+  { rank: 4, title: 'Portfolio designer yang menjual diri sendiri', reads: '65K' },
+  { rank: 5, title: 'Membuat keputusan job hopping vs bertahan', reads: '54K' },
+]
+
+const TOPIC_TILES = [
+  { icon: Briefcase,    label: 'Tips Karier',     slug: 'tips-karier',  count: 124, color: '#635BFF' },
+  { icon: Users,        label: 'Rekrutmen',       slug: 'rekrutmen',    count: 86,  color: '#10B981' },
+  { icon: TrendingUp,   label: 'Gaji & Industri', slug: 'gaji',         count: 52,  color: '#F59E0B' },
+  { icon: GraduationCap,label: 'Skill & Belajar', slug: 'skills',       count: 71,  color: '#0EA5E9' },
+  { icon: Compass,      label: 'Kepemimpinan',    slug: 'kepemimpinan', count: 38,  color: '#EC4899' },
+  { icon: Sparkles,     label: 'Cerita Pekerja',  slug: 'cerita',       count: 47,  color: '#8B5CF6' },
+]
+
+export function BlogTopics() {
+  return (
+    <section
+      className="bg-muted/30 py-20 md:py-24"
+      aria-labelledby="blog-topics-heading"
+    >
+      <div className="container mx-auto w-full max-w-6xl px-6">
+        <div className="grid gap-10 lg:grid-cols-[1fr_0.7fr]">
+          {/* Topics grid */}
+          <div>
+            <motion.div
+              {...fadeUp}
+              transition={{ duration: 0.5 }}
+              className="mb-6"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+                <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  Jelajahi Topik
+                </span>
+              </div>
+              <h2
+                id="blog-topics-heading"
+                className="font-heading text-2xl font-semibold tracking-tight md:text-3xl"
+              >
+                Cari berdasarkan topik
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {TOPIC_TILES.map((t, i) => {
+                const Icon = t.icon
+                return (
+                  <motion.a
+                    key={t.label}
+                    {...fadeUp}
+                    transition={{ duration: 0.4, delay: 0.03 * i }}
+                    href={`/blog/topic/${t.slug}`}
+                    className="border-border bg-card hover:border-[color:var(--ring)] group flex flex-col gap-3 rounded-xl border p-4 transition"
+                  >
+                    <span
+                      aria-hidden
+                      className="grid size-9 place-items-center rounded-lg"
+                      style={{
+                        background: `color-mix(in oklab, ${t.color} 12%, transparent)`,
+                        color: t.color,
+                      }}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <div className="font-heading text-foreground text-sm font-semibold">
+                        {t.label}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        {t.count} artikel
+                      </div>
+                    </div>
+                  </motion.a>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Popular list */}
+          <motion.aside
+            {...fadeUp}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <div className="mb-6 flex items-center gap-3">
+              <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+              <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Terpopuler 30 Hari
+              </span>
+            </div>
+            <ol className="border-border bg-card divide-border divide-y overflow-hidden rounded-2xl border">
+              {POPULAR.map((p) => (
+                <li key={p.rank}>
+                  <a
+                    href={`/blog/popular-${p.rank}`}
+                    className="hover:bg-muted/40 group flex items-start gap-4 px-5 py-4 transition"
+                  >
+                    <span className="font-heading text-[color:var(--ring)] w-6 shrink-0 text-2xl font-semibold">
+                      {p.rank}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-foreground group-hover:text-[color:var(--ring)] line-clamp-2 text-sm font-medium transition">
+                        {p.title}
+                      </h3>
+                      <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
+                        <BookOpen className="h-3 w-3" aria-hidden />
+                        {p.reads} dibaca
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </motion.aside>
+        </div>
+      </div>
+    </section>
+  )
+}
