@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { prisma } from '@/lib/db'
+import { tenantMeta } from '@/lib/tenant-meta'
 
 export type JobLocationType = 'onsite' | 'hybrid' | 'remote'
 export type JobEmploymentType =
@@ -35,39 +36,6 @@ export type DummyJob = {
   requirements: string[]
   niceToHave: string[]
   benefits: string[]
-}
-
-// ---------------------------------------------------------------------------
-// Tenant metadata — presentation info that isn't in the DB schema. Keyed by
-// tenant slug. Used to enrich job cards with company tagline, industry, etc.
-// ---------------------------------------------------------------------------
-
-type TenantMeta = {
-  tagline: string
-  about: string
-  industry: string
-}
-
-const TENANT_META: Record<string, TenantMeta> = {
-  main: {
-    tagline: 'Platform multi-tenant untuk perekrutan & pelatihan Indonesia',
-    about:
-      'Rumah Pekerja Indonesia adalah platform multi-tenant terdepan untuk perekrutan dan pelatihan di Indonesia. Kami melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh provinsi.',
-    industry: 'Teknologi',
-  },
-  telkom: {
-    tagline: 'Telekomunikasi BUMN terbesar Indonesia',
-    about:
-      'Telkom adalah perusahaan telekomunikasi terbesar di Indonesia dengan lebih dari 170 juta pelanggan. Divisi Digital Business sedang membangun platform cloud-native untuk transformasi digital nasional.',
-    industry: 'Telekomunikasi',
-  },
-}
-
-const DEFAULT_TENANT_META: TenantMeta = {
-  tagline: 'Mitra perekrut terverifikasi RPI',
-  about:
-    'Perusahaan ini adalah mitra perekrut terverifikasi di platform Rumah Pekerja Indonesia.',
-  industry: 'Umum',
 }
 
 // ---------------------------------------------------------------------------
@@ -167,7 +135,7 @@ type PrismaJobWithRelations = {
 }
 
 function transform(row: PrismaJobWithRelations): DummyJob {
-  const meta = TENANT_META[row.tenant.slug] ?? DEFAULT_TENANT_META
+  const meta = tenantMeta(row.tenant.slug)
   const posted = relativeIndonesian(row.publishedAt)
   return {
     id: row.id,
