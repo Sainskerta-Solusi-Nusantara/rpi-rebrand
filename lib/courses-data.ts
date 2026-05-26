@@ -220,6 +220,8 @@ const COURSE_INCLUDE = {
 
 export type CourseFilters = {
   level?: CourseLevel
+  /** Free-text query — matched against title, description, instructor name. */
+  q?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -227,9 +229,19 @@ function buildCoursesWhere(filters: CourseFilters): any {
   const dbLevel = filters.level
     ? Object.entries(LEVEL_FROM_DB).find(([, v]) => v === filters.level)?.[0]
     : undefined
+  const q = filters.q?.trim()
   return {
     status: 'PUBLISHED',
     ...(dbLevel ? { level: dbLevel } : {}),
+    ...(q
+      ? {
+          OR: [
+            { title: { contains: q, mode: 'insensitive' as const } },
+            { description: { contains: q, mode: 'insensitive' as const } },
+            { instructor: { name: { contains: q, mode: 'insensitive' as const } } },
+          ],
+        }
+      : {}),
   }
 }
 

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { CourseCard } from '@/components/molecules/course-card'
 import {
   type CourseLevel,
@@ -22,18 +22,26 @@ const LEVELS: { v: '' | CourseLevel; l: string }[] = [
 
 type CoursesState = {
   level: '' | CourseLevel
+  q?: string
   page: number
 }
 
 function buildCoursesUrl(
   current: CoursesState,
-  patch: Partial<{ level: '' | CourseLevel; page: number; keepPage: boolean }>,
+  patch: Partial<{
+    level: '' | CourseLevel
+    q: string | null
+    page: number
+    keepPage: boolean
+  }>,
 ): string {
   const next = {
     level: patch.level ?? current.level,
+    q: 'q' in patch ? patch.q ?? undefined : current.q,
     page: patch.page ?? (patch.keepPage ? current.page : 1),
   }
   const params: string[] = []
+  if (next.q) params.push(`q=${encodeURIComponent(next.q)}`)
   if (next.level) params.push(`level=${next.level}`)
   if (next.page > 1) params.push(`page=${next.page}`)
   return params.length ? `/courses?${params.join('&')}` : '/courses'
@@ -50,13 +58,22 @@ export default async function CoursesPage({
     rawLevel === 'beginner' || rawLevel === 'intermediate' || rawLevel === 'advanced'
       ? rawLevel
       : ''
+  const activeQuery =
+    typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
   const pageParam =
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
   const activePage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
 
-  const current: CoursesState = { level, page: activePage }
+  const current: CoursesState = {
+    level,
+    q: activeQuery || undefined,
+    page: activePage,
+  }
   const result = await getCoursesPage(
-    level ? { level } : {},
+    {
+      ...(level ? { level } : {}),
+      ...(activeQuery ? { q: activeQuery } : {}),
+    },
     activePage,
   )
   const courses = result.items
@@ -68,6 +85,13 @@ export default async function CoursesPage({
         <h1 className="font-heading text-3xl md:text-4xl">Kursus & Pelatihan</h1>
         <p className="text-muted-foreground mt-2">
           {result.total.toLocaleString('id-ID')} kursus tersedia
+          {activeQuery && (
+            <>
+              {' '}untuk &ldquo;
+              <strong className="text-foreground font-medium">{activeQuery}</strong>
+              &rdquo;
+            </>
+          )}
           {totalPages > 1 && (
             <>
               {' '}· halaman{' '}
@@ -76,6 +100,39 @@ export default async function CoursesPage({
             </>
           )}
         </p>
+
+        {/* Search form — submits as GET, preserves level via hidden input */}
+        <form method="get" action="/courses" className="mt-5 max-w-2xl">
+          <div className="border-border bg-card focus-within:border-[color:var(--ring)] flex items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition">
+            <Search className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
+            <input
+              type="search"
+              name="q"
+              defaultValue={activeQuery}
+              placeholder="Cari kursus, topik, atau instruktur…"
+              className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
+              aria-label="Cari kursus"
+            />
+            {activeQuery && (
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={buildCoursesUrl(current, { q: null }) as any}
+                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
+              >
+                <X className="h-3 w-3" aria-hidden />
+                Bersihkan
+              </Link>
+            )}
+            <button
+              type="submit"
+              className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
+            >
+              Cari
+            </button>
+          </div>
+          {/* Preserve other filters on submit */}
+          {level && <input type="hidden" name="level" value={level} />}
+        </form>
       </header>
 
       <nav aria-label="Tingkat" className="mb-8 flex flex-wrap gap-2 text-sm">
@@ -105,16 +162,18 @@ export default async function CoursesPage({
             Tidak ada kursus
           </h2>
           <p className="text-muted-foreground mt-2 text-sm">
-            {level
-              ? 'Belum ada kursus di tingkat ini.'
-              : 'Belum ada kursus terdaftar.'}
+            {activeQuery
+              ? `Tidak ada kursus yang cocok dengan "${activeQuery}".`
+              : level
+                ? 'Belum ada kursus di tingkat ini.'
+                : 'Belum ada kursus terdaftar.'}
           </p>
-          {level && (
+          {(level || activeQuery) && (
             <Link
               href="/courses"
               className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
             >
-              Lihat semua tingkat
+              Bersihkan filter
             </Link>
           )}
         </div>
