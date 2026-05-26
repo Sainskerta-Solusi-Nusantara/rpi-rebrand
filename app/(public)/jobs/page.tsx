@@ -10,9 +10,78 @@ export const metadata: Metadata = {
     'Telusuri ribuan lowongan kerja terverifikasi di seluruh Indonesia. Saring berdasarkan kategori, lokasi, jenis pekerjaan, dan rentang gaji.',
 }
 
-const EMPLOYMENT = ['Penuh Waktu', 'Paruh Waktu', 'Kontrak', 'Magang', 'Lepas']
-const LOCATIONS = ['Di Tempat', 'Hibrida', 'Jarak Jauh']
-const LEVELS = ['Pemula', 'Junior', 'Menengah', 'Senior', 'Lead', 'Eksekutif']
+// ---------------------------------------------------------------------------
+// Filter option definitions — enum value paired with Indonesian label.
+// ---------------------------------------------------------------------------
+
+const EMPLOYMENT_OPTIONS: { value: string; label: string }[] = [
+  { value: 'FULL_TIME',  label: 'Penuh Waktu' },
+  { value: 'PART_TIME',  label: 'Paruh Waktu' },
+  { value: 'CONTRACT',   label: 'Kontrak' },
+  { value: 'INTERNSHIP', label: 'Magang' },
+  { value: 'FREELANCE',  label: 'Lepas' },
+]
+
+const LOCATION_OPTIONS: { value: string; label: string }[] = [
+  { value: 'ONSITE', label: 'Di Tempat' },
+  { value: 'HYBRID', label: 'Hibrida' },
+  { value: 'REMOTE', label: 'Jarak Jauh' },
+]
+
+const LEVEL_OPTIONS: { value: string; label: string }[] = [
+  { value: 'ENTRY',     label: 'Pemula' },
+  { value: 'JUNIOR',    label: 'Junior' },
+  { value: 'MID',       label: 'Menengah' },
+  { value: 'SENIOR',    label: 'Senior' },
+  { value: 'LEAD',      label: 'Lead' },
+  { value: 'EXECUTIVE', label: 'Eksekutif' },
+]
+
+// ---------------------------------------------------------------------------
+// URL helpers
+// ---------------------------------------------------------------------------
+
+function parseMulti(v: string | string[] | undefined): string[] {
+  if (!v) return []
+  if (Array.isArray(v)) return v.flatMap((x) => x.split(',')).filter(Boolean)
+  return v.split(',').filter(Boolean)
+}
+
+function buildUrl(
+  current: {
+    category?: string
+    type: string[]
+    location: string[]
+    level: string[]
+  },
+  patch: Partial<{
+    category: string | null
+    type: string[]
+    location: string[]
+    level: string[]
+  }>,
+): string {
+  const next = {
+    category: 'category' in patch ? patch.category ?? undefined : current.category,
+    type: patch.type ?? current.type,
+    location: patch.location ?? current.location,
+    level: patch.level ?? current.level,
+  }
+  const params: string[] = []
+  if (next.category) params.push(`category=${next.category}`)
+  if (next.type.length) params.push(`type=${next.type.join(',')}`)
+  if (next.location.length) params.push(`location=${next.location.join(',')}`)
+  if (next.level.length) params.push(`level=${next.level.join(',')}`)
+  return params.length ? `/jobs?${params.join('&')}` : '/jobs'
+}
+
+function toggle(list: string[], value: string): string[] {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default async function JobsListPage({
   searchParams,
@@ -21,9 +90,29 @@ export default async function JobsListPage({
 }) {
   const activeCategory =
     typeof searchParams.category === 'string' ? searchParams.category : undefined
+  const activeTypes = parseMulti(searchParams.type)
+  const activeLocations = parseMulti(searchParams.location)
+  const activeLevels = parseMulti(searchParams.level)
+
+  const current = {
+    category: activeCategory,
+    type: activeTypes,
+    location: activeLocations,
+    level: activeLevels,
+  }
+  const hasAnyFilter =
+    !!activeCategory ||
+    activeTypes.length > 0 ||
+    activeLocations.length > 0 ||
+    activeLevels.length > 0
 
   const [jobs, categories] = await Promise.all([
-    getAllJobs({ categorySlug: activeCategory }),
+    getAllJobs({
+      categorySlug: activeCategory,
+      employmentTypes: activeTypes,
+      locationTypes: activeLocations,
+      experienceLevels: activeLevels,
+    }),
     getJobCategories(),
   ])
   const total = jobs.length
@@ -37,23 +126,56 @@ export default async function JobsListPage({
         <h1 className="font-heading text-3xl md:text-4xl">Lowongan Pekerjaan</h1>
         <p className="text-muted-foreground mt-2">
           {total.toLocaleString('id-ID')} lowongan tersedia
-          {activeCategoryName && (
-            <>
-              {' '}di kategori{' '}
-              <strong className="text-foreground font-medium">
-                {activeCategoryName}
-              </strong>
-            </>
-          )}
         </p>
-        {activeCategoryName && (
-          <Link
-            href="/jobs"
-            className="text-muted-foreground hover:text-foreground mt-2 inline-flex items-center gap-1 text-xs font-medium"
-          >
-            <X className="h-3 w-3" aria-hidden />
-            Bersihkan filter
-          </Link>
+        {hasAnyFilter && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {activeCategoryName && (
+              <FilterChip
+                label={activeCategoryName}
+                clearHref={buildUrl(current, { category: null })}
+              />
+            )}
+            {activeTypes.map((v) => {
+              const opt = EMPLOYMENT_OPTIONS.find((o) => o.value === v)
+              if (!opt) return null
+              return (
+                <FilterChip
+                  key={`type-${v}`}
+                  label={opt.label}
+                  clearHref={buildUrl(current, { type: toggle(activeTypes, v) })}
+                />
+              )
+            })}
+            {activeLocations.map((v) => {
+              const opt = LOCATION_OPTIONS.find((o) => o.value === v)
+              if (!opt) return null
+              return (
+                <FilterChip
+                  key={`loc-${v}`}
+                  label={opt.label}
+                  clearHref={buildUrl(current, { location: toggle(activeLocations, v) })}
+                />
+              )
+            })}
+            {activeLevels.map((v) => {
+              const opt = LEVEL_OPTIONS.find((o) => o.value === v)
+              if (!opt) return null
+              return (
+                <FilterChip
+                  key={`lvl-${v}`}
+                  label={opt.label}
+                  clearHref={buildUrl(current, { level: toggle(activeLevels, v) })}
+                />
+              )
+            })}
+            <Link
+              href="/jobs"
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
+            >
+              <X className="h-3 w-3" aria-hidden />
+              Bersihkan semua
+            </Link>
+          </div>
         )}
       </header>
 
@@ -64,36 +186,73 @@ export default async function JobsListPage({
               <p className="text-muted-foreground text-xs">Belum ada kategori.</p>
             ) : (
               categories.map((c) => (
-                <CategoryLink
+                <ToggleRow
                   key={c.slug}
-                  slug={c.slug}
                   label={c.name}
                   count={c.count}
                   active={c.slug === activeCategory}
+                  href={
+                    c.slug === activeCategory
+                      ? buildUrl(current, { category: null })
+                      : buildUrl(current, { category: c.slug })
+                  }
                 />
               ))
             )}
           </FilterGroup>
+
           <FilterGroup title="Jenis Pekerjaan">
-            {EMPLOYMENT.map((l) => (
-              <DecorativeOption key={l} label={l} />
-            ))}
+            {EMPLOYMENT_OPTIONS.map((o) => {
+              const active = activeTypes.includes(o.value)
+              return (
+                <ToggleRow
+                  key={o.value}
+                  label={o.label}
+                  active={active}
+                  href={buildUrl(current, { type: toggle(activeTypes, o.value) })}
+                />
+              )
+            })}
           </FilterGroup>
+
           <FilterGroup title="Lokasi">
-            {LOCATIONS.map((l) => (
-              <DecorativeOption key={l} label={l} />
-            ))}
+            {LOCATION_OPTIONS.map((o) => {
+              const active = activeLocations.includes(o.value)
+              return (
+                <ToggleRow
+                  key={o.value}
+                  label={o.label}
+                  active={active}
+                  href={buildUrl(current, {
+                    location: toggle(activeLocations, o.value),
+                  })}
+                />
+              )
+            })}
           </FilterGroup>
+
           <FilterGroup title="Tingkat Pengalaman">
-            {LEVELS.map((l) => (
-              <DecorativeOption key={l} label={l} />
-            ))}
+            {LEVEL_OPTIONS.map((o) => {
+              const active = activeLevels.includes(o.value)
+              return (
+                <ToggleRow
+                  key={o.value}
+                  label={o.label}
+                  active={active}
+                  href={buildUrl(current, { level: toggle(activeLevels, o.value) })}
+                />
+              )
+            })}
           </FilterGroup>
+
           <FilterGroup title="Rentang Gaji (IDR/bulan)">
             <div className="text-muted-foreground text-xs">Rp 0 – Rp 50.000.000</div>
             <div className="bg-muted relative mt-3 h-1 rounded-full">
               <div className="bg-primary absolute left-[10%] right-[20%] h-1 rounded-full" />
             </div>
+            <p className="text-muted-foreground/80 mt-2 text-[10px]">
+              Filter rentang gaji belum aktif
+            </p>
           </FilterGroup>
         </aside>
 
@@ -104,11 +263,11 @@ export default async function JobsListPage({
                 Tidak ada lowongan
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                {activeCategoryName
-                  ? `Belum ada lowongan di kategori ${activeCategoryName}.`
+                {hasAnyFilter
+                  ? 'Belum ada lowongan yang cocok dengan filter saat ini.'
                   : 'Belum ada lowongan terdaftar.'}
               </p>
-              {activeCategoryName && (
+              {hasAnyFilter && (
                 <Link
                   href="/jobs"
                   className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
@@ -144,29 +303,34 @@ export default async function JobsListPage({
   )
 }
 
+// ---------------------------------------------------------------------------
+// Components
+// ---------------------------------------------------------------------------
+
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
       <h3 className="mb-3 text-sm font-semibold">{title}</h3>
-      <div className="space-y-2">{children}</div>
+      <div className="space-y-1">{children}</div>
     </div>
   )
 }
 
-function CategoryLink({
-  slug,
+function ToggleRow({
   label,
   count,
   active,
+  href,
 }: {
-  slug: string
   label: string
-  count: number
+  count?: number
   active: boolean
+  href: string
 }) {
   return (
     <Link
-      href={active ? '/jobs' : `/jobs?category=${slug}`}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      href={href as any}
       className={
         active
           ? 'flex items-center justify-between gap-2 rounded-md bg-[color:var(--ring)]/10 px-2 py-1 text-sm font-medium text-[color:var(--ring)] transition'
@@ -199,29 +363,30 @@ function CategoryLink({
         </span>
         {label}
       </span>
-      <span
-        className={
-          active
-            ? 'text-[color:var(--ring)] text-xs font-semibold'
-            : 'text-muted-foreground text-xs'
-        }
-      >
-        {count}
-      </span>
+      {count != null && (
+        <span
+          className={
+            active
+              ? 'text-[color:var(--ring)] text-xs font-semibold'
+              : 'text-muted-foreground text-xs'
+          }
+        >
+          {count}
+        </span>
+      )}
     </Link>
   )
 }
 
-function DecorativeOption({ label }: { label: string }) {
+function FilterChip({ label, clearHref }: { label: string; clearHref: string }) {
   return (
-    <label
-      className="text-foreground/60 flex cursor-not-allowed items-center justify-between gap-2 text-sm"
-      title="Filter ini belum aktif"
+    <Link
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      href={clearHref as any}
+      className="border-[color:var(--ring)]/40 bg-[color:var(--ring)]/10 text-[color:var(--ring)] inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition hover:bg-[color:var(--ring)]/20"
     >
-      <span className="inline-flex items-center gap-2">
-        <span className="border-border bg-background grid size-4 place-items-center rounded border" />
-        {label}
-      </span>
-    </label>
+      {label}
+      <X className="h-3 w-3" aria-hidden />
+    </Link>
   )
 }

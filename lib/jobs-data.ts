@@ -179,13 +179,45 @@ const JOB_INCLUDE = {
   _count: { select: { applications: true } },
 } as const
 
+// Valid enum values mirror the Prisma enums. Anything not in these lists is
+// ignored so a malformed URL can't crash the query.
+const VALID_EMPLOYMENT_TYPES = new Set([
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACT',
+  'INTERNSHIP',
+  'FREELANCE',
+])
+const VALID_LOCATION_TYPES = new Set(['ONSITE', 'HYBRID', 'REMOTE'])
+const VALID_EXPERIENCE_LEVELS = new Set([
+  'ENTRY',
+  'JUNIOR',
+  'MID',
+  'SENIOR',
+  'LEAD',
+  'EXECUTIVE',
+])
+
 export type JobFilters = {
-  /** Filter by category slug. */
+  /** Category slug, single-select. */
   categorySlug?: string
+  /** Prisma enum values, multi-select. */
+  employmentTypes?: string[]
+  locationTypes?: string[]
+  experienceLevels?: string[]
+}
+
+function sanitize(values: string[] | undefined, allowed: Set<string>): string[] {
+  if (!values || values.length === 0) return []
+  return values.filter((v) => allowed.has(v))
 }
 
 export const getAllJobs = cache(
   async (filters: JobFilters = {}): Promise<DummyJob[]> => {
+    const employmentTypes = sanitize(filters.employmentTypes, VALID_EMPLOYMENT_TYPES)
+    const locationTypes = sanitize(filters.locationTypes, VALID_LOCATION_TYPES)
+    const experienceLevels = sanitize(filters.experienceLevels, VALID_EXPERIENCE_LEVELS)
+
     const rows = await prisma.job
       .findMany({
         where: {
@@ -193,6 +225,12 @@ export const getAllJobs = cache(
           ...(filters.categorySlug
             ? { category: { slug: filters.categorySlug } }
             : {}),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(employmentTypes.length ? ({ employmentType: { in: employmentTypes as any } } as object) : {}),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(locationTypes.length ? ({ locationType: { in: locationTypes as any } } as object) : {}),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(experienceLevels.length ? ({ experienceLevel: { in: experienceLevels as any } } as object) : {}),
         },
         orderBy: { publishedAt: 'desc' },
         include: JOB_INCLUDE,
