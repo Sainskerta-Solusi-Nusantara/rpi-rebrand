@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -26,7 +27,6 @@ import { cn } from '@/lib/utils'
 import {
   PRESS_CATEGORIES,
   PRESS_CATEGORY_COLOR,
-  PRESS_RELEASES,
   type PressCategory,
 } from '@/lib/press-data'
 
@@ -156,20 +156,30 @@ type Release = {
   href: string
 }
 
-const RELEASES: Release[] = PRESS_RELEASES.map((r) => ({
-  date: r.date,
-  category: r.category,
-  title: r.title,
-  excerpt: r.excerpt,
-  href: `/press/${r.slug}`,
-}))
-
 const RELEASE_CATEGORIES = PRESS_CATEGORIES
 
-export function PressReleases() {
-  const [filter, setFilter] = React.useState<(typeof RELEASE_CATEGORIES)[number]>('Semua')
-  const filtered = filter === 'Semua' ? RELEASES : RELEASES.filter((r) => r.category === filter)
+export type PressReleasesProps = {
+  releases: Release[]
+  totalCount: number
+  /** Active filter — 'Semua' means no category filter. */
+  activeCategory: PressCategory | 'Semua'
+  activeQuery: string
+  /** Pre-built hrefs for each category chip (keyed by category label,
+   * including 'Semua' for clear). */
+  categoryHrefs: Record<string, string>
+  clearAllHref: string
+  hasAnyFilter: boolean
+}
 
+export function PressReleases({
+  releases,
+  totalCount,
+  activeCategory,
+  activeQuery,
+  categoryHrefs,
+  clearAllHref,
+  hasAnyFilter,
+}: PressReleasesProps) {
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -188,34 +198,106 @@ export function PressReleases() {
             </span>
           </div>
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2
-              id="press-releases-heading"
-              className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
-            >
-              Pengumuman & rilis resmi
-            </h2>
+            <div>
+              <h2
+                id="press-releases-heading"
+                className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
+              >
+                Pengumuman & rilis resmi
+              </h2>
+              <p className="text-muted-foreground mt-2 text-sm">
+                {hasAnyFilter
+                  ? `${releases.length} dari ${totalCount} siaran pers`
+                  : `${totalCount} siaran pers`}
+                {activeQuery && (
+                  <>
+                    {' '}untuk &ldquo;
+                    <strong className="text-foreground font-medium">
+                      {activeQuery}
+                    </strong>
+                    &rdquo;
+                  </>
+                )}
+              </p>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
-              {RELEASE_CATEGORIES.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setFilter(c)}
-                  className={cn(
-                    'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
-                    filter === c
-                      ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
-                      : 'border-border bg-background text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  {c}
-                </button>
-              ))}
+              {RELEASE_CATEGORIES.map((c) => {
+                const active = activeCategory === c
+                return (
+                  <Link
+                    key={c}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={categoryHrefs[c] as any}
+                    className={cn(
+                      'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
+                      active
+                        ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
+                        : 'border-border bg-background text-muted-foreground hover:text-foreground',
+                    )}
+                    aria-current={active ? 'true' : undefined}
+                  >
+                    {c}
+                  </Link>
+                )
+              })}
             </div>
           </div>
+
+          {/* Search form */}
+          <form method="get" action="/press" className="mt-6 max-w-xl">
+            <div className="border-border bg-card focus-within:border-[color:var(--ring)] flex items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition">
+              <input
+                type="search"
+                name="q"
+                defaultValue={activeQuery}
+                placeholder="Cari judul, topik, atau lokasi rilis…"
+                className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
+                aria-label="Cari siaran pers"
+              />
+              {activeQuery && (
+                <Link
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  href={categoryHrefs[activeCategory] as any}
+                  className="text-muted-foreground hover:text-foreground text-xs font-medium"
+                  aria-label="Hapus pencarian"
+                >
+                  Bersihkan
+                </Link>
+              )}
+              <button
+                type="submit"
+                className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
+              >
+                Cari
+              </button>
+              {activeCategory !== 'Semua' && (
+                <input type="hidden" name="category" value={activeCategory} />
+              )}
+            </div>
+          </form>
         </motion.div>
 
+        {releases.length === 0 ? (
+          <div className="border-border bg-card rounded-2xl border p-12 text-center">
+            <h3 className="font-heading text-foreground text-lg font-semibold">
+              Tidak ada siaran pers
+            </h3>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Coba ubah kata kunci atau pilih kategori lain.
+            </p>
+            {hasAnyFilter && (
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={clearAllHref as any}
+                className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
+              >
+                Bersihkan filter
+              </Link>
+            )}
+          </div>
+        ) : (
         <ol className="border-border bg-card divide-border overflow-hidden rounded-2xl border">
-          {filtered.map((r, i) => {
+          {releases.map((r, i) => {
             const color = CATEGORY_COLORS[r.category]
             return (
               <motion.li
@@ -265,6 +347,7 @@ export function PressReleases() {
             )
           })}
         </ol>
+        )}
 
         <div className="mt-6 text-center">
           <Button variant="outline" asChild>

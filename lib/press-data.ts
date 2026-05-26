@@ -580,6 +580,28 @@ export const PRESS_RELEASES: PressRelease[] = [
   },
 ]
 
+export type PressFilters = {
+  /** Category. Use 'Semua' or undefined for no filter. */
+  category?: PressCategory | 'Semua'
+  /** Free-text query against title, excerpt, dateline, tags. */
+  q?: string
+}
+
+export function filterReleases(filters: PressFilters = {}): PressRelease[] {
+  const q = filters.q?.trim().toLowerCase()
+  const cat =
+    filters.category && filters.category !== 'Semua' ? filters.category : undefined
+  return PRESS_RELEASES.filter((r) => {
+    if (cat && r.category !== cat) return false
+    if (q) {
+      const haystack =
+        `${r.title} ${r.excerpt} ${r.dateline} ${r.tags.join(' ')}`.toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+    return true
+  })
+}
+
 export function findRelease(slug: string): PressRelease | undefined {
   return PRESS_RELEASES.find((r) => r.slug === slug)
 }
