@@ -68,43 +68,21 @@ function toArticle(a: typeof FEATURED_ARTICLE): Article {
 const FEATURED: Article = toArticle(FEATURED_ARTICLE)
 
 const ARTICLES: Article[] = REGULAR_ARTICLES.map(toArticle)
+void ARTICLES
 
 // ---------------------------------------------------------------------------
 // Hero
 // ---------------------------------------------------------------------------
 
-const BlogContext = React.createContext<{
-  active: string
-  setActive: (s: string) => void
-  query: string
-  setQuery: (s: string) => void
-}>({
-  active: 'all',
-  setActive: () => {},
-  query: '',
-  setQuery: () => {},
-})
-
-function BlogProvider({ children }: { children: React.ReactNode }) {
-  const [active, setActive] = React.useState('all')
-  const [query, setQuery] = React.useState('')
-  return (
-    <BlogContext.Provider value={{ active, setActive, query, setQuery }}>
-      {children}
-    </BlogContext.Provider>
-  )
+export type BlogHeroProps = {
+  activeCategory: string
+  activeQuery: string
+  /** Pre-built hrefs for each category chip (server-rendered, no functions cross
+   * the server -> client boundary). */
+  categoryHrefs: Record<string, string>
 }
 
-export function BlogHero() {
-  return (
-    <BlogProvider>
-      <BlogHeroInner />
-    </BlogProvider>
-  )
-}
-
-function BlogHeroInner() {
-  const { active, setActive, query, setQuery } = React.useContext(BlogContext)
+export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHeroProps) {
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -166,27 +144,41 @@ function BlogHeroInner() {
           transition={{ duration: 0.55, delay: 0.2 }}
           className="mx-auto mt-10 flex w-full max-w-xl items-center"
         >
-          <div className="border-border bg-card focus-within:border-[color:var(--ring)] flex w-full items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition">
+          <form
+            method="get"
+            action="/blog"
+            className="border-border bg-card focus-within:border-[color:var(--ring)] flex w-full items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition"
+          >
             <Search className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
             <input
               type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              name="q"
+              defaultValue={activeQuery}
               placeholder="Cari artikel, topik, atau penulis…"
               className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
               aria-label="Cari artikel"
             />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery('')}
-                className="text-muted-foreground hover:text-foreground text-xs"
+            {activeQuery && (
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={categoryHrefs[activeCategory] as any}
+                className="text-muted-foreground hover:text-foreground text-xs font-medium"
                 aria-label="Hapus pencarian"
               >
                 Bersihkan
-              </button>
+              </Link>
             )}
-          </div>
+            <button
+              type="submit"
+              className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
+            >
+              Cari
+            </button>
+            {/* Preserve category when submitting a search */}
+            {activeCategory !== 'all' && (
+              <input type="hidden" name="category" value={activeCategory} />
+            )}
+          </form>
         </motion.div>
       </div>
 
@@ -196,21 +188,25 @@ function BlogHeroInner() {
           transition={{ duration: 0.5, delay: 0.25 }}
           className="flex flex-wrap items-center justify-center gap-2"
         >
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.slug}
-              type="button"
-              onClick={() => setActive(c.slug)}
-              className={cn(
-                'rounded-full border px-4 py-1.5 text-xs font-medium transition',
-                active === c.slug
-                  ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
-                  : 'border-border bg-background text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {c.label}
-            </button>
-          ))}
+          {CATEGORIES.map((c) => {
+            const active = activeCategory === c.slug
+            return (
+              <Link
+                key={c.slug}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={categoryHrefs[c.slug] as any}
+                className={cn(
+                  'rounded-full border px-4 py-1.5 text-xs font-medium transition',
+                  active
+                    ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
+                    : 'border-border bg-background text-muted-foreground hover:text-foreground',
+                )}
+                aria-current={active ? 'true' : undefined}
+              >
+                {c.label}
+              </Link>
+            )
+          })}
         </motion.div>
       </div>
     </section>
@@ -305,32 +301,25 @@ export function BlogFeatured() {
 // Article Grid
 // ---------------------------------------------------------------------------
 
-export function BlogGrid() {
-  return (
-    <BlogProvider>
-      <BlogGridInner />
-    </BlogProvider>
-  )
+export type BlogGridProps = {
+  articles: Article[]
+  activeCategory: string
+  activeQuery: string
+  clearAllHref: string
+  hasAnyFilter: boolean
 }
 
-function BlogGridInner() {
-  // We render fresh provider here for isolation; in real app we'd lift state up.
-  // For dummy review, filtering uses local state.
-  const [active, setActive] = React.useState('all')
-  const [query, setQuery] = React.useState('')
-
-  const filtered = ARTICLES.filter((a) => {
-    if (active !== 'all' && a.category !== active) return false
-    if (query.trim()) {
-      const q = query.toLowerCase()
-      return (
-        a.title.toLowerCase().includes(q) ||
-        a.excerpt.toLowerCase().includes(q) ||
-        a.author.toLowerCase().includes(q)
-      )
-    }
-    return true
-  })
+export function BlogGrid({
+  articles,
+  activeCategory,
+  activeQuery,
+  clearAllHref,
+  hasAnyFilter,
+}: BlogGridProps) {
+  const activeCategoryLabel =
+    activeCategory !== 'all'
+      ? CATEGORIES.find((c) => c.slug === activeCategory)?.label
+      : undefined
 
   return (
     <section
@@ -347,41 +336,32 @@ function BlogGridInner() {
               Artikel Terbaru
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              {filtered.length} artikel
-              {active !== 'all' &&
-                ` di kategori ${CATEGORIES.find((c) => c.slug === active)?.label}`}
+              {articles.length} artikel
+              {activeCategoryLabel && ` di kategori ${activeCategoryLabel}`}
+              {activeQuery && (
+                <>
+                  {' '}untuk &ldquo;
+                  <strong className="text-foreground font-medium">
+                    {activeQuery}
+                  </strong>
+                  &rdquo;
+                </>
+              )}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-muted-foreground text-xs">Filter:</span>
-            <select
-              value={active}
-              onChange={(e) => setActive(e.target.value)}
-              className="border-border bg-background text-foreground focus-visible:ring-ring/40 h-9 rounded-md border px-3 text-xs focus-visible:outline-none focus-visible:ring-2"
-              aria-label="Filter kategori"
+          {hasAnyFilter && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={clearAllHref as any}
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
             >
-              {CATEGORIES.map((c) => (
-                <option key={c.slug} value={c.slug}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <div className="border-border bg-card focus-within:border-[color:var(--ring)] hidden items-center gap-2 rounded-md border px-3 sm:flex">
-              <Search className="text-muted-foreground h-3.5 w-3.5" aria-hidden />
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari…"
-                className="text-foreground placeholder:text-muted-foreground h-9 w-44 bg-transparent text-xs outline-none"
-                aria-label="Cari artikel"
-              />
-            </div>
-          </div>
+              ✕ Bersihkan filter
+            </Link>
+          )}
         </div>
 
-        {filtered.length === 0 ? (
+        {articles.length === 0 ? (
           <div className="border-border bg-card rounded-2xl border p-12 text-center">
             <Search className="text-muted-foreground mx-auto h-8 w-8" aria-hidden />
             <h3 className="font-heading text-foreground mt-4 text-lg font-semibold">
@@ -390,10 +370,19 @@ function BlogGridInner() {
             <p className="text-muted-foreground mt-2 text-sm">
               Coba ubah kata kunci atau pilih kategori lain.
             </p>
+            {hasAnyFilter && (
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={clearAllHref as any}
+                className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
+              >
+                Bersihkan filter
+              </Link>
+            )}
           </div>
         ) : (
           <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((a, i) => (
+            {articles.map((a, i) => (
               <motion.li
                 key={a.slug}
                 {...fadeUp}

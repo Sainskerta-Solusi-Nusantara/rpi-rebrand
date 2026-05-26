@@ -1091,6 +1091,30 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
 ]
 
+export type BlogFilters = {
+  /** Category slug (use 'all' or undefined for no filter). */
+  category?: string
+  /** Free-text query against title, excerpt, author name. */
+  q?: string
+}
+
+/**
+ * Filters from REGULAR_ARTICLES (everything except the featured pick) so the
+ * hero card never gets hidden by a search.
+ */
+export function filterArticles(filters: BlogFilters = {}): BlogArticle[] {
+  const q = filters.q?.trim().toLowerCase()
+  const cat = filters.category && filters.category !== 'all' ? filters.category : undefined
+  return REGULAR_ARTICLES.filter((a) => {
+    if (cat && a.category !== cat) return false
+    if (q) {
+      const haystack = `${a.title} ${a.excerpt} ${a.author.name}`.toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+    return true
+  })
+}
+
 export function findArticle(slug: string): BlogArticle | undefined {
   return BLOG_ARTICLES.find((a) => a.slug === slug)
 }
