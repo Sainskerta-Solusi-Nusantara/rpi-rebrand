@@ -198,6 +198,35 @@ const VALID_EXPERIENCE_LEVELS = new Set([
   'EXECUTIVE',
 ])
 
+export type JobSort = 'newest' | 'salary-high' | 'salary-low' | 'least-applicants'
+
+const VALID_JOB_SORTS = new Set<JobSort>([
+  'newest',
+  'salary-high',
+  'salary-low',
+  'least-applicants',
+])
+
+export function sanitizeJobSort(value: string | undefined): JobSort {
+  return value && VALID_JOB_SORTS.has(value as JobSort)
+    ? (value as JobSort)
+    : 'newest'
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildJobsOrderBy(sort: JobSort | undefined): any {
+  switch (sanitizeJobSort(sort)) {
+    case 'salary-high':
+      return { salaryMax: { sort: 'desc', nulls: 'last' } }
+    case 'salary-low':
+      return { salaryMin: { sort: 'asc', nulls: 'last' } }
+    case 'least-applicants':
+      return { applications: { _count: 'asc' } }
+    default:
+      return { publishedAt: 'desc' }
+  }
+}
+
 export type JobFilters = {
   /** Free-text query — matched against title, description, tags, tenant name. */
   q?: string
@@ -212,6 +241,8 @@ export type JobFilters = {
    * unknown salary are excluded when either bound is set. */
   salaryMin?: number
   salaryMax?: number
+  /** Sort order. Defaults to newest (publishedAt desc). */
+  sort?: JobSort
 }
 
 function sanitize(values: string[] | undefined, allowed: Set<string>): string[] {
@@ -269,7 +300,7 @@ export const getAllJobs = cache(
     const rows = await prisma.job
       .findMany({
         where: buildJobsWhere(filters),
-        orderBy: { publishedAt: 'desc' },
+        orderBy: buildJobsOrderBy(filters.sort),
         include: JOB_INCLUDE,
       })
       .catch(() => [])
@@ -304,7 +335,7 @@ export const getJobsPage = cache(
         prisma.job.count({ where }),
         prisma.job.findMany({
           where,
-          orderBy: { publishedAt: 'desc' },
+          orderBy: buildJobsOrderBy(filters.sort),
           include: JOB_INCLUDE,
           skip: (safePage - 1) * safeSize,
           take: safeSize,

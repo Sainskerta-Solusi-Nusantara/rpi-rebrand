@@ -2,7 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { JobCard } from '@/components/molecules/job-card'
-import { getJobCategories, getJobsPage } from '@/lib/jobs-data'
+import {
+  getJobCategories,
+  getJobsPage,
+  sanitizeJobSort,
+  type JobSort,
+} from '@/lib/jobs-data'
 
 export const metadata: Metadata = {
   title: 'Cari Lowongan Pekerjaan',
@@ -55,6 +60,7 @@ type FilterState = {
   level: string[]
   salaryMin?: number
   salaryMax?: number
+  sort: JobSort
   page: number
 }
 
@@ -66,6 +72,7 @@ type FilterPatch = Partial<{
   level: string[]
   salaryMin: number | null
   salaryMax: number | null
+  sort: JobSort
   /** Set true to keep current page; defaults to resetting to 1 when filters change. */
   keepPage: boolean
   /** Explicit page override. */
@@ -83,6 +90,7 @@ function buildUrl(current: FilterState, patch: FilterPatch): string {
       'salaryMin' in patch ? patch.salaryMin ?? undefined : current.salaryMin,
     salaryMax:
       'salaryMax' in patch ? patch.salaryMax ?? undefined : current.salaryMax,
+    sort: patch.sort ?? current.sort,
     page: patch.page ?? (patch.keepPage ? current.page : 1),
   }
   const params: string[] = []
@@ -93,9 +101,17 @@ function buildUrl(current: FilterState, patch: FilterPatch): string {
   if (next.level.length) params.push(`level=${next.level.join(',')}`)
   if (next.salaryMin !== undefined) params.push(`salaryMin=${next.salaryMin}`)
   if (next.salaryMax !== undefined) params.push(`salaryMax=${next.salaryMax}`)
+  if (next.sort !== 'newest') params.push(`sort=${next.sort}`)
   if (next.page > 1) params.push(`page=${next.page}`)
   return params.length ? `/jobs?${params.join('&')}` : '/jobs'
 }
+
+const SORT_OPTIONS: { value: JobSort; label: string }[] = [
+  { value: 'newest', label: 'Terbaru' },
+  { value: 'salary-high', label: 'Gaji ↓' },
+  { value: 'salary-low', label: 'Gaji ↑' },
+  { value: 'least-applicants', label: 'Sedikit pelamar' },
+]
 
 // ---------------------------------------------------------------------------
 // Salary preset chips
@@ -165,6 +181,9 @@ export default async function JobsListPage({
   const activeLevels = parseMulti(searchParams.level)
   const activeSalaryMin = parseSalary(searchParams.salaryMin)
   const activeSalaryMax = parseSalary(searchParams.salaryMax)
+  const activeSort = sanitizeJobSort(
+    typeof searchParams.sort === 'string' ? searchParams.sort : undefined,
+  )
   const pageParam =
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
   const activePage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
@@ -177,6 +196,7 @@ export default async function JobsListPage({
     level: activeLevels,
     salaryMin: activeSalaryMin,
     salaryMax: activeSalaryMax,
+    sort: activeSort,
     page: activePage,
   }
   const hasAnyFilter =
@@ -198,6 +218,7 @@ export default async function JobsListPage({
         experienceLevels: activeLevels,
         salaryMin: activeSalaryMin,
         salaryMax: activeSalaryMax,
+        sort: activeSort,
       },
       activePage,
     ),
@@ -279,6 +300,9 @@ export default async function JobsListPage({
           )}
           {activeSalaryMax !== undefined && (
             <input type="hidden" name="salaryMax" value={activeSalaryMax} />
+          )}
+          {activeSort !== 'newest' && (
+            <input type="hidden" name="sort" value={activeSort} />
           )}
         </form>
 
@@ -489,6 +513,9 @@ export default async function JobsListPage({
               {activeLevels.length > 0 && (
                 <input type="hidden" name="level" value={activeLevels.join(',')} />
               )}
+              {activeSort !== 'newest' && (
+                <input type="hidden" name="sort" value={activeSort} />
+              )}
               <button
                 type="submit"
                 className="border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] mt-1 inline-flex w-full items-center justify-center rounded-md border px-2 py-1.5 text-xs font-medium transition"
@@ -500,6 +527,31 @@ export default async function JobsListPage({
         </aside>
 
         <section aria-label="Daftar lowongan">
+          {jobs.length > 0 && (
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+                Urutkan
+              </span>
+              {SORT_OPTIONS.map((o) => {
+                const active = activeSort === o.value
+                return (
+                  <Link
+                    key={o.value}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={buildUrl(current, { sort: o.value }) as any}
+                    aria-current={active ? 'true' : undefined}
+                    className={
+                      active
+                        ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition'
+                        : 'border-border text-foreground/70 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center rounded-full border px-3 py-1 text-xs transition'
+                    }
+                  >
+                    {o.label}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
           {jobs.length === 0 ? (
             <div className="border-border bg-card rounded-2xl border p-12 text-center">
               <h2 className="font-heading text-foreground text-lg font-semibold">
