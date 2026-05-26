@@ -454,11 +454,41 @@ export function CareersTeams() {
 // Open Positions
 // ---------------------------------------------------------------------------
 
-const TEAM_FILTERS = ['Semua', ...Array.from(new Set(OPENINGS.map((o) => o.team)))]
+import type { CareerOpening } from '@/lib/careers-data'
 
-export function CareersOpenings() {
-  const [filter, setFilter] = React.useState<string>('Semua')
-  const filtered = filter === 'Semua' ? OPENINGS : OPENINGS.filter((o) => o.team === filter)
+export type CareersOpeningsProps = {
+  openings: CareerOpening[]
+  totalCount: number
+  activeTeam?: string
+  activeTypes: CareerOpening['type'][]
+  activeLevels: CareerOpening['level'][]
+  activeQuery?: string
+  teams: { name: string; count: number; href: string }[]
+  types: { value: CareerOpening['type']; count: number; href: string }[]
+  levels: { value: CareerOpening['level']; count: number; href: string }[]
+  /** Special href for the "Semua" team chip (clears team filter). */
+  allTeamsHref: string
+  /** Href that clears every filter, jumping back to /careers#openings. */
+  clearAllHref: string
+  hasAnyFilter: boolean
+}
+
+export function CareersOpenings(props: CareersOpeningsProps) {
+  const {
+    openings,
+    totalCount,
+    activeTeam,
+    activeTypes,
+    activeLevels,
+    activeQuery,
+    teams,
+    types,
+    levels,
+    allTeamsHref,
+    clearAllHref,
+    hasAnyFilter,
+  } = props
+  const filteredCount = openings.length
 
   return (
     <section
@@ -483,7 +513,9 @@ export function CareersOpenings() {
             id="careers-openings-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            {OPENINGS.length} posisi sedang terbuka
+            {hasAnyFilter
+              ? `${filteredCount} dari ${totalCount} posisi`
+              : `${totalCount} posisi sedang terbuka`}
           </h2>
           <p className="text-muted-foreground mt-3">
             Jika Anda tidak menemukan peran yang cocok, kirimkan profil Anda — kami
@@ -491,68 +523,199 @@ export function CareersOpenings() {
           </p>
         </motion.div>
 
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
-          {TEAM_FILTERS.map((t) => (
+        {/* Search form */}
+        <form
+          method="get"
+          action="/careers"
+          className="mx-auto mb-6 max-w-xl"
+        >
+          <div className="border-border bg-card focus-within:border-[color:var(--ring)] flex items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition">
+            <Briefcase className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
+            <input
+              type="search"
+              name="q"
+              defaultValue={activeQuery ?? ''}
+              placeholder="Cari peran, tim, atau lokasi…"
+              className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
+              aria-label="Cari posisi"
+            />
             <button
-              key={t}
-              type="button"
-              onClick={() => setFilter(t)}
-              className={cn(
-                'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
-                filter === t
-                  ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
-                  : 'border-border bg-background text-muted-foreground hover:text-foreground',
-              )}
+              type="submit"
+              className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
             >
-              {t}
-              {t !== 'Semua' && (
-                <span className="ml-1.5 opacity-60">
-                  {OPENINGS.filter((o) => o.team === t).length}
-                </span>
-              )}
+              Cari
             </button>
-          ))}
-        </div>
+          </div>
+          {/* Preserve filters on submit */}
+          {activeTeam && <input type="hidden" name="team" value={activeTeam} />}
+          {activeTypes.length > 0 && (
+            <input type="hidden" name="type" value={activeTypes.join(',')} />
+          )}
+          {activeLevels.length > 0 && (
+            <input type="hidden" name="level" value={activeLevels.join(',')} />
+          )}
+        </form>
 
-        <ul className="border-border divide-border bg-card divide-y overflow-hidden rounded-2xl border">
-          {filtered.map((o) => (
-            <li key={o.title}>
+        {/* Team chips */}
+        <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={allTeamsHref as any}
+            className={cn(
+              'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
+              !activeTeam
+                ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
+                : 'border-border bg-background text-muted-foreground hover:text-foreground',
+            )}
+            aria-current={!activeTeam ? 'true' : undefined}
+          >
+            Semua
+          </Link>
+          {teams.map((t) => {
+            const active = activeTeam === t.name
+            return (
               <Link
-                href={`/careers/${o.slug}`}
-                className="group hover:bg-muted/40 flex flex-col gap-3 px-5 py-5 transition sm:flex-row sm:items-center sm:justify-between sm:px-7"
+                key={t.name}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={t.href as any}
+                className={cn(
+                  'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
+                  active
+                    ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
+                    : 'border-border bg-background text-muted-foreground hover:text-foreground',
+                )}
+                aria-current={active ? 'true' : undefined}
               >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] text-base font-semibold transition sm:text-lg">
-                      {o.title}
-                    </h3>
-                    <Badge variant="secondary" size="sm">
-                      {o.level}
-                    </Badge>
-                  </div>
-                  <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Briefcase className="h-3.5 w-3.5" aria-hidden />
-                      {o.team}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5" aria-hidden />
-                      {o.location}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Building2 className="h-3.5 w-3.5" aria-hidden />
-                      {o.type}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-foreground/80 group-hover:text-[color:var(--ring)] inline-flex shrink-0 items-center gap-1 text-sm font-medium transition">
-                  Lihat detail
-                  <ArrowRight className="h-4 w-4" aria-hidden />
+                {t.name}
+                <span className={active ? 'ml-1.5 opacity-80' : 'ml-1.5 opacity-60'}>
+                  {t.count}
                 </span>
               </Link>
-            </li>
-          ))}
-        </ul>
+            )
+          })}
+        </div>
+
+        {/* Type + Level chips */}
+        <div className="mx-auto mb-6 grid max-w-3xl gap-3 sm:grid-cols-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-muted-foreground mr-1 text-[10px] font-medium uppercase tracking-wider">
+              Tipe
+            </span>
+            {types.map((t) => {
+              const active = activeTypes.includes(t.value)
+              return (
+                <Link
+                  key={t.value}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  href={t.href as any}
+                  className={
+                    active
+                      ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] rounded-full border px-2.5 py-1 text-[11px] font-medium transition'
+                      : 'border-border text-foreground/70 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] rounded-full border px-2.5 py-1 text-[11px] transition'
+                  }
+                  aria-current={active ? 'true' : undefined}
+                >
+                  {t.value}
+                  <span className="ml-1 opacity-60">{t.count}</span>
+                </Link>
+              )
+            })}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-muted-foreground mr-1 text-[10px] font-medium uppercase tracking-wider">
+              Level
+            </span>
+            {levels.map((l) => {
+              const active = activeLevels.includes(l.value)
+              return (
+                <Link
+                  key={l.value}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  href={l.href as any}
+                  className={
+                    active
+                      ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] rounded-full border px-2.5 py-1 text-[11px] font-medium transition'
+                      : 'border-border text-foreground/70 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] rounded-full border px-2.5 py-1 text-[11px] transition'
+                  }
+                  aria-current={active ? 'true' : undefined}
+                >
+                  {l.value}
+                  <span className="ml-1 opacity-60">{l.count}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+
+        {hasAnyFilter && (
+          <div className="mb-6 text-center">
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={clearAllHref as any}
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
+            >
+              ✕ Bersihkan semua filter
+            </Link>
+          </div>
+        )}
+
+        {openings.length === 0 ? (
+          <div className="border-border bg-card rounded-2xl border p-10 text-center">
+            <h3 className="font-heading text-foreground text-base font-semibold">
+              Tidak ada posisi yang cocok
+            </h3>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Coba ubah filter atau bersihkan untuk melihat semua posisi.
+            </p>
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={clearAllHref as any}
+              className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
+            >
+              Bersihkan filter
+            </Link>
+          </div>
+        ) : (
+          <ul className="border-border divide-border bg-card divide-y overflow-hidden rounded-2xl border">
+            {openings.map((o) => (
+              <li key={o.title}>
+                <Link
+                  href={`/careers/${o.slug}`}
+                  className="group hover:bg-muted/40 flex flex-col gap-3 px-5 py-5 transition sm:flex-row sm:items-center sm:justify-between sm:px-7"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] text-base font-semibold transition sm:text-lg">
+                        {o.title}
+                      </h3>
+                      <Badge variant="secondary" size="sm">
+                        {o.level}
+                      </Badge>
+                    </div>
+                    <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Briefcase className="h-3.5 w-3.5" aria-hidden />
+                        {o.team}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" aria-hidden />
+                        {o.location}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5" aria-hidden />
+                        {o.type}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-foreground/80 group-hover:text-[color:var(--ring)] inline-flex shrink-0 items-center gap-1 text-sm font-medium transition">
+                    Lihat detail
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="border-border bg-muted/20 mt-8 rounded-2xl border p-7 text-center">
           <h3 className="font-heading text-foreground text-lg font-semibold">

@@ -515,6 +515,79 @@ export const CAREER_OPENINGS: CareerOpening[] = [
   },
 ]
 
+export type CareerFilters = {
+  /** Single-select team name. */
+  team?: string
+  /** Multi-select employment types. */
+  types?: CareerOpening['type'][]
+  /** Multi-select experience levels. */
+  levels?: CareerOpening['level'][]
+  /** Free-text query against title, team, location, summary. */
+  q?: string
+}
+
+/** All teams sorted by opening count (desc). */
+export function getCareerTeams(): { name: string; count: number }[] {
+  const counts = new Map<string, number>()
+  for (const o of CAREER_OPENINGS) {
+    counts.set(o.team, (counts.get(o.team) ?? 0) + 1)
+  }
+  return Array.from(counts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+}
+
+const ALL_TYPES: CareerOpening['type'][] = [
+  'Full-time',
+  'Part-time',
+  'Contract',
+  'Internship',
+]
+const ALL_LEVELS: CareerOpening['level'][] = [
+  'Junior',
+  'Mid',
+  'Senior',
+  'Staff',
+  'Lead',
+]
+
+export function getCareerTypes(): {
+  value: CareerOpening['type']
+  count: number
+}[] {
+  return ALL_TYPES.map((value) => ({
+    value,
+    count: CAREER_OPENINGS.filter((o) => o.type === value).length,
+  })).filter((x) => x.count > 0)
+}
+
+export function getCareerLevels(): {
+  value: CareerOpening['level']
+  count: number
+}[] {
+  return ALL_LEVELS.map((value) => ({
+    value,
+    count: CAREER_OPENINGS.filter((o) => o.level === value).length,
+  })).filter((x) => x.count > 0)
+}
+
+export function filterOpenings(filters: CareerFilters = {}): CareerOpening[] {
+  const q = filters.q?.trim().toLowerCase()
+  const types = new Set(filters.types ?? [])
+  const levels = new Set(filters.levels ?? [])
+  return CAREER_OPENINGS.filter((o) => {
+    if (filters.team && o.team !== filters.team) return false
+    if (types.size > 0 && !types.has(o.type)) return false
+    if (levels.size > 0 && !levels.has(o.level)) return false
+    if (q) {
+      const haystack =
+        `${o.title} ${o.team} ${o.location} ${o.summary}`.toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+    return true
+  })
+}
+
 export function findOpening(slug: string): CareerOpening | undefined {
   return CAREER_OPENINGS.find((o) => o.slug === slug)
 }
