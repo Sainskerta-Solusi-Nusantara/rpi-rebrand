@@ -179,15 +179,48 @@ const JOB_INCLUDE = {
   _count: { select: { applications: true } },
 } as const
 
-export const getAllJobs = cache(async (): Promise<DummyJob[]> => {
-  const rows = await prisma.job
+export type JobFilters = {
+  /** Filter by category slug. */
+  categorySlug?: string
+}
+
+export const getAllJobs = cache(
+  async (filters: JobFilters = {}): Promise<DummyJob[]> => {
+    const rows = await prisma.job
+      .findMany({
+        where: {
+          status: 'PUBLISHED',
+          ...(filters.categorySlug
+            ? { category: { slug: filters.categorySlug } }
+            : {}),
+        },
+        orderBy: { publishedAt: 'desc' },
+        include: JOB_INCLUDE,
+      })
+      .catch(() => [])
+    return rows.map(transform)
+  },
+)
+
+export type JobCategorySummary = {
+  slug: string
+  name: string
+  count: number
+}
+
+export const getJobCategories = cache(async (): Promise<JobCategorySummary[]> => {
+  const rows = await prisma.jobCategory
     .findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { publishedAt: 'desc' },
-      include: JOB_INCLUDE,
+      where: { parentId: null },
+      orderBy: { name: 'asc' },
+      include: {
+        _count: { select: { jobs: { where: { status: 'PUBLISHED' } } } },
+      },
     })
     .catch(() => [])
-  return rows.map(transform)
+  return rows
+    .map((c) => ({ slug: c.slug, name: c.name, count: c._count.jobs }))
+    .filter((c) => c.count > 0)
 })
 
 export const findJob = cache(async (slug: string): Promise<DummyJob | undefined> => {
