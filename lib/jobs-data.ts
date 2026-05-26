@@ -199,6 +199,8 @@ const VALID_EXPERIENCE_LEVELS = new Set([
 ])
 
 export type JobFilters = {
+  /** Free-text query — matched against title, description, tags, tenant name. */
+  q?: string
   /** Category slug, single-select. */
   categorySlug?: string
   /** Prisma enum values, multi-select. */
@@ -217,6 +219,7 @@ export const getAllJobs = cache(
     const employmentTypes = sanitize(filters.employmentTypes, VALID_EMPLOYMENT_TYPES)
     const locationTypes = sanitize(filters.locationTypes, VALID_LOCATION_TYPES)
     const experienceLevels = sanitize(filters.experienceLevels, VALID_EXPERIENCE_LEVELS)
+    const q = filters.q?.trim()
 
     const rows = await prisma.job
       .findMany({
@@ -231,6 +234,16 @@ export const getAllJobs = cache(
           ...(locationTypes.length ? ({ locationType: { in: locationTypes as any } } as object) : {}),
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...(experienceLevels.length ? ({ experienceLevel: { in: experienceLevels as any } } as object) : {}),
+          ...(q
+            ? {
+                OR: [
+                  { title: { contains: q, mode: 'insensitive' as const } },
+                  { description: { contains: q, mode: 'insensitive' as const } },
+                  { tags: { has: q.toLowerCase() } },
+                  { tenant: { name: { contains: q, mode: 'insensitive' as const } } },
+                ],
+              }
+            : {}),
         },
         orderBy: { publishedAt: 'desc' },
         include: JOB_INCLUDE,

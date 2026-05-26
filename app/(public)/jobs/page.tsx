@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { JobCard } from '@/components/molecules/job-card'
 import { getAllJobs, getJobCategories } from '@/lib/jobs-data'
 
@@ -47,14 +47,18 @@ function parseMulti(v: string | string[] | undefined): string[] {
   return v.split(',').filter(Boolean)
 }
 
+type FilterState = {
+  q?: string
+  category?: string
+  type: string[]
+  location: string[]
+  level: string[]
+}
+
 function buildUrl(
-  current: {
-    category?: string
-    type: string[]
-    location: string[]
-    level: string[]
-  },
+  current: FilterState,
   patch: Partial<{
+    q: string | null
     category: string | null
     type: string[]
     location: string[]
@@ -62,12 +66,14 @@ function buildUrl(
   }>,
 ): string {
   const next = {
+    q: 'q' in patch ? patch.q ?? undefined : current.q,
     category: 'category' in patch ? patch.category ?? undefined : current.category,
     type: patch.type ?? current.type,
     location: patch.location ?? current.location,
     level: patch.level ?? current.level,
   }
   const params: string[] = []
+  if (next.q) params.push(`q=${encodeURIComponent(next.q)}`)
   if (next.category) params.push(`category=${next.category}`)
   if (next.type.length) params.push(`type=${next.type.join(',')}`)
   if (next.location.length) params.push(`location=${next.location.join(',')}`)
@@ -88,19 +94,23 @@ export default async function JobsListPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const activeQuery =
+    typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
   const activeCategory =
     typeof searchParams.category === 'string' ? searchParams.category : undefined
   const activeTypes = parseMulti(searchParams.type)
   const activeLocations = parseMulti(searchParams.location)
   const activeLevels = parseMulti(searchParams.level)
 
-  const current = {
+  const current: FilterState = {
+    q: activeQuery || undefined,
     category: activeCategory,
     type: activeTypes,
     location: activeLocations,
     level: activeLevels,
   }
   const hasAnyFilter =
+    !!activeQuery ||
     !!activeCategory ||
     activeTypes.length > 0 ||
     activeLocations.length > 0 ||
@@ -108,6 +118,7 @@ export default async function JobsListPage({
 
   const [jobs, categories] = await Promise.all([
     getAllJobs({
+      q: activeQuery || undefined,
       categorySlug: activeCategory,
       employmentTypes: activeTypes,
       locationTypes: activeLocations,
@@ -126,9 +137,67 @@ export default async function JobsListPage({
         <h1 className="font-heading text-3xl md:text-4xl">Lowongan Pekerjaan</h1>
         <p className="text-muted-foreground mt-2">
           {total.toLocaleString('id-ID')} lowongan tersedia
+          {activeQuery && (
+            <>
+              {' '}untuk &ldquo;
+              <strong className="text-foreground font-medium">{activeQuery}</strong>
+              &rdquo;
+            </>
+          )}
         </p>
+
+        {/* Search form — submits as GET, preserves other filters via hidden inputs */}
+        <form method="get" action="/jobs" className="mt-5 max-w-2xl">
+          <div className="border-border bg-card focus-within:border-[color:var(--ring)] flex items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition">
+            <Search className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
+            <input
+              type="search"
+              name="q"
+              defaultValue={activeQuery}
+              placeholder="Cari judul, deskripsi, atau perusahaan…"
+              className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
+              aria-label="Cari lowongan"
+            />
+            {activeQuery && (
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={buildUrl(current, { q: null }) as any}
+                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
+              >
+                <X className="h-3 w-3" aria-hidden />
+                Bersihkan
+              </Link>
+            )}
+            <button
+              type="submit"
+              className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
+            >
+              Cari
+            </button>
+          </div>
+          {/* Preserve other filters when submitting a new search */}
+          {activeCategory && (
+            <input type="hidden" name="category" value={activeCategory} />
+          )}
+          {activeTypes.length > 0 && (
+            <input type="hidden" name="type" value={activeTypes.join(',')} />
+          )}
+          {activeLocations.length > 0 && (
+            <input type="hidden" name="location" value={activeLocations.join(',')} />
+          )}
+          {activeLevels.length > 0 && (
+            <input type="hidden" name="level" value={activeLevels.join(',')} />
+          )}
+        </form>
+
         {hasAnyFilter && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
+            {activeQuery && (
+              <FilterChip
+                label={`"${activeQuery}"`}
+                clearHref={buildUrl(current, { q: null })}
+              />
+            )}
             {activeCategoryName && (
               <FilterChip
                 label={activeCategoryName}
