@@ -22,22 +22,27 @@ import {
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
 import {
-  DUMMY_JOBS,
   EMPLOYMENT_TYPE_LABEL,
   LOCATION_TYPE_LABEL,
   type DummyJob,
   findJob,
+  getAllJobs,
   relatedJobs,
 } from '@/lib/jobs-data'
 
 type Params = { slug: string }
 
-export function generateStaticParams(): Params[] {
-  return DUMMY_JOBS.map((j) => ({ slug: j.slug }))
+export async function generateStaticParams(): Promise<Params[]> {
+  const jobs = await getAllJobs()
+  return jobs.map((j) => ({ slug: j.slug }))
 }
 
-export function generateMetadata({ params }: { params: Params }): Metadata {
-  const j = findJob(params.slug)
+export async function generateMetadata({
+  params,
+}: {
+  params: Params
+}): Promise<Metadata> {
+  const j = await findJob(params.slug)
   if (!j) return { title: 'Lowongan Tidak Ditemukan' }
   return {
     title: `${j.title} — ${j.company}`,
@@ -69,11 +74,11 @@ function companyColor(company: string): string {
   return palette[Math.abs(h) % palette.length] ?? palette[0]
 }
 
-export default function JobDetailPage({ params }: { params: Params }) {
-  const job = findJob(params.slug)
+export default async function JobDetailPage({ params }: { params: Params }) {
+  const job = await findJob(params.slug)
   if (!job) notFound()
 
-  const related = relatedJobs(params.slug, 3)
+  const related = await relatedJobs(params.slug, 3)
 
   const jsonLd = {
     '@context': 'https://schema.org',

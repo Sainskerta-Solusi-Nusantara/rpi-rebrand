@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { JobCard } from '@/components/molecules/job-card'
-import { DUMMY_JOBS } from '@/lib/jobs-data'
+import { getAllJobs } from '@/lib/jobs-data'
 
 export const metadata: Metadata = {
   title: 'Cari Lowongan Pekerjaan',
@@ -26,17 +26,16 @@ const EMPLOYMENT = ['Penuh Waktu', 'Paruh Waktu', 'Kontrak', 'Magang', 'Lepas']
 const LOCATIONS = ['Di Tempat', 'Hibrida', 'Jarak Jauh']
 const LEVELS = ['Pemula', 'Junior', 'Menengah', 'Senior', 'Lead', 'Eksekutif']
 
-const TOTAL = 1_356
-
-export default function JobsListPage() {
-  const jobs = DUMMY_JOBS
+export default async function JobsListPage() {
+  const jobs = await getAllJobs()
+  const total = jobs.length
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
       <header className="mb-8">
         <h1 className="font-heading text-3xl md:text-4xl">Lowongan Pekerjaan</h1>
         <p className="text-muted-foreground mt-2">
-          {TOTAL.toLocaleString('id-ID')} lowongan tersedia
+          {total.toLocaleString('id-ID')} lowongan tersedia
         </p>
       </header>
 

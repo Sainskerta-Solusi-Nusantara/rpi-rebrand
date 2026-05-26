@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { CourseCard } from '@/components/molecules/course-card'
-import { DUMMY_COURSES } from '@/lib/courses-data'
+import { getAllCourses } from '@/lib/courses-data'
 
 export const metadata: Metadata = {
   title: 'Kursus & Pelatihan',
@@ -17,15 +17,14 @@ const LEVELS = [
   { v: 'advanced', l: 'Lanjutan' },
 ]
 
-export default function CoursesPage({
+export default async function CoursesPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
   const level = typeof searchParams.level === 'string' ? searchParams.level.toLowerCase() : ''
-  const courses = level
-    ? DUMMY_COURSES.filter((c) => c.level === level)
-    : DUMMY_COURSES
+  const all = await getAllCourses()
+  const courses = level ? all.filter((c) => c.level === level) : all
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">

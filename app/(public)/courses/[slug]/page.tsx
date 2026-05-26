@@ -24,24 +24,29 @@ import {
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
 import {
-  DUMMY_COURSES,
   LESSON_TYPE_LABEL,
   LEVEL_COLOR,
   LEVEL_LABEL,
   type CourseLesson,
   type DummyCourse,
   findCourse,
+  getAllCourses,
   relatedCourses,
 } from '@/lib/courses-data'
 
 type Params = { slug: string }
 
-export function generateStaticParams(): Params[] {
-  return DUMMY_COURSES.map((c) => ({ slug: c.slug }))
+export async function generateStaticParams(): Promise<Params[]> {
+  const courses = await getAllCourses()
+  return courses.map((c) => ({ slug: c.slug }))
 }
 
-export function generateMetadata({ params }: { params: Params }): Metadata {
-  const c = findCourse(params.slug)
+export async function generateMetadata({
+  params,
+}: {
+  params: Params
+}): Promise<Metadata> {
+  const c = await findCourse(params.slug)
   if (!c) return { title: 'Kursus Tidak Ditemukan' }
   return {
     title: `${c.title} — RPI Academy`,
@@ -74,11 +79,11 @@ function lessonIcon(type: CourseLesson['type']) {
   }
 }
 
-export default function CourseDetailPage({ params }: { params: Params }) {
-  const course = findCourse(params.slug)
+export default async function CourseDetailPage({ params }: { params: Params }) {
+  const course = await findCourse(params.slug)
   if (!course) notFound()
 
-  const related = relatedCourses(params.slug, 3)
+  const related = await relatedCourses(params.slug, 3)
   const totalMinutes = course.modules.reduce(
     (sum, m) => sum + m.lessons.reduce((s, l) => s + l.durationMin, 0),
     0,
@@ -265,6 +270,7 @@ export default function CourseDetailPage({ params }: { params: Params }) {
                 </p>
               </Block>
 
+              {course.whatYouLearn.length > 0 && (
               <Block heading="Yang akan Anda pelajari">
                 <ul className="grid gap-3 sm:grid-cols-2">
                   {course.whatYouLearn.map((it) => (
@@ -281,6 +287,7 @@ export default function CourseDetailPage({ params }: { params: Params }) {
                   ))}
                 </ul>
               </Block>
+              )}
 
               <Block heading="Materi kursus">
                 <div className="text-muted-foreground mb-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
@@ -359,13 +366,17 @@ export default function CourseDetailPage({ params }: { params: Params }) {
                 </ol>
               </Block>
 
-              <Block heading="Prasyarat">
-                <BulletList items={course.requirements} />
-              </Block>
+              {course.requirements.length > 0 && (
+                <Block heading="Prasyarat">
+                  <BulletList items={course.requirements} />
+                </Block>
+              )}
 
-              <Block heading="Kursus ini untuk Anda jika">
-                <BulletList items={course.targetAudience} muted />
-              </Block>
+              {course.targetAudience.length > 0 && (
+                <Block heading="Kursus ini untuk Anda jika">
+                  <BulletList items={course.targetAudience} muted />
+                </Block>
+              )}
 
               <Block heading="Tentang pengajar">
                 <div className="border-border bg-card flex flex-col gap-5 rounded-2xl border p-6 sm:flex-row sm:items-start">

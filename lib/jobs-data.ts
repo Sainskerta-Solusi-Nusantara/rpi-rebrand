@@ -1,4 +1,5 @@
-// TEMPORARY DUMMY DATA — replace with prisma query once review is approved.
+import { cache } from 'react'
+import { prisma } from '@/lib/db'
 
 export type JobLocationType = 'onsite' | 'hybrid' | 'remote'
 export type JobEmploymentType =
@@ -36,1051 +37,225 @@ export type DummyJob = {
   benefits: string[]
 }
 
-export const DUMMY_JOBS: DummyJob[] = [
-  {
-    id: '1',
-    slug: 'senior-backend-engineer',
-    title: 'Senior Backend Engineer',
-    company: 'Telkom Indonesia',
-    companyTagline: 'Telekomunikasi BUMN terbesar Indonesia',
-    companyAbout:
-      'Telkom adalah perusahaan telekomunikasi terbesar di Indonesia dengan lebih dari 170 juta pelanggan. Divisi Digital Business sedang membangun platform cloud-native untuk mempercepat transformasi digital ribuan UMKM dan perusahaan menengah.',
-    industry: 'Telekomunikasi',
-    category: 'IT & Software',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'full-time',
-    experienceLevel: 'Senior',
-    salaryMin: 25_000_000,
-    salaryMax: 40_000_000,
-    tags: ['Node.js', 'PostgreSQL', 'AWS', 'Microservices'],
-    postedAt: '2 hari lalu',
-    postedDaysAgo: 2,
-    applicants: 47,
-    views: 1240,
-    description:
-      'Bergabung dengan tim Platform Telkom Digital Business untuk membangun infrastruktur backend yang melayani jutaan transaksi setiap hari. Anda akan bekerja erat dengan tim produk dan data untuk mendesain layanan yang andal, skalabel, dan mudah dirawat oleh tim engineer baru.',
-    responsibilities: [
-      'Mendesain dan mengirim layanan inti (transaksi, autentikasi, billing) dengan kepemilikan end-to-end',
-      'Memimpin migrasi monolith lama ke arsitektur microservice secara bertahap',
-      'Berkolaborasi dengan Data Engineering untuk pipeline ETL real-time',
-      'Membimbing engineer mid/junior melalui code review dan pair programming',
-      'Berpartisipasi dalam on-call rotation P0/P1 dengan SLA respons 30 menit',
-    ],
-    requirements: [
-      '5+ tahun pengalaman backend di produksi skala besar',
-      'Kemahiran mendalam Node.js/TypeScript atau Go',
-      'Pengalaman dengan PostgreSQL termasuk query tuning dan tradeoff schema',
-      'Pemahaman arsitektur terdistribusi (queue, cache, eventual consistency)',
-      'Komunikasi tertulis yang jernih dalam Bahasa Indonesia atau Inggris',
-    ],
-    niceToHave: [
-      'Pengalaman dengan multi-tenant SaaS atau marketplace',
-      'Kontribusi open-source yang dapat dilihat',
-      'Pengalaman dengan Kubernetes dan service mesh',
-    ],
-    benefits: [
-      'Gaji kompetitif + bonus performa tahunan',
-      'Asuransi kesehatan menyeluruh (Anda + keluarga)',
-      'Anggaran belajar Rp 8 juta/tahun',
-      '15 hari cuti tahunan + 12 hari cuti khusus',
-      'Hybrid 2 hari di kantor, 3 hari WFA',
-      'Saham Telkom (TLKM) untuk karyawan tetap',
-    ],
-  },
-  {
-    id: '2',
-    slug: 'frontend-react',
-    title: 'Frontend Engineer (React)',
-    company: 'Tokopedia',
-    companyTagline: 'Marketplace terdepan Indonesia',
-    companyAbout:
-      'Tokopedia mendukung jutaan UMKM dan konsumen di seluruh Indonesia. Tim Web sedang membangun pengalaman shopping yang lebih cepat dan personal dengan stack React + Next.js modern.',
-    industry: 'E-Commerce',
-    category: 'IT & Software',
-    location: 'Remote',
-    locationType: 'remote',
-    employmentType: 'full-time',
-    experienceLevel: 'Mid',
-    salaryMin: 18_000_000,
-    salaryMax: 28_000_000,
-    tags: ['React', 'TypeScript', 'Next.js', 'GraphQL'],
-    postedAt: '3 hari lalu',
-    postedDaysAgo: 3,
-    applicants: 89,
-    views: 2150,
-    description:
-      'Tim Marketplace Frontend Tokopedia sedang membangun ulang halaman produk dan checkout untuk pengalaman yang lebih cepat di jaringan 3G. Anda akan bekerja pada code yang dibuka oleh jutaan pengguna setiap jam — keputusan performa Anda terlihat seketika.',
-    responsibilities: [
-      'Membangun fitur baru di halaman produk, kategori, dan checkout',
-      'Mengoptimalkan kinerja (Core Web Vitals, bundle size, perceived performance)',
-      'Berkolaborasi dengan Designer untuk eksperimen UX dengan dampak bisnis terukur',
-      'Berpartisipasi dalam design system review dan kontribusi komponen',
-      'Mentor 1-2 engineer junior',
-    ],
-    requirements: [
-      '3+ tahun pengalaman frontend di produksi',
-      'Kemahiran React + TypeScript dalam codebase besar',
-      'Pengalaman Next.js (App Router atau Pages Router)',
-      'Pemahaman performa web dan tooling (Lighthouse, Web Vitals)',
-      'Mata yang tajam terhadap UX detail',
-    ],
-    niceToHave: [
-      'Pengalaman dengan GraphQL dan Apollo Client',
-      'Pengalaman membangun design system',
-      'Pernah bekerja remote-first',
-    ],
-    benefits: [
-      'Gaji kompetitif + RSU Tokopedia (vesting 4 tahun)',
-      'Setup home office: MacBook Pro + monitor + Rp 5jt allowance',
-      'Asuransi kesehatan + dental + mental health',
-      'Unlimited PTO (rata-rata karyawan ambil 25 hari/tahun)',
-      'Anggaran belajar Rp 15 juta/tahun',
-      'Quarterly virtual team-building',
-    ],
-  },
-  {
-    id: '3',
-    slug: 'product-designer',
-    title: 'Product Designer',
-    company: 'Gojek',
-    companyTagline: 'Super-app Asia Tenggara',
-    companyAbout:
-      'Gojek menyentuh kehidupan ratusan juta orang di Indonesia, Vietnam, dan Singapura. Tim Design fokus pada bagaimana produk kompleks tetap terasa sederhana untuk driver, merchant, dan customer.',
+// ---------------------------------------------------------------------------
+// Tenant metadata — presentation info that isn't in the DB schema. Keyed by
+// tenant slug. Used to enrich job cards with company tagline, industry, etc.
+// ---------------------------------------------------------------------------
+
+type TenantMeta = {
+  tagline: string
+  about: string
+  industry: string
+}
+
+const TENANT_META: Record<string, TenantMeta> = {
+  main: {
+    tagline: 'Platform multi-tenant untuk perekrutan & pelatihan Indonesia',
+    about:
+      'Rumah Pekerja Indonesia adalah platform multi-tenant terdepan untuk perekrutan dan pelatihan di Indonesia. Kami melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh provinsi.',
     industry: 'Teknologi',
-    category: 'Design',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'full-time',
-    experienceLevel: 'Mid',
-    salaryMin: 15_000_000,
-    salaryMax: 25_000_000,
-    tags: ['Figma', 'UX Research', 'Design System', 'Mobile-First'],
-    postedAt: '1 hari lalu',
-    postedDaysAgo: 1,
-    applicants: 23,
-    views: 890,
-    description:
-      'Tim Driver Experience di Gojek sedang mendesain ulang aplikasi mitra driver untuk 2 juta+ driver aktif. Anda akan mendesain alur yang krusial bagi penghasilan mereka — tiap detail penting karena dilihat puluhan kali sehari di motor mereka.',
-    responsibilities: [
-      'Melakukan riset pengguna langsung dengan driver (field research)',
-      'Mendesain alur, interaksi, dan visual untuk fitur kritis',
-      'Kolaborasi harian dengan PM, Engineering, dan Data',
-      'Berkontribusi pada design system Asphalt (in-house)',
-      'Mempresentasikan keputusan desain dengan rasional jernih',
-    ],
-    requirements: [
-      '3+ tahun pengalaman product design di mobile-first products',
-      'Portfolio yang menunjukkan ownership end-to-end',
-      'Mahir Figma termasuk variants, auto-layout, komponen kompleks',
-      'Empati terhadap pengguna dengan literasi digital beragam',
-      'Pengalaman riset pengguna langsung',
-    ],
-    niceToHave: [
-      'Pengalaman desain untuk audiens non-tech-savvy',
-      'Penguasaan dasar motion design',
-      'Pernah mengelola design system',
-    ],
-    benefits: [
-      'Gaji kompetitif + equity Gojek',
-      'Asuransi swasta untuk Anda + keluarga + parental coverage',
-      '20 hari cuti + 5 hari Goners-day (cuti karyawan)',
-      'Hybrid: 2 hari kantor, 3 hari WFA',
-      'Anggaran wellness Rp 6 juta/tahun (gym, terapi, hobi)',
-      'Trip tahunan offsite ke lokasi seru',
-    ],
   },
-  {
-    id: '4',
-    slug: 'digital-marketing-lead',
-    title: 'Digital Marketing Lead',
-    company: 'Unilever Indonesia',
-    companyTagline: 'Consumer goods global di Indonesia',
-    companyAbout:
-      'Unilever menjangkau 9 dari 10 rumah tangga Indonesia. Tim Digital sedang mengubah cara brand-brand legendaris seperti Royco, Pepsodent, dan Lifebuoy terkoneksi dengan konsumen di era omnichannel.',
-    industry: 'Consumer Goods',
-    category: 'Marketing',
-    location: 'Jakarta',
-    locationType: 'onsite',
-    employmentType: 'full-time',
-    experienceLevel: 'Lead',
-    salaryMin: 20_000_000,
-    salaryMax: 35_000_000,
-    tags: ['SEO', 'SEM', 'Strategy', 'Brand Marketing'],
-    postedAt: '5 hari lalu',
-    postedDaysAgo: 5,
-    applicants: 61,
-    views: 1830,
-    description:
-      'Pimpin strategi digital marketing untuk salah satu portofolio brand Unilever — termasuk perencanaan kampanye omnichannel, alokasi budget USD 5jt+/tahun, dan koordinasi dengan agency kreatif global.',
-    responsibilities: [
-      'Memimpin strategi digital untuk 1 portofolio brand (3-5 brand)',
-      'Mengelola budget kampanye dan ROI tracking',
-      'Bekerja dengan agency kreatif dan media untuk eksekusi',
-      'Memimpin tim 4-6 marketer brand',
-      'Mempresentasikan hasil ke leadership global setiap kuartal',
-    ],
-    requirements: [
-      '8+ tahun pengalaman marketing, 3+ tahun di level senior/lead',
-      'Track record memimpin kampanye omnichannel berskala besar',
-      'Pengalaman FMCG atau consumer goods sangat diutamakan',
-      'Komunikasi bilingual ID + EN level eksekutif',
-      'Pemahaman data dan analytics untuk decision-making',
-    ],
-    niceToHave: [
-      'Pengalaman dengan brand global / multinasional',
-      'Background MBA dari sekolah top',
-      'Pengalaman dengan influencer marketing skala besar',
-    ],
-    benefits: [
-      'Paket kompetitif + bonus tahunan + saham Unilever',
-      'Asuransi kesehatan menyeluruh + dental',
-      '21 hari cuti tahunan',
-      'Mobil dinas / car allowance',
-      'Program development internasional (rotasi global tersedia)',
-      'Pension plan',
-    ],
-  },
-  {
-    id: '5',
-    slug: 'finance-analyst',
-    title: 'Finance Analyst',
-    company: 'Bank Mandiri',
-    companyTagline: 'Bank BUMN terbesar Indonesia',
-    companyAbout:
-      'Bank Mandiri melayani lebih dari 35 juta nasabah dengan aset Rp 2.000 triliun+. Tim Finance & Strategy sedang membangun kapabilitas analytics untuk mendukung transformasi digital perbankan.',
-    industry: 'Perbankan',
-    category: 'Finance',
-    location: 'Jakarta',
-    locationType: 'onsite',
-    employmentType: 'full-time',
-    experienceLevel: 'Junior',
-    salaryMin: 9_000_000,
-    salaryMax: 15_000_000,
-    tags: ['Financial Modeling', 'Excel', 'CFA', 'Banking'],
-    postedAt: '1 minggu lalu',
-    postedDaysAgo: 7,
-    applicants: 124,
-    views: 3120,
-    description:
-      'Bergabung dengan tim Finance Mandiri sebagai analyst di divisi Corporate Banking. Anda akan membantu credit assessment untuk klien korporasi besar dan membangun model finansial untuk keputusan kredit Rp 100M+.',
-    responsibilities: [
-      'Membangun model finansial untuk credit assessment',
-      'Melakukan analisis industri dan benchmarking',
-      'Menyusun proposal kredit untuk Credit Committee',
-      'Berkolaborasi dengan Relationship Manager untuk follow-up klien',
-      'Mempersiapkan laporan kepada regulator (OJK)',
-    ],
-    requirements: [
-      '1-3 tahun pengalaman finance/banking (lulusan baru dipertimbangkan)',
-      'Pemahaman financial modeling dan valuation',
-      'Mahir Excel level lanjutan',
-      'Pendidikan S1 Akuntansi/Finance dari universitas terkemuka',
-      'Komunikasi profesional dalam Bahasa Indonesia dan Inggris',
-    ],
-    niceToHave: [
-      'CFA Level 1 atau dalam proses',
-      'Pengalaman di Big 4 atau investment banking',
-      'Penguasaan SQL untuk analisis data',
-    ],
-    benefits: [
-      'Gaji + tunjangan kinerja semesteran',
-      'Asuransi kesehatan + jamsostek',
-      '20 hari cuti tahunan + cuti besar',
-      'Pinjaman karyawan dengan bunga subsidi',
-      'Program development (sponsorship CFA, MBA)',
-      'Karir jenjang struktural yang jelas',
-    ],
-  },
-  {
-    id: '6',
-    slug: 'hr-business-partner',
-    title: 'HR Business Partner',
-    company: 'Astra International',
-    companyTagline: 'Konglomerat Indonesia di otomotif & jasa',
-    companyAbout:
-      'Astra mengelola portofolio bisnis di otomotif (Toyota, Honda, Daihatsu), agribisnis, alat berat, dan jasa keuangan. Tim HR mengelola talenta 200.000+ karyawan di 200+ anak perusahaan.',
-    industry: 'Otomotif',
-    category: 'Human Resources',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'full-time',
-    experienceLevel: 'Senior',
-    salaryMin: 18_000_000,
-    salaryMax: 28_000_000,
-    tags: ['People Operations', 'Talent Management', 'Strategic HR'],
-    postedAt: '4 hari lalu',
-    postedDaysAgo: 4,
-    applicants: 38,
-    views: 920,
-    description:
-      'Bertanggung jawab sebagai trusted advisor untuk leadership salah satu anak usaha Astra di otomotif. Anda akan mengelola seluruh siklus karyawan dari hiring strategy hingga succession planning untuk 800-1.200 karyawan.',
-    responsibilities: [
-      'Menjadi business partner untuk 2-3 senior leader',
-      'Memimpin inisiatif talent (hiring, performance, succession)',
-      'Mengelola perubahan organisasi (restructuring, M&A integration)',
-      'Memimpin people-related projects (engagement, DEI, kompensasi)',
-      'Berkolaborasi dengan CoE HR (Talent Acquisition, L&D, Comp & Ben)',
-    ],
-    requirements: [
-      '6+ tahun pengalaman HR generalist atau HRBP',
-      'Pengalaman di perusahaan besar (1000+ karyawan)',
-      'Pemahaman labor law Indonesia',
-      'Kemampuan stakeholder management hingga level direksi',
-      'Komunikasi bilingual ID + EN',
-    ],
-    niceToHave: [
-      'CHRP atau sertifikasi HR profesional',
-      'Pengalaman di industri otomotif/manufaktur',
-      'Pengalaman dengan SAP SuccessFactors',
-    ],
-    benefits: [
-      'Gaji + tunjangan jabatan + bonus tahunan',
-      'Asuransi kesehatan + jiwa',
-      'Mobil dinas atau car allowance',
-      'Program pendidikan eksekutif (international assignments)',
-      'Pension plan',
-      'Discount produk Astra Group',
-    ],
-  },
-  {
-    id: '7',
-    slug: 'mechanical-engineer',
-    title: 'Mechanical Engineer',
-    company: 'Pertamina',
-    companyTagline: 'BUMN energi nasional',
-    companyAbout:
-      'Pertamina adalah perusahaan minyak dan gas nasional yang mengoperasikan 6 kilang besar dan ribuan SPBU. Tim Engineering mengelola aset bernilai miliaran USD di seluruh Indonesia.',
-    industry: 'Energi',
-    category: 'Engineering',
-    location: 'Cikarang',
-    locationType: 'onsite',
-    employmentType: 'full-time',
-    experienceLevel: 'Mid',
-    salaryMin: 12_000_000,
-    salaryMax: 20_000_000,
-    tags: ['CAD', 'Manufacturing', 'Lean', 'Oil & Gas'],
-    postedAt: '6 hari lalu',
-    postedDaysAgo: 6,
-    applicants: 76,
-    views: 1450,
-    description:
-      'Bergabung di kilang RU IV Cilacap sebagai Mechanical Engineer untuk maintenance dan reliability engineering peralatan utama kilang. Anda akan menangani rotating equipment kritis dengan dampak langsung pada produksi BBM nasional.',
-    responsibilities: [
-      'Melakukan reliability engineering untuk pompa, turbin, dan kompresor',
-      'Memimpin troubleshooting peralatan saat upset condition',
-      'Menyusun rencana inspeksi dan turnaround tahunan',
-      'Berkolaborasi dengan operations untuk root cause analysis',
-      'Mengelola vendor untuk overhaul dan spare part',
-    ],
-    requirements: [
-      'S1 Teknik Mesin dari universitas akreditasi A',
-      '3-5 tahun pengalaman di industri proses (oil & gas, petrochem, power)',
-      'Pemahaman API standards dan international codes',
-      'Mahir software CAD (AutoCAD, SolidWorks)',
-      'Bersedia bekerja di lokasi kilang dengan shift bila perlu',
-    ],
-    niceToHave: [
-      'Sertifikasi API 510/570/653',
-      'Pengalaman dengan reliability software (Meridium, OSI PI)',
-      'Penguasaan Six Sigma atau Lean methodology',
-    ],
-    benefits: [
-      'Gaji + tunjangan lokasi + tunjangan kinerja',
-      'Asuransi kesehatan + jamsostek + kecelakaan kerja',
-      'Mess karyawan + transportasi',
-      'Cuti tahunan + cuti besar',
-      'Program development internasional',
-      'Pension plan',
-    ],
-  },
-  {
-    id: '8',
-    slug: 'data-scientist',
-    title: 'Senior Data Scientist',
-    company: 'Bank Central Asia',
-    companyTagline: 'Bank swasta terbesar Indonesia',
-    companyAbout:
-      'BCA melayani 33 juta nasabah dengan teknologi yang andal. Tim Data Science membangun model untuk credit scoring, fraud detection, dan personalisasi produk perbankan.',
-    industry: 'Perbankan',
-    category: 'IT & Software',
-    location: 'Remote',
-    locationType: 'remote',
-    employmentType: 'full-time',
-    experienceLevel: 'Senior',
-    salaryMin: 25_000_000,
-    salaryMax: 40_000_000,
-    tags: ['Python', 'Machine Learning', 'TensorFlow', 'SQL'],
-    postedAt: '2 hari lalu',
-    postedDaysAgo: 2,
-    applicants: 52,
-    views: 1670,
-    description:
-      'Pimpin pengembangan model machine learning untuk credit scoring nasabah retail BCA. Pekerjaan Anda akan langsung mempengaruhi keputusan kredit untuk jutaan nasabah dan basis poin profitabilitas bank.',
-    responsibilities: [
-      'Mendesain dan mengirim model ML untuk credit scoring',
-      'Berkolaborasi dengan Risk dan Compliance untuk model validation',
-      'Memimpin proyek end-to-end dari data exploration ke deployment',
-      'Mentor 2-3 data scientist mid/junior',
-      'Mempresentasikan hasil model ke leadership',
-    ],
-    requirements: [
-      '5+ tahun pengalaman data science di produksi',
-      'Penguasaan Python dan ML libraries (scikit-learn, XGBoost, TF/PyTorch)',
-      'Pengalaman dengan model deployment dan monitoring',
-      'Pemahaman tradeoff bisnis vs model performance',
-      'Pengalaman regulated industries diutamakan',
-    ],
-    niceToHave: [
-      'Pengalaman dengan model interpretability (SHAP, LIME)',
-      'Background statistical learning theory',
-      'Pengalaman A/B testing skala besar',
-    ],
-    benefits: [
-      'Gaji + tunjangan kinerja semesteran',
-      'Bonus tahunan hingga 6 bulan gaji',
-      'Asuransi kesehatan menyeluruh',
-      'Cuti tahunan 20 hari + cuti besar',
-      'Pinjaman karyawan dengan subsidi',
-      'Program development internal',
-    ],
-  },
-  {
-    id: '9',
-    slug: 'ui-ux-intern',
-    title: 'UI/UX Designer Intern',
-    company: 'Bukalapak',
-    companyTagline: 'Marketplace UMKM Indonesia',
-    companyAbout:
-      'Bukalapak mendukung jutaan Mitra Warung dan UMKM di seluruh Indonesia. Tim Design sedang mengembangkan pengalaman digital yang mudah dipakai mitra dari berbagai latar belakang.',
-    industry: 'E-Commerce',
-    category: 'Design',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'internship',
-    experienceLevel: 'Entry',
-    salaryMin: 3_500_000,
-    salaryMax: 5_000_000,
-    tags: ['Figma', 'Prototyping', 'UX Research'],
-    postedAt: '1 hari lalu',
-    postedDaysAgo: 1,
-    applicants: 198,
-    views: 2890,
-    description:
-      'Program magang 6 bulan untuk mahasiswa tingkat akhir atau fresh graduate yang ingin memulai karir sebagai product designer. Anda akan dipasangkan dengan senior designer dan mengerjakan proyek nyata yang akan dirilis.',
-    responsibilities: [
-      'Membantu senior designer dengan riset, mockup, dan prototype',
-      'Mengikuti design review dan stakeholder feedback session',
-      'Berkontribusi pada design system Atlas (in-house)',
-      'Mempersiapkan asset untuk handoff ke engineering',
-      'Mempresentasikan proyek akhir di akhir program',
-    ],
-    requirements: [
-      'Mahasiswa tingkat akhir atau lulusan dalam 12 bulan terakhir',
-      'Portfolio yang menunjukkan ketertarikan pada UX',
-      'Familiar dengan Figma',
-      'Komunikasi yang baik dan keinginan belajar tinggi',
-      'Bisa hybrid 3 hari/minggu di kantor Jakarta',
-    ],
-    niceToHave: [
-      'Project pribadi di Dribbble/Behance',
-      'Pemahaman dasar HTML/CSS',
-      'Pengalaman freelance design',
-    ],
-    benefits: [
-      'Stipend bulanan Rp 3.5-5jt',
-      'Mentoring intensif dari senior designer',
-      'Akses ke semua tools (Figma, Maze, dll.)',
-      'Lunch & transport allowance',
-      'Sertifikat magang + offer konversi (high performer)',
-      'Networking dengan tim design Bukalapak',
-    ],
-  },
-  {
-    id: '10',
-    slug: 'sales-executive',
-    title: 'Sales Executive',
-    company: 'Kalbe Farma',
-    companyTagline: 'Farmasi terdepan Indonesia',
-    companyAbout:
-      'Kalbe adalah perusahaan farmasi terbesar di Indonesia yang menyediakan produk kesehatan untuk jutaan keluarga. Divisi Consumer Health sedang memperluas jaringan distribusi di Indonesia Timur.',
-    industry: 'Farmasi',
-    category: 'Sales',
-    location: 'Surabaya',
-    locationType: 'onsite',
-    employmentType: 'full-time',
-    experienceLevel: 'Junior',
-    salaryMin: 7_000_000,
-    salaryMax: 11_000_000,
-    tags: ['B2B Sales', 'CRM', 'FMCG', 'Field Sales'],
-    postedAt: '3 hari lalu',
-    postedDaysAgo: 3,
-    applicants: 87,
-    views: 1350,
-    description:
-      'Sebagai Sales Executive, Anda akan mengelola portofolio account farmasi dan apotek di wilayah Jawa Timur. Target: menumbuhkan revenue Rp 2M/bulan dengan target trade promotion dan distribusi yang efektif.',
-    responsibilities: [
-      'Mengelola 80-120 account aktif (apotek, klinik, RS)',
-      'Mencapai target sales bulanan dan kuartalan',
-      'Melakukan kunjungan rutin dan negosiasi trade promotion',
-      'Mengelola order, invoicing, dan penagihan',
-      'Membuat laporan mingguan dan kuartalan',
-    ],
-    requirements: [
-      '1-3 tahun pengalaman sales (FMCG, farmasi, atau healthcare)',
-      'S1 dari jurusan apapun',
-      'SIM A + bersedia mobile di wilayah Jawa Timur',
-      'Kemampuan negosiasi dan relationship building',
-      'Mahir Excel dan PowerPoint',
-    ],
-    niceToHave: [
-      'Latar belakang farmasi atau kesehatan',
-      'Pengalaman dengan tools CRM (Salesforce, HubSpot)',
-      'Penguasaan SAP',
-    ],
-    benefits: [
-      'Gaji + komisi penjualan + tunjangan kendaraan',
-      'Asuransi kesehatan untuk Anda + keluarga',
-      'Tunjangan komunikasi & bensin',
-      'Cuti tahunan + cuti khusus',
-      'Career path ke Sales Supervisor → Sales Manager',
-      'Program development internal',
-    ],
-  },
-  {
-    id: '11',
-    slug: 'cloud-architect',
-    title: 'Senior Cloud Architect',
-    company: 'Telkom Indonesia',
-    companyTagline: 'Telekomunikasi BUMN terbesar Indonesia',
-    companyAbout:
-      'Tim Cloud Telkom Sigma sedang membantu enterprise Indonesia bermigrasi ke cloud dengan strategy multi-cloud yang aman dan compliant terhadap regulasi lokal.',
+  telkom: {
+    tagline: 'Telekomunikasi BUMN terbesar Indonesia',
+    about:
+      'Telkom adalah perusahaan telekomunikasi terbesar di Indonesia dengan lebih dari 170 juta pelanggan. Divisi Digital Business sedang membangun platform cloud-native untuk transformasi digital nasional.',
     industry: 'Telekomunikasi',
-    category: 'IT & Software',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'full-time',
-    experienceLevel: 'Senior',
-    salaryMin: 35_000_000,
-    salaryMax: 55_000_000,
-    tags: ['AWS', 'Kubernetes', 'Terraform', 'Multi-cloud'],
-    postedAt: '5 hari lalu',
-    postedDaysAgo: 5,
-    applicants: 34,
-    views: 1190,
-    description:
-      'Pimpin desain arsitektur cloud untuk klien-klien enterprise Telkom — BUMN, lembaga keuangan, dan grup usaha besar. Anda akan terlibat dari pre-sales (PoC, RFP response) hingga implementasi dan steady-state operations.',
-    responsibilities: [
-      'Mendesain arsitektur cloud (AWS, Azure, GCP, OCI) sesuai kebutuhan klien',
-      'Memimpin technical discovery dan PoC',
-      'Berkolaborasi dengan Solution Sales untuk RFP/RFI response',
-      'Mengelola tim implementation 5-8 engineer per proyek',
-      'Mempresentasikan arsitektur ke CTO/CIO klien',
-    ],
-    requirements: [
-      '8+ tahun pengalaman cloud architecture',
-      'Sertifikasi AWS Solutions Architect Professional (atau setara di Azure/GCP)',
-      'Pengalaman dengan multi-cloud strategy',
-      'Pemahaman security dan compliance (ISO 27001, PCI DSS)',
-      'Komunikasi eksekutif bilingual ID + EN',
-    ],
-    niceToHave: [
-      'Sertifikasi tambahan (CKA, HashiCorp, GitOps)',
-      'Pengalaman di consulting / system integrator',
-      'Pengalaman dengan regulated industries',
-    ],
-    benefits: [
-      'Gaji + tunjangan jabatan + bonus proyek',
-      'Asuransi kesehatan menyeluruh',
-      '20 hari cuti + cuti besar',
-      'Sponsorship sertifikasi & konferensi internasional',
-      'Mobil dinas atau car allowance',
-      'Saham Telkom (TLKM)',
-    ],
   },
-  {
-    id: '12',
-    slug: 'cybersecurity',
-    title: 'Cybersecurity Specialist',
-    company: 'Bank BRI',
-    companyTagline: 'Bank BUMN dengan jaringan terluas',
-    companyAbout:
-      'BRI melayani 150 juta nasabah dengan 11.000+ cabang. Tim Cybersecurity menjaga aset digital bank dari ancaman siber dengan kerangka kerja zero-trust.',
-    industry: 'Perbankan',
-    category: 'IT & Software',
-    location: 'Jakarta',
-    locationType: 'onsite',
-    employmentType: 'full-time',
-    experienceLevel: 'Senior',
-    salaryMin: 28_000_000,
-    salaryMax: 45_000_000,
-    tags: ['Pentesting', 'OWASP', 'CISSP', 'SOC'],
-    postedAt: '1 minggu lalu',
-    postedDaysAgo: 7,
-    applicants: 41,
-    views: 1240,
-    description:
-      'Bergabung dengan tim Security Operations Center BRI sebagai Senior Specialist. Anda akan memimpin red team exercises, vulnerability assessment, dan incident response untuk infrastruktur kritis bank.',
-    responsibilities: [
-      'Memimpin penetration testing untuk aplikasi internal dan vendor',
-      'Mengelola vulnerability management lifecycle',
-      'Berpartisipasi dalam incident response sebagai senior responder',
-      'Memberikan security review untuk arsitektur sistem baru',
-      'Mentoring tim security analyst junior',
-    ],
-    requirements: [
-      '6+ tahun pengalaman cybersecurity di banking atau regulated industries',
-      'Sertifikasi salah satu: CISSP, OSCP, GPEN, atau setara',
-      'Pemahaman mendalam OWASP Top 10 dan secure coding',
-      'Pengalaman dengan SIEM (Splunk, QRadar) dan EDR tools',
-      'Komunikasi yang baik untuk eksekutif non-teknis',
-    ],
-    niceToHave: [
-      'Pengalaman di financial regulation (OJK, BSSN)',
-      'Sertifikasi cloud security (CCSP, CSA)',
-      'Pengalaman dengan threat intelligence platform',
-    ],
-    benefits: [
-      'Gaji + tunjangan kinerja semesteran',
-      'Bonus tahunan kompetitif',
-      'Asuransi kesehatan + jamsostek + kecelakaan kerja',
-      'Sponsorship sertifikasi & konferensi internasional',
-      'Pinjaman karyawan dengan bunga subsidi',
-      'Career path struktural yang jelas',
-    ],
-  },
-  {
-    id: '13',
-    slug: 'devops-sre',
-    title: 'DevOps / SRE',
-    company: 'Shopee Indonesia',
-    companyTagline: 'Marketplace e-commerce terbesar Asia Tenggara',
-    companyAbout:
-      'Shopee melayani jutaan transaksi setiap hari di Indonesia, Asia Tenggara, dan Amerika Latin. Tim SRE memastikan reliability platform di puncak event seperti 11.11 dan 12.12.',
-    industry: 'E-Commerce',
-    category: 'IT & Software',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'full-time',
-    experienceLevel: 'Senior',
-    salaryMin: 30_000_000,
-    salaryMax: 48_000_000,
-    tags: ['Kubernetes', 'CI/CD', 'Observability', 'Site Reliability'],
-    postedAt: '2 hari lalu',
-    postedDaysAgo: 2,
-    applicants: 67,
-    views: 1820,
-    description:
-      'Bergabung dengan tim Platform Engineering Shopee untuk membangun infrastruktur yang menjalankan ribuan microservice. Pekerjaan Anda menentukan apakah jutaan order bisa diproses saat puncak 11.11.',
-    responsibilities: [
-      'Mengelola infrastruktur Kubernetes multi-region',
-      'Membangun dan memelihara CI/CD pipeline',
-      'Memimpin postmortem untuk insiden P0/P1',
-      'Mendesain solusi observability (metrics, logs, traces)',
-      'On-call rotation dengan SLA 15 menit',
-    ],
-    requirements: [
-      '5+ tahun pengalaman DevOps/SRE',
-      'Penguasaan Kubernetes di produksi skala besar',
-      'Pengalaman dengan IaC (Terraform, Ansible)',
-      'Pemahaman observability stack (Prometheus, Grafana, ELK, Jaeger)',
-      'Mindset reliability — Anda peduli pada error budget',
-    ],
-    niceToHave: [
-      'Pengalaman dengan service mesh (Istio, Linkerd)',
-      'Kontribusi open-source pada tools cloud-native',
-      'Pengalaman chaos engineering',
-    ],
-    benefits: [
-      'Gaji kompetitif + bonus performa + RSU',
-      'Asuransi kesehatan menyeluruh + dental',
-      '20 hari cuti + cuti khusus',
-      'Hybrid: 2 hari kantor, 3 hari WFA',
-      'Anggaran belajar Rp 15jt/tahun',
-      'Trip tahunan offsite regional',
-    ],
-  },
-  {
-    id: '14',
-    slug: 'brand-designer',
-    title: 'Brand Designer',
-    company: 'Traveloka',
-    companyTagline: 'Lifestyle super-app terdepan Asia Tenggara',
-    companyAbout:
-      'Traveloka melayani jutaan traveler dengan tiket, hotel, dan eksperiensial. Tim Brand sedang membangun ulang identitas visual untuk era post-pandemi.',
-    industry: 'Travel',
-    category: 'Design',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'full-time',
-    experienceLevel: 'Mid',
-    salaryMin: 13_000_000,
-    salaryMax: 20_000_000,
-    tags: ['Branding', 'Illustration', 'Motion Graphics'],
-    postedAt: '4 hari lalu',
-    postedDaysAgo: 4,
-    applicants: 56,
-    views: 1340,
-    description:
-      'Bergabung dengan tim Brand Design Traveloka untuk membentuk visual identity di seluruh touchpoint — dari ads, microsite, dan kemasan, hingga campaign in-store dengan partner hotel & airline.',
-    responsibilities: [
-      'Mendesain aset brand untuk kampanye marketing lintas channel',
-      'Berkolaborasi dengan Brand Strategist untuk eksekusi visual',
-      'Memelihara dan mengembangkan brand guidelines',
-      'Mengelola freelance illustrator dan motion designer',
-      'Mempresentasikan konsep ke leadership marketing',
-    ],
-    requirements: [
-      '4+ tahun pengalaman brand design (in-house atau agency)',
-      'Mata yang tajam untuk tipografi, layout, dan ilustrasi',
-      'Portfolio yang menunjukkan brand campaign besar',
-      'Mahir Adobe CC + Figma',
-      'Pemahaman dasar motion design',
-    ],
-    niceToHave: [
-      'Pengalaman dengan campaign global multi-region',
-      'Penguasaan After Effects atau Cinema 4D',
-      'Latar belakang ilustrasi',
-    ],
-    benefits: [
-      'Gaji kompetitif + RSU Traveloka',
-      'Travel benefit: diskon tiket + hotel',
-      'Asuransi kesehatan menyeluruh',
-      '20 hari cuti + 5 hari workation',
-      'Anggaran belajar Rp 8jt/tahun',
-      'Setup design tools premium',
-    ],
-  },
-  {
-    id: '15',
-    slug: 'data-engineer',
-    title: 'Data Engineer',
-    company: 'DANA Indonesia',
-    companyTagline: 'Dompet digital terdepan Indonesia',
-    companyAbout:
-      'DANA melayani 100 juta+ pengguna untuk pembayaran digital, transfer, dan investasi. Tim Data sedang membangun real-time analytics untuk personalisasi dan fraud detection.',
-    industry: 'Fintech',
-    category: 'IT & Software',
-    location: 'Remote',
-    locationType: 'remote',
-    employmentType: 'full-time',
-    experienceLevel: 'Mid',
-    salaryMin: 20_000_000,
-    salaryMax: 32_000_000,
-    tags: ['Spark', 'Airflow', 'GCP', 'Real-time'],
-    postedAt: '6 hari lalu',
-    postedDaysAgo: 6,
-    applicants: 73,
-    views: 1560,
-    description:
-      'Bergabung dengan tim Data Platform DANA untuk membangun pipeline data real-time yang menjalankan deteksi fraud dan rekomendasi produk untuk jutaan transaksi setiap menit.',
-    responsibilities: [
-      'Membangun dan memelihara pipeline ETL/ELT skala besar',
-      'Mendesain data model untuk analytics dan ML',
-      'Mengelola Airflow workflows untuk batch dan streaming jobs',
-      'Berkolaborasi dengan Data Scientist untuk feature engineering',
-      'Mengoptimalkan query dan storage cost',
-    ],
-    requirements: [
-      '3+ tahun pengalaman data engineering',
-      'Penguasaan Spark, Airflow, dan SQL',
-      'Pengalaman dengan cloud data warehouse (BigQuery, Snowflake)',
-      'Pemahaman streaming (Kafka, Flink, Spark Streaming)',
-      'Pemahaman tradeoff antara latency, cost, dan akurasi',
-    ],
-    niceToHave: [
-      'Pengalaman dengan dbt atau data modeling tools',
-      'Pemahaman ML feature stores',
-      'Pengalaman di fintech atau regulated industries',
-    ],
-    benefits: [
-      'Gaji kompetitif + bonus performa + saham DANA',
-      'Asuransi kesehatan menyeluruh',
-      '20 hari cuti + 30 hari WFA/tahun',
-      'Anggaran belajar Rp 12jt/tahun',
-      'Setup home office Rp 10jt',
-      'Quarterly virtual offsite',
-    ],
-  },
-  {
-    id: '16',
-    slug: 'civil-engineer',
-    title: 'Site Civil Engineer',
-    company: 'Wijaya Karya',
-    companyTagline: 'BUMN Konstruksi terdepan Indonesia',
-    companyAbout:
-      'WIKA mengerjakan proyek infrastruktur strategis nasional — jalan tol, bandara, pelabuhan, dan power plant. Divisi Konstruksi sedang merekrut untuk proyek IKN dan jalan tol Trans-Sumatra.',
-    industry: 'Konstruksi',
-    category: 'Engineering',
-    location: 'Bekasi',
-    locationType: 'onsite',
-    employmentType: 'contract',
-    experienceLevel: 'Mid',
-    salaryMin: 10_000_000,
-    salaryMax: 16_000_000,
-    tags: ['Structural', 'BIM', 'Construction Mgmt'],
-    postedAt: '1 minggu lalu',
-    postedDaysAgo: 7,
-    applicants: 42,
-    views: 980,
-    description:
-      'Posisi kontrak 18 bulan di proyek pembangunan jalan tol Cikampek-Patimban segmen Bekasi. Anda akan memimpin pekerjaan structural untuk jembatan penghubung dan elevated section.',
-    responsibilities: [
-      'Mengawasi pekerjaan structural di lapangan (excavation, pile, dll.)',
-      'Melakukan quality control sesuai spesifikasi teknis',
-      'Berkolaborasi dengan subkontraktor untuk schedule dan progress',
-      'Menyusun laporan harian dan mingguan',
-      'Memimpin coordination meeting dengan pemilik proyek',
-    ],
-    requirements: [
-      'S1 Teknik Sipil dari universitas akreditasi A',
-      '3-5 tahun pengalaman site supervision konstruksi besar',
-      'Pemahaman BIM (Autodesk Revit/Tekla)',
-      'Bersedia ditempatkan di site proyek',
-      'Sertifikasi K3 Konstruksi',
-    ],
-    niceToHave: [
-      'Pengalaman proyek tol atau jembatan',
-      'Sertifikasi tambahan PMI / Lean Construction',
-      'Penguasaan Primavera P6',
-    ],
-    benefits: [
-      'Gaji + tunjangan lokasi + tunjangan kinerja',
-      'Mess karyawan + transportasi proyek',
-      'Asuransi kesehatan + jamsostek',
-      'Cuti rotasi',
-      'Konversi ke karyawan tetap (high performer)',
-      'Pengalaman proyek strategis nasional',
-    ],
-  },
-  {
-    id: '17',
-    slug: 'mobile-developer',
-    title: 'Mobile Developer (Flutter)',
-    company: 'OVO',
-    companyTagline: 'Dompet digital partner UMKM',
-    companyAbout:
-      'OVO memberdayakan jutaan UMKM dengan layanan pembayaran digital. Tim Mobile sedang membangun ulang aplikasi merchant untuk performa di perangkat low-end.',
-    industry: 'Fintech',
-    category: 'IT & Software',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'full-time',
-    experienceLevel: 'Mid',
-    salaryMin: 17_000_000,
-    salaryMax: 27_000_000,
-    tags: ['Flutter', 'Dart', 'iOS', 'Android'],
-    postedAt: '3 hari lalu',
-    postedDaysAgo: 3,
-    applicants: 58,
-    views: 1290,
-    description:
-      'Bergabung dengan tim Merchant Mobile OVO untuk membangun aplikasi yang dipakai jutaan pemilik usaha. Karena banyak pengguna pakai perangkat low-end, fokus utama: bundle size, load time, dan battery efficiency.',
-    responsibilities: [
-      'Membangun fitur baru di aplikasi OVO Merchant (Flutter)',
-      'Mengoptimalkan kinerja untuk perangkat low-end',
-      'Mengintegrasikan dengan API platform dan partner',
-      'Berkontribusi pada Flutter design system internal',
-      'Berpartisipasi dalam on-call rotation untuk insiden mobile',
-    ],
-    requirements: [
-      '3+ tahun pengalaman mobile development',
-      '2+ tahun spesifik Flutter dengan aplikasi yang sudah dirilis',
-      'Pemahaman state management modern (Riverpod, Bloc)',
-      'Pengalaman release management ke App Store & Play Store',
-      'Empati terhadap pengguna dengan perangkat terbatas',
-    ],
-    niceToHave: [
-      'Pengalaman dengan offline-first dan sinkronisasi data',
-      'Penguasaan native iOS (Swift) atau Android (Kotlin)',
-      'Pengalaman dengan payment SDK',
-    ],
-    benefits: [
-      'Gaji kompetitif + RSU OVO',
-      'Asuransi kesehatan menyeluruh',
-      '20 hari cuti + cuti khusus',
-      'Hybrid: 3 hari kantor, 2 hari WFA',
-      'Anggaran wellness Rp 5jt/tahun',
-      'Setup home office',
-    ],
-  },
-  {
-    id: '18',
-    slug: 'qa-engineer',
-    title: 'QA Automation Engineer',
-    company: 'Blibli',
-    companyTagline: 'Marketplace digital partner Djarum Group',
-    companyAbout:
-      'Blibli melayani jutaan pelanggan dengan platform e-commerce yang lengkap. Tim QA Engineering sedang scaling test automation di seluruh produk.',
-    industry: 'E-Commerce',
-    category: 'IT & Software',
-    location: 'Jakarta',
-    locationType: 'hybrid',
-    employmentType: 'full-time',
-    experienceLevel: 'Mid',
-    salaryMin: 14_000_000,
-    salaryMax: 22_000_000,
-    tags: ['Cypress', 'Playwright', 'Test Automation'],
-    postedAt: '2 hari lalu',
-    postedDaysAgo: 2,
-    applicants: 49,
-    views: 1180,
-    description:
-      'Bergabung dengan tim QA Engineering Blibli untuk membangun test automation framework yang dipakai 100+ engineer. Tujuannya: mempercepat release dari 2 minggu menjadi harian tanpa mengorbankan kualitas.',
-    responsibilities: [
-      'Mendesain dan memelihara test automation framework (Cypress/Playwright)',
-      'Memimpin test strategy untuk feature baru',
-      'Berkolaborasi dengan dev team untuk shift-left testing',
-      'Mengelola test infrastructure (CI/CD pipeline integration)',
-      'Mentoring QA manual ke arah automation',
-    ],
-    requirements: [
-      '3+ tahun pengalaman QA automation',
-      'Penguasaan Cypress atau Playwright',
-      'Pemahaman test strategy modern (unit, integration, e2e, contract)',
-      'Pengalaman dengan CI/CD (GitLab CI, Jenkins)',
-      'Pengalaman performance testing (k6, JMeter)',
-    ],
-    niceToHave: [
-      'Pengalaman dengan API testing (Postman, REST Assured)',
-      'Pemahaman mobile testing (Appium)',
-      'Kontribusi pada test framework open-source',
-    ],
-    benefits: [
-      'Gaji kompetitif + bonus performa',
-      'Asuransi kesehatan menyeluruh',
-      '20 hari cuti tahunan',
-      'Hybrid: 2 hari kantor, 3 hari WFA',
-      'Diskon belanja Blibli',
-      'Anggaran belajar Rp 6jt/tahun',
-    ],
-  },
-  {
-    id: '19',
-    slug: 'content-strategist',
-    title: 'Content Strategist',
-    company: 'Kompas Gramedia',
-    companyTagline: 'Konglomerat media Indonesia',
-    companyAbout:
-      'Kompas Gramedia mengelola portofolio media dari Kompas.com, Tribunnews, hingga National Geographic Indonesia. Tim Editorial Digital sedang membangun ulang strategi konten era multi-platform.',
-    industry: 'Media',
-    category: 'Marketing',
-    location: 'Jakarta',
-    locationType: 'onsite',
-    employmentType: 'full-time',
-    experienceLevel: 'Mid',
-    salaryMin: 10_000_000,
-    salaryMax: 16_000_000,
-    tags: ['SEO', 'Editorial', 'Content Strategy'],
-    postedAt: '5 hari lalu',
-    postedDaysAgo: 5,
-    applicants: 65,
-    views: 1410,
-    description:
-      'Bergabung dengan tim Editorial Digital Kompas.com sebagai Content Strategist. Anda akan memimpin strategi konten untuk vertikal tertentu (politik, ekonomi, atau lifestyle) dengan target 30+ artikel per hari.',
-    responsibilities: [
-      'Memimpin strategi konten untuk 1 vertikal (10-15 reporter)',
-      'Mengelola editorial calendar dan kolaborasi dengan SEO team',
-      'Menganalisis performa konten dan iterasi strategy',
-      'Berkolaborasi dengan tim social media untuk distribusi',
-      'Mengembangkan format konten baru (longform, video, podcast)',
-    ],
-    requirements: [
-      '4+ tahun pengalaman editorial digital',
-      'Pemahaman SEO untuk konten editorial',
-      'Penguasaan tools analytics (GA4, Adobe Analytics)',
-      'Kemampuan menulis dan editing dalam Bahasa Indonesia',
-      'Pengalaman memimpin tim editorial kecil',
-    ],
-    niceToHave: [
-      'Latar belakang jurnalisme',
-      'Pengalaman dengan format multimedia (podcast, video)',
-      'Pemahaman content monetization (subscription, ads)',
-    ],
-    benefits: [
-      'Gaji + tunjangan jabatan',
-      'Asuransi kesehatan + jamsostek',
-      '18 hari cuti tahunan',
-      'Pinjaman karyawan',
-      'Akses ke koleksi Kompas Gramedia (buku, magazine)',
-      'Program development jurnalistik',
-    ],
-  },
-  {
-    id: '20',
-    slug: 'graphic-designer',
-    title: 'Graphic Designer',
-    company: 'Indofood',
-    companyTagline: 'Konglomerat pangan global di Indonesia',
-    companyAbout:
-      'Indofood menyediakan produk pangan untuk jutaan keluarga — dari Indomie hingga Pop Mie, dari Bimoli hingga Promina. Divisi Marketing sedang merekrut untuk tim brand baru.',
-    industry: 'Pangan',
-    category: 'Design',
-    location: 'Jakarta',
-    locationType: 'onsite',
-    employmentType: 'full-time',
-    experienceLevel: 'Junior',
-    salaryMin: 8_000_000,
-    salaryMax: 13_000_000,
-    tags: ['Adobe CC', 'Packaging', 'Print Design'],
-    postedAt: '4 hari lalu',
-    postedDaysAgo: 4,
-    applicants: 112,
-    views: 1690,
-    description:
-      'Bergabung dengan tim Brand Design Indofood untuk salah satu brand mi instan. Anda akan mendesain kemasan, point-of-sale, dan asset marketing untuk produk yang dilihat jutaan konsumen setiap hari.',
-    responsibilities: [
-      'Mendesain kemasan produk dan variant baru',
-      'Membuat asset point-of-sale untuk modern trade dan general trade',
-      'Berkolaborasi dengan Brand Manager untuk eksekusi visual',
-      'Mengelola hubungan dengan vendor cetak',
-      'Mempersiapkan file production-ready',
-    ],
-    requirements: [
-      '2+ tahun pengalaman graphic design (in-house atau agency)',
-      'Portfolio yang menunjukkan packaging atau FMCG',
-      'Mahir Adobe Illustrator, Photoshop, dan InDesign',
-      'Pemahaman pre-press dan teknik cetak',
-      'Mata yang tajam untuk detail',
-    ],
-    niceToHave: [
-      'Pengalaman FMCG / consumer goods',
-      'Pemahaman dasar fotografi produk',
-      'Penguasaan 3D rendering (Cinema 4D, KeyShot)',
-    ],
-    benefits: [
-      'Gaji + tunjangan transport',
-      'Asuransi kesehatan + jamsostek',
-      '12 hari cuti tahunan + cuti besar',
-      'THR + bonus tahunan',
-      'Discount produk Indofood Group',
-      'Cafetaria kantor + tunjangan makan',
-    ],
-  },
-]
-
-export function findJob(slug: string): DummyJob | undefined {
-  return DUMMY_JOBS.find((j) => j.slug === slug)
 }
 
-export function relatedJobs(slug: string, n = 3): DummyJob[] {
-  const current = findJob(slug)
-  if (!current) return DUMMY_JOBS.slice(0, n)
-  return DUMMY_JOBS
-    .filter((j) => j.slug !== slug)
-    .sort((a, b) => {
-      const aScore =
-        (a.category === current.category ? 3 : 0) +
-        (a.industry === current.industry ? 2 : 0) +
-        (a.experienceLevel === current.experienceLevel ? 1 : 0)
-      const bScore =
-        (b.category === current.category ? 3 : 0) +
-        (b.industry === current.industry ? 2 : 0) +
-        (b.experienceLevel === current.experienceLevel ? 1 : 0)
-      return bScore - aScore
+const DEFAULT_TENANT_META: TenantMeta = {
+  tagline: 'Mitra perekrut terverifikasi RPI',
+  about:
+    'Perusahaan ini adalah mitra perekrut terverifikasi di platform Rumah Pekerja Indonesia.',
+  industry: 'Umum',
+}
+
+// ---------------------------------------------------------------------------
+// Enum mappers
+// ---------------------------------------------------------------------------
+
+const EMPLOYMENT_MAP: Record<string, JobEmploymentType> = {
+  FULL_TIME: 'full-time',
+  PART_TIME: 'part-time',
+  CONTRACT: 'contract',
+  INTERNSHIP: 'internship',
+  FREELANCE: 'freelance',
+}
+
+const LOCATION_MAP: Record<string, JobLocationType> = {
+  ONSITE: 'onsite',
+  HYBRID: 'hybrid',
+  REMOTE: 'remote',
+}
+
+const LEVEL_MAP: Record<string, JobExperienceLevel> = {
+  ENTRY: 'Entry',
+  JUNIOR: 'Junior',
+  MID: 'Mid',
+  SENIOR: 'Senior',
+  LEAD: 'Lead',
+  EXECUTIVE: 'Executive',
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function splitBullets(input: string | null | undefined): string[] {
+  if (!input) return []
+  return input
+    .split(/\n+/)
+    .map((line) => line.replace(/^[-*•]\s*/, '').trim())
+    .filter(Boolean)
+}
+
+function relativeIndonesian(publishedAt: Date | null): { label: string; days: number } {
+  if (!publishedAt) return { label: 'baru saja', days: 0 }
+  const diffMs = Date.now() - publishedAt.getTime()
+  const days = Math.max(0, Math.floor(diffMs / 86_400_000))
+  if (days === 0) return { label: 'hari ini', days: 0 }
+  if (days === 1) return { label: '1 hari lalu', days: 1 }
+  if (days < 7) return { label: `${days} hari lalu`, days }
+  if (days < 30) {
+    const weeks = Math.floor(days / 7)
+    return { label: weeks === 1 ? '1 minggu lalu' : `${weeks} minggu lalu`, days }
+  }
+  const months = Math.floor(days / 30)
+  return { label: months === 1 ? '1 bulan lalu' : `${months} bulan lalu`, days }
+}
+
+// Strip auto-generated tags (category slug, employment type lowercase, level
+// lowercase) that the seed adds; only keep meaningful skill tags.
+function cleanTags(
+  raw: string[],
+  hidden: { category?: string | null; type: string; level: string },
+): string[] {
+  const hide = new Set<string>(
+    [
+      hidden.category?.toLowerCase(),
+      hidden.type.toLowerCase(),
+      hidden.level.toLowerCase(),
+    ].filter((x): x is string => Boolean(x)),
+  )
+  return raw.filter((t) => !hide.has(t.toLowerCase()))
+}
+
+// ---------------------------------------------------------------------------
+// Transform
+// ---------------------------------------------------------------------------
+
+type PrismaJobWithRelations = {
+  id: string
+  slug: string
+  title: string
+  description: string
+  responsibilities: string | null
+  requirements: string | null
+  benefits: string | null
+  salaryMin: number | null
+  salaryMax: number | null
+  employmentType: string
+  experienceLevel: string
+  location: string
+  locationType: string
+  tags: string[]
+  views: number
+  publishedAt: Date | null
+  tenant: { slug: string; name: string }
+  category: { name: string; slug: string } | null
+  _count: { applications: number }
+}
+
+function transform(row: PrismaJobWithRelations): DummyJob {
+  const meta = TENANT_META[row.tenant.slug] ?? DEFAULT_TENANT_META
+  const posted = relativeIndonesian(row.publishedAt)
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    company: row.tenant.name,
+    companyTagline: meta.tagline,
+    companyAbout: meta.about,
+    industry: meta.industry,
+    category: row.category?.name ?? 'Lowongan',
+    location: row.location,
+    locationType: LOCATION_MAP[row.locationType] ?? 'onsite',
+    employmentType: EMPLOYMENT_MAP[row.employmentType] ?? 'full-time',
+    experienceLevel: LEVEL_MAP[row.experienceLevel] ?? 'Mid',
+    salaryMin: row.salaryMin ?? 0,
+    salaryMax: row.salaryMax ?? 0,
+    tags: cleanTags(row.tags, {
+      category: row.category?.slug,
+      type: row.employmentType,
+      level: row.experienceLevel,
+    }),
+    postedAt: posted.label,
+    postedDaysAgo: posted.days,
+    applicants: row._count.applications,
+    views: row.views,
+    description: row.description,
+    responsibilities: splitBullets(row.responsibilities),
+    requirements: splitBullets(row.requirements),
+    niceToHave: [],
+    benefits: splitBullets(row.benefits),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Queries (memoized per-request via React cache)
+// ---------------------------------------------------------------------------
+
+const JOB_INCLUDE = {
+  tenant: { select: { slug: true, name: true } },
+  category: { select: { name: true, slug: true } },
+  _count: { select: { applications: true } },
+} as const
+
+export const getAllJobs = cache(async (): Promise<DummyJob[]> => {
+  const rows = await prisma.job
+    .findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: { publishedAt: 'desc' },
+      include: JOB_INCLUDE,
     })
-    .slice(0, n)
-}
+    .catch(() => [])
+  return rows.map(transform)
+})
+
+export const findJob = cache(async (slug: string): Promise<DummyJob | undefined> => {
+  const row = await prisma.job
+    .findFirst({
+      where: { slug, status: 'PUBLISHED' },
+      include: JOB_INCLUDE,
+    })
+    .catch(() => null)
+  return row ? transform(row) : undefined
+})
+
+export const relatedJobs = cache(
+  async (slug: string, n = 3): Promise<DummyJob[]> => {
+    const current = await findJob(slug)
+    if (!current) {
+      const all = await getAllJobs()
+      return all.slice(0, n)
+    }
+    const all = await getAllJobs()
+    return all
+      .filter((j) => j.slug !== slug)
+      .sort((a, b) => {
+        const aScore =
+          (a.category === current.category ? 3 : 0) +
+          (a.industry === current.industry ? 2 : 0) +
+          (a.experienceLevel === current.experienceLevel ? 1 : 0)
+        const bScore =
+          (b.category === current.category ? 3 : 0) +
+          (b.industry === current.industry ? 2 : 0) +
+          (b.experienceLevel === current.experienceLevel ? 1 : 0)
+        return bScore - aScore
+      })
+      .slice(0, n)
+  },
+)
 
 export const EMPLOYMENT_TYPE_LABEL: Record<JobEmploymentType, string> = {
   'full-time': 'Penuh Waktu',
