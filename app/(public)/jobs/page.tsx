@@ -53,6 +53,8 @@ type FilterState = {
   type: string[]
   location: string[]
   level: string[]
+  salaryMin?: number
+  salaryMax?: number
   page: number
 }
 
@@ -62,6 +64,8 @@ type FilterPatch = Partial<{
   type: string[]
   location: string[]
   level: string[]
+  salaryMin: number | null
+  salaryMax: number | null
   /** Set true to keep current page; defaults to resetting to 1 when filters change. */
   keepPage: boolean
   /** Explicit page override. */
@@ -75,6 +79,10 @@ function buildUrl(current: FilterState, patch: FilterPatch): string {
     type: patch.type ?? current.type,
     location: patch.location ?? current.location,
     level: patch.level ?? current.level,
+    salaryMin:
+      'salaryMin' in patch ? patch.salaryMin ?? undefined : current.salaryMin,
+    salaryMax:
+      'salaryMax' in patch ? patch.salaryMax ?? undefined : current.salaryMax,
     page: patch.page ?? (patch.keepPage ? current.page : 1),
   }
   const params: string[] = []
@@ -83,8 +91,56 @@ function buildUrl(current: FilterState, patch: FilterPatch): string {
   if (next.type.length) params.push(`type=${next.type.join(',')}`)
   if (next.location.length) params.push(`location=${next.location.join(',')}`)
   if (next.level.length) params.push(`level=${next.level.join(',')}`)
+  if (next.salaryMin !== undefined) params.push(`salaryMin=${next.salaryMin}`)
+  if (next.salaryMax !== undefined) params.push(`salaryMax=${next.salaryMax}`)
   if (next.page > 1) params.push(`page=${next.page}`)
   return params.length ? `/jobs?${params.join('&')}` : '/jobs'
+}
+
+// ---------------------------------------------------------------------------
+// Salary preset chips
+// ---------------------------------------------------------------------------
+
+type SalaryPreset = {
+  id: string
+  label: string
+  min?: number
+  max?: number
+}
+
+const SALARY_PRESETS: SalaryPreset[] = [
+  { id: 'lt-5',     label: '< Rp 5jt',         max: 5_000_000 },
+  { id: '5-10',     label: 'Rp 5–10jt',         min: 5_000_000,  max: 10_000_000 },
+  { id: '10-25',    label: 'Rp 10–25jt',        min: 10_000_000, max: 25_000_000 },
+  { id: '25-50',    label: 'Rp 25–50jt',        min: 25_000_000, max: 50_000_000 },
+  { id: 'gt-50',    label: '> Rp 50jt',         min: 50_000_000 },
+]
+
+function matchPreset(min?: number, max?: number): SalaryPreset | undefined {
+  return SALARY_PRESETS.find((p) => p.min === min && p.max === max)
+}
+
+function formatRupiahShort(n: number): string {
+  if (n >= 1_000_000_000) return `Rp ${(n / 1_000_000_000).toFixed(1)}M`
+  if (n >= 1_000_000) return `Rp ${Math.round(n / 1_000_000)}jt`
+  if (n >= 1_000) return `Rp ${Math.round(n / 1_000)}rb`
+  return `Rp ${n}`
+}
+
+function salaryChipLabel(min?: number, max?: number): string {
+  const preset = matchPreset(min, max)
+  if (preset) return preset.label
+  if (min !== undefined && max !== undefined)
+    return `${formatRupiahShort(min)} – ${formatRupiahShort(max)}`
+  if (min !== undefined) return `≥ ${formatRupiahShort(min)}`
+  if (max !== undefined) return `≤ ${formatRupiahShort(max)}`
+  return ''
+}
+
+function parseSalary(v: string | string[] | undefined): number | undefined {
+  if (typeof v !== 'string') return undefined
+  const n = parseInt(v, 10)
+  return Number.isFinite(n) && n >= 0 ? n : undefined
 }
 
 function toggle(list: string[], value: string): string[] {
@@ -107,6 +163,8 @@ export default async function JobsListPage({
   const activeTypes = parseMulti(searchParams.type)
   const activeLocations = parseMulti(searchParams.location)
   const activeLevels = parseMulti(searchParams.level)
+  const activeSalaryMin = parseSalary(searchParams.salaryMin)
+  const activeSalaryMax = parseSalary(searchParams.salaryMax)
   const pageParam =
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
   const activePage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
@@ -117,6 +175,8 @@ export default async function JobsListPage({
     type: activeTypes,
     location: activeLocations,
     level: activeLevels,
+    salaryMin: activeSalaryMin,
+    salaryMax: activeSalaryMax,
     page: activePage,
   }
   const hasAnyFilter =
@@ -124,7 +184,9 @@ export default async function JobsListPage({
     !!activeCategory ||
     activeTypes.length > 0 ||
     activeLocations.length > 0 ||
-    activeLevels.length > 0
+    activeLevels.length > 0 ||
+    activeSalaryMin !== undefined ||
+    activeSalaryMax !== undefined
 
   const [pageResult, categories] = await Promise.all([
     getJobsPage(
@@ -134,6 +196,8 @@ export default async function JobsListPage({
         employmentTypes: activeTypes,
         locationTypes: activeLocations,
         experienceLevels: activeLevels,
+        salaryMin: activeSalaryMin,
+        salaryMax: activeSalaryMax,
       },
       activePage,
     ),
@@ -210,6 +274,12 @@ export default async function JobsListPage({
           {activeLevels.length > 0 && (
             <input type="hidden" name="level" value={activeLevels.join(',')} />
           )}
+          {activeSalaryMin !== undefined && (
+            <input type="hidden" name="salaryMin" value={activeSalaryMin} />
+          )}
+          {activeSalaryMax !== undefined && (
+            <input type="hidden" name="salaryMax" value={activeSalaryMax} />
+          )}
         </form>
 
         {hasAnyFilter && (
@@ -259,6 +329,15 @@ export default async function JobsListPage({
                 />
               )
             })}
+            {(activeSalaryMin !== undefined || activeSalaryMax !== undefined) && (
+              <FilterChip
+                label={salaryChipLabel(activeSalaryMin, activeSalaryMax)}
+                clearHref={buildUrl(current, {
+                  salaryMin: null,
+                  salaryMax: null,
+                })}
+              />
+            )}
             <Link
               href="/jobs"
               className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
@@ -337,13 +416,86 @@ export default async function JobsListPage({
           </FilterGroup>
 
           <FilterGroup title="Rentang Gaji (IDR/bulan)">
-            <div className="text-muted-foreground text-xs">Rp 0 – Rp 50.000.000</div>
-            <div className="bg-muted relative mt-3 h-1 rounded-full">
-              <div className="bg-primary absolute left-[10%] right-[20%] h-1 rounded-full" />
+            <div className="flex flex-wrap gap-1.5">
+              {SALARY_PRESETS.map((p) => {
+                const active =
+                  current.salaryMin === p.min && current.salaryMax === p.max
+                return (
+                  <Link
+                    key={p.id}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={
+                      buildUrl(current, {
+                        salaryMin: active ? null : p.min ?? null,
+                        salaryMax: active ? null : p.max ?? null,
+                      }) as any
+                    }
+                    className={
+                      active
+                        ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] rounded-full border px-2.5 py-1 text-[11px] font-medium transition'
+                        : 'border-border text-foreground/70 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] rounded-full border px-2.5 py-1 text-[11px] transition'
+                    }
+                    aria-current={active ? 'true' : undefined}
+                  >
+                    {p.label}
+                  </Link>
+                )
+              })}
             </div>
-            <p className="text-muted-foreground/80 mt-2 text-[10px]">
-              Filter rentang gaji belum aktif
-            </p>
+
+            <form method="get" action="/jobs" className="mt-4 space-y-2">
+              <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+                Atau kustom (IDR)
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={500_000}
+                  name="salaryMin"
+                  defaultValue={current.salaryMin ?? ''}
+                  placeholder="Min"
+                  aria-label="Gaji minimum"
+                  className="border-border bg-background focus:border-[color:var(--ring)] focus:ring-[color:var(--ring)]/30 rounded-md border px-2 py-1.5 text-xs outline-none focus:ring-2"
+                />
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={500_000}
+                  name="salaryMax"
+                  defaultValue={current.salaryMax ?? ''}
+                  placeholder="Max"
+                  aria-label="Gaji maksimum"
+                  className="border-border bg-background focus:border-[color:var(--ring)] focus:ring-[color:var(--ring)]/30 rounded-md border px-2 py-1.5 text-xs outline-none focus:ring-2"
+                />
+              </div>
+              {/* Preserve other active filters when applying custom salary */}
+              {activeQuery && <input type="hidden" name="q" value={activeQuery} />}
+              {activeCategory && (
+                <input type="hidden" name="category" value={activeCategory} />
+              )}
+              {activeTypes.length > 0 && (
+                <input type="hidden" name="type" value={activeTypes.join(',')} />
+              )}
+              {activeLocations.length > 0 && (
+                <input
+                  type="hidden"
+                  name="location"
+                  value={activeLocations.join(',')}
+                />
+              )}
+              {activeLevels.length > 0 && (
+                <input type="hidden" name="level" value={activeLevels.join(',')} />
+              )}
+              <button
+                type="submit"
+                className="border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] mt-1 inline-flex w-full items-center justify-center rounded-md border px-2 py-1.5 text-xs font-medium transition"
+              >
+                Terapkan
+              </button>
+            </form>
           </FilterGroup>
         </aside>
 

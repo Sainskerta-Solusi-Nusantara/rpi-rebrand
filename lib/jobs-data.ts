@@ -207,11 +207,23 @@ export type JobFilters = {
   employmentTypes?: string[]
   locationTypes?: string[]
   experienceLevels?: string[]
+  /** Salary in IDR. Overlap-match: a job is kept if its [salaryMin, salaryMax]
+   * range overlaps with the filter [salaryMin, salaryMax] window. Jobs with
+   * unknown salary are excluded when either bound is set. */
+  salaryMin?: number
+  salaryMax?: number
 }
 
 function sanitize(values: string[] | undefined, allowed: Set<string>): string[] {
   if (!values || values.length === 0) return []
   return values.filter((v) => allowed.has(v))
+}
+
+function safeSalary(n: number | undefined): number | undefined {
+  if (n === undefined || !Number.isFinite(n)) return undefined
+  if (n < 0) return undefined
+  // Clamp at IDR 1 billion/month — defensive upper bound, not a real-world cap.
+  return Math.min(1_000_000_000, Math.floor(n))
 }
 
 // Build the Prisma where clause from filters. Shared between findMany and count
@@ -222,6 +234,15 @@ function buildJobsWhere(filters: JobFilters): any {
   const locationTypes = sanitize(filters.locationTypes, VALID_LOCATION_TYPES)
   const experienceLevels = sanitize(filters.experienceLevels, VALID_EXPERIENCE_LEVELS)
   const q = filters.q?.trim()
+  const fMin = safeSalary(filters.salaryMin)
+  const fMax = safeSalary(filters.salaryMax)
+
+  // Salary overlap test:
+  //   keep job if job.salaryMax >= fMin AND job.salaryMin <= fMax
+  // Jobs with null salary fields are excluded when either bound is active.
+  const salaryClauses: object[] = []
+  if (fMin !== undefined) salaryClauses.push({ salaryMax: { gte: fMin } })
+  if (fMax !== undefined) salaryClauses.push({ salaryMin: { lte: fMax } })
 
   return {
     status: 'PUBLISHED',
@@ -229,6 +250,7 @@ function buildJobsWhere(filters: JobFilters): any {
     ...(employmentTypes.length ? { employmentType: { in: employmentTypes } } : {}),
     ...(locationTypes.length ? { locationType: { in: locationTypes } } : {}),
     ...(experienceLevels.length ? { experienceLevel: { in: experienceLevels } } : {}),
+    ...(salaryClauses.length ? { AND: salaryClauses } : {}),
     ...(q
       ? {
           OR: [
