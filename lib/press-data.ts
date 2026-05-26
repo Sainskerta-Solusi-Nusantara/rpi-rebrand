@@ -583,8 +583,14 @@ export const PRESS_RELEASES: PressRelease[] = [
 export type PressFilters = {
   /** Category. Use 'Semua' or undefined for no filter. */
   category?: PressCategory | 'Semua'
-  /** Free-text query against title, excerpt, dateline, tags. */
+  /** Free-text query against title, excerpt, dateline, tags, subtitle. */
   q?: string
+  /** Calendar year (Gregorian). */
+  year?: number
+}
+
+function yearOf(dateIso: string): number {
+  return new Date(dateIso).getFullYear()
 }
 
 export function filterReleases(filters: PressFilters = {}): PressRelease[] {
@@ -593,13 +599,48 @@ export function filterReleases(filters: PressFilters = {}): PressRelease[] {
     filters.category && filters.category !== 'Semua' ? filters.category : undefined
   return PRESS_RELEASES.filter((r) => {
     if (cat && r.category !== cat) return false
+    if (filters.year !== undefined && yearOf(r.dateIso) !== filters.year)
+      return false
     if (q) {
       const haystack =
-        `${r.title} ${r.excerpt} ${r.dateline} ${r.tags.join(' ')}`.toLowerCase()
+        `${r.title} ${r.subtitle} ${r.excerpt} ${r.dateline} ${r.tags.join(' ')}`.toLowerCase()
       if (!haystack.includes(q)) return false
     }
     return true
   })
+}
+
+/** Distinct release years, sorted newest first. */
+export function getPressYears(): number[] {
+  const ys = new Set(PRESS_RELEASES.map((r) => yearOf(r.dateIso)))
+  return Array.from(ys).sort((a, b) => b - a)
+}
+
+/** Counts keyed by category label (including 'Semua' = total). */
+export function getPressCategoryCounts(): Record<string, number> {
+  const map: Record<string, number> = { Semua: PRESS_RELEASES.length }
+  for (const cat of PRESS_CATEGORIES) {
+    if (cat === 'Semua') continue
+    map[cat] = PRESS_RELEASES.filter((r) => r.category === cat).length
+  }
+  return map
+}
+
+export function groupReleasesByYear(
+  releases: PressRelease[],
+): Map<number, PressRelease[]> {
+  const map = new Map<number, PressRelease[]>()
+  for (const r of releases) {
+    const y = yearOf(r.dateIso)
+    const list = map.get(y) ?? []
+    list.push(r)
+    map.set(y, list)
+  }
+  for (const [y, list] of map) {
+    list.sort((a, b) => (a.dateIso < b.dateIso ? 1 : -1))
+    map.set(y, list)
+  }
+  return map
 }
 
 export function findRelease(slug: string): PressRelease | undefined {

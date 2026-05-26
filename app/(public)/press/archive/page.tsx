@@ -1,8 +1,4 @@
-'use client'
-
-import * as React from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,75 +17,85 @@ import {
   PRESS_RELEASES,
   type PressCategory,
   type PressRelease,
+  filterReleases,
+  getPressCategoryCounts,
+  getPressYears,
+  groupReleasesByYear,
 } from '@/lib/press-data'
 import { cn } from '@/lib/utils'
 
-const fadeUp = {
-  initial: { opacity: 0, y: 12 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '-80px' },
-} as const
-
-type CategoryFilter = (typeof PRESS_CATEGORIES)[number]
-
-function yearOf(dateIso: string): number {
-  return new Date(dateIso).getFullYear()
+export const metadata = {
+  title: 'Arsip Siaran Pers',
+  description:
+    'Telusuri seluruh siaran pers Rumah Pekerja Indonesia. Saring berdasarkan kategori, tahun, atau cari berdasarkan kata kunci.',
 }
 
-function getYears(releases: PressRelease[]): number[] {
-  const years = new Set(releases.map((r) => yearOf(r.dateIso)))
-  return Array.from(years).sort((a, b) => b - a)
+type ArchiveState = {
+  category: PressCategory | 'Semua'
+  year?: number
+  q?: string
 }
 
-function groupByYear(releases: PressRelease[]): Map<number, PressRelease[]> {
-  const map = new Map<number, PressRelease[]>()
-  for (const r of releases) {
-    const y = yearOf(r.dateIso)
-    const list = map.get(y) ?? []
-    list.push(r)
-    map.set(y, list)
+function buildArchiveUrl(
+  current: ArchiveState,
+  patch: Partial<{
+    category: PressCategory | 'Semua' | null
+    year: number | null
+    q: string | null
+  }>,
+): string {
+  const next = {
+    category:
+      'category' in patch ? patch.category ?? 'Semua' : current.category,
+    year: 'year' in patch ? patch.year ?? undefined : current.year,
+    q: 'q' in patch ? patch.q ?? undefined : current.q,
   }
-  for (const [y, list] of map) {
-    list.sort((a, b) => (a.dateIso < b.dateIso ? 1 : -1))
-    map.set(y, list)
-  }
-  return map
+  const params: string[] = []
+  if (next.q) params.push(`q=${encodeURIComponent(next.q)}`)
+  if (next.category && next.category !== 'Semua')
+    params.push(`category=${encodeURIComponent(next.category)}`)
+  if (next.year !== undefined) params.push(`year=${next.year}`)
+  return params.length ? `/press/archive?${params.join('&')}` : '/press/archive'
 }
 
-export default function PressArchivePage() {
-  const [query, setQuery] = React.useState('')
-  const [category, setCategory] = React.useState<CategoryFilter>('Semua')
-  const [year, setYear] = React.useState<number | 'all'>('all')
+export default function PressArchivePage({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>
+}) {
+  const allYears = getPressYears()
+  const categoryCounts = getPressCategoryCounts()
 
-  const allYears = React.useMemo(() => getYears(PRESS_RELEASES), [])
+  // Parse + validate searchParams
+  const rawCategory =
+    typeof searchParams.category === 'string' ? searchParams.category : 'Semua'
+  const category: PressCategory | 'Semua' = (
+    PRESS_CATEGORIES as readonly string[]
+  ).includes(rawCategory)
+    ? (rawCategory as PressCategory | 'Semua')
+    : 'Semua'
 
-  const filtered = React.useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return PRESS_RELEASES.filter((r) => {
-      if (category !== 'Semua' && r.category !== category) return false
-      if (year !== 'all' && yearOf(r.dateIso) !== year) return false
-      if (!q) return true
-      return (
-        r.title.toLowerCase().includes(q) ||
-        r.subtitle.toLowerCase().includes(q) ||
-        r.tags.some((t) => t.toLowerCase().includes(q))
-      )
-    })
-  }, [query, category, year])
+  const rawYear =
+    typeof searchParams.year === 'string'
+      ? parseInt(searchParams.year, 10)
+      : undefined
+  const year =
+    rawYear !== undefined && Number.isFinite(rawYear) && allYears.includes(rawYear)
+      ? rawYear
+      : undefined
 
-  const grouped = React.useMemo(() => groupByYear(filtered), [filtered])
+  const q = typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
+
+  const current: ArchiveState = { category, year, q: q || undefined }
+  const isFiltered = !!q || category !== 'Semua' || year !== undefined
+
+  const filtered = filterReleases({
+    category,
+    year,
+    q: q || undefined,
+  })
+  const grouped = groupReleasesByYear(filtered)
   const groupedYears = Array.from(grouped.keys()).sort((a, b) => b - a)
-
-  const categoryCounts = React.useMemo(() => {
-    const map: Record<string, number> = { Semua: PRESS_RELEASES.length }
-    for (const cat of PRESS_CATEGORIES) {
-      if (cat === 'Semua') continue
-      map[cat] = PRESS_RELEASES.filter((r) => r.category === cat).length
-    }
-    return map
-  }, [])
-
-  const isFiltered = query.trim() || category !== 'Semua' || year !== 'all'
 
   return (
     <>
@@ -127,36 +133,26 @@ export default function PressArchivePage() {
         </div>
 
         <div className="container mx-auto w-full max-w-5xl px-6 pb-12 pt-8 md:pb-16 md:pt-10">
-          <motion.div
-            {...fadeUp}
-            transition={{ duration: 0.5 }}
-            className="mb-4 flex items-center gap-3"
-          >
+          <div className="mb-4 flex items-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
               Arsip Press
             </span>
-          </motion.div>
-          <motion.h1
+          </div>
+          <h1
             id="archive-heading"
-            {...fadeUp}
-            transition={{ duration: 0.5, delay: 0.1 }}
             className="font-heading text-balance text-3xl font-semibold leading-[1.1] tracking-tight md:text-4xl lg:text-5xl"
           >
             Arsip lengkap siaran pers
-          </motion.h1>
-          <motion.p
-            {...fadeUp}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="text-muted-foreground mt-4 max-w-2xl text-base md:text-lg"
-          >
+          </h1>
+          <p className="text-muted-foreground mt-4 max-w-2xl text-base md:text-lg">
             Cari dan akses semua{' '}
             <strong className="text-foreground font-medium">
               {PRESS_RELEASES.length} siaran pers
             </strong>{' '}
             Rumah Pekerja Indonesia. Untuk wawancara atau permintaan kustom,
             hubungi tim media kami.
-          </motion.p>
+          </p>
         </div>
       </section>
 
@@ -169,27 +165,42 @@ export default function PressArchivePage() {
               {/* Filter bar */}
               <div className="border-border bg-card mb-8 rounded-2xl border p-5">
                 {/* Search */}
-                <div className="border-border bg-background focus-within:border-[color:var(--ring)] flex items-center gap-2 rounded-full border px-4 py-2 transition">
-                  <Search className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Cari judul, ringkasan, atau topik…"
-                    className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
-                    aria-label="Cari siaran pers"
-                  />
-                  {query && (
+                <form method="get" action="/press/archive">
+                  <div className="border-border bg-background focus-within:border-[color:var(--ring)] flex items-center gap-2 rounded-full border px-4 py-2 transition">
+                    <Search className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
+                    <input
+                      type="search"
+                      name="q"
+                      defaultValue={q}
+                      placeholder="Cari judul, ringkasan, atau topik…"
+                      className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
+                      aria-label="Cari siaran pers"
+                    />
+                    {q && (
+                      <Link
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        href={buildArchiveUrl(current, { q: null }) as any}
+                        className="text-muted-foreground hover:text-foreground text-xs font-medium"
+                        aria-label="Hapus pencarian"
+                      >
+                        Bersihkan
+                      </Link>
+                    )}
                     <button
-                      type="button"
-                      onClick={() => setQuery('')}
-                      className="text-muted-foreground hover:text-foreground text-xs"
-                      aria-label="Hapus pencarian"
+                      type="submit"
+                      className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
                     >
-                      Bersihkan
+                      Cari
                     </button>
+                  </div>
+                  {/* Preserve filters when submitting search */}
+                  {category !== 'Semua' && (
+                    <input type="hidden" name="category" value={category} />
                   )}
-                </div>
+                  {year !== undefined && (
+                    <input type="hidden" name="year" value={year} />
+                  )}
+                </form>
 
                 {/* Category chips */}
                 <div className="border-border mt-4 flex flex-wrap items-center gap-2 border-t pt-4">
@@ -197,30 +208,36 @@ export default function PressArchivePage() {
                     <Filter className="h-3 w-3" aria-hidden />
                     Kategori
                   </span>
-                  {PRESS_CATEGORIES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setCategory(c)}
-                      className={cn(
-                        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition',
-                        category === c
-                          ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
-                          : 'border-border bg-background text-muted-foreground hover:text-foreground',
-                      )}
-                    >
-                      {c}
-                      <span
-                        className={
-                          category === c
-                            ? 'opacity-70'
-                            : 'text-muted-foreground/60'
+                  {PRESS_CATEGORIES.map((c) => {
+                    const active = category === c
+                    return (
+                      <Link
+                        key={c}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        href={
+                          buildArchiveUrl(current, {
+                            category: c === 'Semua' ? null : c,
+                          }) as any
                         }
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition',
+                          active
+                            ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
+                            : 'border-border bg-background text-muted-foreground hover:text-foreground',
+                        )}
+                        aria-current={active ? 'true' : undefined}
                       >
-                        {categoryCounts[c] ?? 0}
-                      </span>
-                    </button>
-                  ))}
+                        {c}
+                        <span
+                          className={
+                            active ? 'opacity-70' : 'text-muted-foreground/60'
+                          }
+                        >
+                          {categoryCounts[c] ?? 0}
+                        </span>
+                      </Link>
+                    )
+                  })}
                 </div>
 
                 {/* Year tabs */}
@@ -229,33 +246,42 @@ export default function PressArchivePage() {
                     <Calendar className="h-3 w-3" aria-hidden />
                     Tahun
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setYear('all')}
+                  <Link
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={buildArchiveUrl(current, { year: null }) as any}
                     className={cn(
                       'rounded-full border px-3 py-1 text-xs font-medium transition',
-                      year === 'all'
+                      year === undefined
                         ? 'border-foreground bg-foreground text-background'
                         : 'border-border bg-background text-muted-foreground hover:text-foreground',
                     )}
+                    aria-current={year === undefined ? 'true' : undefined}
                   >
                     Semua
-                  </button>
-                  {allYears.map((y) => (
-                    <button
-                      key={y}
-                      type="button"
-                      onClick={() => setYear(y)}
-                      className={cn(
-                        'rounded-full border px-3 py-1 text-xs font-medium transition',
-                        year === y
-                          ? 'border-foreground bg-foreground text-background'
-                          : 'border-border bg-background text-muted-foreground hover:text-foreground',
-                      )}
-                    >
-                      {y}
-                    </button>
-                  ))}
+                  </Link>
+                  {allYears.map((y) => {
+                    const active = year === y
+                    return (
+                      <Link
+                        key={y}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        href={
+                          buildArchiveUrl(current, {
+                            year: active ? null : y,
+                          }) as any
+                        }
+                        className={cn(
+                          'rounded-full border px-3 py-1 text-xs font-medium transition',
+                          active
+                            ? 'border-foreground bg-foreground text-background'
+                            : 'border-border bg-background text-muted-foreground hover:text-foreground',
+                        )}
+                        aria-current={active ? 'true' : undefined}
+                      >
+                        {y}
+                      </Link>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -270,18 +296,13 @@ export default function PressArchivePage() {
                   )}
                 </h2>
                 {isFiltered && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuery('')
-                      setCategory('Semua')
-                      setYear('all')
-                    }}
+                  <Link
+                    href="/press/archive"
                     className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
                   >
                     <ArrowLeft className="h-3 w-3" aria-hidden />
                     Reset filter
-                  </button>
+                  </Link>
                 )}
               </div>
 
@@ -309,7 +330,7 @@ export default function PressArchivePage() {
                       </h3>
                       <span className="bg-border h-px flex-1" aria-hidden />
                       <span className="text-muted-foreground text-xs uppercase tracking-wider">
-                        {list.length} {list.length === 1 ? 'siaran' : 'siaran'}
+                        {list.length} siaran
                       </span>
                     </div>
                     <ol className="border-border bg-card divide-border overflow-hidden rounded-2xl border">
@@ -354,12 +375,23 @@ export default function PressArchivePage() {
                   {PRESS_CATEGORIES.filter((c) => c !== 'Semua').map((c) => {
                     const color = PRESS_CATEGORY_COLOR[c as PressCategory]
                     const count = categoryCounts[c] ?? 0
+                    const active = category === c
                     return (
                       <li key={c}>
-                        <button
-                          type="button"
-                          onClick={() => setCategory(c)}
-                          className="hover:bg-muted/30 flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-sm transition"
+                        <Link
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          href={
+                            buildArchiveUrl(current, {
+                              category: active ? null : c,
+                            }) as any
+                          }
+                          className={cn(
+                            'flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-sm transition',
+                            active
+                              ? 'bg-[color:var(--ring)]/10 text-[color:var(--ring)] font-medium'
+                              : 'hover:bg-muted/30',
+                          )}
+                          aria-current={active ? 'true' : undefined}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span
@@ -367,12 +399,22 @@ export default function PressArchivePage() {
                               className="size-2 rounded-full"
                               style={{ background: color }}
                             />
-                            <span className="text-foreground/85">{c}</span>
+                            <span
+                              className={active ? '' : 'text-foreground/85'}
+                            >
+                              {c}
+                            </span>
                           </span>
-                          <span className="text-muted-foreground text-xs">
+                          <span
+                            className={
+                              active
+                                ? 'text-[color:var(--ring)] text-xs font-semibold'
+                                : 'text-muted-foreground text-xs'
+                            }
+                          >
                             {count}
                           </span>
-                        </button>
+                        </Link>
                       </li>
                     )
                   })}
