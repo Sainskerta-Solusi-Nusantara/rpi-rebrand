@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { Tag, User, Calendar } from 'lucide-react'
 import { NewsletterSignup } from '@/components/organisms/newsletter-signup'
 import {
   BlogHero,
@@ -6,14 +8,21 @@ import {
   BlogGrid,
   BlogTopics,
 } from '@/components/organisms/blog-sections'
+import BlogHeaderChips from '@/components/molecules/blog-header-chips'
 import {
   type BlogArticle,
   type BlogSort,
   BLOG_CATEGORIES,
   BLOG_PAGE_SIZE,
   filterArticles,
+  findCategory,
   sanitizeBlogSort,
 } from '@/lib/blog-data'
+import {
+  getBlogAuthors,
+  getBlogTags,
+  getBlogYears,
+} from '@/lib/blog-facets'
 
 /** Flatten the lib BlogArticle into the shape BlogGrid expects. Defined here
  * (server component) instead of importing from blog-sections, since exports
@@ -140,6 +149,29 @@ export default function BlogPage({
   // Pagination links: prev/next/numbered + ellipsis (compact).
   const paginationLinks = buildPaginationLinks(current, safePage, totalPages)
 
+  // Header chip strip — active filter chips with X-to-remove.
+  const headerChips: { label: string; clearHref: string }[] = []
+  if (activeQuery) {
+    headerChips.push({
+      label: `"${activeQuery}"`,
+      clearHref: buildBlogUrl(current, { q: null }),
+    })
+  }
+  if (activeCategory !== 'all') {
+    const cat = findCategory(activeCategory)
+    if (cat) {
+      headerChips.push({
+        label: cat.label,
+        clearHref: buildBlogUrl(current, { category: null }),
+      })
+    }
+  }
+
+  // Discovery rail data — top tags, authors, years for browsing sub-routes.
+  const topTags = getBlogTags().slice(0, 12)
+  const topAuthors = getBlogAuthors().slice(0, 6)
+  const years = getBlogYears()
+
   return (
     <>
       <BlogHero
@@ -147,6 +179,15 @@ export default function BlogPage({
         activeQuery={activeQuery}
         categoryHrefs={categoryHrefs}
       />
+      {headerChips.length > 0 && (
+        <section className="bg-background pt-6" aria-label="Filter aktif">
+          <div className="container mx-auto w-full max-w-6xl px-6">
+            <div className="flex justify-center">
+              <BlogHeaderChips chips={headerChips} clearAllHref="/blog" />
+            </div>
+          </div>
+        </section>
+      )}
       <BlogFeatured />
       <BlogGrid
         articles={articles}
@@ -162,6 +203,108 @@ export default function BlogPage({
         paginationLinks={paginationLinks}
       />
       <BlogTopics />
+
+      {/* Discovery rail: browse by tag, author, or year */}
+      <section className="bg-muted/30 py-20 md:py-24" aria-label="Jelajahi blog">
+        <div className="container mx-auto w-full max-w-6xl px-6">
+          <div className="mb-10 text-center">
+            <div className="mb-3 flex items-center justify-center gap-3">
+              <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+              <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
+                Jelajahi
+              </span>
+              <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+            </div>
+            <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
+              Telusuri blog lewat tag, penulis, atau arsip
+            </h2>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {/* Tags */}
+            <div className="border-border bg-card rounded-2xl border p-6">
+              <h3 className="font-heading text-foreground mb-4 inline-flex items-center gap-2 text-base font-semibold">
+                <Tag className="text-[color:var(--ring)] h-4 w-4" aria-hidden />
+                Tag populer
+              </h3>
+              <ul className="flex flex-wrap gap-2">
+                {topTags.map((t) => (
+                  <li key={t.slug}>
+                    <Link
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      href={`/blog/tag/${t.slug}` as any}
+                      className="border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition"
+                    >
+                      #{t.name}
+                      <span className="text-muted-foreground">{t.count}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Authors */}
+            <div className="border-border bg-card rounded-2xl border p-6">
+              <h3 className="font-heading text-foreground mb-4 inline-flex items-center gap-2 text-base font-semibold">
+                <User className="text-[color:var(--ring)] h-4 w-4" aria-hidden />
+                Penulis kami
+              </h3>
+              <ul className="space-y-3">
+                {topAuthors.map((a) => (
+                  <li key={a.slug}>
+                    <Link
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      href={`/blog/author/${a.slug}` as any}
+                      className="hover:bg-muted/40 group -mx-2 flex items-center gap-3 rounded-lg px-2 py-1.5 transition"
+                    >
+                      <span
+                        aria-hidden
+                        className="grid size-9 shrink-0 place-items-center rounded-full text-xs text-white"
+                        style={{ background: a.color }}
+                      >
+                        {a.initial}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="text-foreground group-hover:text-[color:var(--ring)] block truncate text-sm font-medium transition">
+                          {a.name}
+                        </span>
+                        <span className="text-muted-foreground block truncate text-xs">
+                          {a.count} artikel · {a.role}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Years */}
+            <div className="border-border bg-card rounded-2xl border p-6">
+              <h3 className="font-heading text-foreground mb-4 inline-flex items-center gap-2 text-base font-semibold">
+                <Calendar className="text-[color:var(--ring)] h-4 w-4" aria-hidden />
+                Arsip tahunan
+              </h3>
+              <ul className="space-y-1.5">
+                {years.map((y) => (
+                  <li key={y.year}>
+                    <Link
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      href={`/blog/archive/${y.year}` as any}
+                      className="text-foreground/80 hover:text-[color:var(--ring)] flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition"
+                    >
+                      <span>{y.year}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {y.count} artikel
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-background py-20 md:py-24">
         <div className="container mx-auto w-full max-w-6xl px-6">
           <NewsletterSignup />
