@@ -218,10 +218,52 @@ const COURSE_INCLUDE = {
   _count: { select: { enrollments: true } },
 } as const
 
+export type CourseDuration = 'short' | 'medium' | 'long'
+export type CourseSort = 'newest' | 'popular' | 'alpha'
+
+export const DURATION_BUCKETS: Record<
+  CourseDuration,
+  { label: string; min?: number; max?: number }
+> = {
+  short: { label: 'Pendek (≤ 8 jam)', max: 8 },
+  medium: { label: 'Menengah (8–20 jam)', min: 9, max: 20 },
+  long: { label: 'Panjang (> 20 jam)', min: 21 },
+}
+
+const VALID_DURATIONS = new Set<CourseDuration>(['short', 'medium', 'long'])
+const VALID_SORTS = new Set<CourseSort>(['newest', 'popular', 'alpha'])
+
 export type CourseFilters = {
   level?: CourseLevel
   /** Free-text query — matched against title, description, instructor name. */
   q?: string
+  /** Duration buckets, multi-select. */
+  durations?: CourseDuration[]
+  /** Sort order. Defaults to newest. */
+  sort?: CourseSort
+}
+
+function sanitizeDurations(values: string[] | undefined): CourseDuration[] {
+  if (!values) return []
+  return values.filter((v): v is CourseDuration =>
+    VALID_DURATIONS.has(v as CourseDuration),
+  )
+}
+
+export function sanitizeSort(value: string | undefined): CourseSort {
+  return value && VALID_SORTS.has(value as CourseSort)
+    ? (value as CourseSort)
+    : 'newest'
+}
+
+function durationClause(d: CourseDuration): object {
+  const b = DURATION_BUCKETS[d]
+  if (b.min !== undefined && b.max !== undefined) {
+    return { durationHours: { gte: b.min, lte: b.max } }
+  }
+  if (b.min !== undefined) return { durationHours: { gte: b.min } }
+  if (b.max !== undefined) return { durationHours: { lte: b.max } }
+  return {}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -230,18 +272,42 @@ function buildCoursesWhere(filters: CourseFilters): any {
     ? Object.entries(LEVEL_FROM_DB).find(([, v]) => v === filters.level)?.[0]
     : undefined
   const q = filters.q?.trim()
+  const durations = sanitizeDurations(filters.durations)
   return {
     status: 'PUBLISHED',
     ...(dbLevel ? { level: dbLevel } : {}),
+    ...(durations.length
+      ? { OR: durations.map(durationClause) }
+      : {}),
     ...(q
       ? {
-          OR: [
-            { title: { contains: q, mode: 'insensitive' as const } },
-            { description: { contains: q, mode: 'insensitive' as const } },
-            { instructor: { name: { contains: q, mode: 'insensitive' as const } } },
+          AND: [
+            {
+              OR: [
+                { title: { contains: q, mode: 'insensitive' as const } },
+                { description: { contains: q, mode: 'insensitive' as const } },
+                {
+                  instructor: {
+                    name: { contains: q, mode: 'insensitive' as const },
+                  },
+                },
+              ],
+            },
           ],
         }
       : {}),
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildCoursesOrderBy(sort: CourseSort | undefined): any {
+  switch (sanitizeSort(sort)) {
+    case 'popular':
+      return { enrollments: { _count: 'desc' as const } }
+    case 'alpha':
+      return { title: 'asc' as const }
+    default:
+      return { publishedAt: 'desc' as const }
   }
 }
 
@@ -250,7 +316,7 @@ export const getAllCourses = cache(
     const rows = await prisma.course
       .findMany({
         where: buildCoursesWhere(filters),
-        orderBy: { publishedAt: 'desc' },
+        orderBy: buildCoursesOrderBy(filters.sort),
         include: COURSE_INCLUDE,
       })
       .catch(() => [])
@@ -285,7 +351,7 @@ export const getCoursesPage = cache(
         prisma.course.count({ where }),
         prisma.course.findMany({
           where,
-          orderBy: { publishedAt: 'desc' },
+          orderBy: buildCoursesOrderBy(filters.sort),
           include: COURSE_INCLUDE,
           skip: (safePage - 1) * safeSize,
           take: safeSize,

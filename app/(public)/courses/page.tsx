@@ -3,8 +3,12 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { CourseCard } from '@/components/molecules/course-card'
 import {
+  type CourseDuration,
   type CourseLevel,
+  type CourseSort,
+  DURATION_BUCKETS,
   getCoursesPage,
+  sanitizeSort,
 } from '@/lib/courses-data'
 
 export const metadata: Metadata = {
@@ -23,6 +27,8 @@ const LEVELS: { v: '' | CourseLevel; l: string }[] = [
 type CoursesState = {
   level: '' | CourseLevel
   q?: string
+  durations: CourseDuration[]
+  sort: CourseSort
   page: number
 }
 
@@ -31,6 +37,8 @@ function buildCoursesUrl(
   patch: Partial<{
     level: '' | CourseLevel
     q: string | null
+    durations: CourseDuration[]
+    sort: CourseSort
     page: number
     keepPage: boolean
   }>,
@@ -38,13 +46,37 @@ function buildCoursesUrl(
   const next = {
     level: patch.level ?? current.level,
     q: 'q' in patch ? patch.q ?? undefined : current.q,
+    durations: patch.durations ?? current.durations,
+    sort: patch.sort ?? current.sort,
     page: patch.page ?? (patch.keepPage ? current.page : 1),
   }
   const params: string[] = []
   if (next.q) params.push(`q=${encodeURIComponent(next.q)}`)
   if (next.level) params.push(`level=${next.level}`)
+  if (next.durations.length)
+    params.push(`duration=${next.durations.join(',')}`)
+  if (next.sort !== 'newest') params.push(`sort=${next.sort}`)
   if (next.page > 1) params.push(`page=${next.page}`)
   return params.length ? `/courses?${params.join('&')}` : '/courses'
+}
+
+function parseMulti(v: string | string[] | undefined): string[] {
+  if (!v) return []
+  if (Array.isArray(v)) return v.flatMap((x) => x.split(',')).filter(Boolean)
+  return v.split(',').filter(Boolean)
+}
+
+function toggleDuration(
+  list: CourseDuration[],
+  value: CourseDuration,
+): CourseDuration[] {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
+}
+
+const SORT_LABELS: Record<CourseSort, string> = {
+  newest: 'Terbaru',
+  popular: 'Terpopuler',
+  alpha: 'A–Z',
 }
 
 export default async function CoursesPage({
@@ -60,6 +92,12 @@ export default async function CoursesPage({
       : ''
   const activeQuery =
     typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
+  const activeDurations = parseMulti(searchParams.duration).filter(
+    (v): v is CourseDuration => v === 'short' || v === 'medium' || v === 'long',
+  )
+  const activeSort = sanitizeSort(
+    typeof searchParams.sort === 'string' ? searchParams.sort : undefined,
+  )
   const pageParam =
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
   const activePage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
@@ -67,12 +105,16 @@ export default async function CoursesPage({
   const current: CoursesState = {
     level,
     q: activeQuery || undefined,
+    durations: activeDurations,
+    sort: activeSort,
     page: activePage,
   }
   const result = await getCoursesPage(
     {
       ...(level ? { level } : {}),
       ...(activeQuery ? { q: activeQuery } : {}),
+      ...(activeDurations.length ? { durations: activeDurations } : {}),
+      sort: activeSort,
     },
     activePage,
   )
@@ -132,6 +174,12 @@ export default async function CoursesPage({
           </div>
           {/* Preserve other filters on submit */}
           {level && <input type="hidden" name="level" value={level} />}
+          {activeDurations.length > 0 && (
+            <input type="hidden" name="duration" value={activeDurations.join(',')} />
+          )}
+          {activeSort !== 'newest' && (
+            <input type="hidden" name="sort" value={activeSort} />
+          )}
         </form>
       </header>
 
@@ -155,6 +203,76 @@ export default async function CoursesPage({
           )
         })}
       </nav>
+
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <nav
+          aria-label="Durasi"
+          className="flex flex-wrap items-center gap-2 text-sm"
+        >
+          <span className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
+            Durasi
+          </span>
+          {(Object.keys(DURATION_BUCKETS) as CourseDuration[]).map((d) => {
+            const active = activeDurations.includes(d)
+            return (
+              <Link
+                key={d}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={
+                  buildCoursesUrl(current, {
+                    durations: toggleDuration(activeDurations, d),
+                  }) as any
+                }
+                className={
+                  active
+                    ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] rounded-full border px-3 py-1 text-xs font-medium transition'
+                    : 'border-border text-foreground/70 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] rounded-full border px-3 py-1 text-xs transition'
+                }
+                aria-current={active ? 'true' : undefined}
+              >
+                {DURATION_BUCKETS[d].label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        <form
+          method="get"
+          action="/courses"
+          className="flex items-center gap-2 text-sm"
+        >
+          <label
+            htmlFor="course-sort"
+            className="text-muted-foreground text-xs font-medium uppercase tracking-wider"
+          >
+            Urutkan
+          </label>
+          <select
+            id="course-sort"
+            name="sort"
+            defaultValue={activeSort}
+            className="border-border bg-background text-foreground focus:border-[color:var(--ring)] focus:ring-[color:var(--ring)]/30 rounded-md border px-3 py-1.5 text-xs outline-none focus:ring-2"
+          >
+            {(Object.keys(SORT_LABELS) as CourseSort[]).map((s) => (
+              <option key={s} value={s}>
+                {SORT_LABELS[s]}
+              </option>
+            ))}
+          </select>
+          {/* Preserve other filters on submit */}
+          {level && <input type="hidden" name="level" value={level} />}
+          {activeQuery && <input type="hidden" name="q" value={activeQuery} />}
+          {activeDurations.length > 0 && (
+            <input type="hidden" name="duration" value={activeDurations.join(',')} />
+          )}
+          <button
+            type="submit"
+            className="border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs font-medium transition"
+          >
+            Terapkan
+          </button>
+        </form>
+      </div>
 
       {courses.length === 0 ? (
         <div className="border-border bg-card rounded-2xl border p-12 text-center">
