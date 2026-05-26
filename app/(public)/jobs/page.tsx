@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { JobCard } from '@/components/molecules/job-card'
-import { getAllJobs, getJobCategories } from '@/lib/jobs-data'
+import { getJobCategories, getJobsPage } from '@/lib/jobs-data'
 
 export const metadata: Metadata = {
   title: 'Cari Lowongan Pekerjaan',
@@ -53,24 +53,29 @@ type FilterState = {
   type: string[]
   location: string[]
   level: string[]
+  page: number
 }
 
-function buildUrl(
-  current: FilterState,
-  patch: Partial<{
-    q: string | null
-    category: string | null
-    type: string[]
-    location: string[]
-    level: string[]
-  }>,
-): string {
+type FilterPatch = Partial<{
+  q: string | null
+  category: string | null
+  type: string[]
+  location: string[]
+  level: string[]
+  /** Set true to keep current page; defaults to resetting to 1 when filters change. */
+  keepPage: boolean
+  /** Explicit page override. */
+  page: number
+}>
+
+function buildUrl(current: FilterState, patch: FilterPatch): string {
   const next = {
     q: 'q' in patch ? patch.q ?? undefined : current.q,
     category: 'category' in patch ? patch.category ?? undefined : current.category,
     type: patch.type ?? current.type,
     location: patch.location ?? current.location,
     level: patch.level ?? current.level,
+    page: patch.page ?? (patch.keepPage ? current.page : 1),
   }
   const params: string[] = []
   if (next.q) params.push(`q=${encodeURIComponent(next.q)}`)
@@ -78,6 +83,7 @@ function buildUrl(
   if (next.type.length) params.push(`type=${next.type.join(',')}`)
   if (next.location.length) params.push(`location=${next.location.join(',')}`)
   if (next.level.length) params.push(`level=${next.level.join(',')}`)
+  if (next.page > 1) params.push(`page=${next.page}`)
   return params.length ? `/jobs?${params.join('&')}` : '/jobs'
 }
 
@@ -101,6 +107,9 @@ export default async function JobsListPage({
   const activeTypes = parseMulti(searchParams.type)
   const activeLocations = parseMulti(searchParams.location)
   const activeLevels = parseMulti(searchParams.level)
+  const pageParam =
+    typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
+  const activePage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
 
   const current: FilterState = {
     q: activeQuery || undefined,
@@ -108,6 +117,7 @@ export default async function JobsListPage({
     type: activeTypes,
     location: activeLocations,
     level: activeLevels,
+    page: activePage,
   }
   const hasAnyFilter =
     !!activeQuery ||
@@ -116,17 +126,22 @@ export default async function JobsListPage({
     activeLocations.length > 0 ||
     activeLevels.length > 0
 
-  const [jobs, categories] = await Promise.all([
-    getAllJobs({
-      q: activeQuery || undefined,
-      categorySlug: activeCategory,
-      employmentTypes: activeTypes,
-      locationTypes: activeLocations,
-      experienceLevels: activeLevels,
-    }),
+  const [pageResult, categories] = await Promise.all([
+    getJobsPage(
+      {
+        q: activeQuery || undefined,
+        categorySlug: activeCategory,
+        employmentTypes: activeTypes,
+        locationTypes: activeLocations,
+        experienceLevels: activeLevels,
+      },
+      activePage,
+    ),
     getJobCategories(),
   ])
-  const total = jobs.length
+  const jobs = pageResult.items
+  const total = pageResult.total
+  const totalPages = pageResult.totalPages
   const activeCategoryName = activeCategory
     ? categories.find((c) => c.slug === activeCategory)?.name
     : undefined
@@ -142,6 +157,13 @@ export default async function JobsListPage({
               {' '}untuk &ldquo;
               <strong className="text-foreground font-medium">{activeQuery}</strong>
               &rdquo;
+            </>
+          )}
+          {totalPages > 1 && (
+            <>
+              {' '}· halaman{' '}
+              <strong className="text-foreground font-medium">{activePage}</strong>
+              {' '}dari {totalPages}
             </>
           )}
         </p>
@@ -366,6 +388,14 @@ export default async function JobsListPage({
               ))}
             </ul>
           )}
+
+          {totalPages > 1 && (
+            <Pagination
+              current={current}
+              page={activePage}
+              totalPages={totalPages}
+            />
+          )}
         </section>
       </div>
     </div>
@@ -456,6 +486,119 @@ function FilterChip({ label, clearHref }: { label: string; clearHref: string }) 
     >
       {label}
       <X className="h-3 w-3" aria-hidden />
+    </Link>
+  )
+}
+
+function Pagination({
+  current,
+  page,
+  totalPages,
+}: {
+  current: FilterState
+  page: number
+  totalPages: number
+}) {
+  const prevPage = Math.max(1, page - 1)
+  const nextPage = Math.min(totalPages, page + 1)
+
+  // Build a compact page list with ellipses around current.
+  const pages: (number | 'ellipsis')[] = []
+  const window = 1 // how many siblings on each side
+  for (let p = 1; p <= totalPages; p++) {
+    if (
+      p === 1 ||
+      p === totalPages ||
+      (p >= page - window && p <= page + window)
+    ) {
+      pages.push(p)
+    } else if (pages[pages.length - 1] !== 'ellipsis') {
+      pages.push('ellipsis')
+    }
+  }
+
+  return (
+    <nav
+      aria-label="Pagination"
+      className="text-muted-foreground mt-10 flex flex-wrap items-center justify-center gap-2 text-sm"
+    >
+      <PageLink
+        current={current}
+        page={prevPage}
+        disabled={page === 1}
+        aria="Halaman sebelumnya"
+      >
+        <ChevronLeft className="h-4 w-4" aria-hidden />
+        <span className="hidden sm:inline">Sebelumnya</span>
+      </PageLink>
+
+      {pages.map((p, i) =>
+        p === 'ellipsis' ? (
+          <span key={`e-${i}`} className="px-2 text-xs">
+            …
+          </span>
+        ) : (
+          <PageLink
+            key={p}
+            current={current}
+            page={p}
+            active={p === page}
+            aria={`Halaman ${p}`}
+          >
+            {p}
+          </PageLink>
+        ),
+      )}
+
+      <PageLink
+        current={current}
+        page={nextPage}
+        disabled={page === totalPages}
+        aria="Halaman berikutnya"
+      >
+        <span className="hidden sm:inline">Berikutnya</span>
+        <ChevronRight className="h-4 w-4" aria-hidden />
+      </PageLink>
+    </nav>
+  )
+}
+
+function PageLink({
+  current,
+  page,
+  active,
+  disabled,
+  aria,
+  children,
+}: {
+  current: FilterState
+  page: number
+  active?: boolean
+  disabled?: boolean
+  aria: string
+  children: React.ReactNode
+}) {
+  const className = active
+    ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex min-w-[36px] items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm font-medium'
+    : disabled
+      ? 'border-border text-muted-foreground/40 inline-flex min-w-[36px] cursor-not-allowed items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm'
+      : 'border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex min-w-[36px] items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm transition'
+  if (disabled) {
+    return (
+      <span className={className} aria-disabled="true">
+        {children}
+      </span>
+    )
+  }
+  return (
+    <Link
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      href={buildUrl(current, { page, keepPage: true }) as any}
+      className={className}
+      aria-label={aria}
+      aria-current={active ? 'page' : undefined}
+    >
+      {children}
     </Link>
   )
 }

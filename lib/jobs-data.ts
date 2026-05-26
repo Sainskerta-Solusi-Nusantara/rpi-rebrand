@@ -214,42 +214,94 @@ function sanitize(values: string[] | undefined, allowed: Set<string>): string[] 
   return values.filter((v) => allowed.has(v))
 }
 
+// Build the Prisma where clause from filters. Shared between findMany and count
+// so pagination always counts the same set the page query reads.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildJobsWhere(filters: JobFilters): any {
+  const employmentTypes = sanitize(filters.employmentTypes, VALID_EMPLOYMENT_TYPES)
+  const locationTypes = sanitize(filters.locationTypes, VALID_LOCATION_TYPES)
+  const experienceLevels = sanitize(filters.experienceLevels, VALID_EXPERIENCE_LEVELS)
+  const q = filters.q?.trim()
+
+  return {
+    status: 'PUBLISHED',
+    ...(filters.categorySlug ? { category: { slug: filters.categorySlug } } : {}),
+    ...(employmentTypes.length ? { employmentType: { in: employmentTypes } } : {}),
+    ...(locationTypes.length ? { locationType: { in: locationTypes } } : {}),
+    ...(experienceLevels.length ? { experienceLevel: { in: experienceLevels } } : {}),
+    ...(q
+      ? {
+          OR: [
+            { title: { contains: q, mode: 'insensitive' as const } },
+            { description: { contains: q, mode: 'insensitive' as const } },
+            { tags: { has: q.toLowerCase() } },
+            { tenant: { name: { contains: q, mode: 'insensitive' as const } } },
+          ],
+        }
+      : {}),
+  }
+}
+
 export const getAllJobs = cache(
   async (filters: JobFilters = {}): Promise<DummyJob[]> => {
-    const employmentTypes = sanitize(filters.employmentTypes, VALID_EMPLOYMENT_TYPES)
-    const locationTypes = sanitize(filters.locationTypes, VALID_LOCATION_TYPES)
-    const experienceLevels = sanitize(filters.experienceLevels, VALID_EXPERIENCE_LEVELS)
-    const q = filters.q?.trim()
-
     const rows = await prisma.job
       .findMany({
-        where: {
-          status: 'PUBLISHED',
-          ...(filters.categorySlug
-            ? { category: { slug: filters.categorySlug } }
-            : {}),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(employmentTypes.length ? ({ employmentType: { in: employmentTypes as any } } as object) : {}),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(locationTypes.length ? ({ locationType: { in: locationTypes as any } } as object) : {}),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(experienceLevels.length ? ({ experienceLevel: { in: experienceLevels as any } } as object) : {}),
-          ...(q
-            ? {
-                OR: [
-                  { title: { contains: q, mode: 'insensitive' as const } },
-                  { description: { contains: q, mode: 'insensitive' as const } },
-                  { tags: { has: q.toLowerCase() } },
-                  { tenant: { name: { contains: q, mode: 'insensitive' as const } } },
-                ],
-              }
-            : {}),
-        },
+        where: buildJobsWhere(filters),
         orderBy: { publishedAt: 'desc' },
         include: JOB_INCLUDE,
       })
       .catch(() => [])
     return rows.map(transform)
+  },
+)
+
+export type JobsPage = {
+  items: DummyJob[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export const DEFAULT_JOBS_PAGE_SIZE = 12
+
+export const getJobsPage = cache(
+  async (
+    filters: JobFilters = {},
+    page = 1,
+    pageSize: number = DEFAULT_JOBS_PAGE_SIZE,
+  ): Promise<JobsPage> => {
+    const safePage = Math.max(1, Math.floor(page))
+    const safeSize = Math.min(60, Math.max(1, Math.floor(pageSize)))
+    const where = buildJobsWhere(filters)
+
+    let total = 0
+    let rows: PrismaJobWithRelations[] = []
+    try {
+      const result = await prisma.$transaction([
+        prisma.job.count({ where }),
+        prisma.job.findMany({
+          where,
+          orderBy: { publishedAt: 'desc' },
+          include: JOB_INCLUDE,
+          skip: (safePage - 1) * safeSize,
+          take: safeSize,
+        }),
+      ])
+      total = result[0]
+      rows = result[1] as PrismaJobWithRelations[]
+    } catch {
+      // db unreachable — fall through with empty result
+    }
+
+    const totalPages = Math.max(1, Math.ceil(total / safeSize))
+    return {
+      items: rows.map(transform),
+      total,
+      page: safePage,
+      pageSize: safeSize,
+      totalPages,
+    }
   },
 )
 

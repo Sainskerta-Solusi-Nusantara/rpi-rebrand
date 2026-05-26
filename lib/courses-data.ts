@@ -218,16 +218,83 @@ const COURSE_INCLUDE = {
   _count: { select: { enrollments: true } },
 } as const
 
-export const getAllCourses = cache(async (): Promise<DummyCourse[]> => {
-  const rows = await prisma.course
-    .findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { publishedAt: 'desc' },
-      include: COURSE_INCLUDE,
-    })
-    .catch(() => [])
-  return rows.map(transform)
-})
+export type CourseFilters = {
+  level?: CourseLevel
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildCoursesWhere(filters: CourseFilters): any {
+  const dbLevel = filters.level
+    ? Object.entries(LEVEL_FROM_DB).find(([, v]) => v === filters.level)?.[0]
+    : undefined
+  return {
+    status: 'PUBLISHED',
+    ...(dbLevel ? { level: dbLevel } : {}),
+  }
+}
+
+export const getAllCourses = cache(
+  async (filters: CourseFilters = {}): Promise<DummyCourse[]> => {
+    const rows = await prisma.course
+      .findMany({
+        where: buildCoursesWhere(filters),
+        orderBy: { publishedAt: 'desc' },
+        include: COURSE_INCLUDE,
+      })
+      .catch(() => [])
+    return rows.map(transform)
+  },
+)
+
+export type CoursesPage = {
+  items: DummyCourse[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export const DEFAULT_COURSES_PAGE_SIZE = 9
+
+export const getCoursesPage = cache(
+  async (
+    filters: CourseFilters = {},
+    page = 1,
+    pageSize: number = DEFAULT_COURSES_PAGE_SIZE,
+  ): Promise<CoursesPage> => {
+    const safePage = Math.max(1, Math.floor(page))
+    const safeSize = Math.min(60, Math.max(1, Math.floor(pageSize)))
+    const where = buildCoursesWhere(filters)
+
+    let total = 0
+    let rows: PrismaCourseWithRelations[] = []
+    try {
+      const result = await prisma.$transaction([
+        prisma.course.count({ where }),
+        prisma.course.findMany({
+          where,
+          orderBy: { publishedAt: 'desc' },
+          include: COURSE_INCLUDE,
+          skip: (safePage - 1) * safeSize,
+          take: safeSize,
+        }),
+      ])
+      total = result[0]
+      rows = result[1] as PrismaCourseWithRelations[]
+    } catch {
+      // db unreachable
+    }
+
+    const totalPages = Math.max(1, Math.ceil(total / safeSize))
+    return {
+      items: rows.map(transform),
+      total,
+      page: safePage,
+      pageSize: safeSize,
+      totalPages,
+    }
+  },
+)
 
 export const findCourse = cache(async (slug: string): Promise<DummyCourse | undefined> => {
   const row = await prisma.course
