@@ -1091,11 +1091,23 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
 ]
 
+export type BlogSort = 'newest' | 'alpha' | 'quick'
+
+const VALID_BLOG_SORTS = new Set<BlogSort>(['newest', 'alpha', 'quick'])
+
+export function sanitizeBlogSort(value: string | undefined): BlogSort {
+  return value && VALID_BLOG_SORTS.has(value as BlogSort)
+    ? (value as BlogSort)
+    : 'newest'
+}
+
 export type BlogFilters = {
   /** Category slug (use 'all' or undefined for no filter). */
   category?: string
   /** Free-text query against title, excerpt, author name. */
   q?: string
+  /** Sort order. Defaults to newest. */
+  sort?: BlogSort
 }
 
 /**
@@ -1105,7 +1117,9 @@ export type BlogFilters = {
 export function filterArticles(filters: BlogFilters = {}): BlogArticle[] {
   const q = filters.q?.trim().toLowerCase()
   const cat = filters.category && filters.category !== 'all' ? filters.category : undefined
-  return REGULAR_ARTICLES.filter((a) => {
+  const sort = sanitizeBlogSort(filters.sort)
+
+  const list = REGULAR_ARTICLES.filter((a) => {
     if (cat && a.category !== cat) return false
     if (q) {
       const haystack = `${a.title} ${a.excerpt} ${a.author.name}`.toLowerCase()
@@ -1113,7 +1127,20 @@ export function filterArticles(filters: BlogFilters = {}): BlogArticle[] {
     }
     return true
   })
+
+  // REGULAR_ARTICLES is already in newest-first order (matches editorial
+  // intent), so 'newest' needs no extra sorting. Copy before sorting to avoid
+  // mutating the lib array.
+  if (sort === 'alpha') {
+    return [...list].sort((a, b) => a.title.localeCompare(b.title))
+  }
+  if (sort === 'quick') {
+    return [...list].sort((a, b) => a.readMin - b.readMin)
+  }
+  return list
 }
+
+export const BLOG_PAGE_SIZE = 9
 
 export function findArticle(slug: string): BlogArticle | undefined {
   return BLOG_ARTICLES.find((a) => a.slug === slug)

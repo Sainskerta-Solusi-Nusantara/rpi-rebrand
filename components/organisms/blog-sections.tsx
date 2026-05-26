@@ -301,12 +301,34 @@ export function BlogFeatured() {
 // Article Grid
 // ---------------------------------------------------------------------------
 
+export type BlogSortOption = {
+  value: 'newest' | 'alpha' | 'quick'
+  label: string
+  href: string
+}
+
+export type BlogPaginationLink =
+  | { kind: 'page'; page: number; active: boolean; href: string }
+  | { kind: 'ellipsis' }
+  | { kind: 'prev' | 'next'; disabled: boolean; href: string }
+
 export type BlogGridProps = {
   articles: Article[]
   activeCategory: string
   activeQuery: string
   clearAllHref: string
   hasAnyFilter: boolean
+  /** Total filtered count (across all pages). */
+  totalCount: number
+  /** Current page number (1-based). */
+  page: number
+  /** Total pages. */
+  totalPages: number
+  /** Sort dropdown options with prebuilt hrefs. */
+  sortOptions: BlogSortOption[]
+  activeSort: BlogSortOption['value']
+  /** Pagination link models — empty array hides the nav. */
+  paginationLinks: BlogPaginationLink[]
 }
 
 export function BlogGrid({
@@ -315,6 +337,12 @@ export function BlogGrid({
   activeQuery,
   clearAllHref,
   hasAnyFilter,
+  totalCount,
+  page,
+  totalPages,
+  sortOptions,
+  activeSort,
+  paginationLinks,
 }: BlogGridProps) {
   const activeCategoryLabel =
     activeCategory !== 'all'
@@ -336,7 +364,7 @@ export function BlogGrid({
               Artikel Terbaru
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              {articles.length} artikel
+              {totalCount} artikel
               {activeCategoryLabel && ` di kategori ${activeCategoryLabel}`}
               {activeQuery && (
                 <>
@@ -347,18 +375,55 @@ export function BlogGrid({
                   &rdquo;
                 </>
               )}
+              {totalPages > 1 && (
+                <>
+                  {' '}· halaman{' '}
+                  <strong className="text-foreground font-medium">{page}</strong>{' '}
+                  dari {totalPages}
+                </>
+              )}
             </p>
           </div>
 
-          {hasAnyFilter && (
-            <Link
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              href={clearAllHref as any}
-              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Sort pills */}
+            <div
+              role="group"
+              aria-label="Urutkan"
+              className="border-border bg-card flex items-center gap-1 rounded-full border p-1"
             >
-              ✕ Bersihkan filter
-            </Link>
-          )}
+              <span className="text-muted-foreground px-2 text-[10px] font-medium uppercase tracking-wider">
+                Urut
+              </span>
+              {sortOptions.map((opt) => {
+                const active = activeSort === opt.value
+                return (
+                  <Link
+                    key={opt.value}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={opt.href as any}
+                    className={
+                      active
+                        ? 'bg-[color:var(--ring)] text-[color:var(--primary-foreground)] rounded-full px-3 py-1 text-xs font-medium transition'
+                        : 'text-foreground/70 hover:text-foreground rounded-full px-3 py-1 text-xs transition hover:bg-muted/50'
+                    }
+                    aria-current={active ? 'true' : undefined}
+                  >
+                    {opt.label}
+                  </Link>
+                )
+              })}
+            </div>
+            {hasAnyFilter && (
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={clearAllHref as any}
+                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
+              >
+                ✕ Bersihkan filter
+              </Link>
+            )}
+          </div>
         </div>
 
         {articles.length === 0 ? (
@@ -381,17 +446,78 @@ export function BlogGrid({
             )}
           </div>
         ) : (
-          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {articles.map((a, i) => (
-              <motion.li
-                key={a.slug}
-                {...fadeUp}
-                transition={{ duration: 0.4, delay: 0.03 * (i % 6) }}
+          <>
+            <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {articles.map((a, i) => (
+                <motion.li
+                  key={a.slug}
+                  {...fadeUp}
+                  transition={{ duration: 0.4, delay: 0.03 * (i % 6) }}
+                >
+                  <ArticleCard article={a} />
+                </motion.li>
+              ))}
+            </ul>
+
+            {paginationLinks.length > 0 && (
+              <nav
+                aria-label="Pagination"
+                className="text-muted-foreground mt-10 flex flex-wrap items-center justify-center gap-2 text-sm"
               >
-                <ArticleCard article={a} />
-              </motion.li>
-            ))}
-          </ul>
+                {paginationLinks.map((link, idx) => {
+                  if (link.kind === 'ellipsis') {
+                    return (
+                      <span key={`e-${idx}`} className="px-2 text-xs">
+                        …
+                      </span>
+                    )
+                  }
+                  if (link.kind === 'prev' || link.kind === 'next') {
+                    const label = link.kind === 'prev' ? 'Sebelumnya' : 'Berikutnya'
+                    const cls = link.disabled
+                      ? 'border-border text-muted-foreground/40 inline-flex min-w-[36px] cursor-not-allowed items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm'
+                      : 'border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex min-w-[36px] items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm transition'
+                    if (link.disabled) {
+                      return (
+                        <span key={link.kind} className={cls} aria-disabled="true">
+                          {label}
+                        </span>
+                      )
+                    }
+                    return (
+                      <Link
+                        key={link.kind}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        href={link.href as any}
+                        className={cls}
+                        aria-label={label}
+                      >
+                        {label}
+                      </Link>
+                    )
+                  }
+                  if (link.kind === 'page') {
+                    const cls = link.active
+                      ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex min-w-[36px] items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm font-medium'
+                      : 'border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex min-w-[36px] items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm transition'
+                    return (
+                      <Link
+                        key={link.page}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        href={link.href as any}
+                        className={cls}
+                        aria-label={`Halaman ${link.page}`}
+                        aria-current={link.active ? 'page' : undefined}
+                      >
+                        {link.page}
+                      </Link>
+                    )
+                  }
+                  return null
+                })}
+              </nav>
+            )}
+          </>
         )}
       </div>
     </section>
