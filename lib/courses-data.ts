@@ -241,6 +241,10 @@ export type CourseFilters = {
   durations?: CourseDuration[]
   /** Sort order. Defaults to newest. */
   sort?: CourseSort
+  /** Filter by tenant (mitra) slug. */
+  tenantSlug?: string
+  /** Filter by instructor user id. */
+  instructorId?: string
 }
 
 function sanitizeDurations(values: string[] | undefined): CourseDuration[] {
@@ -276,6 +280,8 @@ function buildCoursesWhere(filters: CourseFilters): any {
   return {
     status: 'PUBLISHED',
     ...(dbLevel ? { level: dbLevel } : {}),
+    ...(filters.tenantSlug ? { tenant: { slug: filters.tenantSlug } } : {}),
+    ...(filters.instructorId ? { instructorId: filters.instructorId } : {}),
     ...(durations.length
       ? { OR: durations.map(durationClause) }
       : {}),

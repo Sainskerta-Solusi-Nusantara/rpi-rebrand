@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { CourseCard } from '@/components/molecules/course-card'
+import CoursesSidebar from '@/components/organisms/courses-sidebar'
+import CoursesHeaderChips from '@/components/molecules/courses-header-chips'
+import CoursesSortPills from '@/components/molecules/courses-sort-pills'
 import {
   type CourseDuration,
   type CourseLevel,
@@ -10,6 +13,12 @@ import {
   getCoursesPage,
   sanitizeSort,
 } from '@/lib/courses-data'
+import {
+  getCourseInstructors,
+  getCourseTenants,
+  sanitizeCourseInstructor,
+  sanitizeCourseTenant,
+} from '@/lib/courses-facets'
 
 export const metadata: Metadata = {
   title: 'Kursus & Pelatihan',
@@ -17,36 +26,48 @@ export const metadata: Metadata = {
     'Tingkatkan keterampilan dengan kursus terstruktur, sertifikat, dan jalur karier yang dirancang untuk pekerja Indonesia.',
 }
 
-const LEVELS: { v: '' | CourseLevel; l: string }[] = [
-  { v: '', l: 'Semua Tingkat' },
-  { v: 'beginner', l: 'Pemula' },
-  { v: 'intermediate', l: 'Menengah' },
-  { v: 'advanced', l: 'Lanjutan' },
-]
+const LEVEL_LABEL: Record<CourseLevel, string> = {
+  beginner: 'Pemula',
+  intermediate: 'Menengah',
+  advanced: 'Lanjutan',
+}
 
-type CoursesState = {
-  level: '' | CourseLevel
+const SORT_LABEL: Record<CourseSort, string> = {
+  newest: 'Terbaru',
+  popular: 'Terpopuler',
+  alpha: 'A–Z',
+}
+
+type FilterState = {
+  level?: CourseLevel
   q?: string
   durations: CourseDuration[]
+  tenant?: string
+  instructor?: string
   sort: CourseSort
   page: number
 }
 
-function buildCoursesUrl(
-  current: CoursesState,
+function buildUrl(
+  current: FilterState,
   patch: Partial<{
-    level: '' | CourseLevel
+    level: CourseLevel | null
     q: string | null
     durations: CourseDuration[]
+    tenant: string | null
+    instructor: string | null
     sort: CourseSort
     page: number
     keepPage: boolean
   }>,
 ): string {
   const next = {
-    level: patch.level ?? current.level,
+    level: 'level' in patch ? patch.level ?? undefined : current.level,
     q: 'q' in patch ? patch.q ?? undefined : current.q,
     durations: patch.durations ?? current.durations,
+    tenant: 'tenant' in patch ? patch.tenant ?? undefined : current.tenant,
+    instructor:
+      'instructor' in patch ? patch.instructor ?? undefined : current.instructor,
     sort: patch.sort ?? current.sort,
     page: patch.page ?? (patch.keepPage ? current.page : 1),
   }
@@ -55,6 +76,9 @@ function buildCoursesUrl(
   if (next.level) params.push(`level=${next.level}`)
   if (next.durations.length)
     params.push(`duration=${next.durations.join(',')}`)
+  if (next.tenant) params.push(`tenant=${encodeURIComponent(next.tenant)}`)
+  if (next.instructor)
+    params.push(`instructor=${encodeURIComponent(next.instructor)}`)
   if (next.sort !== 'newest') params.push(`sort=${next.sort}`)
   if (next.page > 1) params.push(`page=${next.page}`)
   return params.length ? `/courses?${params.join('&')}` : '/courses'
@@ -73,12 +97,6 @@ function toggleDuration(
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
 }
 
-const SORT_LABELS: Record<CourseSort, string> = {
-  newest: 'Terbaru',
-  popular: 'Terpopuler',
-  alpha: 'A–Z',
-}
-
 export default async function CoursesPage({
   searchParams,
 }: {
@@ -86,10 +104,10 @@ export default async function CoursesPage({
 }) {
   const rawLevel =
     typeof searchParams.level === 'string' ? searchParams.level.toLowerCase() : ''
-  const level: '' | CourseLevel =
+  const level: CourseLevel | undefined =
     rawLevel === 'beginner' || rawLevel === 'intermediate' || rawLevel === 'advanced'
       ? rawLevel
-      : ''
+      : undefined
   const activeQuery =
     typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
   const activeDurations = parseMulti(searchParams.duration).filter(
@@ -102,24 +120,135 @@ export default async function CoursesPage({
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
   const activePage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
 
-  const current: CoursesState = {
+  // Facets load first so we can sanitize tenant/instructor against known sets.
+  const [tenants, instructors] = await Promise.all([
+    getCourseTenants(),
+    getCourseInstructors(),
+  ])
+  const activeTenant = sanitizeCourseTenant(
+    typeof searchParams.tenant === 'string' ? searchParams.tenant : undefined,
+    tenants.map((t) => t.slug),
+  )
+  const activeInstructor = sanitizeCourseInstructor(
+    typeof searchParams.instructor === 'string' ? searchParams.instructor : undefined,
+    instructors.map((i) => i.id),
+  )
+
+  const current: FilterState = {
     level,
     q: activeQuery || undefined,
     durations: activeDurations,
+    tenant: activeTenant,
+    instructor: activeInstructor,
     sort: activeSort,
     page: activePage,
   }
+
   const result = await getCoursesPage(
     {
       ...(level ? { level } : {}),
       ...(activeQuery ? { q: activeQuery } : {}),
       ...(activeDurations.length ? { durations: activeDurations } : {}),
+      ...(activeTenant ? { tenantSlug: activeTenant } : {}),
+      ...(activeInstructor ? { instructorId: activeInstructor } : {}),
       sort: activeSort,
     },
     activePage,
   )
   const courses = result.items
   const totalPages = result.totalPages
+
+  const hasAnyFilter =
+    !!level ||
+    !!activeQuery ||
+    activeDurations.length > 0 ||
+    !!activeTenant ||
+    !!activeInstructor
+
+  // Pre-build sidebar items
+  const LEVELS: CourseLevel[] = ['beginner', 'intermediate', 'advanced']
+  const sidebarLevels = LEVELS.map((lvl) => ({
+    label: LEVEL_LABEL[lvl],
+    href:
+      level === lvl
+        ? buildUrl(current, { level: null })
+        : buildUrl(current, { level: lvl }),
+    active: level === lvl,
+  }))
+  const sidebarDurations = (Object.keys(DURATION_BUCKETS) as CourseDuration[]).map(
+    (d) => ({
+      label: DURATION_BUCKETS[d].label,
+      href: buildUrl(current, { durations: toggleDuration(activeDurations, d) }),
+      active: activeDurations.includes(d),
+    }),
+  )
+  const sidebarTenants = tenants.map((t) => ({
+    label: t.name,
+    count: t.count,
+    href:
+      activeTenant === t.slug
+        ? buildUrl(current, { tenant: null })
+        : buildUrl(current, { tenant: t.slug }),
+    active: activeTenant === t.slug,
+  }))
+  const sidebarInstructors = instructors.map((i) => ({
+    label: i.name,
+    count: i.count,
+    href:
+      activeInstructor === i.id
+        ? buildUrl(current, { instructor: null })
+        : buildUrl(current, { instructor: i.id }),
+    active: activeInstructor === i.id,
+  }))
+
+  // Header chips for all active filters
+  const chips: { label: string; clearHref: string }[] = []
+  if (activeQuery) {
+    chips.push({
+      label: `"${activeQuery}"`,
+      clearHref: buildUrl(current, { q: null }),
+    })
+  }
+  if (level) {
+    chips.push({
+      label: LEVEL_LABEL[level],
+      clearHref: buildUrl(current, { level: null }),
+    })
+  }
+  for (const d of activeDurations) {
+    chips.push({
+      label: DURATION_BUCKETS[d].label,
+      clearHref: buildUrl(current, {
+        durations: toggleDuration(activeDurations, d),
+      }),
+    })
+  }
+  if (activeTenant) {
+    const t = tenants.find((x) => x.slug === activeTenant)
+    if (t) {
+      chips.push({
+        label: t.name,
+        clearHref: buildUrl(current, { tenant: null }),
+      })
+    }
+  }
+  if (activeInstructor) {
+    const i = instructors.find((x) => x.id === activeInstructor)
+    if (i) {
+      chips.push({
+        label: i.name,
+        clearHref: buildUrl(current, { instructor: null }),
+      })
+    }
+  }
+
+  // Sort pill options
+  const sortOptions = (Object.keys(SORT_LABEL) as CourseSort[]).map((s) => ({
+    value: s,
+    label: SORT_LABEL[s],
+    href: buildUrl(current, { sort: s }),
+    active: activeSort === s,
+  }))
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
@@ -143,7 +272,7 @@ export default async function CoursesPage({
           )}
         </p>
 
-        {/* Search form — submits as GET, preserves level via hidden input */}
+        {/* Search form — submits as GET, preserves other filters via hidden inputs */}
         <form method="get" action="/courses" className="mt-5 max-w-2xl">
           <div className="border-border bg-card focus-within:border-[color:var(--ring)] flex items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition">
             <Search className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
@@ -158,7 +287,7 @@ export default async function CoursesPage({
             {activeQuery && (
               <Link
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                href={buildCoursesUrl(current, { q: null }) as any}
+                href={buildUrl(current, { q: null }) as any}
                 className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
               >
                 <X className="h-3 w-3" aria-hidden />
@@ -177,149 +306,83 @@ export default async function CoursesPage({
           {activeDurations.length > 0 && (
             <input type="hidden" name="duration" value={activeDurations.join(',')} />
           )}
+          {activeTenant && (
+            <input type="hidden" name="tenant" value={activeTenant} />
+          )}
+          {activeInstructor && (
+            <input type="hidden" name="instructor" value={activeInstructor} />
+          )}
           {activeSort !== 'newest' && (
             <input type="hidden" name="sort" value={activeSort} />
           )}
         </form>
+
+        <CoursesHeaderChips chips={chips} clearAllHref="/courses" />
       </header>
 
-      <nav aria-label="Tingkat" className="mb-8 flex flex-wrap gap-2 text-sm">
-        {LEVELS.map((opt) => {
-          const active = level === opt.v
-          return (
-            <Link
-              key={opt.v || 'all'}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              href={buildCoursesUrl(current, { level: opt.v }) as any}
-              className={
-                active
-                  ? 'border-primary bg-primary text-primary-foreground rounded-full border px-3 py-1'
-                  : 'border-border bg-background hover:border-[color:var(--ring)] rounded-full border px-3 py-1 transition'
-              }
-              aria-current={active ? 'true' : undefined}
-            >
-              {opt.l}
-            </Link>
-          )
-        })}
-      </nav>
-
-      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-        <nav
-          aria-label="Durasi"
-          className="flex flex-wrap items-center gap-2 text-sm"
-        >
-          <span className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
-            Durasi
-          </span>
-          {(Object.keys(DURATION_BUCKETS) as CourseDuration[]).map((d) => {
-            const active = activeDurations.includes(d)
-            return (
-              <Link
-                key={d}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                href={
-                  buildCoursesUrl(current, {
-                    durations: toggleDuration(activeDurations, d),
-                  }) as any
-                }
-                className={
-                  active
-                    ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] rounded-full border px-3 py-1 text-xs font-medium transition'
-                    : 'border-border text-foreground/70 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] rounded-full border px-3 py-1 text-xs transition'
-                }
-                aria-current={active ? 'true' : undefined}
-              >
-                {DURATION_BUCKETS[d].label}
-              </Link>
-            )
-          })}
-        </nav>
-
-        <form
-          method="get"
-          action="/courses"
-          className="flex items-center gap-2 text-sm"
-        >
-          <label
-            htmlFor="course-sort"
-            className="text-muted-foreground text-xs font-medium uppercase tracking-wider"
-          >
-            Urutkan
-          </label>
-          <select
-            id="course-sort"
-            name="sort"
-            defaultValue={activeSort}
-            className="border-border bg-background text-foreground focus:border-[color:var(--ring)] focus:ring-[color:var(--ring)]/30 rounded-md border px-3 py-1.5 text-xs outline-none focus:ring-2"
-          >
-            {(Object.keys(SORT_LABELS) as CourseSort[]).map((s) => (
-              <option key={s} value={s}>
-                {SORT_LABELS[s]}
-              </option>
-            ))}
-          </select>
-          {/* Preserve other filters on submit */}
-          {level && <input type="hidden" name="level" value={level} />}
-          {activeQuery && <input type="hidden" name="q" value={activeQuery} />}
-          {activeDurations.length > 0 && (
-            <input type="hidden" name="duration" value={activeDurations.join(',')} />
-          )}
-          <button
-            type="submit"
-            className="border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs font-medium transition"
-          >
-            Terapkan
-          </button>
-        </form>
-      </div>
-
-      {courses.length === 0 ? (
-        <div className="border-border bg-card rounded-2xl border p-12 text-center">
-          <h2 className="font-heading text-foreground text-lg font-semibold">
-            Tidak ada kursus
-          </h2>
-          <p className="text-muted-foreground mt-2 text-sm">
-            {activeQuery
-              ? `Tidak ada kursus yang cocok dengan "${activeQuery}".`
-              : level
-                ? 'Belum ada kursus di tingkat ini.'
-                : 'Belum ada kursus terdaftar.'}
-          </p>
-          {(level || activeQuery) && (
-            <Link
-              href="/courses"
-              className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
-            >
-              Bersihkan filter
-            </Link>
-          )}
-        </div>
-      ) : (
-        <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((c) => (
-            <li key={c.id}>
-              <Link href={`/courses/${c.slug}`} className="block">
-                <CourseCard
-                  title={c.title}
-                  instructor={c.instructor.name}
-                  level={c.level}
-                  durationHours={c.durationHours}
-                  lessonsCount={c.lessonsCount}
-                />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {totalPages > 1 && (
-        <CoursesPagination
-          current={current}
-          page={activePage}
-          totalPages={totalPages}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
+        <CoursesSidebar
+          levels={sidebarLevels}
+          durations={sidebarDurations}
+          tenants={sidebarTenants}
+          instructors={sidebarInstructors}
         />
-      )}
+
+        <section aria-label="Daftar kursus">
+          <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
+            <CoursesSortPills options={sortOptions} />
+          </div>
+
+          {courses.length === 0 ? (
+            <div className="border-border bg-card rounded-2xl border p-12 text-center">
+              <h2 className="font-heading text-foreground text-lg font-semibold">
+                Tidak ada kursus
+              </h2>
+              <p className="text-muted-foreground mt-2 text-sm">
+                {hasAnyFilter
+                  ? 'Belum ada kursus yang cocok dengan filter saat ini.'
+                  : 'Belum ada kursus terdaftar.'}
+              </p>
+              {hasAnyFilter && (
+                <Link
+                  href="/courses"
+                  className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
+                >
+                  Bersihkan filter
+                </Link>
+              )}
+            </div>
+          ) : (
+            <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {courses.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={`/courses/${c.slug}` as any}
+                    className="block"
+                  >
+                    <CourseCard
+                      title={c.title}
+                      instructor={c.instructor.name}
+                      level={c.level}
+                      durationHours={c.durationHours}
+                      lessonsCount={c.lessonsCount}
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {totalPages > 1 && (
+            <CoursesPagination
+              current={current}
+              page={activePage}
+              totalPages={totalPages}
+            />
+          )}
+        </section>
+      </div>
     </div>
   )
 }
@@ -329,7 +392,7 @@ function CoursesPagination({
   page,
   totalPages,
 }: {
-  current: CoursesState
+  current: FilterState
   page: number
   totalPages: number
 }) {
@@ -399,7 +462,7 @@ function PageLink({
   aria,
   children,
 }: {
-  current: CoursesState
+  current: FilterState
   page: number
   active?: boolean
   disabled?: boolean
@@ -421,7 +484,7 @@ function PageLink({
   return (
     <Link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      href={buildCoursesUrl(current, { page, keepPage: true }) as any}
+      href={buildUrl(current, { page, keepPage: true }) as any}
       className={className}
       aria-label={aria}
       aria-current={active ? 'page' : undefined}
