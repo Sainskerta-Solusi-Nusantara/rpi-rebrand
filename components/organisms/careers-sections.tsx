@@ -49,7 +49,12 @@ const fadeUp = {
 // Hero
 // ---------------------------------------------------------------------------
 
-export function CareersHero() {
+export type CareersHeroProps = {
+  /** Total number of currently open positions. */
+  openingCount: number
+}
+
+export function CareersHero({ openingCount }: CareersHeroProps) {
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -132,7 +137,7 @@ export function CareersHero() {
           {[
             { v: '120+', l: 'Anggota tim' },
             { v: '6', l: 'Kota di Indonesia' },
-            { v: '12', l: 'Posisi terbuka' },
+            { v: String(openingCount), l: 'Posisi terbuka' },
             { v: '4.8/5', l: 'Skor karyawan' },
           ].map((s) => (
             <div key={s.l} className="text-center">
@@ -382,7 +387,12 @@ const TEAMS = [
   { icon: TrendingUp,   name: 'Operations',  size: 11, color: '#06B6D4' },
 ]
 
-export function CareersTeams() {
+export type CareersTeamsProps = {
+  /** Map of team name to { open opening count, prebuilt filter href }. */
+  openings: Record<string, { count: number; href: string }>
+}
+
+export function CareersTeams({ openings }: CareersTeamsProps) {
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -416,6 +426,8 @@ export function CareersTeams() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {TEAMS.map((t, i) => {
             const Icon = t.icon
+            const teamOpenings = openings[t.name]
+            const openCount = teamOpenings?.count ?? 0
             return (
               <motion.div
                 key={t.name}
@@ -433,13 +445,24 @@ export function CareersTeams() {
                 >
                   <Icon className="h-5 w-5" />
                 </span>
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="font-heading text-foreground text-sm font-semibold">
                     {t.name}
                   </div>
                   <div className="text-muted-foreground text-xs">
                     {t.size} orang
                   </div>
+                  {openCount > 0 && teamOpenings && (
+                    <Link
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      href={teamOpenings.href as any}
+                      className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium transition"
+                      style={{ color: t.color }}
+                    >
+                      {openCount} posisi terbuka
+                      <ArrowRight className="h-3 w-3" aria-hidden />
+                    </Link>
+                  )}
                 </div>
               </motion.div>
             )

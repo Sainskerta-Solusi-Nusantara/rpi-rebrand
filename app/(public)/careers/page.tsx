@@ -110,6 +110,19 @@ export default function CareersPage({
       team: activeTeam === t.name ? null : t.name,
     }),
   }))
+
+  // Map for CareersTeams cards — keyed by team name with count + a filter href
+  // that lands on /careers?team=<name>#openings.
+  const teamOpenings: Record<string, { count: number; href: string }> = {}
+  for (const t of getCareerTeams()) {
+    teamOpenings[t.name] = {
+      count: t.count,
+      href: buildCareersUrl(
+        { team: undefined, types: [], levels: [], q: undefined },
+        { team: t.name },
+      ),
+    }
+  }
   const types = getCareerTypes().map((t) => ({
     ...t,
     href: buildCareersUrl(current, { types: toggle(activeTypes, t.value) }),
@@ -122,10 +135,10 @@ export default function CareersPage({
 
   return (
     <>
-      <CareersHero />
+      <CareersHero openingCount={CAREER_OPENINGS.length} />
       <CareersWhy />
       <CareersLife />
-      <CareersTeams />
+      <CareersTeams openings={teamOpenings} />
       <CareersOpenings
         openings={openings}
         totalCount={CAREER_OPENINGS.length}
