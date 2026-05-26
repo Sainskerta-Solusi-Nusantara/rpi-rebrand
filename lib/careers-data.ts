@@ -522,6 +522,8 @@ export type CareerFilters = {
   types?: CareerOpening['type'][]
   /** Multi-select experience levels. */
   levels?: CareerOpening['level'][]
+  /** Single-select location token (e.g. "Jakarta", "Remote"). */
+  location?: string
   /** Free-text query against title, team, location, summary. */
   q?: string
 }
@@ -575,10 +577,19 @@ export function filterOpenings(filters: CareerFilters = {}): CareerOpening[] {
   const q = filters.q?.trim().toLowerCase()
   const types = new Set(filters.types ?? [])
   const levels = new Set(filters.levels ?? [])
+  const locTokens = filters.location
+    ? filters.location.trim().toLowerCase()
+    : ''
   return CAREER_OPENINGS.filter((o) => {
     if (filters.team && o.team !== filters.team) return false
     if (types.size > 0 && !types.has(o.type)) return false
     if (levels.size > 0 && !levels.has(o.level)) return false
+    if (locTokens) {
+      const tokens = o.location
+        .split(/\s*\/\s*/)
+        .map((t) => t.trim().toLowerCase())
+      if (!tokens.includes(locTokens)) return false
+    }
     if (q) {
       const haystack =
         `${o.title} ${o.team} ${o.location} ${o.summary}`.toLowerCase()

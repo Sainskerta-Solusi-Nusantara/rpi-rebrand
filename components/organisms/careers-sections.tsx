@@ -36,6 +36,8 @@ import {
 
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
+import CareersHeaderChips from '@/components/molecules/careers-header-chips'
+import CareersSortPills from '@/components/molecules/careers-sort-pills'
 import { cn } from '@/lib/utils'
 import { CAREER_OPENINGS as OPENINGS } from '@/lib/careers-data'
 
@@ -485,12 +487,19 @@ export type CareersOpeningsProps = {
   activeTeam?: string
   activeTypes: CareerOpening['type'][]
   activeLevels: CareerOpening['level'][]
+  activeLocation?: string
   activeQuery?: string
+  activeSort: string
   teams: { name: string; count: number; href: string }[]
   types: { value: CareerOpening['type']; count: number; href: string }[]
   levels: { value: CareerOpening['level']; count: number; href: string }[]
+  locations: { name: string; slug: string; count: number; href: string }[]
+  sortOptions: { value: string; label: string; href: string; active: boolean }[]
+  headerChips: { label: string; clearHref: string }[]
   /** Special href for the "Semua" team chip (clears team filter). */
   allTeamsHref: string
+  /** Special href for the "Semua" location chip (clears location filter). */
+  allLocationsHref: string
   /** Href that clears every filter, jumping back to /careers#openings. */
   clearAllHref: string
   hasAnyFilter: boolean
@@ -503,11 +512,17 @@ export function CareersOpenings(props: CareersOpeningsProps) {
     activeTeam,
     activeTypes,
     activeLevels,
+    activeLocation,
     activeQuery,
+    activeSort,
     teams,
     types,
     levels,
+    locations,
+    sortOptions,
+    headerChips,
     allTeamsHref,
+    allLocationsHref,
     clearAllHref,
     hasAnyFilter,
   } = props
@@ -577,7 +592,20 @@ export function CareersOpenings(props: CareersOpeningsProps) {
           {activeLevels.length > 0 && (
             <input type="hidden" name="level" value={activeLevels.join(',')} />
           )}
+          {activeLocation && (
+            <input type="hidden" name="location" value={activeLocation} />
+          )}
+          {activeSort !== 'newest' && (
+            <input type="hidden" name="sort" value={activeSort} />
+          )}
         </form>
+
+        {/* Active filter chip strip */}
+        <div className="mx-auto mb-4 max-w-3xl">
+          <div className="flex justify-center">
+            <CareersHeaderChips chips={headerChips} clearAllHref={clearAllHref} />
+          </div>
+        </div>
 
         {/* Team chips */}
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
@@ -612,6 +640,46 @@ export function CareersOpenings(props: CareersOpeningsProps) {
                 {t.name}
                 <span className={active ? 'ml-1.5 opacity-80' : 'ml-1.5 opacity-60'}>
                   {t.count}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+
+        {/* Location chips */}
+        <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={allLocationsHref as any}
+            className={cn(
+              'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
+              !activeLocation
+                ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
+                : 'border-border bg-background text-muted-foreground hover:text-foreground',
+            )}
+            aria-current={!activeLocation ? 'true' : undefined}
+          >
+            Semua Lokasi
+          </Link>
+          {locations.map((l) => {
+            const active = activeLocation === l.name
+            return (
+              <Link
+                key={l.slug}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={l.href as any}
+                className={cn(
+                  'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
+                  active
+                    ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)]'
+                    : 'border-border bg-background text-muted-foreground hover:text-foreground',
+                )}
+                aria-current={active ? 'true' : undefined}
+              >
+                <MapPin className="mr-1 inline h-3 w-3" aria-hidden />
+                {l.name}
+                <span className={active ? 'ml-1.5 opacity-80' : 'ml-1.5 opacity-60'}>
+                  {l.count}
                 </span>
               </Link>
             )
@@ -670,17 +738,10 @@ export function CareersOpenings(props: CareersOpeningsProps) {
           </div>
         </div>
 
-        {hasAnyFilter && (
-          <div className="mb-6 text-center">
-            <Link
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              href={clearAllHref as any}
-              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
-            >
-              ✕ Bersihkan semua filter
-            </Link>
-          </div>
-        )}
+        {/* Sort pills */}
+        <div className="mb-6 flex justify-center">
+          <CareersSortPills options={sortOptions} />
+        </div>
 
         {openings.length === 0 ? (
           <div className="border-border bg-card rounded-2xl border p-10 text-center">
