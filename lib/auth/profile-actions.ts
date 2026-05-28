@@ -1,0 +1,93 @@
+'use server'
+
+import { z } from 'zod'
+import { prisma } from '@/lib/db'
+import { requireAuth } from '@/lib/auth/session'
+
+export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
+
+// Coerce empty strings (the default for unfilled <input> fields in FormData) to undefined
+// so optional fields don't trip the URL/regex/min validators.
+const emptyToUndefined = (v: unknown) =>
+  typeof v === 'string' && v.trim() === '' ? undefined : v
+
+const phoneRegex = /^[+\d\s\-()]*$/
+
+const profileSchema = z.object({
+  name: z
+    .string({ required_error: 'Nama wajib diisi' })
+    .trim()
+    .min(2, 'Nama minimal 2 karakter')
+    .max(120, 'Nama maksimal 120 karakter'),
+  phone: z.preprocess(
+    emptyToUndefined,
+    z
+      .string()
+      .max(30, 'Nomor telepon maksimal 30 karakter')
+      .regex(phoneRegex, 'Format nomor telepon tidak valid')
+      .optional(),
+  ),
+  bio: z.preprocess(
+    emptyToUndefined,
+    z.string().max(1000, 'Bio maksimal 1000 karakter').optional(),
+  ),
+  headline: z.preprocess(
+    emptyToUndefined,
+    z.string().max(200, 'Headline maksimal 200 karakter').optional(),
+  ),
+  location: z.preprocess(
+    emptyToUndefined,
+    z.string().max(120, 'Lokasi maksimal 120 karakter').optional(),
+  ),
+  image: z.preprocess(
+    emptyToUndefined,
+    z.string().url('URL gambar tidak valid').optional(),
+  ),
+})
+
+/**
+ * Update the authenticated user's profile fields (name, phone, bio, headline,
+ * location, image). Email + globalRole are intentionally immutable here.
+ */
+export async function updateProfile(formData: FormData): Promise<ActionResult> {
+  const session = await requireAuth()
+
+  const raw = {
+    name: formData.get('name'),
+    phone: formData.get('phone'),
+    bio: formData.get('bio'),
+    headline: formData.get('headline'),
+    location: formData.get('location'),
+    image: formData.get('image'),
+  }
+
+  const parsed = profileSchema.safeParse(raw)
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]
+    return {
+      ok: false,
+      error: issue?.message ?? 'Data tidak valid',
+      field: issue?.path[0] as string | undefined,
+    }
+  }
+
+  const { name, phone, bio, headline, location, image } = parsed.data
+
+  try {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        name,
+        phone: phone ?? null,
+        bio: bio ?? null,
+        headline: headline ?? null,
+        location: location ?? null,
+        image: image ?? null,
+      },
+    })
+    return { ok: true }
+  } catch (err) {
+    console.error('[updateProfile] failed', err)
+    return { ok: false, error: 'Gagal menyimpan. Coba lagi.' }
+  }
+}
