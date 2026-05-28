@@ -11,7 +11,13 @@ export const metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { callbackUrl?: string; registered?: string; error?: string; signedOut?: string }
+  searchParams?: {
+    callbackUrl?: string
+    registered?: string
+    error?: string
+    signedOut?: string
+    reset?: string
+  }
 }) {
   const session = await auth()
   if (session?.user) {
@@ -20,6 +26,7 @@ export default async function LoginPage({
 
   const showRegistered = searchParams?.registered === '1'
   const showSignedOut = searchParams?.signedOut === '1'
+  const showReset = searchParams?.reset === '1'
 
   return (
     <div className="space-y-6">
@@ -47,6 +54,15 @@ export default async function LoginPage({
           className="rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground"
         >
           Anda telah keluar.
+        </div>
+      )}
+
+      {showReset && (
+        <div
+          role="status"
+          className="rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
+        >
+          Password berhasil diperbarui. Silakan masuk dengan password baru.
         </div>
       )}
 

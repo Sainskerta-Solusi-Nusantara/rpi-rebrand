@@ -4,6 +4,15 @@ import { z } from 'zod'
  * Runtime environment-variable schema for the RPI SaaS.
  * Fails fast on boot when required values are missing or malformed.
  */
+const optionalUrl = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z.string().url().optional(),
+)
+const optionalString = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z.string().optional(),
+)
+
 const envSchema = z.object({
   // ----- Core -----
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -16,8 +25,8 @@ const envSchema = z.object({
   NEXTAUTH_URL: z.string().url(),
 
   // ----- OAuth (optional) -----
-  GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_CLIENT_ID: optionalString,
+  GOOGLE_CLIENT_SECRET: optionalString,
 
   // ----- Public -----
   NEXT_PUBLIC_APP_URL: z.string().url(),
@@ -25,17 +34,21 @@ const envSchema = z.object({
 
   // ----- Storage -----
   STORAGE_PROVIDER: z.enum(['local', 'r2']).default('local'),
-  R2_ACCOUNT_ID: z.string().optional(),
-  R2_ACCESS_KEY_ID: z.string().optional(),
-  R2_SECRET_ACCESS_KEY: z.string().optional(),
-  R2_BUCKET_NAME: z.string().optional(),
-  R2_PUBLIC_URL: z.string().url().optional(),
+  R2_ACCOUNT_ID: optionalString,
+  R2_ACCESS_KEY_ID: optionalString,
+  R2_SECRET_ACCESS_KEY: optionalString,
+  R2_BUCKET_NAME: optionalString,
+  R2_PUBLIC_URL: optionalUrl,
 
   // ----- Cache -----
-  REDIS_URL: z.string().url().optional(),
+  REDIS_URL: optionalUrl,
 
   // ----- Email -----
-  RESEND_API_KEY: z.string().optional(),
+  RESEND_API_KEY: optionalString,
+  EMAIL_FROM: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().email().optional(),
+  ),
 })
 
 const parsed = envSchema.safeParse({
@@ -55,6 +68,7 @@ const parsed = envSchema.safeParse({
   R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
   REDIS_URL: process.env.REDIS_URL,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM,
 })
 
 if (!parsed.success) {
