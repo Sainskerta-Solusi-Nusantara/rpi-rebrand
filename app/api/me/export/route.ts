@@ -1,21 +1,41 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { verifyBearerToken, hasScope } from '@/lib/auth/api-token'
 
 export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/me/export
  * Returns a JSON dump of the signed-in user's data, suitable for download.
- * Includes profile, memberships, applications, enrollments, certificates,
- * saved jobs, audit log, and a metadata header.
+ * Accepts either a session cookie (browser) or a Personal Access Token via
+ * `Authorization: Bearer rpi_...` (with `read` scope) for programmatic use.
  */
-export async function GET(_req: NextRequest) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'AUTH_REQUIRED' }, { status: 401 })
+export async function GET(req: NextRequest) {
+  let userId: string | null = null
+
+  const authHeader = req.headers.get('authorization')
+  if (authHeader) {
+    const verified = await verifyBearerToken(authHeader, {
+      ip:
+        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        req.headers.get('x-real-ip') ??
+        null,
+    })
+    if (!verified) {
+      return NextResponse.json({ error: 'INVALID_TOKEN' }, { status: 401 })
+    }
+    if (!hasScope(verified, 'read')) {
+      return NextResponse.json({ error: 'INSUFFICIENT_SCOPE' }, { status: 403 })
+    }
+    userId = verified.userId
+  } else {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'AUTH_REQUIRED' }, { status: 401 })
+    }
+    userId = session.user.id
   }
-  const userId = session.user.id
 
   try {
     const [

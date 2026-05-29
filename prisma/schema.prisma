@@ -240,6 +240,7 @@ model User {
   emailVerificationTokens EmailVerificationToken[]
   emailChangeRequests     EmailChangeRequest[]
   totpRecoveryCodes       TotpRecoveryCode[]
+  personalAccessTokens    PersonalAccessToken[]
 
   @@index([globalRole])
   @@index([status])
@@ -301,6 +302,26 @@ model EmailVerificationToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("email_verification_tokens")
+}
+
+model PersonalAccessToken {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  name        String
+  tokenHash   String    @unique @map("token_hash")
+  tokenPrefix String    @map("token_prefix")
+  scopes      String[]
+  expiresAt   DateTime? @map("expires_at")
+  lastUsedAt  DateTime? @map("last_used_at")
+  lastUsedIp  String?   @map("last_used_ip")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  revokedAt   DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([revokedAt])
+  @@map("personal_access_tokens")
 }
 
 model EmailChangeRequest {

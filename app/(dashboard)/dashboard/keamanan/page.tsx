@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/auth/session'
 import Link from 'next/link'
-import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck } from 'lucide-react'
+import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck, Key } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { getRecentAuthEvents, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
 import { ResendVerificationButton } from '@/components/organisms/resend-verification-button'
@@ -312,6 +312,27 @@ export default async function KeamananPage({
             </table>
           </div>
         )}
+      </section>
+
+      <section
+        aria-label="API tokens"
+        className="border-border bg-card rounded-2xl border p-6"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <Key className="h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-lg">Personal API Tokens</h2>
+        </div>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Buat token untuk akses programatik ke API RPI. Scope dapat dibatasi
+          dan token bisa dicabut kapan saja.
+        </p>
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={'/dashboard/keamanan/api-tokens' as any}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors"
+        >
+          Kelola token
+        </Link>
       </section>
 
       <section
