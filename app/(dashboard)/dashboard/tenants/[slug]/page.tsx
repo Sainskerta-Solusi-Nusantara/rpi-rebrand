@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut } from 'lucide-react'
+import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission, canAccessTenant } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
@@ -64,6 +64,7 @@ export default async function ManageTenantPage({
   const canInvite = hasTenantPermission(globalRole, tenants, tenant.id, 'team.invite')
   const canUpdateMember = hasTenantPermission(globalRole, tenants, tenant.id, 'team.update')
   const canRemoveMember = hasTenantPermission(globalRole, tenants, tenant.id, 'team.remove')
+  const canEditBranding = hasTenantPermission(globalRole, tenants, tenant.id, 'branding.update')
   const isOwner = tenant.ownerUserId === session.user.id
 
   const [members, invitations] = await Promise.all([
@@ -126,6 +127,19 @@ export default async function ManageTenantPage({
           </span>
         </div>
       </header>
+
+      {canEditBranding && (
+        <nav className="flex flex-wrap gap-2">
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={`/dashboard/tenants/${tenant.slug}/branding` as any}
+            className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+          >
+            <Palette className="h-4 w-4" aria-hidden="true" />
+            Atur branding
+          </Link>
+        </nav>
+      )}
 
       <section
         aria-label="Anggota"

@@ -74,3 +74,52 @@ export async function deleteLocalAvatar(url: string | null | undefined): Promise
     // Ignore — the file may already be gone.
   }
 }
+
+export const MAX_LOGO_BYTES = 2 * 1024 * 1024 // 2 MB
+const LOGO_MIME_TO_EXT: Record<string, string> = {
+  ...MIME_TO_EXT,
+  'image/svg+xml': 'svg',
+}
+export const ALLOWED_LOGO_MIME = Object.keys(LOGO_MIME_TO_EXT)
+
+export function logoExtForMime(mime: string): string | null {
+  return LOGO_MIME_TO_EXT[mime] ?? null
+}
+
+export async function saveTenantLogo(opts: {
+  tenantId: string
+  slot: 'light' | 'dark' | 'favicon'
+  buffer: Buffer
+  mime: string
+}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const ext = logoExtForMime(opts.mime)
+  if (!ext) return { ok: false, error: 'Format gambar tidak didukung.' }
+  if (opts.buffer.length > MAX_LOGO_BYTES) {
+    return { ok: false, error: 'Ukuran gambar melebihi 2 MB.' }
+  }
+
+  if (env.STORAGE_PROVIDER === 'r2') {
+    return { ok: false, error: 'Storage provider R2 belum dikonfigurasi.' }
+  }
+
+  try {
+    const baseDir = path.join(process.cwd(), 'public', 'uploads', 'tenants', opts.tenantId)
+    await fs.mkdir(baseDir, { recursive: true })
+    const filename = `${opts.slot}-${randomBasename()}.${ext}`
+    await fs.writeFile(path.join(baseDir, filename), opts.buffer)
+    return { ok: true, url: `/uploads/tenants/${opts.tenantId}/${filename}` }
+  } catch (err) {
+    console.error('[saveTenantLogo] failed', err)
+    return { ok: false, error: 'Gagal menyimpan gambar.' }
+  }
+}
+
+export async function deleteLocalTenantLogo(url: string | null | undefined): Promise<void> {
+  if (!url || !url.startsWith('/uploads/tenants/')) return
+  try {
+    const rel = url.replace(/^\/+/, '')
+    await fs.unlink(path.join(process.cwd(), 'public', rel))
+  } catch {
+    // ignore
+  }
+}
