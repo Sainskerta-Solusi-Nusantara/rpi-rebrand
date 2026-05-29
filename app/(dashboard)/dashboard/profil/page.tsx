@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { AvatarUploader } from '@/components/organisms/avatar-uploader'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,6 +64,14 @@ export default async function ProfilePage() {
           Perbarui informasi profil agar lebih menarik bagi mitra perekrut.
         </p>
       </header>
+
+      <section className="border-border bg-card rounded-2xl border p-6">
+        <h2 className="font-heading mb-4 text-lg">Foto profil</h2>
+        <AvatarUploader
+          initialUrl={user.image}
+          label={user.name ?? user.email}
+        />
+      </section>
 
       <ProfileForm initial={user} />
     </div>
