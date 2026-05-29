@@ -1,7 +1,8 @@
 import { requireAuth } from '@/lib/auth/session'
 import Link from 'next/link'
-import { Shield, Clock, Globe, KeyRound, LogIn, LogOut } from 'lucide-react'
+import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck } from 'lucide-react'
 import { getRecentAuthEvents, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
+import { ResendVerificationButton } from '@/components/organisms/resend-verification-button'
 
 export const metadata = { title: 'Keamanan Akun — Dasbor' }
 
@@ -69,6 +70,40 @@ export default async function KeamananPage() {
             </dd>
           </div>
         </dl>
+      </section>
+
+      <section
+        aria-label="Verifikasi email"
+        className="border-border bg-card rounded-2xl border p-6"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <MailCheck className="h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-lg">Verifikasi email</h2>
+        </div>
+
+        <p className="text-sm">
+          <span className="text-muted-foreground">Email: </span>
+          <span className="font-medium">{snapshot.email ?? '—'}</span>
+        </p>
+
+        {snapshot.emailVerifiedAt ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+              Terverifikasi
+            </span>
+            <span className="text-muted-foreground">
+              pada {dateFmt.format(snapshot.emailVerifiedAt)}
+            </span>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3">
+            <p className="text-muted-foreground text-sm">
+              Email Anda belum terverifikasi. Periksa kotak masuk untuk tautan
+              verifikasi atau kirim ulang.
+            </p>
+            <ResendVerificationButton />
+          </div>
+        )}
       </section>
 
       <section aria-label="Password" className="border-border bg-card rounded-2xl border p-6">

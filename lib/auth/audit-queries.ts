@@ -47,11 +47,19 @@ export const getRecentAuthEvents = cache(
 export const getUserSecuritySnapshot = cache(
   async (
     userId: string,
-  ): Promise<{ lastLoginAt: Date | null; passwordSet: boolean; googleLinked: boolean }> => {
+  ): Promise<{
+    lastLoginAt: Date | null
+    passwordSet: boolean
+    googleLinked: boolean
+    email: string | null
+    emailVerifiedAt: Date | null
+  }> => {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
+          email: true,
+          emailVerified: true,
           lastLoginAt: true,
           passwordHash: true,
           accounts: { where: { provider: 'google' }, select: { id: true } },
@@ -61,9 +69,17 @@ export const getUserSecuritySnapshot = cache(
         lastLoginAt: user?.lastLoginAt ?? null,
         passwordSet: Boolean(user?.passwordHash),
         googleLinked: Boolean(user?.accounts?.length),
+        email: user?.email ?? null,
+        emailVerifiedAt: user?.emailVerified ?? null,
       }
     } catch {
-      return { lastLoginAt: null, passwordSet: false, googleLinked: false }
+      return {
+        lastLoginAt: null,
+        passwordSet: false,
+        googleLinked: false,
+        email: null,
+        emailVerifiedAt: null,
+      }
     }
   },
 )

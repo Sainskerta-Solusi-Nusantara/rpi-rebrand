@@ -69,6 +69,37 @@ export async function sendEmail(msg: MailMessage): Promise<SendResult> {
   return sendViaDevTransport(msg)
 }
 
+export function emailVerificationEmail(opts: { name?: string | null; link: string }): {
+  subject: string
+  text: string
+  html: string
+} {
+  const greeting = opts.name ? `Halo ${opts.name},` : 'Halo,'
+  const subject = 'Verifikasi alamat email akun RPI Anda'
+  const text = [
+    greeting,
+    '',
+    'Terima kasih telah mendaftar di Rumah Pekerja Indonesia.',
+    'Klik tautan berikut untuk memverifikasi alamat email Anda (berlaku 24 jam):',
+    '',
+    opts.link,
+    '',
+    'Jika Anda tidak membuat akun ini, abaikan email ini.',
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ].join('\n')
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>${greeting}</p>
+  <p>Terima kasih telah mendaftar di Rumah Pekerja Indonesia. Klik tombol berikut untuk memverifikasi alamat email Anda (tautan berlaku 24 jam):</p>
+  <p style="margin:24px 0"><a href="${opts.link}" style="display:inline-block;background:hsl(220,50%,14%);color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Verifikasi email</a></p>
+  <p style="font-size:13px;color:#475569">Atau salin tautan ini ke browser:<br><span style="word-break:break-all">${opts.link}</span></p>
+  <p style="font-size:13px;color:#475569">Jika Anda tidak membuat akun ini, abaikan email ini.</p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+  return { subject, text, html }
+}
+
 export function passwordResetEmail(opts: { name?: string | null; link: string }): {
   subject: string
   text: string
