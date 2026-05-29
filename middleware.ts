@@ -36,7 +36,10 @@ export async function middleware(req: NextRequest) {
 
   const path = url.pathname
   const isProtected =
-    path.startsWith('/dashboard') || path.startsWith('/admin') || path.startsWith('/partner')
+    path.startsWith('/dashboard') ||
+    path.startsWith('/admin') ||
+    path.startsWith('/partner') ||
+    path.startsWith('/onboarding')
 
   if (isProtected) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })

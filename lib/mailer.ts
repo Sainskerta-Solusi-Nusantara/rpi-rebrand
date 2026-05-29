@@ -69,6 +69,38 @@ export async function sendEmail(msg: MailMessage): Promise<SendResult> {
   return sendViaDevTransport(msg)
 }
 
+export function tenantInviteEmail(opts: {
+  inviterName?: string | null
+  tenantName: string
+  role: string
+  link: string
+}): { subject: string; text: string; html: string } {
+  const subject = `Undangan bergabung ke ${opts.tenantName}`
+  const inviter = opts.inviterName ?? 'Tim RPI'
+  const text = [
+    'Halo,',
+    '',
+    `${inviter} mengundang Anda bergabung ke ${opts.tenantName} di Rumah Pekerja Indonesia sebagai ${opts.role}.`,
+    'Klik tautan berikut untuk menerima undangan (berlaku 7 hari):',
+    '',
+    opts.link,
+    '',
+    'Jika Anda tidak mengharapkan undangan ini, abaikan email ini.',
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ].join('\n')
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>Halo,</p>
+  <p><strong>${inviter}</strong> mengundang Anda bergabung ke <strong>${opts.tenantName}</strong> di Rumah Pekerja Indonesia sebagai <strong>${opts.role}</strong>.</p>
+  <p style="margin:24px 0"><a href="${opts.link}" style="display:inline-block;background:hsl(220,50%,14%);color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Terima undangan</a></p>
+  <p style="font-size:13px;color:#475569">Atau salin tautan ini ke browser (berlaku 7 hari):<br><span style="word-break:break-all">${opts.link}</span></p>
+  <p style="font-size:13px;color:#475569">Jika Anda tidak mengharapkan undangan ini, abaikan email ini.</p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+  return { subject, text, html }
+}
+
 export function emailVerificationEmail(opts: { name?: string | null; link: string }): {
   subject: string
   text: string
