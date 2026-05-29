@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck } from 'lucide-react'
 import { getRecentAuthEvents, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
 import { ResendVerificationButton } from '@/components/organisms/resend-verification-button'
+import { LinkGoogleButton, UnlinkGoogleForm } from '@/components/organisms/oauth-link-actions'
 
 export const metadata = { title: 'Keamanan Akun — Dasbor' }
 
@@ -16,9 +17,14 @@ function truncate(value: string | null, max = 60): string {
   return value.length > max ? `${value.slice(0, max)}…` : value
 }
 
-export default async function KeamananPage() {
+export default async function KeamananPage({
+  searchParams,
+}: {
+  searchParams?: { linked?: string }
+}) {
   const session = await requireAuth('/dashboard/keamanan')
   const userId = session.user.id
+  const showLinkedBanner = searchParams?.linked === '1'
 
   const [events, snapshot] = await Promise.all([
     getRecentAuthEvents(userId, 10),
@@ -132,17 +138,41 @@ export default async function KeamananPage() {
           <Globe className="h-5 w-5" aria-hidden="true" />
           <h2 className="font-heading text-lg">Penyedia OAuth</h2>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Google</span>
-          <span
-            className={
-              snapshot.googleLinked
-                ? 'inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800'
-                : 'bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium'
-            }
+
+        {showLinkedBanner && (
+          <p
+            role="status"
+            className="mb-4 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
           >
-            {snapshot.googleLinked ? 'Terhubung' : 'Belum terhubung'}
-          </span>
+            Akun Google berhasil terhubung.
+          </p>
+        )}
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-sm font-medium">Google</div>
+            <div className="text-muted-foreground text-xs">
+              {snapshot.googleLinked
+                ? 'Anda dapat masuk dengan Google.'
+                : 'Hubungkan untuk masuk lebih cepat dengan akun Google.'}
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <span
+              className={
+                snapshot.googleLinked
+                  ? 'inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800'
+                  : 'bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium'
+              }
+            >
+              {snapshot.googleLinked ? 'Terhubung' : 'Belum terhubung'}
+            </span>
+            {snapshot.googleLinked ? (
+              <UnlinkGoogleForm passwordSet={snapshot.passwordSet} />
+            ) : (
+              <LinkGoogleButton />
+            )}
+          </div>
         </div>
       </section>
 

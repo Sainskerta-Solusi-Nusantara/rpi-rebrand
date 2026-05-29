@@ -115,24 +115,65 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       // On Google sign-in: upsert a User row with default USER role so the
-      // rest of the app has a canonical Prisma user to reference.
+      // rest of the app has a canonical Prisma user to reference, and
+      // upsert an Account row to track the OAuth linkage. We also flip
+      // emailVerified since Google already verified the address.
       if (account?.provider === 'google' && user.email) {
         try {
-          await prisma.user.upsert({
-            where: { email: user.email.toLowerCase() },
+          const email = user.email.toLowerCase()
+          const dbUser = await prisma.user.upsert({
+            where: { email },
             update: {
               name: user.name ?? undefined,
               image: user.image ?? undefined,
+              emailVerified: new Date(),
             },
             create: {
-              email: user.email.toLowerCase(),
+              email,
               name: user.name ?? null,
               image: user.image ?? null,
               globalRole: 'USER',
               status: 'ACTIVE',
+              emailVerified: new Date(),
+            },
+            select: { id: true },
+          })
+
+          await prisma.account.upsert({
+            where: {
+              provider_providerAccountId: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+              },
+            },
+            update: {
+              userId: dbUser.id,
+              access_token: account.access_token ?? null,
+              refresh_token: account.refresh_token ?? null,
+              expires_at: account.expires_at ?? null,
+              token_type: account.token_type ?? null,
+              scope: account.scope ?? null,
+              id_token: account.id_token ?? null,
+              session_state:
+                typeof account.session_state === 'string' ? account.session_state : null,
+            },
+            create: {
+              userId: dbUser.id,
+              type: account.type,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token ?? null,
+              refresh_token: account.refresh_token ?? null,
+              expires_at: account.expires_at ?? null,
+              token_type: account.token_type ?? null,
+              scope: account.scope ?? null,
+              id_token: account.id_token ?? null,
+              session_state:
+                typeof account.session_state === 'string' ? account.session_state : null,
             },
           })
-        } catch {
+        } catch (err) {
+          console.error('[auth/signIn] google upsert failed', err)
           // Fail closed only if linkage truly broken; otherwise allow.
         }
       }
