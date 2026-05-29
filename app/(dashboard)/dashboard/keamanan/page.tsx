@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/auth/session'
 import Link from 'next/link'
-import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck, Key, Monitor } from 'lucide-react'
+import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck, Key, Monitor, Bell } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { getRecentAuthEvents, getUserDevices, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
 import { ResendVerificationButton } from '@/components/organisms/resend-verification-button'
@@ -361,6 +361,27 @@ export default async function KeamananPage({
             </table>
           </div>
         )}
+      </section>
+
+      <section
+        aria-label="Preferensi notifikasi"
+        className="border-border bg-card rounded-2xl border p-6"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <Bell className="h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-lg">Preferensi notifikasi</h2>
+        </div>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Atur email mana saja yang ingin Anda terima — login alert, undangan
+          tenant, dan lainnya.
+        </p>
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={'/dashboard/notifikasi' as any}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors"
+        >
+          Buka preferensi
+        </Link>
       </section>
 
       <section

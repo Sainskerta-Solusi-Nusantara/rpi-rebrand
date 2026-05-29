@@ -242,6 +242,7 @@ model User {
   totpRecoveryCodes       TotpRecoveryCode[]
   personalAccessTokens    PersonalAccessToken[]
   devices                 UserDevice[]
+  notificationPref        NotificationPref?
 
   @@index([globalRole])
   @@index([status])
@@ -303,6 +304,21 @@ model EmailVerificationToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("email_verification_tokens")
+}
+
+model NotificationPref {
+  id                  String   @id @default(cuid())
+  userId              String   @unique @map("user_id")
+  emailLoginAlert     Boolean  @default(true) @map("email_login_alert")
+  emailSecurityEvent  Boolean  @default(true) @map("email_security_event")
+  emailInvitation     Boolean  @default(true) @map("email_invitation")
+  emailMarketing      Boolean  @default(false) @map("email_marketing")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_prefs")
 }
 
 model UserDevice {

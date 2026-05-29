@@ -9,6 +9,7 @@ import { prisma } from '@/lib/db'
 import { env } from '@/lib/env'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { shouldSendEmail } from '@/lib/auth/notification-prefs'
 import { sendEmail, tenantInviteEmail } from '@/lib/mailer'
 
 export type ActionResult<T = undefined> =
@@ -234,16 +235,27 @@ export async function createTenantInvite(input: {
       },
     })
 
-    const link = `${appUrl()}/accept/${token}`
-    const { subject, text, html } = tenantInviteEmail({
-      inviterName: session.user.name ?? null,
-      tenantName: tenant.name,
-      role,
-      link,
+    // If the invitee already has an account, respect their invitation pref.
+    const inviteeUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
     })
-    const mail = await sendEmail({ to: email, subject, text, html })
-    if (!mail.ok) {
-      console.error('[createTenantInvite] mailer failed', mail.error)
+    const wantsMail = inviteeUser
+      ? await shouldSendEmail(inviteeUser.id, 'invitation')
+      : true // new users have no prefs row yet; default-true matches DEFAULT_PREFS
+
+    if (wantsMail) {
+      const link = `${appUrl()}/accept/${token}`
+      const { subject, text, html } = tenantInviteEmail({
+        inviterName: session.user.name ?? null,
+        tenantName: tenant.name,
+        role,
+        link,
+      })
+      const mail = await sendEmail({ to: email, subject, text, html })
+      if (!mail.ok) {
+        console.error('[createTenantInvite] mailer failed', mail.error)
+      }
     }
 
     revalidatePath(`/dashboard/tenants/${tenantSlug}`)

@@ -7,6 +7,7 @@ import { env } from '@/lib/env'
 import { verifyPassword } from '@/lib/auth/password'
 import { hashRecoveryCode, verifyTotpCode } from '@/lib/auth/totp'
 import { approximateIp, markDeviceAlertSent, recordLoginDevice } from '@/lib/auth/devices'
+import { shouldSendEmail } from '@/lib/auth/notification-prefs'
 import { loginAlertEmail, sendEmail } from '@/lib/mailer'
 import type { GlobalRole, TenantMembership } from '@/types/next-auth'
 
@@ -288,6 +289,13 @@ export const authOptions: NextAuthOptions = {
       const result = await recordLoginDevice({ userId, userAgent: ua, ip })
       if (!result) return
       if (!result.isNew || result.device.alertSentAt) return
+
+      // Respect notification prefs (login_alert channel).
+      const wantsAlert = await shouldSendEmail(userId, 'login_alert')
+      if (!wantsAlert) {
+        await markDeviceAlertSent(result.device.id)
+        return
+      }
 
       // Look up email + name for the alert content.
       try {
