@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/auth/session'
 import Link from 'next/link'
-import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck, Key, Monitor, Bell } from 'lucide-react'
+import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck, Key, Monitor, Bell, Activity } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { getRecentAuthEvents, getUserDevices, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
 import { ResendVerificationButton } from '@/components/organisms/resend-verification-button'
@@ -324,9 +324,19 @@ export default async function KeamananPage({
         aria-label="Aktivitas masuk terakhir"
         className="border-border bg-card rounded-2xl border p-6"
       >
-        <div className="mb-4 flex items-center gap-2">
-          <Shield className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Aktivitas terakhir</h2>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5" aria-hidden="true" />
+            <h2 className="font-heading text-lg">Aktivitas terakhir</h2>
+          </div>
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={'/dashboard/aktivitas' as any}
+            className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
+          >
+            <Activity className="h-3.5 w-3.5" aria-hidden="true" />
+            Lihat semua + export CSV →
+          </Link>
         </div>
 
         {events.length === 0 ? (
