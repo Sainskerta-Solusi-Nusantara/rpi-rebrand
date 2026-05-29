@@ -217,6 +217,8 @@ model User {
   globalRole    GlobalRole @default(USER) @map("global_role")
   status        UserStatus @default(ACTIVE)
   lastLoginAt   DateTime?  @map("last_login_at")
+  totpSecret    String?    @map("totp_secret")
+  totpEnabledAt DateTime?  @map("totp_enabled_at")
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
 
@@ -236,6 +238,7 @@ model User {
   coursesTaught       Course[]             @relation("CourseInstructor")
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  totpRecoveryCodes       TotpRecoveryCode[]
 
   @@index([globalRole])
   @@index([status])
@@ -297,6 +300,19 @@ model EmailVerificationToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("email_verification_tokens")
+}
+
+model TotpRecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  codeHash  String    @unique @map("code_hash")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("totp_recovery_codes")
 }
 
 model PasswordResetToken {

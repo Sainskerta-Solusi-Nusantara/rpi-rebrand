@@ -1,11 +1,12 @@
 import { requireAuth } from '@/lib/auth/session'
 import Link from 'next/link'
-import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2 } from 'lucide-react'
+import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { getRecentAuthEvents, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
 import { ResendVerificationButton } from '@/components/organisms/resend-verification-button'
 import { LinkGoogleButton, UnlinkGoogleForm } from '@/components/organisms/oauth-link-actions'
 import { AccountDeleteForm } from '@/components/organisms/account-delete-form'
+import { DisableTotpForm, RegenerateRecoveryCodesForm } from '@/components/organisms/totp-manage-forms'
 
 export const metadata = { title: 'Keamanan Akun — Dasbor' }
 
@@ -131,6 +132,61 @@ export default async function KeamananPage({
         >
           Ganti password
         </Link>
+      </section>
+
+      <section
+        aria-label="Two-factor authentication"
+        className="border-border bg-card rounded-2xl border p-6"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-lg">Two-factor authentication (2FA)</h2>
+        </div>
+
+        {snapshot.totpEnabledAt ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                Aktif
+              </span>
+              <span className="text-muted-foreground text-xs">
+                sejak {dateFmt.format(snapshot.totpEnabledAt)}
+              </span>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Sisa recovery codes: <span className="text-foreground font-medium">{snapshot.recoveryCodeCount}</span>
+              {snapshot.recoveryCodeCount <= 2 && snapshot.recoveryCodeCount > 0 && (
+                <span className="text-amber-700 ml-2">
+                  · Hampir habis, generate ulang.
+                </span>
+              )}
+              {snapshot.recoveryCodeCount === 0 && (
+                <span className="text-destructive ml-2">
+                  · Tidak ada recovery code. Generate sekarang.
+                </span>
+              )}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <DisableTotpForm />
+              <RegenerateRecoveryCodesForm />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-muted-foreground text-sm">
+              {snapshot.passwordSet
+                ? 'Tambah lapisan kedua saat masuk lewat aplikasi authenticator.'
+                : 'Atur password terlebih dulu sebelum mengaktifkan 2FA.'}
+            </p>
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={'/dashboard/keamanan/2fa' as any}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors"
+            >
+              Aktifkan 2FA
+            </Link>
+          </div>
+        )}
       </section>
 
       <section

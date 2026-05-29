@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from '@/lib/db'
 import { verifyPassword } from '@/lib/auth/password'
+import { hashRecoveryCode, verifyTotpCode } from '@/lib/auth/totp'
 import type { GlobalRole, TenantMembership } from '@/types/next-auth'
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
@@ -73,6 +74,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        totpCode: { label: 'TOTP code', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
@@ -87,12 +89,45 @@ export const authOptions: NextAuthOptions = {
             passwordHash: true,
             globalRole: true,
             status: true,
+            totpSecret: true,
+            totpEnabledAt: true,
           },
         })
         if (!user || !user.passwordHash) return null
         if (user.status !== 'ACTIVE') return null
         const ok = await verifyPassword(credentials.password, user.passwordHash)
         if (!ok) return null
+
+        if (user.totpEnabledAt && user.totpSecret) {
+          const codeRaw = (credentials.totpCode ?? '').toString().trim()
+          if (!codeRaw) {
+            // Signal to the UI that 2FA is required by throwing a known error
+            // string. NextAuth surfaces this as the `error` query param.
+            throw new Error('TOTP_REQUIRED')
+          }
+          let codeOk = false
+          if (/^\d{6}$/.test(codeRaw)) {
+            codeOk = verifyTotpCode(user.totpSecret, codeRaw)
+          }
+          if (!codeOk) {
+            // Try as recovery code; consume on success.
+            const recovery = await prisma.totpRecoveryCode.findUnique({
+              where: { codeHash: hashRecoveryCode(codeRaw) },
+              select: { id: true, userId: true, usedAt: true },
+            })
+            if (recovery && recovery.userId === user.id && !recovery.usedAt) {
+              await prisma.totpRecoveryCode.update({
+                where: { id: recovery.id },
+                data: { usedAt: new Date() },
+              })
+              codeOk = true
+            }
+          }
+          if (!codeOk) {
+            throw new Error('TOTP_INVALID')
+          }
+        }
+
         return {
           id: user.id,
           email: user.email,

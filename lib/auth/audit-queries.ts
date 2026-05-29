@@ -53,24 +53,34 @@ export const getUserSecuritySnapshot = cache(
     googleLinked: boolean
     email: string | null
     emailVerifiedAt: Date | null
+    totpEnabledAt: Date | null
+    recoveryCodeCount: number
   }> => {
     try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          email: true,
-          emailVerified: true,
-          lastLoginAt: true,
-          passwordHash: true,
-          accounts: { where: { provider: 'google' }, select: { id: true } },
-        },
-      })
+      const [user, recoveryCodeCount] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            email: true,
+            emailVerified: true,
+            lastLoginAt: true,
+            passwordHash: true,
+            totpEnabledAt: true,
+            accounts: { where: { provider: 'google' }, select: { id: true } },
+          },
+        }),
+        prisma.totpRecoveryCode.count({
+          where: { userId, usedAt: null },
+        }),
+      ])
       return {
         lastLoginAt: user?.lastLoginAt ?? null,
         passwordSet: Boolean(user?.passwordHash),
         googleLinked: Boolean(user?.accounts?.length),
         email: user?.email ?? null,
         emailVerifiedAt: user?.emailVerified ?? null,
+        totpEnabledAt: user?.totpEnabledAt ?? null,
+        recoveryCodeCount,
       }
     } catch {
       return {
@@ -79,6 +89,8 @@ export const getUserSecuritySnapshot = cache(
         googleLinked: false,
         email: null,
         emailVerifiedAt: null,
+        totpEnabledAt: null,
+        recoveryCodeCount: 0,
       }
     }
   },
