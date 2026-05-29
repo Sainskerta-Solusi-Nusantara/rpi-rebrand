@@ -1,9 +1,11 @@
 import { requireAuth } from '@/lib/auth/session'
 import Link from 'next/link'
-import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck } from 'lucide-react'
+import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2 } from 'lucide-react'
+import { prisma } from '@/lib/db'
 import { getRecentAuthEvents, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
 import { ResendVerificationButton } from '@/components/organisms/resend-verification-button'
 import { LinkGoogleButton, UnlinkGoogleForm } from '@/components/organisms/oauth-link-actions'
+import { AccountDeleteForm } from '@/components/organisms/account-delete-form'
 
 export const metadata = { title: 'Keamanan Akun — Dasbor' }
 
@@ -26,9 +28,10 @@ export default async function KeamananPage({
   const userId = session.user.id
   const showLinkedBanner = searchParams?.linked === '1'
 
-  const [events, snapshot] = await Promise.all([
+  const [events, snapshot, ownedTenantCount] = await Promise.all([
     getRecentAuthEvents(userId, 10),
     getUserSecuritySnapshot(userId),
+    prisma.tenant.count({ where: { ownerUserId: userId } }).catch(() => 0),
   ])
 
   const lastLoginLabel = snapshot.lastLoginAt
@@ -248,6 +251,47 @@ export default async function KeamananPage({
             </table>
           </div>
         )}
+      </section>
+
+      <section
+        aria-label="Data dan akun"
+        className="border-border bg-card rounded-2xl border p-6"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <Download className="h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-lg">Data Anda</h2>
+        </div>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Unduh salinan data Anda dalam format JSON. Mencakup profil,
+          keanggotaan tenant, lamaran, enrollment, sertifikat, dan catatan
+          aktivitas.
+        </p>
+        <a
+          href="/api/me/export"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-colors"
+        >
+          <Download className="h-4 w-4" aria-hidden="true" />
+          Unduh data saya (JSON)
+        </a>
+      </section>
+
+      <section
+        aria-label="Hapus akun"
+        className="border-destructive/30 bg-card rounded-2xl border p-6"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <Trash2 className="text-destructive h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-destructive text-lg">Hapus akun</h2>
+        </div>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Menghapus akun bersifat permanen. Profil dan PII Anda dianonimkan,
+          sesi dihapus, dan Anda tidak dapat masuk kembali dengan email saat
+          ini. Catatan audit dipertahankan untuk kepatuhan.
+        </p>
+        <AccountDeleteForm
+          hasPassword={snapshot.passwordSet}
+          ownedTenantCount={ownedTenantCount}
+        />
       </section>
     </div>
   )
