@@ -1,9 +1,13 @@
 import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
+import { headers } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { env } from '@/lib/env'
 import { verifyPassword } from '@/lib/auth/password'
 import { hashRecoveryCode, verifyTotpCode } from '@/lib/auth/totp'
+import { approximateIp, markDeviceAlertSent, recordLoginDevice } from '@/lib/auth/devices'
+import { loginAlertEmail, sendEmail } from '@/lib/mailer'
 import type { GlobalRole, TenantMembership } from '@/types/next-auth'
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
@@ -258,10 +262,61 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn({ user, account }) {
-      await logAuthEvent('signIn', (user as { id?: string }).id, {
+      const userId = (user as { id?: string }).id
+      await logAuthEvent('signIn', userId, {
         provider: account?.provider,
         email: user.email,
       })
+
+      // Device tracking + new-device alert email. Best-effort: never let
+      // alerting break the login flow.
+      if (!userId) return
+      let ua: string | null = null
+      let ip: string | null = null
+      try {
+        const h = headers()
+        ua = h.get('user-agent')
+        ip =
+          h.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+          h.get('x-real-ip') ??
+          null
+      } catch {
+        // Headers not available — skip device tracking.
+        return
+      }
+
+      const result = await recordLoginDevice({ userId, userAgent: ua, ip })
+      if (!result) return
+      if (!result.isNew || result.device.alertSentAt) return
+
+      // Look up email + name for the alert content.
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true, name: true },
+        })
+        if (!dbUser?.email) return
+        const securityUrl =
+          (env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ||
+            env.NEXTAUTH_URL?.replace(/\/$/, '') ||
+            '') + '/dashboard/keamanan'
+        const { subject, text, html } = loginAlertEmail({
+          name: dbUser.name,
+          userAgent: ua ?? 'unknown',
+          ip,
+          ipApprox: approximateIp(ip),
+          when: new Date(),
+          securityUrl,
+        })
+        const sent = await sendEmail({ to: dbUser.email, subject, text, html })
+        if (sent.ok) {
+          await markDeviceAlertSent(result.device.id)
+        } else {
+          console.error('[signIn alert] mailer failed', sent.error)
+        }
+      } catch (err) {
+        console.error('[signIn alert] failed', err)
+      }
     },
     async signOut({ token }) {
       await logAuthEvent('signOut', (token as { id?: string })?.id)

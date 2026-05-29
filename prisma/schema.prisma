@@ -241,6 +241,7 @@ model User {
   emailChangeRequests     EmailChangeRequest[]
   totpRecoveryCodes       TotpRecoveryCode[]
   personalAccessTokens    PersonalAccessToken[]
+  devices                 UserDevice[]
 
   @@index([globalRole])
   @@index([status])
@@ -302,6 +303,25 @@ model EmailVerificationToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("email_verification_tokens")
+}
+
+model UserDevice {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  fingerprint   String
+  userAgent     String   @map("user_agent")
+  ipFirstSeen   String?  @map("ip_first_seen")
+  ipLastSeen    String?  @map("ip_last_seen")
+  firstSeenAt   DateTime @default(now()) @map("first_seen_at")
+  lastSeenAt    DateTime @default(now()) @map("last_seen_at")
+  loginCount    Int      @default(1) @map("login_count")
+  alertSentAt   DateTime? @map("alert_sent_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fingerprint])
+  @@index([userId])
+  @@map("user_devices")
 }
 
 model PersonalAccessToken {

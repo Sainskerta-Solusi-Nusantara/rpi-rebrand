@@ -136,6 +136,51 @@ export function emailChangeNoticeEmail(opts: {
   return { subject, text, html }
 }
 
+export function loginAlertEmail(opts: {
+  name?: string | null
+  userAgent: string
+  ip: string | null
+  ipApprox: string
+  when: Date
+  securityUrl: string
+}): { subject: string; text: string; html: string } {
+  const greeting = opts.name ? `Halo ${opts.name},` : 'Halo,'
+  const subject = 'Login baru terdeteksi di akun RPI Anda'
+  const whenStr = opts.when.toISOString()
+  const ipLine = opts.ip ? `${opts.ip} (sekitar ${opts.ipApprox})` : opts.ipApprox
+  const text = [
+    greeting,
+    '',
+    'Kami melihat login baru ke akun RPI Anda dari perangkat yang belum pernah dipakai sebelumnya:',
+    '',
+    `Waktu       : ${whenStr}`,
+    `User-Agent  : ${opts.userAgent}`,
+    `IP          : ${ipLine}`,
+    '',
+    'Jika Anda yang masuk, abaikan email ini.',
+    'Jika BUKAN Anda, segera:',
+    `  1. Ubah password di ${opts.securityUrl}/password`,
+    `  2. Aktifkan 2FA di ${opts.securityUrl}/2fa`,
+    `  3. Cabut session aktif lain dari ${opts.securityUrl}`,
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ].join('\n')
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>${greeting}</p>
+  <p>Kami melihat login baru ke akun RPI Anda dari perangkat yang belum pernah dipakai sebelumnya:</p>
+  <table style="font-size:14px;border-collapse:collapse;margin:16px 0">
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">Waktu</td><td style="padding:4px 0"><code>${whenStr}</code></td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">User-Agent</td><td style="padding:4px 0"><code style="word-break:break-all">${opts.userAgent}</code></td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">IP</td><td style="padding:4px 0"><code>${ipLine}</code></td></tr>
+  </table>
+  <p style="margin:24px 0"><a href="${opts.securityUrl}" style="display:inline-block;background:hsl(220,50%,14%);color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Buka pengaturan keamanan</a></p>
+  <p style="font-size:13px;color:#475569">Jika Anda yang masuk, abaikan email ini. Jika BUKAN Anda — segera ubah password, aktifkan 2FA, dan cabut session yang tidak Anda kenal.</p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+  return { subject, text, html }
+}
+
 export function tenantInviteEmail(opts: {
   inviterName?: string | null
   tenantName: string

@@ -1,8 +1,8 @@
 import { requireAuth } from '@/lib/auth/session'
 import Link from 'next/link'
-import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck, Key } from 'lucide-react'
+import { Shield, Clock, Globe, KeyRound, LogIn, LogOut, MailCheck, Download, Trash2, ShieldCheck, Key, Monitor } from 'lucide-react'
 import { prisma } from '@/lib/db'
-import { getRecentAuthEvents, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
+import { getRecentAuthEvents, getUserDevices, getUserSecuritySnapshot } from '@/lib/auth/audit-queries'
 import { ResendVerificationButton } from '@/components/organisms/resend-verification-button'
 import { LinkGoogleButton, UnlinkGoogleForm } from '@/components/organisms/oauth-link-actions'
 import { AccountDeleteForm } from '@/components/organisms/account-delete-form'
@@ -30,10 +30,11 @@ export default async function KeamananPage({
   const userId = session.user.id
   const showLinkedBanner = searchParams?.linked === '1'
 
-  const [events, snapshot, ownedTenantCount] = await Promise.all([
+  const [events, snapshot, ownedTenantCount, devices] = await Promise.all([
     getRecentAuthEvents(userId, 10),
     getUserSecuritySnapshot(userId),
     prisma.tenant.count({ where: { ownerUserId: userId } }).catch(() => 0),
+    getUserDevices(userId, 8),
   ])
 
   const lastLoginLabel = snapshot.lastLoginAt
@@ -252,6 +253,54 @@ export default async function KeamananPage({
           <span className="text-muted-foreground">Waktu: </span>
           <span className="font-medium">{lastLoginLabel}</span>
         </p>
+      </section>
+
+      <section
+        aria-label="Perangkat terhubung"
+        className="border-border bg-card rounded-2xl border p-6"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <Monitor className="h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-lg">Perangkat terdeteksi</h2>
+        </div>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Daftar perangkat yang pernah login ke akun Anda. Kami kirim email
+          pemberitahuan saat ada perangkat baru terdeteksi.
+        </p>
+        {devices.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Belum ada perangkat tercatat.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
+                  <th className="py-2 pr-3 font-medium">Perangkat</th>
+                  <th className="py-2 pr-3 font-medium">IP</th>
+                  <th className="py-2 pr-3 font-medium">Pertama</th>
+                  <th className="py-2 pr-3 font-medium">Terakhir</th>
+                  <th className="py-2 font-medium">Login</th>
+                </tr>
+              </thead>
+              <tbody>
+                {devices.map((d) => (
+                  <tr key={d.id} className="border-border/60 border-b last:border-b-0">
+                    <td className="text-muted-foreground max-w-[18rem] py-2 pr-3 text-xs">
+                      <span title={d.userAgent}>{truncate(d.userAgent)}</span>
+                    </td>
+                    <td className="py-2 pr-3 font-mono text-xs">{d.ipLastSeen ?? '—'}</td>
+                    <td className="py-2 pr-3 whitespace-nowrap text-xs">
+                      {dateFmt.format(d.firstSeenAt)}
+                    </td>
+                    <td className="py-2 pr-3 whitespace-nowrap text-xs">
+                      {dateFmt.format(d.lastSeenAt)}
+                    </td>
+                    <td className="py-2 text-xs">{d.loginCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section

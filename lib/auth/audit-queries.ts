@@ -44,6 +44,40 @@ export const getRecentAuthEvents = cache(
   },
 )
 
+export type UserDeviceSummary = {
+  id: string
+  userAgent: string
+  ipFirstSeen: string | null
+  ipLastSeen: string | null
+  firstSeenAt: Date
+  lastSeenAt: Date
+  loginCount: number
+}
+
+export const getUserDevices = cache(
+  async (userId: string, limit = 10): Promise<UserDeviceSummary[]> => {
+    try {
+      const rows = await prisma.userDevice.findMany({
+        where: { userId },
+        orderBy: { lastSeenAt: 'desc' },
+        take: Math.max(1, Math.min(50, limit)),
+        select: {
+          id: true,
+          userAgent: true,
+          ipFirstSeen: true,
+          ipLastSeen: true,
+          firstSeenAt: true,
+          lastSeenAt: true,
+          loginCount: true,
+        },
+      })
+      return rows
+    } catch {
+      return []
+    }
+  },
+)
+
 export const getUserSecuritySnapshot = cache(
   async (
     userId: string,
