@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { redirect } from 'next/navigation'
@@ -54,12 +55,20 @@ export default async function AdminTenantsPage() {
               <th className="p-3">Lowongan</th>
               <th className="p-3">Lamaran</th>
               <th className="p-3">Dibuat</th>
+              <th className="p-3"></th>
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
             {tenants.map((t) => (
               <tr key={t.id}>
-                <td className="p-3 font-medium">{t.name}</td>
+                <td className="p-3 font-medium">
+                  <Link
+                    href={`/admin/tenants/${t.id}` as never}
+                    className="hover:underline"
+                  >
+                    {t.name}
+                  </Link>
+                </td>
                 <td className="p-3 font-mono text-xs">{t.slug}</td>
                 <td className="p-3">{planLabels[t.planTier] ?? t.planTier}</td>
                 <td className="p-3">{statusLabels[t.status] ?? t.status}</td>
@@ -69,11 +78,19 @@ export default async function AdminTenantsPage() {
                 <td className="p-3">
                   {new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(t.createdAt)}
                 </td>
+                <td className="p-3 text-right">
+                  <Link
+                    href={`/admin/tenants/${t.id}` as never}
+                    className="text-primary text-xs font-medium hover:underline"
+                  >
+                    Detail →
+                  </Link>
+                </td>
               </tr>
             ))}
             {tenants.length === 0 ? (
               <tr>
-                <td className="text-muted-foreground p-6 text-center" colSpan={8}>
+                <td className="text-muted-foreground p-6 text-center" colSpan={9}>
                   Belum ada tenant.
                 </td>
               </tr>

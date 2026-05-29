@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { ShieldCheck, ShieldX } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
 
@@ -45,6 +47,8 @@ export default async function AdminUsersPage({
 }) {
   const q = typeof searchParams.q === 'string' ? searchParams.q : undefined
   const role = typeof searchParams.role === 'string' ? searchParams.role : undefined
+  const status = typeof searchParams.status === 'string' ? searchParams.status : undefined
+  const verified = typeof searchParams.verified === 'string' ? searchParams.verified : undefined
   const pageRaw = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1
   const page = Math.max(1, Number.isFinite(pageRaw) ? pageRaw : 1)
 
@@ -59,6 +63,13 @@ export default async function AdminUsersPage({
       : {}),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(role ? ({ globalRole: role as any } as Prisma.UserWhereInput) : {}),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ...(status ? ({ status: status as any } as Prisma.UserWhereInput) : {}),
+    ...(verified === 'yes'
+      ? { emailVerified: { not: null } }
+      : verified === 'no'
+        ? { emailVerified: null }
+        : {}),
   }
 
   const [users, total] = await Promise.all([
@@ -75,6 +86,7 @@ export default async function AdminUsersPage({
           image: true,
           globalRole: true,
           status: true,
+          emailVerified: true,
           createdAt: true,
           lastLoginAt: true,
         },
@@ -94,7 +106,7 @@ export default async function AdminUsersPage({
             {total.toLocaleString('id-ID')} pengguna terdaftar.
           </p>
         </div>
-        <form className="flex gap-2" action="/admin/users">
+        <form className="flex flex-wrap gap-2" action="/admin/users">
           <input
             name="q"
             defaultValue={q ?? ''}
@@ -112,6 +124,26 @@ export default async function AdminUsersPage({
             <option value="PARTNER">PARTNER</option>
             <option value="USER">USER</option>
           </select>
+          <select
+            name="status"
+            defaultValue={status ?? ''}
+            className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
+          >
+            <option value="">Semua status</option>
+            <option value="ACTIVE">Aktif</option>
+            <option value="PENDING">Menunggu</option>
+            <option value="SUSPENDED">Ditangguhkan</option>
+            <option value="DELETED">Dihapus</option>
+          </select>
+          <select
+            name="verified"
+            defaultValue={verified ?? ''}
+            className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
+          >
+            <option value="">Verifikasi: semua</option>
+            <option value="yes">Terverifikasi</option>
+            <option value="no">Belum</option>
+          </select>
           <button className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm">
             Filter
           </button>
@@ -125,15 +157,20 @@ export default async function AdminUsersPage({
               <th className="p-3">Pengguna</th>
               <th className="p-3">Peran</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Verifikasi</th>
               <th className="p-3">Terdaftar</th>
               <th className="p-3">Login Terakhir</th>
+              <th className="p-3"></th>
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
             {users.map((u) => (
               <tr key={u.id}>
                 <td className="p-3">
-                  <div className="flex items-center gap-2">
+                  <Link
+                    href={`/admin/users/${u.id}` as never}
+                    className="flex items-center gap-2 hover:underline"
+                  >
                     {u.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -148,10 +185,23 @@ export default async function AdminUsersPage({
                       <div className="font-medium">{u.name ?? u.email}</div>
                       <div className="text-muted-foreground text-xs">{u.email}</div>
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="p-3">{u.globalRole}</td>
                 <td className="p-3">{statusLabels[u.status] ?? u.status}</td>
+                <td className="p-3">
+                  {u.emailVerified ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                      <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                      Ya
+                    </span>
+                  ) : (
+                    <span className="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium">
+                      <ShieldX className="h-3 w-3" aria-hidden="true" />
+                      Belum
+                    </span>
+                  )}
+                </td>
                 <td className="p-3">
                   {new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(u.createdAt)}
                 </td>
@@ -160,11 +210,19 @@ export default async function AdminUsersPage({
                     ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(u.lastLoginAt)
                     : '—'}
                 </td>
+                <td className="p-3 text-right">
+                  <Link
+                    href={`/admin/users/${u.id}` as never}
+                    className="text-primary text-xs font-medium hover:underline"
+                  >
+                    Detail →
+                  </Link>
+                </td>
               </tr>
             ))}
             {users.length === 0 ? (
               <tr>
-                <td className="text-muted-foreground p-6 text-center" colSpan={5}>
+                <td className="text-muted-foreground p-6 text-center" colSpan={7}>
                   Tidak ada pengguna yang cocok.
                 </td>
               </tr>
