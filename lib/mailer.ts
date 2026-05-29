@@ -69,6 +69,73 @@ export async function sendEmail(msg: MailMessage): Promise<SendResult> {
   return sendViaDevTransport(msg)
 }
 
+export function emailChangeVerifyEmail(opts: {
+  name?: string | null
+  oldEmail: string
+  newEmail: string
+  link: string
+}): { subject: string; text: string; html: string } {
+  const greeting = opts.name ? `Halo ${opts.name},` : 'Halo,'
+  const subject = 'Konfirmasi alamat email baru'
+  const text = [
+    greeting,
+    '',
+    `Anda meminta untuk mengganti email akun RPI dari ${opts.oldEmail} ke ${opts.newEmail}.`,
+    'Klik tautan berikut untuk mengonfirmasi (berlaku 1 jam):',
+    '',
+    opts.link,
+    '',
+    'Setelah konfirmasi, Anda akan login menggunakan email baru.',
+    'Jika Anda tidak meminta perubahan ini, abaikan email ini.',
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ].join('\n')
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>${greeting}</p>
+  <p>Anda meminta untuk mengganti email akun RPI dari <strong>${opts.oldEmail}</strong> ke <strong>${opts.newEmail}</strong>. Klik tombol berikut untuk mengonfirmasi (berlaku 1 jam):</p>
+  <p style="margin:24px 0"><a href="${opts.link}" style="display:inline-block;background:hsl(220,50%,14%);color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Konfirmasi email baru</a></p>
+  <p style="font-size:13px;color:#475569">Atau salin tautan ini ke browser:<br><span style="word-break:break-all">${opts.link}</span></p>
+  <p style="font-size:13px;color:#475569">Setelah konfirmasi, Anda akan login menggunakan email baru. Jika Anda tidak meminta perubahan ini, abaikan email ini.</p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+  return { subject, text, html }
+}
+
+export function emailChangeNoticeEmail(opts: {
+  name?: string | null
+  oldEmail: string
+  newEmail: string
+  requestIp: string | null
+}): { subject: string; text: string; html: string } {
+  const greeting = opts.name ? `Halo ${opts.name},` : 'Halo,'
+  const subject = 'Permintaan perubahan email akun RPI'
+  const ipLine = opts.requestIp ? `IP permintaan: ${opts.requestIp}.` : ''
+  const text = [
+    greeting,
+    '',
+    `Kami menerima permintaan untuk mengganti email akun RPI Anda dari ${opts.oldEmail} ke ${opts.newEmail}.`,
+    ipLine,
+    '',
+    'Permintaan ini tidak akan diaktifkan sampai email baru dikonfirmasi.',
+    'Jika Anda tidak meminta perubahan ini, segera:',
+    '  1. Ubah password Anda di /dashboard/keamanan/password',
+    '  2. Hubungi support kami.',
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ].join('\n')
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>${greeting}</p>
+  <p>Kami menerima permintaan untuk mengganti email akun RPI Anda dari <strong>${opts.oldEmail}</strong> ke <strong>${opts.newEmail}</strong>.</p>
+  ${opts.requestIp ? `<p style="font-size:13px;color:#475569">IP permintaan: <code>${opts.requestIp}</code></p>` : ''}
+  <p>Permintaan ini tidak akan diaktifkan sampai email baru dikonfirmasi.</p>
+  <p style="font-size:13px;color:#475569">Jika Anda tidak meminta perubahan ini, segera ubah password Anda dan hubungi support.</p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+  return { subject, text, html }
+}
+
 export function tenantInviteEmail(opts: {
   inviterName?: string | null
   tenantName: string

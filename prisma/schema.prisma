@@ -238,6 +238,7 @@ model User {
   coursesTaught       Course[]             @relation("CourseInstructor")
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  emailChangeRequests     EmailChangeRequest[]
   totpRecoveryCodes       TotpRecoveryCode[]
 
   @@index([globalRole])
@@ -300,6 +301,24 @@ model EmailVerificationToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("email_verification_tokens")
+}
+
+model EmailChangeRequest {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  oldEmail  String    @map("old_email")
+  newEmail  String    @map("new_email")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  requestIp String?   @map("request_ip")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("email_change_requests")
 }
 
 model TotpRecoveryCode {

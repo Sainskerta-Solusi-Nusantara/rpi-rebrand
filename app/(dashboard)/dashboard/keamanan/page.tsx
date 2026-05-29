@@ -7,6 +7,7 @@ import { ResendVerificationButton } from '@/components/organisms/resend-verifica
 import { LinkGoogleButton, UnlinkGoogleForm } from '@/components/organisms/oauth-link-actions'
 import { AccountDeleteForm } from '@/components/organisms/account-delete-form'
 import { DisableTotpForm, RegenerateRecoveryCodesForm } from '@/components/organisms/totp-manage-forms'
+import { EmailChangeForm } from '@/components/organisms/email-change-form'
 
 export const metadata = { title: 'Keamanan Akun — Dasbor' }
 
@@ -114,6 +115,10 @@ export default async function KeamananPage({
             <ResendVerificationButton />
           </div>
         )}
+
+        <div className="border-border mt-6 border-t pt-6">
+          <EmailChangeForm hasPassword={snapshot.passwordSet} />
+        </div>
       </section>
 
       <section aria-label="Password" className="border-border bg-card rounded-2xl border p-6">
