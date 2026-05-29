@@ -1,10 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Building2, UserPlus, Mail } from 'lucide-react'
+import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission, canAccessTenant } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
 import { TenantInviteForm, RevokeInviteButton } from '@/components/organisms/tenant-invite-form'
+import {
+  LeaveTenantButton,
+  MemberRowActions,
+  TransferOwnershipForm,
+} from '@/components/organisms/tenant-member-actions'
 
 export const metadata = { title: 'Kelola Tenant — Dasbor' }
 
@@ -57,6 +62,9 @@ export default async function ManageTenantPage({
   }
 
   const canInvite = hasTenantPermission(globalRole, tenants, tenant.id, 'team.invite')
+  const canUpdateMember = hasTenantPermission(globalRole, tenants, tenant.id, 'team.update')
+  const canRemoveMember = hasTenantPermission(globalRole, tenants, tenant.id, 'team.remove')
+  const isOwner = tenant.ownerUserId === session.user.id
 
   const [members, invitations] = await Promise.all([
     prisma.userTenant.findMany({
@@ -135,39 +143,68 @@ export default async function ManageTenantPage({
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
                   <th className="py-2 pr-3 font-medium">Pengguna</th>
-                  <th className="py-2 pr-3 font-medium">Peran</th>
                   <th className="py-2 pr-3 font-medium">Status</th>
-                  <th className="py-2 font-medium">Bergabung</th>
+                  <th className="py-2 pr-3 font-medium">Bergabung</th>
+                  <th className="py-2 font-medium text-right">Peran / aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {members.map((m) => (
-                  <tr key={m.id} className="border-border/60 border-b last:border-b-0">
-                    <td className="py-2 pr-3">
-                      <div className="flex items-center gap-2">
-                        {m.user.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={m.user.image}
-                            alt=""
-                            className="size-8 rounded-full object-cover"
+                {members.map((m) => {
+                  const memberIsOwner = m.role === 'OWNER'
+                  const memberIsSelf = m.user.id === session.user.id
+                  return (
+                    <tr key={m.id} className="border-border/60 border-b last:border-b-0">
+                      <td className="py-2 pr-3">
+                        <div className="flex items-center gap-2">
+                          {m.user.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={m.user.image}
+                              alt=""
+                              className="size-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="bg-muted size-8 rounded-full" />
+                          )}
+                          <div>
+                            <div className="font-medium">
+                              {m.user.name ?? m.user.email}
+                              {memberIsSelf && (
+                                <span className="text-muted-foreground ml-1 text-xs">
+                                  (Anda)
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-muted-foreground text-xs">
+                              {m.user.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-2 pr-3 text-xs">{m.status}</td>
+                      <td className="py-2 pr-3 whitespace-nowrap text-xs">
+                        {dateShort.format(m.joinedAt)}
+                      </td>
+                      <td className="py-2 text-right">
+                        {canUpdateMember || canRemoveMember ? (
+                          <MemberRowActions
+                            tenantSlug={tenant.slug}
+                            userId={m.user.id}
+                            currentRole={m.role}
+                            isOwner={memberIsOwner}
+                            isSelf={memberIsSelf}
+                            canUpdate={canUpdateMember}
+                            canRemove={canRemoveMember}
                           />
                         ) : (
-                          <div className="bg-muted size-8 rounded-full" />
+                          <span className="text-sm">
+                            {roleLabels[m.role] ?? m.role}
+                          </span>
                         )}
-                        <div>
-                          <div className="font-medium">{m.user.name ?? m.user.email}</div>
-                          <div className="text-muted-foreground text-xs">{m.user.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-2 pr-3">{roleLabels[m.role] ?? m.role}</td>
-                    <td className="py-2 pr-3 text-xs">{m.status}</td>
-                    <td className="py-2 whitespace-nowrap text-xs">
-                      {dateShort.format(m.joinedAt)}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -230,6 +267,54 @@ export default async function ManageTenantPage({
           </div>
         </section>
       )}
+
+      {isOwner && (
+        <section
+          aria-label="Transfer kepemilikan"
+          className="border-border bg-card rounded-2xl border p-6"
+        >
+          <div className="mb-4 flex items-center gap-2">
+            <Crown className="h-5 w-5" aria-hidden="true" />
+            <h2 className="font-heading text-lg">Transfer kepemilikan</h2>
+          </div>
+          <p className="text-muted-foreground mb-4 text-sm">
+            Pindahkan kepemilikan tenant ke anggota lain. Anda akan menjadi
+            ADMIN setelah transfer berhasil.
+          </p>
+          <TransferOwnershipForm
+            tenantSlug={tenant.slug}
+            candidates={members
+              .filter((m) => m.user.id !== session.user.id && m.role !== 'OWNER' && m.status === 'active')
+              .map((m) => ({
+                userId: m.user.id,
+                label: `${m.user.name ?? m.user.email} · ${m.user.email}`,
+              }))}
+          />
+        </section>
+      )}
+
+      <section
+        aria-label="Keluar dari tenant"
+        className="border-border bg-card rounded-2xl border p-6"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <LogOut className="h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-lg">Keluar dari tenant</h2>
+        </div>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Anda dapat keluar kapan saja. Untuk bergabung kembali, minta undangan
+          baru dari admin tenant.
+        </p>
+        <LeaveTenantButton
+          tenantSlug={tenant.slug}
+          disabled={isOwner}
+          disabledReason={
+            isOwner
+              ? 'Anda adalah OWNER. Transfer kepemilikan terlebih dulu sebelum keluar.'
+              : undefined
+          }
+        />
+      </section>
     </div>
   )
 }

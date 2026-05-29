@@ -427,3 +427,311 @@ export async function acceptTenantInvite(token: string): Promise<
     return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
   }
 }
+
+// =============================================================================
+// MEMBER MANAGEMENT
+// =============================================================================
+
+const MEMBER_ROLES = ['ADMIN', 'RECRUITER', 'MEMBER'] as const
+
+const updateMemberRoleSchema = z.object({
+  tenantSlug: z.string().min(1),
+  userId: z.string().min(1),
+  role: z.enum(MEMBER_ROLES),
+})
+
+type LoadResult =
+  | { error: string }
+  | {
+      tenant: { id: string; slug: string; ownerUserId: string | null }
+      actorId: string
+    }
+
+/**
+ * Resolve tenant + actor membership for a member-management action.
+ */
+async function loadTenantForMemberOp(
+  tenantSlug: string,
+  permission: 'team.update' | 'team.remove',
+): Promise<LoadResult> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { error: 'Anda harus masuk.' }
+  }
+  const tenant = await prisma.tenant.findUnique({
+    where: { slug: tenantSlug },
+    select: { id: true, slug: true, ownerUserId: true },
+  })
+  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  const { globalRole, tenants, id: actorId } = session.user
+  if (!hasTenantPermission(globalRole, tenants, tenant.id, permission)) {
+    return { error: 'Anda tidak memiliki izin.' }
+  }
+  return { tenant, actorId }
+}
+
+/**
+ * Change a tenant member's role. Cannot change OWNER's role here (use
+ * transferOwnership for that). Cannot change own role.
+ */
+export async function updateMemberRole(input: {
+  tenantSlug: string
+  userId: string
+  role: TenantRole
+}): Promise<ActionResult> {
+  const parsed = updateMemberRoleSchema.safeParse(input)
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]
+    return { ok: false, error: issue?.message ?? 'Data tidak valid' }
+  }
+  const { tenantSlug, userId, role } = parsed.data
+
+  const ctx = await loadTenantForMemberOp(tenantSlug, 'team.update')
+  if ('error' in ctx) return { ok: false, error: ctx.error }
+  const { tenant, actorId } = ctx
+
+  if (actorId === userId) {
+    return { ok: false, error: 'Tidak dapat mengubah peran Anda sendiri.' }
+  }
+
+  try {
+    const member = await prisma.userTenant.findUnique({
+      where: { userId_tenantId: { userId, tenantId: tenant.id } },
+      select: { id: true, role: true },
+    })
+    if (!member) return { ok: false, error: 'Anggota tidak ditemukan di tenant ini.' }
+    if (member.role === 'OWNER') {
+      return {
+        ok: false,
+        error: 'Peran OWNER tidak dapat diubah di sini. Gunakan transfer kepemilikan.',
+      }
+    }
+    if (member.role === role) return { ok: true }
+
+    const meta = getRequestMeta()
+    await prisma.$transaction([
+      prisma.userTenant.update({
+        where: { id: member.id },
+        data: { role },
+      }),
+      prisma.auditLog.create({
+        data: {
+          tenantId: tenant.id,
+          userId: actorId,
+          action: AuditAction.PERMISSION_CHANGE,
+          resource: 'membership.role',
+          resourceId: member.id,
+          metadata: { targetUserId: userId, from: member.role, to: role },
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+        },
+      }),
+    ])
+
+    revalidatePath(`/dashboard/tenants/${tenant.slug}`)
+    return { ok: true }
+  } catch (err) {
+    console.error('[updateMemberRole] failed', err)
+    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+  }
+}
+
+/**
+ * Remove a member from a tenant. Cannot remove the OWNER. Cannot remove self
+ * via this action — use leaveTenant instead.
+ */
+export async function removeMember(input: {
+  tenantSlug: string
+  userId: string
+}): Promise<ActionResult> {
+  if (!input.tenantSlug || !input.userId) {
+    return { ok: false, error: 'Data tidak valid' }
+  }
+
+  const ctx = await loadTenantForMemberOp(input.tenantSlug, 'team.remove')
+  if ('error' in ctx) return { ok: false, error: ctx.error }
+  const { tenant, actorId } = ctx
+
+  if (actorId === input.userId) {
+    return { ok: false, error: 'Gunakan tombol "Keluar" untuk mengeluarkan diri.' }
+  }
+
+  try {
+    const member = await prisma.userTenant.findUnique({
+      where: { userId_tenantId: { userId: input.userId, tenantId: tenant.id } },
+      select: { id: true, role: true, user: { select: { email: true } } },
+    })
+    if (!member) return { ok: false, error: 'Anggota tidak ditemukan di tenant ini.' }
+    if (member.role === 'OWNER') {
+      return {
+        ok: false,
+        error: 'OWNER tidak dapat dikeluarkan. Lakukan transfer kepemilikan terlebih dulu.',
+      }
+    }
+
+    const meta = getRequestMeta()
+    await prisma.$transaction([
+      prisma.userTenant.delete({ where: { id: member.id } }),
+      prisma.auditLog.create({
+        data: {
+          tenantId: tenant.id,
+          userId: actorId,
+          action: AuditAction.REVOKE,
+          resource: 'membership',
+          resourceId: member.id,
+          metadata: { targetUserId: input.userId, role: member.role, email: member.user.email },
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+        },
+      }),
+    ])
+
+    revalidatePath(`/dashboard/tenants/${tenant.slug}`)
+    return { ok: true }
+  } catch (err) {
+    console.error('[removeMember] failed', err)
+    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+  }
+}
+
+/**
+ * Transfer ownership of a tenant. Only the current OWNER may call this.
+ * Promotes the target member to OWNER, demotes the current OWNER to ADMIN,
+ * and updates tenant.ownerUserId. Refuses if target is not an existing
+ * active member.
+ */
+export async function transferOwnership(input: {
+  tenantSlug: string
+  newOwnerUserId: string
+}): Promise<ActionResult> {
+  if (!input.tenantSlug || !input.newOwnerUserId) {
+    return { ok: false, error: 'Data tidak valid' }
+  }
+
+  const session = await auth()
+  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  const actorId = session.user.id
+
+  if (actorId === input.newOwnerUserId) {
+    return { ok: false, error: 'Anda sudah menjadi OWNER tenant ini.' }
+  }
+
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { slug: input.tenantSlug },
+      select: { id: true, slug: true, ownerUserId: true },
+    })
+    if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+    if (tenant.ownerUserId !== actorId) {
+      return { ok: false, error: 'Hanya OWNER saat ini yang dapat melakukan transfer.' }
+    }
+
+    const target = await prisma.userTenant.findUnique({
+      where: { userId_tenantId: { userId: input.newOwnerUserId, tenantId: tenant.id } },
+      select: { id: true, role: true, status: true },
+    })
+    if (!target || target.status !== 'active') {
+      return { ok: false, error: 'Calon OWNER harus anggota aktif tenant ini.' }
+    }
+
+    const actorMembership = await prisma.userTenant.findUnique({
+      where: { userId_tenantId: { userId: actorId, tenantId: tenant.id } },
+      select: { id: true },
+    })
+    if (!actorMembership) {
+      return { ok: false, error: 'Membership OWNER tidak ditemukan.' }
+    }
+
+    const meta = getRequestMeta()
+    await prisma.$transaction([
+      prisma.userTenant.update({
+        where: { id: target.id },
+        data: { role: 'OWNER' },
+      }),
+      prisma.userTenant.update({
+        where: { id: actorMembership.id },
+        data: { role: 'ADMIN' },
+      }),
+      prisma.tenant.update({
+        where: { id: tenant.id },
+        data: { ownerUserId: input.newOwnerUserId },
+      }),
+      prisma.auditLog.create({
+        data: {
+          tenantId: tenant.id,
+          userId: actorId,
+          action: AuditAction.PERMISSION_CHANGE,
+          resource: 'tenant.owner',
+          resourceId: tenant.id,
+          metadata: { from: actorId, to: input.newOwnerUserId },
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+        },
+      }),
+    ])
+
+    revalidatePath(`/dashboard/tenants/${tenant.slug}`)
+    revalidatePath('/dashboard/tenants')
+    return { ok: true }
+  } catch (err) {
+    console.error('[transferOwnership] failed', err)
+    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+  }
+}
+
+/**
+ * Current user leaves a tenant. OWNER must transfer first — refused here.
+ */
+export async function leaveTenant(tenantSlug: string): Promise<ActionResult> {
+  if (!tenantSlug) return { ok: false, error: 'Data tidak valid' }
+
+  const session = await auth()
+  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  const actorId = session.user.id
+
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { slug: tenantSlug },
+      select: { id: true, slug: true, ownerUserId: true },
+    })
+    if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+
+    if (tenant.ownerUserId === actorId) {
+      return {
+        ok: false,
+        error:
+          'OWNER tidak dapat keluar. Lakukan transfer kepemilikan terlebih dulu.',
+      }
+    }
+
+    const member = await prisma.userTenant.findUnique({
+      where: { userId_tenantId: { userId: actorId, tenantId: tenant.id } },
+      select: { id: true, role: true },
+    })
+    if (!member) return { ok: false, error: 'Anda bukan anggota tenant ini.' }
+
+    const meta = getRequestMeta()
+    await prisma.$transaction([
+      prisma.userTenant.delete({ where: { id: member.id } }),
+      prisma.auditLog.create({
+        data: {
+          tenantId: tenant.id,
+          userId: actorId,
+          action: AuditAction.REVOKE,
+          resource: 'membership.leave',
+          resourceId: member.id,
+          metadata: { role: member.role },
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+        },
+      }),
+    ])
+
+    revalidatePath('/dashboard/tenants')
+    revalidatePath(`/dashboard/tenants/${tenant.slug}`)
+    return { ok: true }
+  } catch (err) {
+    console.error('[leaveTenant] failed', err)
+    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+  }
+}
