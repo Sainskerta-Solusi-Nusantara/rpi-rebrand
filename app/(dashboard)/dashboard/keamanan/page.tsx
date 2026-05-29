@@ -8,6 +8,7 @@ import { LinkGoogleButton, UnlinkGoogleForm } from '@/components/organisms/oauth
 import { AccountDeleteForm } from '@/components/organisms/account-delete-form'
 import { DisableTotpForm, RegenerateRecoveryCodesForm } from '@/components/organisms/totp-manage-forms'
 import { EmailChangeForm } from '@/components/organisms/email-change-form'
+import { RevokeDeviceButton, SignOutAllDevicesForm } from '@/components/organisms/device-revoke-controls'
 
 export const metadata = { title: 'Keamanan Akun — Dasbor' }
 
@@ -278,7 +279,8 @@ export default async function KeamananPage({
                   <th className="py-2 pr-3 font-medium">IP</th>
                   <th className="py-2 pr-3 font-medium">Pertama</th>
                   <th className="py-2 pr-3 font-medium">Terakhir</th>
-                  <th className="py-2 font-medium">Login</th>
+                  <th className="py-2 pr-3 font-medium">Login</th>
+                  <th className="py-2 font-medium text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -294,13 +296,28 @@ export default async function KeamananPage({
                     <td className="py-2 pr-3 whitespace-nowrap text-xs">
                       {dateFmt.format(d.lastSeenAt)}
                     </td>
-                    <td className="py-2 text-xs">{d.loginCount}</td>
+                    <td className="py-2 pr-3 text-xs">{d.loginCount}</td>
+                    <td className="py-2 text-right">
+                      <RevokeDeviceButton
+                        deviceId={d.id}
+                        deviceLabel={truncate(d.userAgent, 40)}
+                        alreadyRevoked={!!d.revokedAt}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+
+        <div className="border-border mt-6 border-t pt-6">
+          <SignOutAllDevicesForm hasPassword={snapshot.passwordSet} />
+          <p className="text-muted-foreground mt-2 text-xs">
+            Sesi aktif lain akan dibatalkan dalam waktu kurang dari 5 menit.
+            Sesi saat ini juga akan keluar.
+          </p>
+        </div>
       </section>
 
       <section

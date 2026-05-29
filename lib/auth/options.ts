@@ -1,4 +1,4 @@
-import type { NextAuthOptions } from 'next-auth'
+import type { NextAuthOptions, Session } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { headers } from 'next/headers'
@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db'
 import { env } from '@/lib/env'
 import { verifyPassword } from '@/lib/auth/password'
 import { hashRecoveryCode, verifyTotpCode } from '@/lib/auth/totp'
-import { approximateIp, markDeviceAlertSent, recordLoginDevice } from '@/lib/auth/devices'
+import { approximateIp, fingerprintDevice, markDeviceAlertSent, recordLoginDevice } from '@/lib/auth/devices'
 import { shouldSendEmail } from '@/lib/auth/notification-prefs'
 import { loginAlertEmail, sendEmail } from '@/lib/mailer'
 import type { GlobalRole, TenantMembership } from '@/types/next-auth'
@@ -250,9 +250,62 @@ export const authOptions: NextAuthOptions = {
         token.tenants = await loadTenantMemberships(token.id)
       }
 
+      // Freshness check: only re-validate against the DB every 5 minutes to
+      // avoid a DB hit on every request. We flag the token as invalid if the
+      // user has signed out everywhere (sessionsValidFrom > token.iat) or if
+      // the current request fingerprint matches a revoked device.
+      const FRESH_INTERVAL_MS = 5 * 60 * 1000
+      const lastCheckAt = (token as { _freshAt?: number })._freshAt ?? 0
+      const now = Date.now()
+      if (token.id && now - lastCheckAt > FRESH_INTERVAL_MS) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { sessionsValidFrom: true, status: true },
+          })
+          if (!dbUser || dbUser.status !== 'ACTIVE') {
+            ;(token as { invalid?: boolean }).invalid = true
+          } else if (dbUser.sessionsValidFrom) {
+            const iat = (token.iat as number | undefined) ?? 0
+            if (iat * 1000 < dbUser.sessionsValidFrom.getTime()) {
+              ;(token as { invalid?: boolean }).invalid = true
+            }
+          }
+          if (!(token as { invalid?: boolean }).invalid) {
+            // Check whether the current request originates from a revoked device.
+            try {
+              const h = headers()
+              const ua = h.get('user-agent')
+              const ip =
+                h.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+                h.get('x-real-ip') ??
+                null
+              const fp = fingerprintDevice({ userId: token.id as string, userAgent: ua, ip })
+              const device = await prisma.userDevice.findUnique({
+                where: { userId_fingerprint: { userId: token.id as string, fingerprint: fp } },
+                select: { revokedAt: true },
+              })
+              if (device?.revokedAt) {
+                ;(token as { invalid?: boolean }).invalid = true
+              }
+            } catch {
+              // Headers may not be available (e.g., NextAuth internal) — skip device check.
+            }
+          }
+          ;(token as { _freshAt?: number })._freshAt = now
+        } catch {
+          // On DB error, leave token unchanged — fail open to avoid mass logout on a transient blip.
+        }
+      }
+
       return token
     },
     async session({ session, token }) {
+      if ((token as { invalid?: boolean }).invalid) {
+        // Returning a session with no user makes useSession treat the user as
+        // signed out; subsequent requests will redirect via middleware.
+        return { ...session, user: undefined as unknown as Session['user'] }
+      }
       if (session.user) {
         session.user.id = token.id
         session.user.globalRole = (token.globalRole as GlobalRole) ?? 'USER'

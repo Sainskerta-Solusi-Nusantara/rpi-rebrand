@@ -52,6 +52,7 @@ export type UserDeviceSummary = {
   firstSeenAt: Date
   lastSeenAt: Date
   loginCount: number
+  revokedAt: Date | null
 }
 
 export const getUserDevices = cache(
@@ -59,7 +60,7 @@ export const getUserDevices = cache(
     try {
       const rows = await prisma.userDevice.findMany({
         where: { userId },
-        orderBy: { lastSeenAt: 'desc' },
+        orderBy: [{ revokedAt: 'asc' }, { lastSeenAt: 'desc' }],
         take: Math.max(1, Math.min(50, limit)),
         select: {
           id: true,
@@ -69,6 +70,7 @@ export const getUserDevices = cache(
           firstSeenAt: true,
           lastSeenAt: true,
           loginCount: true,
+          revokedAt: true,
         },
       })
       return rows
