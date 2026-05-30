@@ -9,6 +9,7 @@ import {
   FileText,
   Download,
   Activity,
+  CalendarClock,
 } from 'lucide-react'
 import { ApplicationStatus } from '@prisma/client'
 import { requireAuth } from '@/lib/auth/session'
@@ -18,6 +19,8 @@ import {
   ApplicationNoteForm,
   ApplicationStatusSelect,
 } from '@/components/organisms/application-status-form'
+import { InterviewScheduleForm } from '@/components/organisms/interview-schedule-form'
+import { InterviewRowActions } from '@/components/organisms/interview-row-actions'
 
 export const metadata = { title: 'Detail Lamaran — Dasbor' }
 
@@ -135,12 +138,39 @@ export default async function TenantApplicationDetailPage({
     .catch(() => null)
   if (!application) notFound()
 
+  const interviews = await prisma.interviewSchedule
+    .findMany({
+      where: { applicationId: application.id },
+      orderBy: { scheduledAt: 'asc' },
+      select: {
+        id: true,
+        scheduledAt: true,
+        durationMin: true,
+        type: true,
+        meetingUrl: true,
+        location: true,
+        notes: true,
+        status: true,
+      },
+    })
+    .catch(() => [] as Awaited<ReturnType<typeof prisma.interviewSchedule.findMany>>)
+
+  const interviewIds = interviews.map((i) => i.id)
   const auditEntries = await prisma.auditLog
     .findMany({
       where: {
         tenantId: tenant.id,
-        resource: 'application',
-        resourceId: application.id,
+        OR: [
+          { resource: 'application', resourceId: application.id },
+          ...(interviewIds.length > 0
+            ? [
+                {
+                  resource: 'application.interview',
+                  resourceId: { in: interviewIds },
+                },
+              ]
+            : []),
+        ],
       },
       orderBy: { createdAt: 'desc' },
       take: 20,
@@ -362,6 +392,121 @@ export default async function TenantApplicationDetailPage({
           />
         </section>
       )}
+
+      <section
+        aria-label="Wawancara"
+        className="border-border bg-card rounded-2xl border p-6 space-y-4"
+      >
+        <div className="flex items-center gap-2">
+          <CalendarClock className="h-5 w-5" aria-hidden="true" />
+          <h2 className="font-heading text-lg">Wawancara</h2>
+        </div>
+
+        {interviews.length === 0 ? (
+          <p className="text-muted-foreground text-sm">
+            Belum ada wawancara dijadwalkan.
+          </p>
+        ) : (
+          <ul className="divide-border divide-y text-sm">
+            {interviews.map((iv) => {
+              const typeLabel =
+                iv.type === 'video'
+                  ? 'Video call'
+                  : iv.type === 'onsite'
+                    ? 'Onsite'
+                    : iv.type === 'phone'
+                      ? 'Telepon'
+                      : iv.type
+              const statusLabel =
+                iv.status === 'scheduled'
+                  ? 'Terjadwal'
+                  : iv.status === 'completed'
+                    ? 'Selesai'
+                    : iv.status === 'cancelled'
+                      ? 'Dibatalkan'
+                      : iv.status === 'no_show'
+                        ? 'Tidak hadir'
+                        : iv.status
+              const statusTone =
+                iv.status === 'scheduled'
+                  ? 'bg-violet-100 text-violet-800'
+                  : iv.status === 'completed'
+                    ? 'bg-green-100 text-green-800'
+                    : iv.status === 'cancelled'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-slate-100 text-slate-800'
+              return (
+                <li key={iv.id} className="space-y-2 py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">
+                      {dateFmt.format(iv.scheduledAt)}
+                    </span>
+                    <span className="bg-muted text-foreground rounded-full px-2 py-0.5 text-xs">
+                      {typeLabel}
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      {iv.durationMin} menit
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs ${statusTone}`}
+                    >
+                      {statusLabel}
+                    </span>
+                  </div>
+                  {iv.type === 'video' && iv.meetingUrl && (
+                    <p className="text-xs">
+                      <span className="text-muted-foreground">Tautan: </span>
+                      <a
+                        href={iv.meetingUrl}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="break-all hover:underline"
+                      >
+                        {iv.meetingUrl}
+                      </a>
+                    </p>
+                  )}
+                  {iv.type === 'onsite' && iv.location && (
+                    <p className="text-xs">
+                      <span className="text-muted-foreground">Lokasi: </span>
+                      {iv.location}
+                    </p>
+                  )}
+                  {iv.notes && (
+                    <p className="text-muted-foreground whitespace-pre-line text-xs">
+                      {iv.notes}
+                    </p>
+                  )}
+                  {canManage && (
+                    <InterviewRowActions
+                      applicationId={application.id}
+                      interview={{
+                        id: iv.id,
+                        scheduledAt: iv.scheduledAt,
+                        durationMin: iv.durationMin,
+                        type: iv.type,
+                        meetingUrl: iv.meetingUrl,
+                        location: iv.location,
+                        notes: iv.notes,
+                        status: iv.status,
+                      }}
+                    />
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
+        {canManage && (
+          <div className="border-border border-t pt-4">
+            <h3 className="text-foreground mb-3 text-sm font-medium">
+              Jadwalkan wawancara baru
+            </h3>
+            <InterviewScheduleForm applicationId={application.id} />
+          </div>
+        )}
+      </section>
 
       <section
         aria-label="Aktivitas terbaru"

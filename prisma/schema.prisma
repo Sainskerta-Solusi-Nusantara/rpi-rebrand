@@ -224,6 +224,8 @@ model User {
   sessionsValidFrom  DateTime? @map("sessions_valid_from")
   locale             String?
   timezone           String?
+  username           String?   @unique
+  profilePublic      Boolean   @default(false) @map("profile_public")
   totpSecret         String?   @map("totp_secret")
   totpEnabledAt      DateTime? @map("totp_enabled_at")
   createdAt     DateTime   @default(now()) @map("created_at")
@@ -253,6 +255,7 @@ model User {
   tenantApiKeysCreated    TenantApiKey[]    @relation("TenantApiKeyCreatedBy")
   emailDigestLogs         EmailDigestLog[]
   savedSearches           SavedSearch[]
+  interviewsCreated       InterviewSchedule[] @relation("InterviewCreatedBy")
 
   @@index([globalRole])
   @@index([status])
@@ -387,6 +390,29 @@ model EmailDigestLog {
   @@unique([userId, period])
   @@index([userId])
   @@map("email_digest_logs")
+}
+
+model InterviewSchedule {
+  id             String    @id @default(cuid())
+  applicationId  String    @map("application_id")
+  scheduledAt    DateTime  @map("scheduled_at")
+  durationMin    Int       @default(60) @map("duration_min")
+  type           String    @default("video") // video | onsite | phone
+  meetingUrl     String?   @map("meeting_url")
+  location       String?
+  notes          String?
+  reminderSentAt DateTime? @map("reminder_sent_at")
+  status         String    @default("scheduled") // scheduled | completed | cancelled | no_show
+  createdById    String?   @map("created_by_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdBy   User?       @relation("InterviewCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([applicationId])
+  @@index([scheduledAt])
+  @@map("interview_schedules")
 }
 
 model SavedSearch {
@@ -637,9 +663,10 @@ model Application {
   appliedAt   DateTime          @default(now()) @map("applied_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant     Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  job        Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviews InterviewSchedule[]
 
   @@unique([jobId, userId])
   @@index([tenantId, status])

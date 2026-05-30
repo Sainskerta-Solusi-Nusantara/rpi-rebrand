@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { AvatarUploader } from '@/components/organisms/avatar-uploader'
 import { PersonalPrefsForm } from '@/components/organisms/personal-prefs-form'
+import { ProfileVisibilityForm } from '@/components/organisms/profile-visibility-form'
 import { getPersonalPrefs } from '@/lib/auth/personal-prefs'
 
 function makeFallback(label: string) {
@@ -52,6 +53,8 @@ export default async function ProfilePage() {
         headline: true,
         location: true,
         globalRole: true,
+        username: true,
+        profilePublic: true,
       },
     })
     .catch(() => null)
@@ -86,6 +89,22 @@ export default async function ProfilePage() {
           aplikasi.
         </p>
         <PersonalPrefsForm initial={prefs} />
+      </section>
+
+      <section className="border-border bg-card rounded-2xl border p-6">
+        <h2 className="font-heading mb-1 text-lg">Profil publik</h2>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Pilih username dan atur agar profil dapat dilihat publik di{' '}
+          <code className="bg-muted rounded px-1 py-0.5 text-xs">/profil</code>.
+          Email dan nomor telepon tidak pernah ditampilkan di halaman publik.
+        </p>
+        <ProfileVisibilityForm
+          initial={{
+            userId: user.id,
+            username: user.username,
+            profilePublic: user.profilePublic,
+          }}
+        />
       </section>
     </div>
   )

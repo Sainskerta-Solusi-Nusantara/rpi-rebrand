@@ -6,6 +6,7 @@ import {
   updateApplicationNote,
   updateApplicationStatus,
 } from '@/lib/tenants/application-actions'
+import { ApplicationStatusNotifyInfo } from './application-status-notify-info'
 
 const inputClass =
   'rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -73,6 +74,13 @@ export function ApplicationStatusSelect({
           {error}
         </span>
       )}
+      {/* Inform the recruiter that flipping to any non-trivial status will
+          dispatch an email to the candidate. Hidden when status is unchanged
+          (no email actually fires) or when the picked value is APPLIED /
+          WITHDRAWN (no email for those either). */}
+      {value !== current &&
+        value !== 'APPLIED' &&
+        value !== 'WITHDRAWN' && <ApplicationStatusNotifyInfo newStatus={value} />}
     </div>
   )
 }

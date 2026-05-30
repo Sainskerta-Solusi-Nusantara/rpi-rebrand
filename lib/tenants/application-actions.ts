@@ -7,6 +7,8 @@ import { ApplicationStatus, AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { env } from '@/lib/env'
+import { sendEmail, applicationStatusEmail } from '@/lib/mailer'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -156,6 +158,72 @@ export async function updateApplicationStatus(input: {
     revalidatePath(
       `/dashboard/tenants/${ctx.application.tenant.slug}/lamaran/${applicationId}`,
     )
+
+    // ---- Best-effort candidate notification email ---------------------------
+    // Application status changes are operationally critical to the candidate
+    // (interview invites, offers, rejections), so we DO NOT gate them on the
+    // user's notification preferences (shouldSendEmail). These are transactional
+    // — equivalent to "your order shipped" — not marketing. The candidate must
+    // hear about them. Skipping the pref check is intentional.
+    //
+    // Skipped cases:
+    //   - newStatus === oldStatus → no-op already short-circuited above, but
+    //     guarded here too for safety.
+    //   - APPLIED → initial state; submitApplication() already sends a
+    //     dedicated "lamaran diterima" email.
+    //   - WITHDRAWN → user-initiated by candidate themselves; emailing them
+    //     back would be redundant.
+    //
+    // Failures are swallowed: the status update + audit log must succeed
+    // independently of email transport.
+    const oldStatus = ctx.application.status
+    const newStatus = status
+    // WITHDRAWN is already rejected up-front by the manageable-statuses guard,
+    // so TS narrows it out here — we only need to filter APPLIED and a no-op
+    // self-transition. The same-status check is a defensive guard; the early
+    // `ctx.application.status === status` short-circuit above also covers it.
+    const shouldNotify =
+      newStatus !== oldStatus && newStatus !== ApplicationStatus.APPLIED
+    if (shouldNotify) {
+      try {
+        const detail = await prisma.application.findUnique({
+          where: { id: applicationId },
+          select: {
+            notes: true,
+            user: { select: { email: true, name: true } },
+            job: { select: { title: true } },
+            tenant: { select: { name: true } },
+          },
+        })
+        if (detail?.user?.email && detail.job && detail.tenant) {
+          const baseUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
+          const tpl = applicationStatusEmail({
+            name: detail.user.name,
+            jobTitle: detail.job.title,
+            tenantName: detail.tenant.name,
+            oldStatus,
+            newStatus,
+            applicationUrl: `${baseUrl}/dashboard/lamaran`,
+            recruiterNote: detail.notes,
+          })
+          const sent = await sendEmail({
+            to: detail.user.email,
+            subject: tpl.subject,
+            text: tpl.text,
+            html: tpl.html,
+          })
+          if (!sent.ok) {
+            console.error(
+              '[updateApplicationStatus] mailer failed:',
+              sent.error,
+            )
+          }
+        }
+      } catch (err) {
+        console.error('[updateApplicationStatus] candidate notify failed', err)
+      }
+    }
+
     return { ok: true }
   } catch (err) {
     console.error('[updateApplicationStatus] failed', err)
