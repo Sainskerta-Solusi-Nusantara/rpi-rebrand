@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity } from 'lucide-react'
+import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission, canAccessTenant } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
@@ -67,6 +67,8 @@ export default async function ManageTenantPage({
   const canEditBranding = hasTenantPermission(globalRole, tenants, tenant.id, 'branding.update')
   const canManageIntegrations = hasTenantPermission(globalRole, tenants, tenant.id, 'team.update')
   const canViewAudit = hasTenantPermission(globalRole, tenants, tenant.id, 'audit.view')
+  const canEditDomain = hasTenantPermission(globalRole, tenants, tenant.id, 'tenant.update')
+  const canViewBilling = hasTenantPermission(globalRole, tenants, tenant.id, 'billing.view')
   const isOwner = tenant.ownerUserId === session.user.id
 
   const [members, invitations] = await Promise.all([
@@ -130,7 +132,7 @@ export default async function ManageTenantPage({
         </div>
       </header>
 
-      {(canEditBranding || canManageIntegrations || canViewAudit) && (
+      {(canEditBranding || canManageIntegrations || canViewAudit || canEditDomain || canViewBilling) && (
         <nav className="flex flex-wrap gap-2">
           {canEditBranding && (
             <Link
@@ -170,6 +172,26 @@ export default async function ManageTenantPage({
             >
               <Activity className="h-4 w-4" aria-hidden="true" />
               Audit log
+            </Link>
+          )}
+          {canEditDomain && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/domain` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <Globe className="h-4 w-4" aria-hidden="true" />
+              Domain
+            </Link>
+          )}
+          {canViewBilling && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/billing` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <CreditCard className="h-4 w-4" aria-hidden="true" />
+              Billing
             </Link>
           )}
         </nav>

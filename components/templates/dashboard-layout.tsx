@@ -16,6 +16,7 @@ import {
 import { useSession } from 'next-auth/react'
 import { MiniSidebar, type MiniSidebarItem } from '@/components/organisms/mini-sidebar'
 import { TopBar } from '@/components/organisms/top-bar'
+import type { NotificationItem } from '@/components/organisms/notifications-bell'
 import { CmdKPalette } from '@/components/organisms/cmd-k-palette'
 import { MobileBottomNav } from '@/components/organisms/mobile-bottom-nav'
 
@@ -26,6 +27,10 @@ export interface DashboardLayoutProps {
    */
   sidebarItems?: MiniSidebarItem[]
   sidebarFooterItems?: MiniSidebarItem[]
+  /** Unread notification count (server-fetched, capped at 99 for display). */
+  notificationsUnreadCount?: number
+  /** Recent notifications for the topbar bell, server-fetched. */
+  recentNotifications?: NotificationItem[]
 }
 
 /**
@@ -76,6 +81,8 @@ export function DashboardLayout({
   children,
   sidebarItems,
   sidebarFooterItems,
+  notificationsUnreadCount,
+  recentNotifications,
 }: DashboardLayoutProps) {
   const { data: session } = useSession()
   const [cmdOpen, setCmdOpen] = React.useState(false)
@@ -100,7 +107,11 @@ export function DashboardLayout({
     <div className="flex min-h-screen bg-background text-foreground">
       <MiniSidebar items={items} footerItems={sidebarFooterItems ?? DEFAULT_FOOTER} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar onOpenCmdK={() => setCmdOpen(true)} />
+        <TopBar
+          onOpenCmdK={() => setCmdOpen(true)}
+          notificationsUnreadCount={notificationsUnreadCount}
+          recentNotifications={recentNotifications}
+        />
         <main className="flex-1 p-4 pb-24 md:p-6 md:pb-6">{children}</main>
       </div>
       <CmdKPalette open={cmdOpen} onOpenChange={setCmdOpen} />

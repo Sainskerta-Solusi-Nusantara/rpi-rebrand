@@ -1,7 +1,6 @@
-import Link from 'next/link'
-import { ShieldCheck, ShieldX } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
+import { AdminUsersTableSelector } from '@/components/organisms/admin-users-table-selector'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,13 +31,6 @@ const Pagination: any = safeRequire('@/components/molecules/pagination', 'Pagina
 export const metadata = { title: 'Manajemen Pengguna' }
 
 const PAGE_SIZE = 25
-
-const statusLabels: Record<string, string> = {
-  ACTIVE: 'Aktif',
-  PENDING: 'Menunggu',
-  SUSPENDED: 'Ditangguhkan',
-  DELETED: 'Dihapus',
-}
 
 export default async function AdminUsersPage({
   searchParams,
@@ -150,86 +142,7 @@ export default async function AdminUsersPage({
         </form>
       </header>
 
-      <div className="border-border overflow-x-auto rounded-xl border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted/50 text-left">
-            <tr>
-              <th className="p-3">Pengguna</th>
-              <th className="p-3">Peran</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Verifikasi</th>
-              <th className="p-3">Terdaftar</th>
-              <th className="p-3">Login Terakhir</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-border divide-y">
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td className="p-3">
-                  <Link
-                    href={`/admin/users/${u.id}` as never}
-                    className="flex items-center gap-2 hover:underline"
-                  >
-                    {u.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={u.image}
-                        alt=""
-                        className="size-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="bg-muted size-8 rounded-full" />
-                    )}
-                    <div>
-                      <div className="font-medium">{u.name ?? u.email}</div>
-                      <div className="text-muted-foreground text-xs">{u.email}</div>
-                    </div>
-                  </Link>
-                </td>
-                <td className="p-3">{u.globalRole}</td>
-                <td className="p-3">{statusLabels[u.status] ?? u.status}</td>
-                <td className="p-3">
-                  {u.emailVerified ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                      <ShieldCheck className="h-3 w-3" aria-hidden="true" />
-                      Ya
-                    </span>
-                  ) : (
-                    <span className="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium">
-                      <ShieldX className="h-3 w-3" aria-hidden="true" />
-                      Belum
-                    </span>
-                  )}
-                </td>
-                <td className="p-3">
-                  {new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(u.createdAt)}
-                </td>
-                <td className="p-3">
-                  {u.lastLoginAt
-                    ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(u.lastLoginAt)
-                    : '—'}
-                </td>
-                <td className="p-3 text-right">
-                  <Link
-                    href={`/admin/users/${u.id}` as never}
-                    className="text-primary text-xs font-medium hover:underline"
-                  >
-                    Detail →
-                  </Link>
-                </td>
-              </tr>
-            ))}
-            {users.length === 0 ? (
-              <tr>
-                <td className="text-muted-foreground p-6 text-center" colSpan={7}>
-                  Tidak ada pengguna yang cocok.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+      <AdminUsersTableSelector users={users} />
 
       <Pagination page={page} totalPages={totalPages} />
     </div>

@@ -5,6 +5,10 @@ import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { getTenantBranding } from '@/lib/branding/server'
 import { ThemeProvider } from '@/lib/branding/theme-provider'
+import {
+  getRecentNotifications,
+  getUnreadNotificationCount,
+} from '@/lib/notifications/queries'
 
 // Resilient layout-template + SessionProvider lookup.
 function makeFallback() {
@@ -61,10 +65,21 @@ export default async function DashboardGroupLayout({
     : null
   const branding = await getTenantBranding(slug).catch(() => null)
 
+  const userId = session.user.id
+  const [notificationsUnreadCount, recentNotifications] = await Promise.all([
+    getUnreadNotificationCount(userId).catch(() => 0),
+    getRecentNotifications(userId, 10).catch(() => []),
+  ])
+
   return (
     <SessionProvider session={session}>
       <ThemeProvider initial={branding ?? undefined}>
-        <DashboardLayout session={session} tenant={tenant ?? undefined}>
+        <DashboardLayout
+          session={session}
+          tenant={tenant ?? undefined}
+          notificationsUnreadCount={notificationsUnreadCount}
+          recentNotifications={recentNotifications}
+        >
           {children}
         </DashboardLayout>
       </ThemeProvider>

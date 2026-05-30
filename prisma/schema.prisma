@@ -141,15 +141,17 @@ enum AuditAction {
 // =============================================================================
 
 model Tenant {
-  id           String       @id @default(cuid())
-  slug         String       @unique
-  name         String
-  customDomain String?      @unique @map("custom_domain")
-  planTier     PlanTier     @default(FREE) @map("plan_tier")
-  status       TenantStatus @default(PROVISIONING)
-  ownerUserId  String?      @map("owner_user_id")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
+  id                       String       @id @default(cuid())
+  slug                     String       @unique
+  name                     String
+  customDomain             String?      @unique @map("custom_domain")
+  domainVerificationToken  String?      @map("domain_verification_token")
+  domainVerifiedAt         DateTime?    @map("domain_verified_at")
+  planTier                 PlanTier     @default(FREE) @map("plan_tier")
+  status                   TenantStatus @default(PROVISIONING)
+  ownerUserId              String?      @map("owner_user_id")
+  createdAt                DateTime     @default(now()) @map("created_at")
+  updatedAt                DateTime     @updatedAt @map("updated_at")
 
   branding      Branding?
   users         UserTenant[]

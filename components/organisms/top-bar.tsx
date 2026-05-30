@@ -1,20 +1,30 @@
 'use client'
 
 import * as React from 'react'
-import { Bell, MessageSquare, Search } from 'lucide-react'
+import { MessageSquare, Search } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { Avatar } from '@/components/atoms/avatar'
 import { cn, getInitials } from '@/lib/utils'
-import { NotificationsDropdown } from './notifications-dropdown'
+import { NotificationsBell, type NotificationItem } from './notifications-bell'
 import { TenantSwitcher } from './tenant-switcher'
 
 export interface TopBarProps {
   onOpenCmdK?: () => void
   onOpenChat?: () => void
   className?: string
+  /** Initial unread count from the server (capped at 99 for display). */
+  notificationsUnreadCount?: number
+  /** Recent notifications for the dropdown panel, fetched on the server. */
+  recentNotifications?: NotificationItem[]
 }
 
-export function TopBar({ onOpenCmdK, onOpenChat, className }: TopBarProps) {
+export function TopBar({
+  onOpenCmdK,
+  onOpenChat,
+  className,
+  notificationsUnreadCount = 0,
+  recentNotifications = [],
+}: TopBarProps) {
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = React.useState(false)
   const menuRef = React.useRef<HTMLDivElement | null>(null)
@@ -59,17 +69,9 @@ export function TopBar({ onOpenCmdK, onOpenChat, className }: TopBarProps) {
           <MessageSquare className="h-5 w-5" />
         </button>
 
-        <NotificationsDropdown
-          trigger={
-            <button
-              type="button"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label="Notifikasi"
-            >
-              <Bell className="h-5 w-5" />
-              <span aria-hidden className="absolute right-2 top-2 h-2 w-2 rounded-full bg-secondary ring-2 ring-background" />
-            </button>
-          }
+        <NotificationsBell
+          initialCount={notificationsUnreadCount}
+          recentItems={recentNotifications}
         />
 
         <div ref={menuRef} className="relative">
