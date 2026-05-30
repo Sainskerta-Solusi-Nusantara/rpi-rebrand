@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { getOnboardingChecklist } from '@/lib/onboarding/checklist'
 import { OnboardingChecklist } from '@/components/organisms/onboarding-checklist'
+import { RecommendedJobsWidget } from '@/components/organisms/recommended-jobs-widget'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,8 +35,6 @@ const TabbedWorkspace: any = safeRequire('@/components/organisms/tabbed-workspac
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const KPICard: any = safeRequire('@/components/molecules/kpi-card', 'KPICard')
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const JobCard: any = safeRequire('@/components/molecules/job-card', 'JobCard')
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const KanbanBoard: any = safeRequire('@/components/organisms/kanban-board', 'KanbanBoard')
 
 export const metadata = { title: 'Dasbor' }
@@ -50,7 +49,6 @@ export default async function DashboardOverviewPage() {
     savedCount,
     enrollmentsActive,
     certificatesCount,
-    recommendedJobs,
     enrollments,
     applications,
     checklist,
@@ -59,27 +57,6 @@ export default async function DashboardOverviewPage() {
     prisma.savedJob.count({ where: { userId } }).catch(() => 0),
     prisma.enrollment.count({ where: { userId, status: 'IN_PROGRESS' } }).catch(() => 0),
     prisma.certificate.count({ where: { userId } }).catch(() => 0),
-    prisma.job
-      .findMany({
-        where: { status: 'PUBLISHED' },
-        take: 6,
-        orderBy: { publishedAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          location: true,
-          locationType: true,
-          employmentType: true,
-          salaryMin: true,
-          salaryMax: true,
-          salaryCurrency: true,
-          publishedAt: true,
-          tenant: { select: { name: true, slug: true } },
-          category: { select: { name: true, slug: true } },
-        },
-      })
-      .catch(() => []),
     prisma.enrollment
       .findMany({
         where: { userId },
@@ -147,22 +124,9 @@ export default async function DashboardOverviewPage() {
             <KPICard label="Sertifikat" value={certificatesCount} />
           </div>
 
-          <section>
-            <h2 className="font-heading text-xl mb-4">Rekomendasi Lowongan</h2>
-            <Suspense fallback={<div className="bg-muted h-48 animate-pulse rounded-xl" />}>
-              {recommendedJobs.length === 0 ? (
-                <p className="text-muted-foreground">Belum ada rekomendasi.</p>
-              ) : (
-                <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {recommendedJobs.map((j) => (
-                    <li key={j.id}>
-                      <JobCard job={j} />
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Suspense>
-          </section>
+          <Suspense fallback={<div className="bg-muted h-48 animate-pulse rounded-xl" />}>
+            <RecommendedJobsWidget userId={userId} limit={6} />
+          </Suspense>
 
           <section>
             <h2 className="font-heading text-xl mb-4">Progres Belajar</h2>
@@ -199,13 +163,9 @@ export default async function DashboardOverviewPage() {
       id: 'rekomendasi',
       label: 'Rekomendasi',
       content: (
-        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {recommendedJobs.map((j) => (
-            <li key={j.id}>
-              <JobCard job={j} />
-            </li>
-          ))}
-        </ul>
+        <Suspense fallback={<div className="bg-muted h-48 animate-pulse rounded-xl" />}>
+          <RecommendedJobsWidget userId={userId} limit={12} heading="Rekomendasi Personal" />
+        </Suspense>
       ),
     },
   ]

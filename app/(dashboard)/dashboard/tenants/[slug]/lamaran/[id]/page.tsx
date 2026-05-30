@@ -10,6 +10,8 @@ import {
   Download,
   Activity,
   CalendarClock,
+  ClipboardList,
+  MessageSquare,
 } from 'lucide-react'
 import { ApplicationStatus } from '@prisma/client'
 import { requireAuth } from '@/lib/auth/session'
@@ -21,6 +23,9 @@ import {
 } from '@/components/organisms/application-status-form'
 import { InterviewScheduleForm } from '@/components/organisms/interview-schedule-form'
 import { InterviewRowActions } from '@/components/organisms/interview-row-actions'
+import { ScorecardSummary } from '@/components/organisms/scorecard-summary'
+import { summarizeApplicationScorecards } from '@/lib/scorecards/queries'
+import { getThreadForApplication } from '@/lib/messaging/queries'
 
 export const metadata = { title: 'Detail Lamaran — Dasbor' }
 
@@ -151,9 +156,34 @@ export default async function TenantApplicationDetailPage({
         location: true,
         notes: true,
         status: true,
+        scorecard: { select: { id: true } },
       },
     })
-    .catch(() => [] as Awaited<ReturnType<typeof prisma.interviewSchedule.findMany>>)
+    .catch(
+      () =>
+        [] as Array<{
+          id: string
+          scheduledAt: Date
+          durationMin: number
+          type: string
+          meetingUrl: string | null
+          location: string | null
+          notes: string | null
+          status: string
+          scorecard: { id: string } | null
+        }>,
+    )
+
+  const scorecardSummary = await summarizeApplicationScorecards(application.id)
+
+  // Recruiter-side unread badge for this thread: count messages the recruiter
+  // hasn't read yet AND that weren't sent by this viewer.
+  const messageThread = await getThreadForApplication(application.id, session.user.id)
+  const unreadForRecruiter = messageThread
+    ? messageThread.messages.filter(
+        (m) => !m.readByRecruiterAt && m.senderId !== session.user.id,
+      ).length
+    : 0
 
   const interviewIds = interviews.map((i) => i.id)
   const auditEntries = await prisma.auditLog
@@ -189,7 +219,7 @@ export default async function TenantApplicationDetailPage({
 
   return (
     <div className="p-6 space-y-6 max-w-4xl">
-      <div>
+      <div className="flex items-center justify-between gap-3">
         <Link
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           href={`/dashboard/tenants/${tenant.slug}/lamaran` as any}
@@ -197,6 +227,24 @@ export default async function TenantApplicationDetailPage({
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           Kembali ke daftar lamaran
+        </Link>
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={
+            `/dashboard/tenants/${tenant.slug}/lamaran/${application.id}/pesan` as any
+          }
+          className="border-input bg-background text-foreground hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium"
+        >
+          <MessageSquare className="h-4 w-4" aria-hidden="true" />
+          Pesan
+          {unreadForRecruiter > 0 && (
+            <span
+              aria-label={`${unreadForRecruiter} pesan belum dibaca`}
+              className="bg-primary text-primary-foreground inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
+            >
+              {Math.min(99, unreadForRecruiter)}
+            </span>
+          )}
         </Link>
       </div>
 
@@ -393,6 +441,8 @@ export default async function TenantApplicationDetailPage({
         </section>
       )}
 
+      <ScorecardSummary summary={scorecardSummary} />
+
       <section
         aria-label="Wawancara"
         className="border-border bg-card rounded-2xl border p-6 space-y-4"
@@ -476,6 +526,20 @@ export default async function TenantApplicationDetailPage({
                     <p className="text-muted-foreground whitespace-pre-line text-xs">
                       {iv.notes}
                     </p>
+                  )}
+                  {canManage && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        href={
+                          `/dashboard/tenants/${tenant.slug}/lamaran/${application.id}/wawancara/${iv.id}/scorecard` as any
+                        }
+                        className="border-input text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-transparent px-3 py-1.5 text-xs"
+                      >
+                        <ClipboardList className="h-3.5 w-3.5" aria-hidden="true" />
+                        {iv.scorecard ? 'Ubah scorecard' : 'Buat scorecard'}
+                      </Link>
+                    </div>
                   )}
                   {canManage && (
                     <InterviewRowActions

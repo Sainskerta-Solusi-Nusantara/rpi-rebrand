@@ -162,8 +162,9 @@ model Tenant {
   invitations   Invitation[]
   teamMembers   TeamMember[]
   applications  Application[]
-  webhooks      TenantWebhook[]
-  apiKeys       TenantApiKey[]
+  webhooks       TenantWebhook[]
+  apiKeys        TenantApiKey[]
+  emailTemplates TenantEmailTemplate[]
 
   @@index([planTier])
   @@index([status])
@@ -256,6 +257,8 @@ model User {
   emailDigestLogs         EmailDigestLog[]
   savedSearches           SavedSearch[]
   interviewsCreated       InterviewSchedule[] @relation("InterviewCreatedBy")
+  messagesSent            Message[]           @relation("MessageSender")
+  scorecardsAuthored      InterviewScorecard[] @relation("ScorecardAuthor")
 
   @@index([globalRole])
   @@index([status])
@@ -392,6 +395,70 @@ model EmailDigestLog {
   @@map("email_digest_logs")
 }
 
+model MessageThread {
+  id            String    @id @default(cuid())
+  applicationId String    @unique @map("application_id")
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  messages    Message[]
+
+  @@map("message_threads")
+}
+
+model Message {
+  id                 String    @id @default(cuid())
+  threadId           String    @map("thread_id")
+  senderId           String    @map("sender_id")
+  body               String
+  readByCandidateAt  DateTime? @map("read_by_candidate_at")
+  readByRecruiterAt  DateTime? @map("read_by_recruiter_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender User          @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model InterviewScorecard {
+  id             String   @id @default(cuid())
+  interviewId    String   @unique @map("interview_id")
+  authorId       String   @map("author_id")
+  ratings        Json     // array of {criterion: string, score: int 1-5}
+  notes          String?
+  recommendation String   // strong_hire | hire | no_hire | strong_no_hire
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  interview InterviewSchedule @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  author    User              @relation("ScorecardAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId])
+  @@map("interview_scorecards")
+}
+
+model TenantEmailTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  status    String   // ApplicationStatus enum value: REVIEWED | SHORTLISTED | INTERVIEW | OFFERED | HIRED | REJECTED
+  subject   String
+  body      String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, status])
+  @@index([tenantId])
+  @@map("tenant_email_templates")
+}
+
 model InterviewSchedule {
   id             String    @id @default(cuid())
   applicationId  String    @map("application_id")
@@ -407,8 +474,9 @@ model InterviewSchedule {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  createdBy   User?       @relation("InterviewCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  application Application         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdBy   User?               @relation("InterviewCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  scorecard   InterviewScorecard?
 
   @@index([applicationId])
   @@index([scheduledAt])
@@ -663,10 +731,11 @@ model Application {
   appliedAt   DateTime          @default(now()) @map("applied_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
 
-  tenant     Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  job        Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  interviews InterviewSchedule[]
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  job           Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviews    InterviewSchedule[]
+  messageThread MessageThread?
 
   @@unique([jobId, userId])
   @@index([tenantId, status])

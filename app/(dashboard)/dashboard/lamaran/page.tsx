@@ -1,8 +1,11 @@
+import Link from 'next/link'
+import { MessageSquare } from 'lucide-react'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { WithdrawApplicationButton } from '@/components/organisms/withdraw-application-button'
+import { applicationsWithThread } from '@/lib/messaging/queries'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,6 +136,40 @@ export default async function ApplicationsKanbanPage() {
     withdrawableStatuses.has(a.status),
   )
 
+  // Which of the visible applications have an active message thread? We only
+  // surface a "Pesan" link when a thread exists so candidates don't see a
+  // dead link for applications they haven't been contacted on yet.
+  const applicationIds = applications.map((a) => a.id)
+  const threadAppIds = await applicationsWithThread(applicationIds)
+  // Per-application unread count for the candidate side.
+  let unreadByApp = new Map<string, number>()
+  if (threadAppIds.size > 0) {
+    try {
+      const grouped = await prisma.message.groupBy({
+        by: ['threadId'],
+        where: {
+          readByCandidateAt: null,
+          senderId: { not: userId },
+          thread: { application: { userId, id: { in: applicationIds } } },
+        },
+        _count: { _all: true },
+      })
+      // We need threadId → applicationId mapping.
+      const threads = await prisma.messageThread.findMany({
+        where: { id: { in: grouped.map((g) => g.threadId) } },
+        select: { id: true, applicationId: true },
+      })
+      const threadToApp = new Map(threads.map((t) => [t.id, t.applicationId]))
+      unreadByApp = new Map(
+        grouped
+          .map((g) => [threadToApp.get(g.threadId), g._count._all] as const)
+          .filter((e): e is [string, number] => Boolean(e[0])),
+      )
+    } catch {
+      unreadByApp = new Map()
+    }
+  }
+
   const STATUS_LABEL: Record<string, string> = {
     APPLIED: 'Dilamar',
     REVIEWED: 'Ditinjau',
@@ -161,23 +198,47 @@ export default async function ApplicationsKanbanPage() {
             Anda dapat menarik lamaran selama belum masuk tahap penawaran.
           </p>
           <ul className="mt-4 space-y-2">
-            {withdrawable.map((a) => (
-              <li
-                key={a.id}
-                className="border-border flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
-              >
-                <div className="min-w-0">
-                  <div className="text-foreground truncate text-sm font-medium">
-                    {a.job.title}
+            {withdrawable.map((a) => {
+              const hasThread = threadAppIds.has(a.id)
+              const unread = unreadByApp.get(a.id) ?? 0
+              return (
+                <li
+                  key={a.id}
+                  className="border-border flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
+                >
+                  <div className="min-w-0">
+                    <div className="text-foreground truncate text-sm font-medium">
+                      {a.job.title}
+                    </div>
+                    <div className="text-muted-foreground mt-0.5 text-xs">
+                      {a.job.tenant?.name ?? ''} ·{' '}
+                      {STATUS_LABEL[a.status] ?? a.status}
+                    </div>
                   </div>
-                  <div className="text-muted-foreground mt-0.5 text-xs">
-                    {a.job.tenant?.name ?? ''} ·{' '}
-                    {STATUS_LABEL[a.status] ?? a.status}
+                  <div className="flex items-center gap-2">
+                    {hasThread && (
+                      <Link
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        href={`/dashboard/lamaran/${a.id}/pesan` as any}
+                        className="border-input bg-background text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+                        Pesan
+                        {unread > 0 && (
+                          <span
+                            aria-label={`${unread} pesan belum dibaca`}
+                            className="bg-primary text-primary-foreground inline-flex min-w-[1.125rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
+                          >
+                            {Math.min(99, unread)}
+                          </span>
+                        )}
+                      </Link>
+                    )}
+                    <WithdrawApplicationButton applicationId={a.id} />
                   </div>
-                </div>
-                <WithdrawApplicationButton applicationId={a.id} />
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ul>
         </section>
       )}

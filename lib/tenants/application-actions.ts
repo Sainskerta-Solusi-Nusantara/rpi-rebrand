@@ -9,6 +9,19 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { env } from '@/lib/env'
 import { sendEmail, applicationStatusEmail } from '@/lib/mailer'
+import {
+  resolveEmailTemplate,
+  renderTemplate,
+} from '@/lib/tenants/email-template-resolver'
+
+function escapeHtmlForTemplate(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -197,20 +210,69 @@ export async function updateApplicationStatus(input: {
         })
         if (detail?.user?.email && detail.job && detail.tenant) {
           const baseUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
-          const tpl = applicationStatusEmail({
-            name: detail.user.name,
-            jobTitle: detail.job.title,
-            tenantName: detail.tenant.name,
-            oldStatus,
-            newStatus,
-            applicationUrl: `${baseUrl}/dashboard/lamaran`,
-            recruiterNote: detail.notes,
+          const applicationUrl = `${baseUrl}/dashboard/lamaran`
+
+          // ---- BEGIN tenant custom email template override -----------------
+          // Feature 4: TenantEmailTemplate customization.
+          // If the tenant has a custom row for (tenantId, newStatus) AND it's
+          // enabled, we render that instead of the default
+          // `applicationStatusEmail`. Resolver returns null on miss → fall
+          // through to the existing default path (unchanged behavior).
+          const custom = await resolveEmailTemplate({
+            tenantId: ctx.application.tenantId,
+            status: newStatus,
           })
+
+          let mailSubject: string
+          let mailText: string
+          let mailHtml: string
+
+          if (custom) {
+            const vars: Record<string, string> = {
+              name: detail.user.name ?? '',
+              jobTitle: detail.job.title,
+              tenantName: detail.tenant.name,
+              oldStatus,
+              newStatus,
+              applicationUrl,
+              recruiterNote: detail.notes ?? '',
+            }
+            mailSubject = renderTemplate(custom.subject, vars)
+            mailText = renderTemplate(custom.body, vars)
+            // Minimal HTML wrapper around the rendered plain-text body —
+            // mirrors the shell used in the default applicationStatusEmail.
+            // We HTML-escape the rendered body here (the body itself is
+            // tenant-authored text; without escaping, a `<` from a recruiter
+            // note would break the markup). `white-space: pre-wrap`
+            // preserves the line breaks the tenant wrote.
+            const safeBody = escapeHtmlForTemplate(mailText)
+            const footer = `— Tim ${escapeHtmlForTemplate(detail.tenant.name)} (via RPI)`
+            mailHtml = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <div style="white-space:pre-wrap">${safeBody}</div>
+  <p style="font-size:13px;color:#475569;margin-top:24px">${footer}</p>
+</body></html>`
+          } else {
+            const tpl = applicationStatusEmail({
+              name: detail.user.name,
+              jobTitle: detail.job.title,
+              tenantName: detail.tenant.name,
+              oldStatus,
+              newStatus,
+              applicationUrl,
+              recruiterNote: detail.notes,
+            })
+            mailSubject = tpl.subject
+            mailText = tpl.text
+            mailHtml = tpl.html
+          }
+          // ---- END tenant custom email template override -------------------
+
           const sent = await sendEmail({
             to: detail.user.email,
-            subject: tpl.subject,
-            text: tpl.text,
-            html: tpl.html,
+            subject: mailSubject,
+            text: mailText,
+            html: mailHtml,
           })
           if (!sent.ok) {
             console.error(

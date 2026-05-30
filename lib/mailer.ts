@@ -848,3 +848,130 @@ export function weeklyDigestEmail(opts: {
 </body></html>`
   return { subject, text, html }
 }
+
+// ---------------------------------------------------------------------------
+// Default application-status template content (subject + plain-text body)
+// ---------------------------------------------------------------------------
+// This helper exposes the *default* subject + body of the per-status candidate
+// notification (see `applicationStatusEmail` above) WITHOUT the HTML wrapper.
+//
+// It is used by the tenant Email Templates UI to:
+//   1. Show recruiters what the default email looks like for each status
+//      (so they know what they're customizing).
+//   2. Pre-seed a tenant's custom override when they click "Edit" for the
+//      first time on a given status.
+//
+// The body returned here is the SAME copy used in the default text email
+// (greeting + per-status body + optional recruiter-note slot + footer), but
+// expressed with the variable placeholders supported by the resolver:
+//   {{name}}, {{jobTitle}}, {{tenantName}}, {{oldStatus}}, {{newStatus}},
+//   {{applicationUrl}}, {{recruiterNote}}
+// so users can copy/tweak from a known-good starting point.
+export function getDefaultApplicationStatusContent(
+  status: 'REVIEWED' | 'SHORTLISTED' | 'INTERVIEW' | 'OFFERED' | 'HIRED' | 'REJECTED',
+): { subject: string; body: string } {
+  switch (status) {
+    case 'REVIEWED':
+      return {
+        subject: 'Lamaran Anda untuk {{jobTitle}} sedang ditinjau',
+        body: [
+          'Halo {{name}},',
+          '',
+          'Kabar baik — lamaran Anda untuk posisi "{{jobTitle}}" di {{tenantName}} kini sedang ditinjau oleh tim rekrutmen kami.',
+          '',
+          'Kami sedang mempelajari profil dan kualifikasi Anda. Kami akan menghubungi Anda kembali begitu ada perkembangan.',
+          '',
+          'Anda dapat memantau status lamaran kapan saja di dashboard RPI:',
+          '{{applicationUrl}}',
+          '',
+          '— Tim {{tenantName}} (via RPI)',
+        ].join('\n'),
+      }
+    case 'SHORTLISTED':
+      return {
+        subject: 'Anda masuk shortlist untuk {{jobTitle}}',
+        body: [
+          'Halo {{name}},',
+          '',
+          'Selamat! Anda masuk dalam shortlist kandidat untuk posisi "{{jobTitle}}" di {{tenantName}}.',
+          '',
+          'Profil Anda menonjol di antara pelamar lain. Tim rekrutmen kami akan menghubungi Anda mengenai langkah selanjutnya — biasanya berupa undangan wawancara atau permintaan informasi tambahan.',
+          '',
+          'Pastikan profil dan kontak Anda di RPI selalu terkini:',
+          '{{applicationUrl}}',
+          '',
+          '— Tim {{tenantName}} (via RPI)',
+        ].join('\n'),
+      }
+    case 'INTERVIEW':
+      return {
+        subject: 'Anda diundang wawancara untuk {{jobTitle}}',
+        body: [
+          'Halo {{name}},',
+          '',
+          'Selamat — Anda diundang untuk mengikuti wawancara untuk posisi "{{jobTitle}}" di {{tenantName}}.',
+          '',
+          'Detail jadwal wawancara (tanggal, waktu, tautan/lokasi) tersedia di dashboard RPI Anda. Mohon segera memeriksa dan mengonfirmasi ketersediaan Anda:',
+          '{{applicationUrl}}',
+          '',
+          'Tip: siapkan portofolio, dokumen pendukung, dan cek koneksi Anda jauh sebelum waktu wawancara.',
+          '',
+          '— Tim {{tenantName}} (via RPI)',
+        ].join('\n'),
+      }
+    case 'OFFERED':
+      return {
+        subject: 'Penawaran kerja: {{jobTitle}}',
+        body: [
+          'Halo {{name}},',
+          '',
+          'Kabar gembira! {{tenantName}} mengajukan penawaran kerja kepada Anda untuk posisi "{{jobTitle}}".',
+          '',
+          'Detail penawaran (kompensasi, tanggal mulai, dan dokumen) tersedia di dashboard RPI Anda. Mohon tinjau dan respons sesegera mungkin:',
+          '{{applicationUrl}}',
+          '',
+          'Jika ada pertanyaan, jangan ragu menghubungi tim rekrutmen kami melalui kanal komunikasi yang biasa digunakan.',
+          '',
+          '— Tim {{tenantName}} (via RPI)',
+        ].join('\n'),
+      }
+    case 'HIRED':
+      return {
+        subject: 'Selamat! Anda diterima untuk {{jobTitle}}',
+        body: [
+          'Halo {{name}},',
+          '',
+          'Selamat dan welcome aboard! Anda resmi diterima bekerja di {{tenantName}} untuk posisi "{{jobTitle}}".',
+          '',
+          'Kami senang menyambut Anda bergabung. Tim rekrutmen akan mengirimkan informasi onboarding (kontrak, dokumen administrasi, dan hari pertama kerja) secara terpisah.',
+          '',
+          'Pantau dashboard Anda untuk informasi terkait:',
+          '{{applicationUrl}}',
+          '',
+          'Sekali lagi, selamat — kami percaya Anda akan memberi kontribusi yang berarti.',
+          '',
+          '— Tim {{tenantName}} (via RPI)',
+        ].join('\n'),
+      }
+    case 'REJECTED':
+      return {
+        subject: 'Update lamaran Anda untuk {{jobTitle}}',
+        body: [
+          'Halo {{name}},',
+          '',
+          'Terima kasih sudah meluangkan waktu melamar posisi "{{jobTitle}}" di {{tenantName}}.',
+          '',
+          'Setelah pertimbangan matang, posisi ini telah diisi kandidat lain untuk saat ini. Keputusan ini sama sekali bukan cerminan dari kemampuan atau pengalaman Anda — proses seleksi melibatkan banyak faktor, termasuk kebutuhan spesifik tim pada periode tertentu.',
+          '',
+          'Kami sangat menghargai upaya, waktu, dan minat yang Anda tunjukkan selama proses ini. Profil Anda akan tetap tersimpan di RPI, dan kami sangat menganjurkan Anda untuk melamar peluang lain yang sesuai di masa depan — baik di kami maupun mitra RPI lainnya.',
+          '',
+          'Lihat lamaran lain yang sedang dibuka:',
+          '{{applicationUrl}}',
+          '',
+          'Tetap semangat — kami yakin peluang yang tepat akan datang.',
+          '',
+          '— Tim {{tenantName}} (via RPI)',
+        ].join('\n'),
+      }
+  }
+}
