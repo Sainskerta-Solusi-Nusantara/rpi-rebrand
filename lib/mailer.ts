@@ -274,3 +274,50 @@ export function passwordResetEmail(opts: { name?: string | null; link: string })
 </body></html>`
   return { subject, text, html }
 }
+
+export function weeklyDigestEmail(opts: {
+  name: string | null
+  period: string
+  recentLogins: number
+  newDevices: number
+  pendingInvites: number
+  securityEvents: number
+  dashboardUrl: string
+}): { subject: string; text: string; html: string } {
+  const greeting = opts.name ? `Halo ${opts.name},` : 'Halo,'
+  const subject = `Ringkasan mingguan akun RPI Anda (${opts.period})`
+  const text = [
+    greeting,
+    '',
+    `Berikut ringkasan aktivitas akun RPI Anda untuk periode ${opts.period}:`,
+    '',
+    `Login terbaru        : ${opts.recentLogins}`,
+    `Perangkat baru       : ${opts.newDevices}`,
+    `Undangan tertunda    : ${opts.pendingInvites}`,
+    `Peristiwa keamanan   : ${opts.securityEvents}`,
+    '',
+    `Buka dashboard Anda untuk detail lengkap: ${opts.dashboardUrl}`,
+    '',
+    'Jika ada aktivitas yang tidak Anda kenali, segera ubah password dan tinjau perangkat aktif Anda di pengaturan keamanan.',
+    '',
+    'Anda menerima email ini karena preferensi notifikasi keamanan aktif. Untuk berhenti, ubah preferensi di pengaturan notifikasi akun.',
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ].join('\n')
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>${greeting}</p>
+  <p>Berikut ringkasan aktivitas akun RPI Anda untuk periode <strong>${opts.period}</strong>:</p>
+  <table style="font-size:14px;border-collapse:collapse;margin:16px 0">
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">Login terbaru</td><td style="padding:4px 0"><strong>${opts.recentLogins}</strong></td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">Perangkat baru</td><td style="padding:4px 0"><strong>${opts.newDevices}</strong></td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">Undangan tertunda</td><td style="padding:4px 0"><strong>${opts.pendingInvites}</strong></td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">Peristiwa keamanan</td><td style="padding:4px 0"><strong>${opts.securityEvents}</strong></td></tr>
+  </table>
+  <p style="margin:24px 0"><a href="${opts.dashboardUrl}" style="display:inline-block;background:hsl(220,50%,14%);color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Buka dashboard</a></p>
+  <p style="font-size:13px;color:#475569">Jika ada aktivitas yang tidak Anda kenali, segera ubah password dan tinjau perangkat aktif Anda di pengaturan keamanan.</p>
+  <p style="font-size:13px;color:#475569">Anda menerima email ini karena preferensi notifikasi keamanan aktif. Untuk berhenti, ubah preferensi di pengaturan notifikasi akun.</p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+  return { subject, text, html }
+}

@@ -160,6 +160,8 @@ model Tenant {
   invitations   Invitation[]
   teamMembers   TeamMember[]
   applications  Application[]
+  webhooks      TenantWebhook[]
+  apiKeys       TenantApiKey[]
 
   @@index([planTier])
   @@index([status])
@@ -246,6 +248,8 @@ model User {
   personalAccessTokens    PersonalAccessToken[]
   devices                 UserDevice[]
   notificationPref        NotificationPref?
+  tenantApiKeysCreated    TenantApiKey[]    @relation("TenantApiKeyCreatedBy")
+  emailDigestLogs         EmailDigestLog[]
 
   @@index([globalRole])
   @@index([status])
@@ -307,6 +311,79 @@ model EmailVerificationToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("email_verification_tokens")
+}
+
+model TenantWebhook {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  url       String
+  secret    String
+  events    String[]
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant     Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@index([tenantId])
+  @@index([enabled])
+  @@map("tenant_webhooks")
+}
+
+model WebhookDelivery {
+  id           String    @id @default(cuid())
+  webhookId    String    @map("webhook_id")
+  event        String
+  payload      Json
+  status       String    // pending | success | failed
+  statusCode   Int?      @map("status_code")
+  responseBody String?   @map("response_body")
+  attempt      Int       @default(1)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deliveredAt  DateTime? @map("delivered_at")
+
+  webhook TenantWebhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId, createdAt])
+  @@index([status])
+  @@map("webhook_deliveries")
+}
+
+model TenantApiKey {
+  id          String    @id @default(cuid())
+  tenantId    String    @map("tenant_id")
+  createdById String?   @map("created_by_id")
+  name        String
+  tokenHash   String    @unique @map("token_hash")
+  tokenPrefix String    @map("token_prefix")
+  scopes      String[]
+  expiresAt   DateTime? @map("expires_at")
+  lastUsedAt  DateTime? @map("last_used_at")
+  lastUsedIp  String?   @map("last_used_ip")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  revokedAt   DateTime? @map("revoked_at")
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User?  @relation("TenantApiKeyCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([revokedAt])
+  @@map("tenant_api_keys")
+}
+
+model EmailDigestLog {
+  id     String   @id @default(cuid())
+  userId String   @map("user_id")
+  period String // e.g., "2026-W22"
+  sentAt DateTime @default(now()) @map("sent_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
+  @@index([userId])
+  @@map("email_digest_logs")
 }
 
 model NotificationPref {

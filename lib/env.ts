@@ -49,6 +49,9 @@ const envSchema = z.object({
     (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
     z.string().email().optional(),
   ),
+
+  // ----- Cron / scheduled jobs -----
+  CRON_SECRET: optionalString,
 })
 
 const parsed = envSchema.safeParse({
@@ -69,6 +72,7 @@ const parsed = envSchema.safeParse({
   REDIS_URL: process.env.REDIS_URL,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
+  CRON_SECRET: process.env.CRON_SECRET,
 })
 
 if (!parsed.success) {

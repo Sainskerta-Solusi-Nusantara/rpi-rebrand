@@ -11,6 +11,7 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { shouldSendEmail } from '@/lib/auth/notification-prefs'
 import { sendEmail, tenantInviteEmail } from '@/lib/mailer'
+import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -431,6 +432,12 @@ export async function acceptTenantInvite(token: string): Promise<
       }),
     ])
 
+    dispatchTenantEvent(invite.tenantId, 'tenant.member.added', {
+      userId,
+      email: invite.email,
+      role: invite.role,
+    })
+
     revalidatePath('/dashboard/tenants')
     revalidatePath(`/dashboard/tenants/${invite.tenant.slug}`)
     return { ok: true, data: { tenantSlug: invite.tenant.slug } }
@@ -540,6 +547,12 @@ export async function updateMemberRole(input: {
       }),
     ])
 
+    dispatchTenantEvent(tenant.id, 'tenant.member.role_changed', {
+      userId,
+      from: member.role,
+      to: role,
+    })
+
     revalidatePath(`/dashboard/tenants/${tenant.slug}`)
     return { ok: true }
   } catch (err) {
@@ -597,6 +610,12 @@ export async function removeMember(input: {
         },
       }),
     ])
+
+    dispatchTenantEvent(tenant.id, 'tenant.member.removed', {
+      userId: input.userId,
+      email: member.user.email,
+      role: member.role,
+    })
 
     revalidatePath(`/dashboard/tenants/${tenant.slug}`)
     return { ok: true }

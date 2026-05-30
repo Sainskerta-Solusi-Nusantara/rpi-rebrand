@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { getOnboardingChecklist } from '@/lib/onboarding/checklist'
+import { OnboardingChecklist } from '@/components/organisms/onboarding-checklist'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,60 +45,69 @@ export default async function DashboardOverviewPage() {
   if (!session?.user) redirect('/login?callbackUrl=/dashboard')
   const userId = session.user.id
 
-  const [appliedCount, savedCount, enrollmentsActive, certificatesCount, recommendedJobs, enrollments, applications] =
-    await Promise.all([
-      prisma.application.count({ where: { userId } }).catch(() => 0),
-      prisma.savedJob.count({ where: { userId } }).catch(() => 0),
-      prisma.enrollment.count({ where: { userId, status: 'IN_PROGRESS' } }).catch(() => 0),
-      prisma.certificate.count({ where: { userId } }).catch(() => 0),
-      prisma.job
-        .findMany({
-          where: { status: 'PUBLISHED' },
-          take: 6,
-          orderBy: { publishedAt: 'desc' },
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            location: true,
-            locationType: true,
-            employmentType: true,
-            salaryMin: true,
-            salaryMax: true,
-            salaryCurrency: true,
-            publishedAt: true,
-            tenant: { select: { name: true, slug: true } },
-            category: { select: { name: true, slug: true } },
-          },
-        })
-        .catch(() => []),
-      prisma.enrollment
-        .findMany({
-          where: { userId },
-          take: 6,
-          orderBy: { enrolledAt: 'desc' },
-          include: { course: { select: { id: true, title: true, slug: true, thumbnail: true } } },
-        })
-        .catch(() => []),
-      prisma.application
-        .findMany({
-          where: { userId },
-          orderBy: { updatedAt: 'desc' },
-          take: 100,
-          include: {
-            job: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-                location: true,
-                tenant: { select: { name: true } },
-              },
+  const [
+    appliedCount,
+    savedCount,
+    enrollmentsActive,
+    certificatesCount,
+    recommendedJobs,
+    enrollments,
+    applications,
+    checklist,
+  ] = await Promise.all([
+    prisma.application.count({ where: { userId } }).catch(() => 0),
+    prisma.savedJob.count({ where: { userId } }).catch(() => 0),
+    prisma.enrollment.count({ where: { userId, status: 'IN_PROGRESS' } }).catch(() => 0),
+    prisma.certificate.count({ where: { userId } }).catch(() => 0),
+    prisma.job
+      .findMany({
+        where: { status: 'PUBLISHED' },
+        take: 6,
+        orderBy: { publishedAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          location: true,
+          locationType: true,
+          employmentType: true,
+          salaryMin: true,
+          salaryMax: true,
+          salaryCurrency: true,
+          publishedAt: true,
+          tenant: { select: { name: true, slug: true } },
+          category: { select: { name: true, slug: true } },
+        },
+      })
+      .catch(() => []),
+    prisma.enrollment
+      .findMany({
+        where: { userId },
+        take: 6,
+        orderBy: { enrolledAt: 'desc' },
+        include: { course: { select: { id: true, title: true, slug: true, thumbnail: true } } },
+      })
+      .catch(() => []),
+    prisma.application
+      .findMany({
+        where: { userId },
+        orderBy: { updatedAt: 'desc' },
+        take: 100,
+        include: {
+          job: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              location: true,
+              tenant: { select: { name: true } },
             },
           },
-        })
-        .catch(() => []),
-    ])
+        },
+      })
+      .catch(() => []),
+    getOnboardingChecklist(userId),
+  ])
 
   const kanbanColumns = [
     {
@@ -201,6 +212,7 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="p-6">
+      <OnboardingChecklist steps={checklist} />
       <header className="mb-6">
         <h1 className="font-heading text-2xl md:text-3xl">
           Halo, {session.user.name ?? 'Pekerja'} 👋

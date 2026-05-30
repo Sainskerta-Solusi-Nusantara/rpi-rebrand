@@ -7,6 +7,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 import {
   ALLOWED_LOGO_MIME,
   MAX_LOGO_BYTES,
@@ -142,6 +143,10 @@ export async function updateTenantBranding(input: {
         ip: meta.ip,
         userAgent: meta.userAgent,
       },
+    })
+
+    dispatchTenantEvent(ctx.tenant.id, 'tenant.branding.updated', {
+      changed: Object.keys(updateData),
     })
 
     revalidatePath(`/dashboard/tenants/${input.tenantSlug}/branding`)
