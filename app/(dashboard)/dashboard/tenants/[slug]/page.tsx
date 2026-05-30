@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard } from 'lucide-react'
+import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3 } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission, canAccessTenant } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
@@ -69,6 +69,7 @@ export default async function ManageTenantPage({
   const canViewAudit = hasTenantPermission(globalRole, tenants, tenant.id, 'audit.view')
   const canEditDomain = hasTenantPermission(globalRole, tenants, tenant.id, 'tenant.update')
   const canViewBilling = hasTenantPermission(globalRole, tenants, tenant.id, 'billing.view')
+  const canManageJobs = hasTenantPermission(globalRole, tenants, tenant.id, 'job.view')
   const isOwner = tenant.ownerUserId === session.user.id
 
   const [members, invitations] = await Promise.all([
@@ -132,8 +133,38 @@ export default async function ManageTenantPage({
         </div>
       </header>
 
-      {(canEditBranding || canManageIntegrations || canViewAudit || canEditDomain || canViewBilling) && (
+      {(canEditBranding || canManageIntegrations || canViewAudit || canEditDomain || canViewBilling || canManageJobs) && (
         <nav className="flex flex-wrap gap-2">
+          {canManageJobs && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/jobs` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <Briefcase className="h-4 w-4" aria-hidden="true" />
+              Lowongan
+            </Link>
+          )}
+          {canManageJobs && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/lamaran` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <FileText className="h-4 w-4" aria-hidden="true" />
+              Lamaran
+            </Link>
+          )}
+          {canManageJobs && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/analytics` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <BarChart3 className="h-4 w-4" aria-hidden="true" />
+              Analytics
+            </Link>
+          )}
           {canEditBranding && (
             <Link
               // eslint-disable-next-line @typescript-eslint/no-explicit-any

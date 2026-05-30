@@ -275,6 +275,71 @@ export function passwordResetEmail(opts: { name?: string | null; link: string })
   return { subject, text, html }
 }
 
+export function savedSearchAlertEmail(opts: {
+  name: string | null
+  searchName: string
+  jobs: {
+    title: string
+    slug: string
+    location: string
+    tenantName: string
+    salaryMin: number | null
+    salaryMax: number | null
+  }[]
+  dashboardUrl: string
+}): { subject: string; text: string; html: string } {
+  const greeting = opts.name ? `Halo ${opts.name},` : 'Halo,'
+  const subject = `Lowongan baru cocok untuk pencarian "${opts.searchName}"`
+  const baseUrl = opts.dashboardUrl.replace(/\/$/, '')
+
+  const formatSalary = (min: number | null, max: number | null): string => {
+    if (min == null && max == null) return ''
+    const fmt = (n: number) =>
+      new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(n)
+    if (min != null && max != null) return ` — Rp ${fmt(min)}–${fmt(max)}`
+    if (min != null) return ` — mulai Rp ${fmt(min)}`
+    return ` — hingga Rp ${fmt(max as number)}`
+  }
+
+  const textLines = [
+    greeting,
+    '',
+    `Kami menemukan ${opts.jobs.length} lowongan baru untuk pencarian tersimpan Anda "${opts.searchName}":`,
+    '',
+    ...opts.jobs.map((j) => {
+      const salary = formatSalary(j.salaryMin, j.salaryMax)
+      return `• ${j.title} — ${j.tenantName} (${j.location})${salary}\n  ${baseUrl}/lowongan/${j.slug}`
+    }),
+    '',
+    `Kelola alert di ${baseUrl}/dashboard/lowongan-disimpan`,
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ]
+  const text = textLines.join('\n')
+
+  const items = opts.jobs
+    .map((j) => {
+      const salary = formatSalary(j.salaryMin, j.salaryMax)
+      return `<li style="margin:8px 0">
+        <a href="${baseUrl}/lowongan/${j.slug}" style="color:hsl(220,50%,14%);font-weight:600;text-decoration:underline">${j.title}</a>
+        <div style="font-size:13px;color:#475569">${j.tenantName} · ${j.location}${salary}</div>
+      </li>`
+    })
+    .join('')
+
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>${greeting}</p>
+  <p>Kami menemukan <strong>${opts.jobs.length}</strong> lowongan baru untuk pencarian tersimpan Anda <strong>"${opts.searchName}"</strong>:</p>
+  <ul style="padding-left:18px;margin:16px 0">${items}</ul>
+  <p style="margin:24px 0"><a href="${baseUrl}/dashboard/lowongan-disimpan" style="display:inline-block;background:hsl(220,50%,14%);color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Kelola alert</a></p>
+  <p style="font-size:13px;color:#475569">Kelola alert di <code>/dashboard/lowongan-disimpan</code>. Anda menerima email ini karena Anda mengaktifkan alert pada pencarian ini.</p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+
+  return { subject, text, html }
+}
+
 export function weeklyDigestEmail(opts: {
   name: string | null
   period: string

@@ -252,6 +252,7 @@ model User {
   notificationPref        NotificationPref?
   tenantApiKeysCreated    TenantApiKey[]    @relation("TenantApiKeyCreatedBy")
   emailDigestLogs         EmailDigestLog[]
+  savedSearches           SavedSearch[]
 
   @@index([globalRole])
   @@index([status])
@@ -386,6 +387,27 @@ model EmailDigestLog {
   @@unique([userId, period])
   @@index([userId])
   @@map("email_digest_logs")
+}
+
+model SavedSearch {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  name            String
+  query           String?
+  categorySlug    String?   @map("category_slug")
+  location        String?
+  employmentType  String?   @map("employment_type")
+  emailAlerts     Boolean   @default(true) @map("email_alerts")
+  lastAlertAt     DateTime? @map("last_alert_at")
+  lastAlertCount  Int       @default(0) @map("last_alert_count")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([emailAlerts, lastAlertAt])
+  @@map("saved_searches")
 }
 
 model NotificationPref {
