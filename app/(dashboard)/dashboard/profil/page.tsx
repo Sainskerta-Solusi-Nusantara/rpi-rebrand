@@ -3,6 +3,8 @@ import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { AvatarUploader } from '@/components/organisms/avatar-uploader'
+import { PersonalPrefsForm } from '@/components/organisms/personal-prefs-form'
+import { getPersonalPrefs } from '@/lib/auth/personal-prefs'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,6 +58,8 @@ export default async function ProfilePage() {
 
   if (!user) redirect('/login')
 
+  const prefs = await getPersonalPrefs(userId)
+
   return (
     <div className="p-6 space-y-8 max-w-3xl">
       <header>
@@ -74,6 +78,15 @@ export default async function ProfilePage() {
       </section>
 
       <ProfileForm initial={user} />
+
+      <section className="border-border bg-card rounded-2xl border p-6">
+        <h2 className="font-heading mb-1 text-lg">Bahasa & zona waktu</h2>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Mempengaruhi format tanggal/waktu yang ditampilkan di seluruh
+          aplikasi.
+        </p>
+        <PersonalPrefsForm initial={prefs} />
+      </section>
     </div>
   )
 }
