@@ -115,7 +115,6 @@ export default async function MitraPage({
   }
   const hasAnyFilter =
     !!activeQuery || !!activeIndustry || !!activePlan
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'localhost:3000'
 
   const paginationLinks = buildPaginationLinks(current, safePage, totalPages)
 
@@ -306,7 +305,10 @@ export default async function MitraPage({
                   key={p.id}
                   className="border-border bg-card rounded-xl border p-6 text-center transition hover:shadow-md"
                 >
-                  <a href={`https://${p.slug}.${rootDomain}`}>
+                  <Link
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={`/mitra/${p.slug}` as any}
+                  >
                     <div
                       className="mx-auto mb-3 grid size-14 place-items-center rounded-lg"
                       style={{ background: p.primaryColor, color: '#fff' }}
@@ -321,7 +323,7 @@ export default async function MitraPage({
                     <div className="text-muted-foreground mt-1 text-xs">
                       {p.jobsCount} lowongan aktif
                     </div>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

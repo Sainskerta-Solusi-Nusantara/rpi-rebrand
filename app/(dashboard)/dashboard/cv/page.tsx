@@ -1,96 +1,53 @@
 import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
-import { redirect } from 'next/navigation'
-
-function makeFallback(label: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function Fallback(_props: any) {
-    return (
-      <div
-        role="status"
-        aria-busy="true"
-        className="bg-muted my-4 h-48 w-full animate-pulse rounded-xl"
-        data-todo={`component:${label}`}
-      />
-    )
-  }
-}
-function safeRequire<T = unknown>(path: string, exportName: string): T {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require(path)
-    return (mod?.[exportName] ?? makeFallback(`${path}#${exportName}`)) as T
-  } catch {
-    return makeFallback(`${path}#${exportName}`) as unknown as T
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ResumeUploader: any = safeRequire('@/components/molecules/resume-uploader', 'ResumeUploader')
+import { ResumeList, type ResumeListItem } from '@/components/organisms/resume-list'
 
 export const metadata = { title: 'CV & Resume' }
 
 export default async function ResumePage() {
   const session = await getServerSession(authOptions)
-  if (!session?.user) redirect('/login?callbackUrl=/cv')
+  if (!session?.user) redirect('/login?callbackUrl=/dashboard/cv')
   const userId = session.user.id
 
-  const resumes = await prisma.resume
-    .findMany({ where: { userId }, orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }] })
+  const rows = await prisma.resume
+    .findMany({
+      where: { userId },
+      orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }],
+      select: {
+        id: true,
+        name: true,
+        fileUrl: true,
+        content: true,
+        isPrimary: true,
+        createdAt: true,
+      },
+    })
     .catch(() => [])
 
+  const resumes: ResumeListItem[] = rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    fileUrl: r.fileUrl,
+    hasContent: Boolean(
+      r.content && typeof r.content === 'object' && Object.keys(r.content as object).length > 0,
+    ),
+    isPrimary: r.isPrimary,
+    createdAt: r.createdAt,
+  }))
+
   return (
-    <div className="p-6 space-y-8">
+    <div className="space-y-8 p-6">
       <header>
         <h1 className="font-heading text-2xl md:text-3xl">CV & Resume</h1>
         <p className="text-muted-foreground mt-1">
-          Kelola dokumen CV yang akan dikirim ke mitra perekrut.
+          Buat dan kelola CV. Anda dapat menambahkan konten langsung melalui builder
+          atau mengunggah dokumen PDF/DOC.
         </p>
       </header>
 
-      <ResumeUploader />
-
-      <section>
-        <h2 className="font-heading text-xl mb-4">Dokumen Anda</h2>
-        {resumes.length === 0 ? (
-          <div className="border-border rounded-xl border p-8 text-center">
-            <p className="text-muted-foreground">Belum ada CV yang diunggah.</p>
-          </div>
-        ) : (
-          <ul className="space-y-3">
-            {resumes.map((r) => (
-              <li
-                key={r.id}
-                className="border-border flex items-center justify-between rounded-xl border p-4"
-              >
-                <div>
-                  <div className="font-medium">
-                    {r.name}{' '}
-                    {r.isPrimary ? (
-                      <span className="bg-primary text-primary-foreground ml-2 rounded px-2 py-0.5 text-xs">
-                        Utama
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="text-muted-foreground mt-1 text-xs">
-                    Diunggah{' '}
-                    {new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(r.createdAt)}
-                  </div>
-                </div>
-                <a
-                  href={r.fileUrl}
-                  className="text-primary text-sm underline"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Lihat
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <ResumeList resumes={resumes} />
     </div>
   )
 }

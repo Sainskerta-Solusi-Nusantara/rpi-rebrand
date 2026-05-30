@@ -21,6 +21,9 @@ import {
 
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
+import { ApplyJobModal, type ApplyJobResume } from '@/components/organisms/apply-job-modal'
+import { auth } from '@/lib/auth/session'
+import { prisma } from '@/lib/db'
 import {
   EMPLOYMENT_TYPE_LABEL,
   LOCATION_TYPE_LABEL,
@@ -74,11 +77,49 @@ function companyColor(company: string): string {
   return palette[Math.abs(h) % palette.length] ?? palette[0]
 }
 
+const APPLICATION_STATUS_LABEL: Record<string, string> = {
+  APPLIED: 'Dilamar',
+  REVIEWED: 'Ditinjau',
+  SHORTLISTED: 'Shortlist',
+  INTERVIEW: 'Wawancara',
+  OFFERED: 'Penawaran',
+  REJECTED: 'Ditolak',
+  WITHDRAWN: 'Ditarik',
+  HIRED: 'Diterima',
+}
+
 export default async function JobDetailPage({ params }: { params: Params }) {
   const job = await findJob(params.slug)
   if (!job) notFound()
 
   const related = await relatedJobs(params.slug, 3)
+
+  const session = await auth()
+  const userId = session?.user?.id ?? null
+
+  let existingApplicationStatus: string | null = null
+  let userResumes: ApplyJobResume[] = []
+  if (userId) {
+    const [application, resumes] = await Promise.all([
+      prisma.application
+        .findUnique({
+          where: { jobId_userId: { jobId: job.id, userId } },
+          select: { status: true },
+        })
+        .catch(() => null),
+      prisma.resume
+        .findMany({
+          where: { userId },
+          orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }],
+          select: { id: true, name: true, fileUrl: true, isPrimary: true },
+        })
+        .catch(() => [] as ApplyJobResume[]),
+    ])
+    existingApplicationStatus = application?.status ?? null
+    userResumes = resumes
+  }
+
+  const loginHref = `/login?callbackUrl=${encodeURIComponent(`/jobs/${job.slug}`)}`
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -287,18 +328,50 @@ export default async function JobDetailPage({ params }: { params: Params }) {
                   lebih cepat.
                 </p>
 
-                <Button asChild size="lg" className="mt-5 w-full">
-                  <a href="/login?next=/apply">
-                    <Send className="mr-2 h-4 w-4" aria-hidden />
-                    Lamar Sekarang
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="mt-3 w-full">
-                  <a href="/login?next=/save-job">
-                    <Bookmark className="mr-2 h-4 w-4" aria-hidden />
-                    Simpan Lowongan
-                  </a>
-                </Button>
+                <div className="mt-5 space-y-3">
+                  {userId ? (
+                    existingApplicationStatus ? (
+                      <div
+                        role="status"
+                        className="border-border bg-muted/40 rounded-md border p-3 text-xs"
+                      >
+                        <p className="text-foreground font-medium">
+                          Anda sudah melamar (status:{' '}
+                          {APPLICATION_STATUS_LABEL[existingApplicationStatus] ??
+                            existingApplicationStatus}
+                          )
+                        </p>
+                        <Link
+                          href="/dashboard/lamaran"
+                          className="text-primary mt-2 inline-flex items-center gap-1 font-medium underline"
+                        >
+                          Lihat lamaran saya
+                          <ArrowRight className="h-3 w-3" aria-hidden />
+                        </Link>
+                      </div>
+                    ) : (
+                      <ApplyJobModal
+                        jobSlug={job.slug}
+                        jobTitle={job.title}
+                        tenantName={job.company}
+                        resumes={userResumes}
+                      />
+                    )
+                  ) : (
+                    <Button asChild size="lg" className="w-full">
+                      <a href={loginHref}>
+                        <Send className="mr-2 h-4 w-4" aria-hidden />
+                        Lamar Sekarang
+                      </a>
+                    </Button>
+                  )}
+                  <Button asChild variant="outline" className="w-full">
+                    <a href={userId ? '/dashboard/lowongan-disimpan' : loginHref}>
+                      <Bookmark className="mr-2 h-4 w-4" aria-hidden />
+                      Simpan Lowongan
+                    </a>
+                  </Button>
+                </div>
 
                 <dl className="border-border mt-6 space-y-3 border-t pt-5 text-xs">
                   <SidebarRow icon={Building2} label="Perusahaan" value={job.company} />
@@ -374,12 +447,21 @@ export default async function JobDetailPage({ params }: { params: Params }) {
             perlu cover letter formal — profil RPI Anda sudah cukup.
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <a href="/login?next=/apply">
-                <Send className="mr-2 h-4 w-4" aria-hidden />
-                Lamar Sekarang
-              </a>
-            </Button>
+            {userId && existingApplicationStatus ? (
+              <Button asChild size="lg">
+                <Link href="/dashboard/lamaran">
+                  <Send className="mr-2 h-4 w-4" aria-hidden />
+                  Lihat lamaran saya
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="lg">
+                <a href={userId ? `#job-detail-heading` : loginHref}>
+                  <Send className="mr-2 h-4 w-4" aria-hidden />
+                  Lamar Sekarang
+                </a>
+              </Button>
+            )}
             <Button asChild size="lg" variant="outline">
               <Link href="/jobs">
                 Lihat lowongan lain

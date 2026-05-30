@@ -340,6 +340,79 @@ export function savedSearchAlertEmail(opts: {
   return { subject, text, html }
 }
 
+export function applicationReceivedEmail(opts: {
+  name?: string | null
+  jobTitle: string
+  tenantName: string
+  applicationUrl: string
+}): { subject: string; text: string; html: string } {
+  const greeting = opts.name ? `Halo ${opts.name},` : 'Halo,'
+  const subject = `Lamaran Anda untuk ${opts.jobTitle} telah diterima`
+  const text = [
+    greeting,
+    '',
+    `Terima kasih — lamaran Anda untuk posisi "${opts.jobTitle}" di ${opts.tenantName} telah kami terima.`,
+    '',
+    'Tim rekrutmen akan meninjau profil dan CV Anda dalam beberapa hari ke depan.',
+    'Anda dapat memantau status lamaran kapan saja di dashboard RPI:',
+    '',
+    opts.applicationUrl,
+    '',
+    'Tetap semangat dan jaga profil Anda agar selalu lengkap untuk peluang berikutnya.',
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ].join('\n')
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>${greeting}</p>
+  <p>Terima kasih — lamaran Anda untuk posisi <strong>${opts.jobTitle}</strong> di <strong>${opts.tenantName}</strong> telah kami terima.</p>
+  <p>Tim rekrutmen akan meninjau profil dan CV Anda dalam beberapa hari ke depan. Anda dapat memantau status lamaran kapan saja di dashboard RPI.</p>
+  <p style="margin:24px 0"><a href="${opts.applicationUrl}" style="display:inline-block;background:hsl(220,50%,14%);color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Lihat lamaran saya</a></p>
+  <p style="font-size:13px;color:#475569">Atau salin tautan ini ke browser:<br><span style="word-break:break-all">${opts.applicationUrl}</span></p>
+  <p style="font-size:13px;color:#475569">Tetap semangat dan jaga profil Anda agar selalu lengkap untuk peluang berikutnya.</p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+  return { subject, text, html }
+}
+
+export function applicationNotifyEmail(opts: {
+  recipientName?: string | null
+  applicantName: string
+  applicantEmail: string
+  jobTitle: string
+  dashboardUrl: string
+}): { subject: string; text: string; html: string } {
+  const greeting = opts.recipientName ? `Halo ${opts.recipientName},` : 'Halo,'
+  const subject = `Lamaran baru untuk ${opts.jobTitle}`
+  const text = [
+    greeting,
+    '',
+    `Anda menerima lamaran baru untuk posisi "${opts.jobTitle}".`,
+    '',
+    `Nama pelamar : ${opts.applicantName}`,
+    `Email        : ${opts.applicantEmail}`,
+    '',
+    'Tinjau lamaran dan CV pelamar di dashboard tenant:',
+    '',
+    opts.dashboardUrl,
+    '',
+    '— Tim Rumah Pekerja Indonesia',
+  ].join('\n')
+  const html = `<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
+  <p>${greeting}</p>
+  <p>Anda menerima lamaran baru untuk posisi <strong>${opts.jobTitle}</strong>.</p>
+  <table style="font-size:14px;border-collapse:collapse;margin:16px 0">
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">Nama pelamar</td><td style="padding:4px 0"><strong>${opts.applicantName}</strong></td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#475569">Email</td><td style="padding:4px 0"><code>${opts.applicantEmail}</code></td></tr>
+  </table>
+  <p style="margin:24px 0"><a href="${opts.dashboardUrl}" style="display:inline-block;background:hsl(220,50%,14%);color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Tinjau lamaran</a></p>
+  <p style="font-size:13px;color:#475569">Atau salin tautan ini ke browser:<br><span style="word-break:break-all">${opts.dashboardUrl}</span></p>
+  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+</body></html>`
+  return { subject, text, html }
+}
+
 export function weeklyDigestEmail(opts: {
   name: string | null
   period: string

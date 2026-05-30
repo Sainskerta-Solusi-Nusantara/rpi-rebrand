@@ -123,3 +123,80 @@ export async function deleteLocalTenantLogo(url: string | null | undefined): Pro
     // ignore
   }
 }
+
+// ---------------------------------------------------------------------------
+// Resumes (CV)
+// ---------------------------------------------------------------------------
+
+const RESUME_MIME_TO_EXT: Record<string, string> = {
+  'application/pdf': 'pdf',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+    'docx',
+}
+
+export const ALLOWED_RESUME_MIME = Object.keys(RESUME_MIME_TO_EXT)
+export const MAX_RESUME_BYTES = 10 * 1024 * 1024 // 10 MB
+
+export function resumeExtForMime(mime: string): string | null {
+  return RESUME_MIME_TO_EXT[mime] ?? null
+}
+
+/**
+ * Save a resume document (PDF/DOC/DOCX) and return a relative URL that the
+ * app can serve. Local storage writes under `public/uploads/resumes/{userId}/`
+ * so Next can serve it without a custom route. R2 transport is a TODO — the
+ * call will return an error until configured.
+ */
+export async function saveResumeFile(opts: {
+  userId: string
+  buffer: Buffer
+  mime: string
+}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const ext = resumeExtForMime(opts.mime)
+  if (!ext) return { ok: false, error: 'Format dokumen tidak didukung.' }
+  if (opts.buffer.length > MAX_RESUME_BYTES) {
+    return { ok: false, error: 'Ukuran dokumen melebihi 10 MB.' }
+  }
+
+  if (env.STORAGE_PROVIDER === 'r2') {
+    return {
+      ok: false,
+      error: 'Storage provider R2 belum dikonfigurasi.',
+    }
+  }
+
+  try {
+    const baseDir = path.join(
+      process.cwd(),
+      'public',
+      'uploads',
+      'resumes',
+      opts.userId,
+    )
+    await fs.mkdir(baseDir, { recursive: true })
+    const filename = `${randomBasename()}.${ext}`
+    await fs.writeFile(path.join(baseDir, filename), opts.buffer)
+    return { ok: true, url: `/uploads/resumes/${opts.userId}/${filename}` }
+  } catch (err) {
+    console.error('[saveResumeFile] failed', err)
+    return { ok: false, error: 'Gagal menyimpan dokumen.' }
+  }
+}
+
+/**
+ * Best-effort cleanup of a previously stored local resume file. Silently
+ * ignores remote or unknown URLs — those are the responsibility of the
+ * caller's provider-specific delete path.
+ */
+export async function deleteLocalResumeFile(
+  url: string | null | undefined,
+): Promise<void> {
+  if (!url || !url.startsWith('/uploads/resumes/')) return
+  try {
+    const rel = url.replace(/^\/+/, '')
+    await fs.unlink(path.join(process.cwd(), 'public', rel))
+  } catch {
+    // Ignore — the file may already be gone.
+  }
+}

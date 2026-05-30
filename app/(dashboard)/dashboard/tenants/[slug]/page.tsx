@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3 } from 'lucide-react'
+import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3, GraduationCap } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission, canAccessTenant } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
@@ -70,6 +70,7 @@ export default async function ManageTenantPage({
   const canEditDomain = hasTenantPermission(globalRole, tenants, tenant.id, 'tenant.update')
   const canViewBilling = hasTenantPermission(globalRole, tenants, tenant.id, 'billing.view')
   const canManageJobs = hasTenantPermission(globalRole, tenants, tenant.id, 'job.view')
+  const canManageCourses = hasTenantPermission(globalRole, tenants, tenant.id, 'course.view')
   const isOwner = tenant.ownerUserId === session.user.id
 
   const [members, invitations] = await Promise.all([
@@ -133,7 +134,7 @@ export default async function ManageTenantPage({
         </div>
       </header>
 
-      {(canEditBranding || canManageIntegrations || canViewAudit || canEditDomain || canViewBilling || canManageJobs) && (
+      {(canEditBranding || canManageIntegrations || canViewAudit || canEditDomain || canViewBilling || canManageJobs || canManageCourses) && (
         <nav className="flex flex-wrap gap-2">
           {canManageJobs && (
             <Link
@@ -163,6 +164,16 @@ export default async function ManageTenantPage({
             >
               <BarChart3 className="h-4 w-4" aria-hidden="true" />
               Analytics
+            </Link>
+          )}
+          {canManageCourses && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/kursus` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <GraduationCap className="h-4 w-4" aria-hidden="true" />
+              Kursus
             </Link>
           )}
           {canEditBranding && (
