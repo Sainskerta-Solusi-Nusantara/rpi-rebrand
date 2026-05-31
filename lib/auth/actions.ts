@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { createHash, randomBytes } from 'node:crypto'
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { env } from '@/lib/env'
 import { hashPassword } from '@/lib/auth/password'
@@ -127,6 +127,28 @@ export async function registerUser(formData: FormData): Promise<ActionResult> {
       // Don't fail registration on mailer issues; user can resend later.
       console.error('[registerUser] verification email failed', err)
     }
+
+    // -----------------------------------------------------------------
+    // BEGIN: Referral apply on sign-up — best-effort. Must NOT block
+    // registration success. If anything fails here we swallow the error.
+    // -----------------------------------------------------------------
+    try {
+      const refCookie = cookies().get('rpi_ref')?.value
+      if (refCookie) {
+        const { _applyReferralForUser } = await import('@/lib/referrals/actions')
+        await _applyReferralForUser({ userId: user.id, code: refCookie })
+        try {
+          cookies().delete('rpi_ref')
+        } catch {
+          // Best-effort cookie clear.
+        }
+      }
+    } catch (err) {
+      console.error('[registerUser] referral apply failed', err)
+    }
+    // -----------------------------------------------------------------
+    // END: Referral apply on sign-up
+    // -----------------------------------------------------------------
 
     return { ok: true }
   } catch (err) {

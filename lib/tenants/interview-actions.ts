@@ -88,6 +88,20 @@ const baseInterviewShape = {
     .max(5000, 'Catatan maksimal 5000 karakter')
     .optional()
     .transform((v) => (v && v.trim().length > 0 ? v.trim() : undefined)),
+  stageOrder: z
+    .number({
+      invalid_type_error: 'Urutan tahap harus berupa angka',
+    })
+    .int('Urutan tahap harus bilangan bulat')
+    .min(1, 'Urutan tahap minimal 1')
+    .max(50, 'Urutan tahap maksimal 50')
+    .optional(),
+  stageName: z
+    .string()
+    .trim()
+    .max(80, 'Nama tahap maksimal 80 karakter')
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
 }
 
 function applyTypeRefinements<T extends z.ZodTypeAny>(schema: T): T {
@@ -199,6 +213,8 @@ type LoadInterviewCtx =
         location: string | null
         notes: string | null
         status: string
+        stageOrder: number
+        stageName: string | null
         application: {
           id: string
           tenantId: string
@@ -229,6 +245,8 @@ async function loadTenantForInterview(
         location: true,
         notes: true,
         status: true,
+        stageOrder: true,
+        stageName: true,
         application: {
           select: {
             id: true,
@@ -274,6 +292,8 @@ export async function scheduleInterview(input: {
   meetingUrl?: string
   location?: string
   notes?: string
+  stageOrder?: number
+  stageName?: string
 }): Promise<ActionResult<{ interviewId: string }>> {
   const parsed = scheduleSchema.safeParse(input)
   if (!parsed.success) {
@@ -292,12 +312,27 @@ export async function scheduleInterview(input: {
     meetingUrl,
     location,
     notes,
+    stageOrder,
+    stageName,
   } = parsed.data
 
   const ctx = await loadTenantForApplication(applicationId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   try {
+    // Compute next stageOrder if not provided: max(existing) + 1, defaulting to 1.
+    let nextStageOrder = stageOrder
+    if (nextStageOrder === undefined) {
+      const maxRow = await prisma.interviewSchedule
+        .findFirst({
+          where: { applicationId },
+          orderBy: { stageOrder: 'desc' },
+          select: { stageOrder: true },
+        })
+        .catch(() => null)
+      nextStageOrder = (maxRow?.stageOrder ?? 0) + 1
+    }
+
     const interview = await prisma.interviewSchedule.create({
       data: {
         applicationId,
@@ -308,6 +343,8 @@ export async function scheduleInterview(input: {
         location: type === 'onsite' ? location ?? null : null,
         notes: notes ?? null,
         status: 'scheduled',
+        stageOrder: nextStageOrder,
+        stageName: stageName ?? null,
         createdById: ctx.actorId,
       },
       select: { id: true },
@@ -339,6 +376,8 @@ export async function scheduleInterview(input: {
           scheduledAt: scheduledAt.toISOString(),
           durationMin,
           type,
+          stageOrder: nextStageOrder,
+          stageName: stageName ?? null,
           autoBumpedStatus: shouldBump
             ? {
                 from: ctx.application.status,
@@ -394,6 +433,8 @@ export async function updateInterview(input: {
   meetingUrl?: string
   location?: string
   notes?: string
+  stageOrder?: number
+  stageName?: string
 }): Promise<ActionResult> {
   const parsed = updateSchema.safeParse(input)
   if (!parsed.success) {
@@ -412,6 +453,8 @@ export async function updateInterview(input: {
     meetingUrl,
     location,
     notes,
+    stageOrder,
+    stageName,
   } = parsed.data
 
   const ctx = await loadTenantForInterview(interviewId)
@@ -429,6 +472,9 @@ export async function updateInterview(input: {
     const nextLocation = type === 'onsite' ? location ?? null : null
     const nextNotes = notes ?? null
 
+    const nextStageName = stageName ?? null
+    const nextStageOrder = stageOrder ?? ctx.interview.stageOrder
+
     const changed: string[] = []
     if (ctx.interview.scheduledAt.getTime() !== scheduledAt.getTime())
       changed.push('scheduledAt')
@@ -439,6 +485,9 @@ export async function updateInterview(input: {
     if ((ctx.interview.location ?? null) !== nextLocation)
       changed.push('location')
     if ((ctx.interview.notes ?? null) !== nextNotes) changed.push('notes')
+    if (ctx.interview.stageOrder !== nextStageOrder) changed.push('stageOrder')
+    if ((ctx.interview.stageName ?? null) !== nextStageName)
+      changed.push('stageName')
 
     // If nothing changed, treat as no-op success so the UI doesn't error.
     if (changed.length === 0) {
@@ -454,6 +503,8 @@ export async function updateInterview(input: {
         meetingUrl: nextMeetingUrl,
         location: nextLocation,
         notes: nextNotes,
+        stageOrder: nextStageOrder,
+        stageName: nextStageName,
         // Reset reminder so the H-1 cron can fire again for the new time.
         reminderSentAt: changed.includes('scheduledAt') ? null : undefined,
       },

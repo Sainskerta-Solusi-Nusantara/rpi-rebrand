@@ -220,6 +220,19 @@ export async function submitApplication(input: {
     // the WEBHOOK_EVENTS allowlist (lib/webhooks/events.ts). Skipped until that
     // catalogue is extended; webhook subscribers cannot receive it yet.
 
+    // -----------------------------------------------------------------
+    // BEGIN: Referral viral hook — best-effort. Never block submission.
+    // -----------------------------------------------------------------
+    try {
+      const { recordReferralApplication } = await import('@/lib/referrals/actions')
+      await recordReferralApplication({ applicationId: application.id })
+    } catch (err) {
+      console.error('[submitApplication] referral record failed', err)
+    }
+    // -----------------------------------------------------------------
+    // END: Referral viral hook
+    // -----------------------------------------------------------------
+
     revalidatePath(`/jobs/${job.slug}`)
     revalidatePath('/dashboard/lamaran')
     return { ok: true }

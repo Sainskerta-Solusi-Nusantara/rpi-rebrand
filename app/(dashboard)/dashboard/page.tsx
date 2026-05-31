@@ -1,8 +1,10 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { Gift } from 'lucide-react'
 import { getOnboardingChecklist } from '@/lib/onboarding/checklist'
 import { OnboardingChecklist } from '@/components/organisms/onboarding-checklist'
 import { RecommendedJobsWidget } from '@/components/organisms/recommended-jobs-widget'
@@ -127,6 +129,25 @@ export default async function DashboardOverviewPage() {
           <Suspense fallback={<div className="bg-muted h-48 animate-pulse rounded-xl" />}>
             <RecommendedJobsWidget userId={userId} limit={6} />
           </Suspense>
+
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={'/dashboard/referral' as any}
+            className="border-border bg-card hover:bg-muted block rounded-2xl border p-5 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="bg-primary/10 text-primary inline-flex h-10 w-10 items-center justify-center rounded-full">
+                <Gift className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="flex-1">
+                <div className="font-heading text-base">Undang teman ke RPI</div>
+                <p className="text-muted-foreground text-sm">
+                  Bagikan kode referral Anda dan lacak undangan yang berhasil.
+                </p>
+              </div>
+              <span className="text-primary text-sm font-medium">Buka →</span>
+            </div>
+          </Link>
 
           <section>
             <h2 className="font-heading text-xl mb-4">Progres Belajar</h2>

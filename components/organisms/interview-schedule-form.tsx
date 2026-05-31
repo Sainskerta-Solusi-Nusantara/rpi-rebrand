@@ -6,6 +6,7 @@ import {
   scheduleInterview,
   updateInterview,
 } from '@/lib/tenants/interview-actions'
+import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-actions'
 
 type InterviewType = 'video' | 'onsite' | 'phone'
 
@@ -17,9 +18,12 @@ export type InterviewInitial = {
   meetingUrl?: string | null
   location?: string | null
   notes?: string | null
+  stageOrder?: number | null
+  stageName?: string | null
 }
 
 const PRESET_DURATIONS = [30, 60, 90, 120] as const
+const STAGE_DATALIST_ID = 'interview-stage-name-suggestions'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -83,6 +87,10 @@ export function InterviewScheduleForm({
   )
   const [location, setLocation] = useState<string>(initial?.location ?? '')
   const [notes, setNotes] = useState<string>(initial?.notes ?? '')
+  const [stageName, setStageName] = useState<string>(initial?.stageName ?? '')
+  const [stageOrder, setStageOrder] = useState<string>(
+    initial?.stageOrder ? String(initial.stageOrder) : '',
+  )
 
   const durationMin = useMemo(() => {
     if (durationMode === 'preset') return durationPreset
@@ -112,6 +120,20 @@ export function InterviewScheduleForm({
       return
     }
 
+    const trimmedStageName = stageName.trim()
+    const parsedStageOrder = stageOrder.trim()
+      ? parseInt(stageOrder, 10)
+      : undefined
+    if (
+      parsedStageOrder !== undefined &&
+      (!Number.isFinite(parsedStageOrder) ||
+        parsedStageOrder < 1 ||
+        parsedStageOrder > 50)
+    ) {
+      setFieldErrors({ stageOrder: 'Urutan tahap harus 1-50' })
+      return
+    }
+
     const payload = {
       scheduledAt: localDate.toISOString(),
       durationMin: durationMin as number,
@@ -119,6 +141,8 @@ export function InterviewScheduleForm({
       meetingUrl: type === 'video' ? meetingUrl.trim() || undefined : undefined,
       location: type === 'onsite' ? location.trim() || undefined : undefined,
       notes: notes.trim() || undefined,
+      stageName: trimmedStageName || undefined,
+      stageOrder: parsedStageOrder,
     }
 
     startTransition(async () => {
@@ -144,6 +168,8 @@ export function InterviewScheduleForm({
         setMeetingUrl('')
         setLocation('')
         setNotes('')
+        setStageName('')
+        setStageOrder('')
       }
       router.refresh()
       onSuccess?.()
@@ -290,6 +316,56 @@ export function InterviewScheduleForm({
           )}
         </div>
       )}
+
+      <datalist id={STAGE_DATALIST_ID}>
+        {DEFAULT_STAGE_NAMES.map((name) => (
+          <option key={name} value={name} />
+        ))}
+      </datalist>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <label htmlFor="stageName" className="block text-sm font-medium">
+            Nama tahap (opsional)
+          </label>
+          <input
+            id="stageName"
+            type="text"
+            list={STAGE_DATALIST_ID}
+            value={stageName}
+            onChange={(e) => setStageName(e.target.value)}
+            placeholder="Misal: Technical"
+            disabled={pending}
+            maxLength={80}
+            aria-invalid={Boolean(fieldErrors.stageName)}
+            className={inputClass}
+          />
+          {fieldErrors.stageName && (
+            <p className="text-destructive text-xs">{fieldErrors.stageName}</p>
+          )}
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="stageOrder" className="block text-sm font-medium">
+            Urutan tahap (opsional)
+          </label>
+          <input
+            id="stageOrder"
+            type="number"
+            min={1}
+            max={50}
+            step={1}
+            value={stageOrder}
+            onChange={(e) => setStageOrder(e.target.value)}
+            placeholder="Otomatis tahap berikutnya"
+            disabled={pending}
+            aria-invalid={Boolean(fieldErrors.stageOrder)}
+            className={inputClass}
+          />
+          {fieldErrors.stageOrder && (
+            <p className="text-destructive text-xs">{fieldErrors.stageOrder}</p>
+          )}
+        </div>
+      </div>
 
       <div className="space-y-1">
         <label htmlFor="notes" className="block text-sm font-medium">

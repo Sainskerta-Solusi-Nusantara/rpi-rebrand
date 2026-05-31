@@ -227,6 +227,7 @@ model User {
   timezone           String?
   username           String?   @unique
   profilePublic      Boolean   @default(false) @map("profile_public")
+  referredByCode     String?   @map("referred_by_code")
   totpSecret         String?   @map("totp_secret")
   totpEnabledAt      DateTime? @map("totp_enabled_at")
   createdAt     DateTime   @default(now()) @map("created_at")
@@ -259,6 +260,8 @@ model User {
   interviewsCreated       InterviewSchedule[] @relation("InterviewCreatedBy")
   messagesSent            Message[]           @relation("MessageSender")
   scorecardsAuthored      InterviewScorecard[] @relation("ScorecardAuthor")
+  referrals               Referral[]
+  referralUsages          ReferralUsage[]     @relation("ReferralReferred")
 
   @@index([globalRole])
   @@index([status])
@@ -395,6 +398,35 @@ model EmailDigestLog {
   @@map("email_digest_logs")
 }
 
+model Referral {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  code      String   @unique
+  uses      Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usages ReferralUsage[]
+
+  @@index([userId])
+  @@map("referrals")
+}
+
+model ReferralUsage {
+  id              String   @id @default(cuid())
+  referralId      String   @map("referral_id")
+  referredUserId  String   @unique @map("referred_user_id")
+  appliedJobId    String?  @map("applied_job_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  referral     Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  referredUser User     @relation("ReferralReferred", fields: [referredUserId], references: [id], onDelete: Cascade)
+
+  @@index([referralId])
+  @@map("referral_usages")
+}
+
 model MessageThread {
   id            String    @id @default(cuid())
   applicationId String    @unique @map("application_id")
@@ -470,6 +502,8 @@ model InterviewSchedule {
   notes          String?
   reminderSentAt DateTime? @map("reminder_sent_at")
   status         String    @default("scheduled") // scheduled | completed | cancelled | no_show
+  stageOrder     Int       @default(1) @map("stage_order")
+  stageName      String?   @map("stage_name") // "Technical", "HR", "Cultural Fit", "Final", custom
   createdById    String?   @map("created_by_id")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")

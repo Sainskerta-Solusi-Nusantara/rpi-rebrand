@@ -202,3 +202,197 @@ export const summarizeApplicationScorecards = cache(
     }
   },
 )
+
+export type StageInterviewSummary = {
+  id: string
+  scheduledAt: Date
+  status: string
+  type: string
+  scorecard: {
+    recommendation: string
+    averageScore: number | null
+  } | null
+}
+
+export type PipelineStageSummary = {
+  stageOrder: number
+  stageName: string | null
+  interviews: StageInterviewSummary[]
+  scorecardCount: number
+  averageScore: number | null
+  recommendationTally: Record<string, number>
+}
+
+export type PipelineOverallRecommendation =
+  | 'strong_hire'
+  | 'hire'
+  | 'no_hire'
+  | 'strong_no_hire'
+  | null
+
+export type PipelineSummary = {
+  stages: PipelineStageSummary[]
+  overallRecommendation: PipelineOverallRecommendation
+}
+
+const POSITIVE_RECOMMENDATIONS = new Set(['strong_hire', 'hire'])
+const NEGATIVE_RECOMMENDATIONS = new Set(['strong_no_hire', 'no_hire'])
+
+/**
+ * Reduce a stage's recommendation tally to a single signal. We weight
+ * "strong_*" over plain hire/no_hire so a single decisive scorecard can
+ * dominate a noisy stage.
+ */
+function dominantStageSignal(
+  tally: Record<string, number>,
+): 'strong_hire' | 'hire' | 'no_hire' | 'strong_no_hire' | null {
+  const total = Object.values(tally).reduce((acc, v) => acc + v, 0)
+  if (total === 0) return null
+  if ((tally.strong_no_hire ?? 0) > 0) return 'strong_no_hire'
+  if ((tally.strong_hire ?? 0) > 0 && (tally.no_hire ?? 0) === 0)
+    return 'strong_hire'
+  const hires = tally.hire ?? 0
+  const noHires = tally.no_hire ?? 0
+  if (hires > noHires) return 'hire'
+  if (noHires > hires) return 'no_hire'
+  // Tie — lean to the more conservative signal so we don't overpromise.
+  return 'no_hire'
+}
+
+/**
+ * Aggregate scorecards per stage for the pipeline view. Always returns a
+ * stage row for every distinct stageOrder that has interviews — empty
+ * stages render as "Belum dijadwalkan" in the UI.
+ *
+ * Overall recommendation heuristic:
+ *  - any "strong_no_hire" signal anywhere → strong_no_hire
+ *  - otherwise, if any "strong_hire" stage and no negative stages → strong_hire
+ *  - otherwise majority wins (positive vs negative stage signals)
+ *  - null when there are fewer than 2 scorecards total (not enough signal)
+ */
+export const summarizePipelineByStage = cache(
+  async (applicationId: string): Promise<PipelineSummary> => {
+    const empty: PipelineSummary = {
+      stages: [],
+      overallRecommendation: null,
+    }
+    if (!applicationId) return empty
+
+    try {
+      const interviews = await prisma.interviewSchedule.findMany({
+        where: { applicationId },
+        orderBy: [{ stageOrder: 'asc' }, { scheduledAt: 'asc' }],
+        select: {
+          id: true,
+          scheduledAt: true,
+          status: true,
+          type: true,
+          stageOrder: true,
+          stageName: true,
+          scorecard: {
+            select: {
+              ratings: true,
+              recommendation: true,
+            },
+          },
+        },
+      })
+
+      // Group by stageOrder. Stage name resolves to the first non-null name
+      // we encounter for that order (stable thanks to the asc sort above).
+      const buckets = new Map<
+        number,
+        {
+          stageName: string | null
+          interviews: StageInterviewSummary[]
+          scores: number[]
+          tally: Record<string, number>
+        }
+      >()
+
+      for (const iv of interviews) {
+        const bucket = buckets.get(iv.stageOrder) ?? {
+          stageName: iv.stageName,
+          interviews: [],
+          scores: [],
+          tally: {},
+        }
+        if (!bucket.stageName && iv.stageName) bucket.stageName = iv.stageName
+
+        let cardSummary: StageInterviewSummary['scorecard'] = null
+        if (iv.scorecard) {
+          const ratings = parseRatings(iv.scorecard.ratings)
+          const avg = averageOf(ratings.map((r) => r.score))
+          cardSummary = {
+            recommendation: iv.scorecard.recommendation,
+            averageScore: avg,
+          }
+          for (const r of ratings) bucket.scores.push(r.score)
+          const rec = iv.scorecard.recommendation
+          bucket.tally[rec] = (bucket.tally[rec] ?? 0) + 1
+        }
+
+        bucket.interviews.push({
+          id: iv.id,
+          scheduledAt: iv.scheduledAt,
+          status: iv.status,
+          type: iv.type,
+          scorecard: cardSummary,
+        })
+        buckets.set(iv.stageOrder, bucket)
+      }
+
+      const stages: PipelineStageSummary[] = Array.from(buckets.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([stageOrder, bucket]) => {
+          const scorecardCount = Object.values(bucket.tally).reduce(
+            (acc, v) => acc + v,
+            0,
+          )
+          return {
+            stageOrder,
+            stageName: bucket.stageName,
+            interviews: bucket.interviews,
+            scorecardCount,
+            averageScore: averageOf(bucket.scores),
+            recommendationTally: bucket.tally,
+          }
+        })
+
+      // Compute overall signal across stages.
+      let positiveStages = 0
+      let negativeStages = 0
+      let hasStrongHire = false
+      let hasStrongNoHire = false
+      let totalScorecards = 0
+      for (const stage of stages) {
+        totalScorecards += stage.scorecardCount
+        const signal = dominantStageSignal(stage.recommendationTally)
+        if (signal === 'strong_no_hire') hasStrongNoHire = true
+        if (signal === 'strong_hire') hasStrongHire = true
+        if (signal && POSITIVE_RECOMMENDATIONS.has(signal)) positiveStages += 1
+        if (signal && NEGATIVE_RECOMMENDATIONS.has(signal)) negativeStages += 1
+      }
+
+      let overall: PipelineOverallRecommendation = null
+      if (totalScorecards >= 2) {
+        if (hasStrongNoHire) {
+          overall = 'strong_no_hire'
+        } else if (hasStrongHire && negativeStages === 0) {
+          overall = 'strong_hire'
+        } else if (positiveStages > negativeStages) {
+          overall = 'hire'
+        } else if (negativeStages > positiveStages) {
+          overall = 'no_hire'
+        } else if (positiveStages > 0 || negativeStages > 0) {
+          // Tie — be conservative.
+          overall = 'no_hire'
+        }
+      }
+
+      return { stages, overallRecommendation: overall }
+    } catch {
+      return empty
+    }
+  },
+)

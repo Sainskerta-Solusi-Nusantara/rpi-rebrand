@@ -23,6 +23,9 @@ import {
 
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
+import { EnrollCourseButton } from '@/components/organisms/enroll-course-button'
+import { auth } from '@/lib/auth/session'
+import { prisma } from '@/lib/db'
 import {
   LESSON_TYPE_LABEL,
   LEVEL_COLOR,
@@ -82,6 +85,41 @@ function lessonIcon(type: CourseLesson['type']) {
 export default async function CourseDetailPage({ params }: { params: Params }) {
   const course = await findCourse(params.slug)
   if (!course) notFound()
+
+  // Look up the signed-in user's existing enrollment (if any) so the CTA
+  // can switch between "Daftar", "Lanjutkan", or "Lihat sertifikat".
+  const session = await auth()
+  const signedIn = Boolean(session?.user?.id)
+  let enrollmentLite: {
+    id: string
+    status: 'IN_PROGRESS' | 'COMPLETED' | 'EXPIRED'
+    progress: number
+    certificateId: string | null
+  } | null = null
+  if (session?.user?.id) {
+    const e = await prisma.enrollment
+      .findUnique({
+        where: {
+          userId_courseId: { userId: session.user.id, courseId: course.id },
+        },
+        select: { id: true, status: true, progress: true },
+      })
+      .catch(() => null)
+    if (e) {
+      const cert = await prisma.certificate
+        .findFirst({
+          where: { userId: session.user.id, courseId: course.id },
+          select: { id: true },
+        })
+        .catch(() => null)
+      enrollmentLite = {
+        id: e.id,
+        status: e.status,
+        progress: e.progress,
+        certificateId: cert?.id ?? null,
+      }
+    }
+  }
 
   const related = await relatedCourses(params.slug, 3)
   const totalMinutes = course.modules.reduce(
@@ -464,12 +502,13 @@ export default async function CourseDetailPage({ params }: { params: Params }) {
                   )}
                 </div>
 
-                <Button asChild size="lg" className="mt-5 w-full">
-                  <a href="/login?next=/enroll">
-                    <Sparkles className="mr-2 h-4 w-4" aria-hidden />
-                    {isFree ? 'Daftar Sekarang' : 'Beli & Mulai Belajar'}
-                  </a>
-                </Button>
+                <div className="mt-5">
+                  <EnrollCourseButton
+                    courseSlug={course.slug}
+                    enrollment={enrollmentLite}
+                    signedIn={signedIn}
+                  />
+                </div>
                 <Button asChild variant="outline" className="mt-3 w-full">
                   <a href={`/courses/${course.slug}#preview`}>
                     <PlayCircle className="mr-2 h-4 w-4" aria-hidden />

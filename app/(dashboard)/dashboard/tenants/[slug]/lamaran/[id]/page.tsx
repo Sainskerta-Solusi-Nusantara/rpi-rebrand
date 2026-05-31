@@ -24,7 +24,12 @@ import {
 import { InterviewScheduleForm } from '@/components/organisms/interview-schedule-form'
 import { InterviewRowActions } from '@/components/organisms/interview-row-actions'
 import { ScorecardSummary } from '@/components/organisms/scorecard-summary'
-import { summarizeApplicationScorecards } from '@/lib/scorecards/queries'
+import { InterviewPipelineView } from '@/components/organisms/interview-pipeline-view'
+import { PipelineEditor } from '@/components/organisms/interview-pipeline-editor'
+import {
+  summarizeApplicationScorecards,
+  summarizePipelineByStage,
+} from '@/lib/scorecards/queries'
 import { getThreadForApplication } from '@/lib/messaging/queries'
 
 export const metadata = { title: 'Detail Lamaran — Dasbor' }
@@ -156,6 +161,8 @@ export default async function TenantApplicationDetailPage({
         location: true,
         notes: true,
         status: true,
+        stageOrder: true,
+        stageName: true,
         scorecard: { select: { id: true } },
       },
     })
@@ -170,11 +177,14 @@ export default async function TenantApplicationDetailPage({
           location: string | null
           notes: string | null
           status: string
+          stageOrder: number
+          stageName: string | null
           scorecard: { id: string } | null
         }>,
     )
 
   const scorecardSummary = await summarizeApplicationScorecards(application.id)
+  const pipelineSummary = await summarizePipelineByStage(application.id)
 
   // Recruiter-side unread badge for this thread: count messages the recruiter
   // hasn't read yet AND that weren't sent by this viewer.
@@ -443,6 +453,8 @@ export default async function TenantApplicationDetailPage({
 
       <ScorecardSummary summary={scorecardSummary} />
 
+      <InterviewPipelineView pipeline={pipelineSummary} />
+
       <section
         aria-label="Wawancara"
         className="border-border bg-card rounded-2xl border p-6 space-y-4"
@@ -553,6 +565,8 @@ export default async function TenantApplicationDetailPage({
                         location: iv.location,
                         notes: iv.notes,
                         status: iv.status,
+                        stageOrder: iv.stageOrder,
+                        stageName: iv.stageName,
                       }}
                     />
                   )}
@@ -571,6 +585,20 @@ export default async function TenantApplicationDetailPage({
           </div>
         )}
       </section>
+
+      {canManage && interviews.length > 0 && (
+        <PipelineEditor
+          applicationId={application.id}
+          initialInterviews={interviews.map((iv) => ({
+            id: iv.id,
+            scheduledAt: iv.scheduledAt,
+            type: iv.type,
+            status: iv.status,
+            stageOrder: iv.stageOrder,
+            stageName: iv.stageName,
+          }))}
+        />
+      )}
 
       <section
         aria-label="Aktivitas terbaru"

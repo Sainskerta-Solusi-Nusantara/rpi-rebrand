@@ -9,6 +9,8 @@ import {
   LocationType,
 } from '@prisma/client'
 import { createJob, updateJob } from '@/lib/tenants/job-actions'
+import { generateJdAction } from '@/lib/jd-generator/actions'
+import { SkillAutocomplete } from '@/components/organisms/skill-autocomplete'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -128,8 +130,55 @@ export function JobForm({
   const [location, setLocation] = useState(seed.location)
   const [locationType, setLocationType] = useState<LocationType>(seed.locationType)
   const [categoryId, setCategoryId] = useState<string>(seed.categoryId ?? '')
-  const [tags, setTags] = useState(seed.tags.join(', '))
+  const [tags, setTags] = useState<string[]>(seed.tags)
   const [status, setStatus] = useState<JobStatus>(seed.status)
+
+  // JD generator state — local to this form, no schema change.
+  const [jdPending, setJdPending] = useState(false)
+  const [jdPreview, setJdPreview] = useState<{
+    description: string
+    responsibilities: string
+    requirements: string
+    benefits: string
+  } | null>(null)
+  const [jdError, setJdError] = useState<string | null>(null)
+
+  async function onGenerateJd() {
+    setJdError(null)
+    setJdPreview(null)
+    if (!title.trim() || title.trim().length < 3) {
+      setJdError('Isi judul terlebih dahulu (minimal 3 karakter).')
+      return
+    }
+    setJdPending(true)
+    try {
+      const result = await generateJdAction({
+        tenantSlug,
+        title,
+        level: experienceLevel,
+        employmentType,
+        location,
+        locationType,
+        tags,
+      })
+      if (!result.ok) {
+        setJdError(result.error)
+        return
+      }
+      setJdPreview(result.data ?? null)
+    } finally {
+      setJdPending(false)
+    }
+  }
+
+  function applyJdPreview() {
+    if (!jdPreview) return
+    setDescription(jdPreview.description)
+    setResponsibilities(jdPreview.responsibilities)
+    setRequirements(jdPreview.requirements)
+    setBenefits(jdPreview.benefits)
+    setJdPreview(null)
+  }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -320,18 +369,18 @@ export function JobForm({
           </div>
           <div className="space-y-1">
             <label htmlFor="f-tags" className={labelClass}>
-              Tag (pisahkan dengan koma)
+              Skill / tag
             </label>
-            <input
-              id="f-tags"
+            <SkillAutocomplete
               name="tags"
-              type="text"
               value={tags}
-              onChange={(e) => setTags(e.target.value)}
+              onChange={setTags}
               disabled={pending}
-              placeholder="react, typescript, remote"
-              className={inputClass}
+              placeholder="Ketik skill (mis. react), Enter untuk menambah"
             />
+            <p className="text-muted-foreground text-xs">
+              Pilih dari saran atau ketik skill baru. Tekan Enter atau koma untuk menambahkan.
+            </p>
           </div>
         </div>
       </fieldset>
@@ -339,9 +388,68 @@ export function JobForm({
       <fieldset className="space-y-4">
         <legend className="text-sm font-medium text-foreground">Detail konten</legend>
         <div className="space-y-1">
-          <label htmlFor="f-description" className={labelClass}>
-            Deskripsi <span className="text-muted-foreground">(min 50 karakter)</span>
-          </label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label htmlFor="f-description" className={labelClass}>
+              Deskripsi <span className="text-muted-foreground">(min 50 karakter)</span>
+            </label>
+            <button
+              type="button"
+              onClick={onGenerateJd}
+              disabled={pending || jdPending}
+              className="border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60"
+              title="Buat draft JD berdasarkan judul, level, dan skill"
+            >
+              {jdPending ? 'Membuat draft…' : 'Generate dari role'}
+            </button>
+          </div>
+          {jdError && (
+            <p
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs text-destructive"
+            >
+              {jdError}
+            </p>
+          )}
+          {jdPreview && (
+            <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-xs">
+              <p className="text-muted-foreground">
+                Draft berhasil dibuat. Tinjau ringkasan di bawah lalu konfirmasi untuk menerapkan
+                (akan menimpa deskripsi, tanggung jawab, kualifikasi, dan benefit).
+              </p>
+              <details className="rounded border border-border bg-background/60 p-2">
+                <summary className="cursor-pointer font-medium text-foreground">
+                  Pratinjau deskripsi
+                </summary>
+                <pre className="mt-2 whitespace-pre-wrap text-foreground">
+                  {jdPreview.description}
+                </pre>
+              </details>
+              <details className="rounded border border-border bg-background/60 p-2">
+                <summary className="cursor-pointer font-medium text-foreground">
+                  Pratinjau tanggung jawab
+                </summary>
+                <pre className="mt-2 whitespace-pre-wrap text-foreground">
+                  {jdPreview.responsibilities}
+                </pre>
+              </details>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={applyJdPreview}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[hsl(220,50%,14%)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[hsl(220,50%,18%)]"
+                >
+                  Terapkan draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setJdPreview(null)}
+                  className="border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-foreground"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          )}
           <textarea
             id="f-description"
             name="description"
