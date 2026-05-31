@@ -22,6 +22,36 @@ export type InterviewInitial = {
   stageName?: string | null
 }
 
+/**
+ * Server-supplied suggestions for the "Pertanyaan yang disarankan" block.
+ * The parent component pre-fetches these via
+ * `lib/interview-questions/queries.ts#getQuestionSetForTenant` based on the
+ * initial stage name (or a mixed pick when starting a fresh interview).
+ */
+export type SuggestedQuestion = {
+  id: string
+  text: string
+  category: string
+  difficulty: number
+}
+
+const SUGGESTED_CATEGORY_LABELS: Record<string, string> = {
+  technical: 'Teknis',
+  behavioral: 'Perilaku',
+  situational: 'Situasional',
+  culture: 'Budaya',
+  other: 'Lainnya',
+}
+
+function buildNotesAppendix(questions: SuggestedQuestion[]): string {
+  if (questions.length === 0) return ''
+  const lines = ['Pertanyaan yang disarankan:']
+  questions.forEach((q, i) => {
+    lines.push(`${i + 1}. ${q.text}`)
+  })
+  return lines.join('\n')
+}
+
 const PRESET_DURATIONS = [30, 60, 90, 120] as const
 const STAGE_DATALIST_ID = 'interview-stage-name-suggestions'
 
@@ -47,11 +77,18 @@ function toDatetimeLocal(value: string | Date | undefined): string {
 export function InterviewScheduleForm({
   applicationId,
   initial,
+  suggestedQuestions,
   onSuccess,
   onCancel,
 }: {
   applicationId: string
   initial?: InterviewInitial
+  /**
+   * Pre-fetched (server-side) random pick of interview questions chosen for
+   * the interview's stage. Optional — when absent the suggestions block is
+   * not rendered, preserving backward compatibility.
+   */
+  suggestedQuestions?: SuggestedQuestion[]
   onSuccess?: () => void
   onCancel?: () => void
 }) {
@@ -385,6 +422,50 @@ export function InterviewScheduleForm({
           <p className="text-destructive text-xs">{fieldErrors.notes}</p>
         )}
       </div>
+
+      {suggestedQuestions && suggestedQuestions.length > 0 && (
+        <details className="border-border bg-muted/30 rounded-md border p-3">
+          <summary className="cursor-pointer text-sm font-medium">
+            Pertanyaan yang disarankan ({suggestedQuestions.length})
+          </summary>
+          <div className="mt-3 space-y-3">
+            <ul className="space-y-2 text-sm">
+              {suggestedQuestions.map((q, i) => (
+                <li
+                  key={q.id}
+                  className="border-border bg-background rounded-md border p-3"
+                >
+                  <div className="text-muted-foreground mb-1 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="font-mono">{i + 1}.</span>
+                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium">
+                      {SUGGESTED_CATEGORY_LABELS[q.category] ?? q.category}
+                    </span>
+                    <span aria-label={`Tingkat kesulitan ${q.difficulty}`}>
+                      {'★'.repeat(Math.max(1, Math.min(5, q.difficulty)))}
+                    </span>
+                  </div>
+                  <p className="whitespace-pre-wrap">{q.text}</p>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => {
+                const appendix = buildNotesAppendix(suggestedQuestions)
+                if (!appendix) return
+                setNotes((prev) => {
+                  const trimmed = prev.trim()
+                  return trimmed ? `${trimmed}\n\n${appendix}` : appendix
+                })
+              }}
+              disabled={pending}
+              className="border-input text-foreground inline-flex items-center justify-center rounded-md border bg-transparent px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Tambahkan ke catatan
+            </button>
+          </div>
+        </details>
+      )}
 
       {banner && (
         <div

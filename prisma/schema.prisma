@@ -162,9 +162,10 @@ model Tenant {
   invitations   Invitation[]
   teamMembers   TeamMember[]
   applications  Application[]
-  webhooks       TenantWebhook[]
-  apiKeys        TenantApiKey[]
-  emailTemplates TenantEmailTemplate[]
+  webhooks            TenantWebhook[]
+  apiKeys             TenantApiKey[]
+  emailTemplates      TenantEmailTemplate[]
+  interviewQuestions  InterviewQuestion[]
 
   @@index([planTier])
   @@index([status])
@@ -263,6 +264,8 @@ model User {
   referrals               Referral[]
   referralUsages          ReferralUsage[]     @relation("ReferralReferred")
   quizAttempts            QuizAttempt[]       @relation("QuizAttemptUser")
+  pushSubscriptions       PushSubscription[]
+  interviewQuestions      InterviewQuestion[] @relation("InterviewQuestionCreatedBy")
 
   @@index([globalRole])
   @@index([status])
@@ -397,6 +400,40 @@ model EmailDigestLog {
   @@unique([userId, period])
   @@index([userId])
   @@map("email_digest_logs")
+}
+
+model InterviewQuestion {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  text        String
+  category    String   // technical | behavioral | situational | culture | other
+  difficulty  Int      @default(3) // 1-5
+  tags        String[]
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User?  @relation("InterviewQuestionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, category])
+  @@index([tenantId, createdAt])
+  @@map("interview_questions")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  keys      Json
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 model Quiz {
@@ -826,6 +863,8 @@ model Application {
   appliedAt   DateTime          @default(now()) @map("applied_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
 
+  aiScore       Int?                @map("ai_score")
+  aiTags        String[]            @map("ai_tags")
   tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   job           Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)

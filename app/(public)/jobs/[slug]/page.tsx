@@ -22,16 +22,28 @@ import {
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
 import { ApplyJobModal, type ApplyJobResume } from '@/components/organisms/apply-job-modal'
+import { SalaryWidget } from '@/components/organisms/salary-widget'
 import { auth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
+import type { ExperienceLevel } from '@prisma/client'
 import {
   EMPLOYMENT_TYPE_LABEL,
   LOCATION_TYPE_LABEL,
   type DummyJob,
+  type JobExperienceLevel,
   findJob,
   getAllJobs,
   relatedJobs,
 } from '@/lib/jobs-data'
+
+const EXPERIENCE_LEVEL_TO_PRISMA: Record<JobExperienceLevel, ExperienceLevel> = {
+  Entry: 'ENTRY',
+  Junior: 'JUNIOR',
+  Mid: 'MID',
+  Senior: 'SENIOR',
+  Lead: 'LEAD',
+  Executive: 'EXECUTIVE',
+}
 
 type Params = { slug: string }
 
@@ -318,7 +330,7 @@ export default async function JobDetailPage({ params }: { params: Params }) {
             </article>
 
             {/* Sticky sidebar */}
-            <aside className="lg:sticky lg:top-24 lg:self-start">
+            <aside className="lg:sticky lg:top-24 lg:self-start space-y-4">
               <div className="border-border bg-card rounded-2xl border p-6">
                 <div className="font-heading text-foreground text-base font-semibold">
                   Lamar lowongan ini
@@ -431,6 +443,12 @@ export default async function JobDetailPage({ params }: { params: Params }) {
                   </p>
                 </div>
               </div>
+
+              <SalaryWidget
+                title={job.title}
+                experienceLevel={EXPERIENCE_LEVEL_TO_PRISMA[job.experienceLevel]}
+                location={job.location}
+              />
             </aside>
           </div>
         </div>

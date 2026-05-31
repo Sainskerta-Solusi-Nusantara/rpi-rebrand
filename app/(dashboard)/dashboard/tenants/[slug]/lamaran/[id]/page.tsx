@@ -30,7 +30,15 @@ import {
   summarizeApplicationScorecards,
   summarizePipelineByStage,
 } from '@/lib/scorecards/queries'
+import { getQuestionSetForTenant } from '@/lib/interview-questions/queries'
 import { getThreadForApplication } from '@/lib/messaging/queries'
+import { ApplicationScreeningBadge } from '@/components/organisms/application-screening-badge'
+import { RunScreeningButton } from '@/components/organisms/run-screening-button'
+import {
+  BREAKDOWN_LABELS,
+  BREAKDOWN_MAX,
+  type ScreeningBreakdown,
+} from '@/lib/applications/screening'
 
 export const metadata = { title: 'Detail Lamaran — Dasbor' }
 
@@ -121,6 +129,8 @@ export default async function TenantApplicationDetailPage({
         notes: true,
         appliedAt: true,
         updatedAt: true,
+        aiScore: true,
+        aiTags: true,
         user: {
           select: {
             id: true,
@@ -185,6 +195,71 @@ export default async function TenantApplicationDetailPage({
 
   const scorecardSummary = await summarizeApplicationScorecards(application.id)
   const pipelineSummary = await summarizePipelineByStage(application.id)
+
+  // Suggested-questions block for the "new interview" form. We infer the
+  // likely next-stage category from the most recent interview's stageName —
+  // Technical → technical, HR / Cultural → behavioral+culture, otherwise mixed.
+  let suggestedCategories: string[] | undefined
+  if (canManage) {
+    const lastStage =
+      interviews.length > 0
+        ? interviews[interviews.length - 1]?.stageName?.toLowerCase() ?? ''
+        : ''
+    if (lastStage.includes('technical')) {
+      suggestedCategories = ['technical']
+    } else if (
+      lastStage.includes('hr') ||
+      lastStage.includes('cultural') ||
+      lastStage.includes('culture')
+    ) {
+      suggestedCategories = ['behavioral', 'culture']
+    }
+    // undefined → mixed pick across all categories
+  }
+  const suggestedQuestions = canManage
+    ? await getQuestionSetForTenant({
+        tenantId: tenant.id,
+        categories: suggestedCategories,
+        count: 5,
+      })
+    : []
+
+  // Pull the latest screening audit row to surface the per-component
+  // breakdown chart. We persist score + tags on the Application itself, but
+  // the breakdown lives in audit metadata so we don't widen the schema.
+  const screeningAudit = await prisma.auditLog
+    .findFirst({
+      where: {
+        tenantId: tenant.id,
+        resource: 'application.screening',
+        resourceId: application.id,
+        action: 'UPDATE',
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { metadata: true, createdAt: true },
+    })
+    .catch(() => null)
+
+  function readBreakdown(meta: unknown): ScreeningBreakdown | null {
+    if (!meta || typeof meta !== 'object') return null
+    const b = (meta as { breakdown?: unknown }).breakdown
+    if (!b || typeof b !== 'object') return null
+    const keys: Array<keyof ScreeningBreakdown> = [
+      'skill',
+      'headline',
+      'experience',
+      'completeness',
+      'location',
+      'coverLetter',
+    ]
+    const out = {} as ScreeningBreakdown
+    for (const k of keys) {
+      const v = (b as Record<string, unknown>)[k]
+      out[k] = typeof v === 'number' ? v : 0
+    }
+    return out
+  }
+  const screeningBreakdown = readBreakdown(screeningAudit?.metadata)
 
   // Recruiter-side unread badge for this thread: count messages the recruiter
   // hasn't read yet AND that weren't sent by this viewer.
@@ -289,6 +364,63 @@ export default async function TenantApplicationDetailPage({
           {STATUS_LABELS[application.status]}
         </span>
       </header>
+
+      <section
+        aria-label="AI screening"
+        className="border-border bg-card rounded-2xl border p-6 space-y-4"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-heading text-lg">AI Screening</h2>
+            <p className="text-muted-foreground text-xs">
+              Skor otomatis berbasis aturan untuk memprioritaskan tinjauan.
+              Bukan pengganti penilaian rekruter.
+            </p>
+          </div>
+          {canManage ? (
+            <RunScreeningButton
+              applicationId={application.id}
+              hasScore={application.aiScore !== null}
+            />
+          ) : null}
+        </div>
+        <ApplicationScreeningBadge
+          score={application.aiScore}
+          tags={application.aiTags}
+        />
+        {screeningBreakdown && application.aiScore !== null ? (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {(
+              Object.keys(screeningBreakdown) as Array<
+                keyof ScreeningBreakdown
+              >
+            ).map((k) => {
+              const value = screeningBreakdown[k]
+              const max = BREAKDOWN_MAX[k]
+              const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0
+              return (
+                <div key={k} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      {BREAKDOWN_LABELS[k]}
+                    </span>
+                    <span className="text-foreground font-mono">
+                      {value}/{max}
+                    </span>
+                  </div>
+                  <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
+                    <div
+                      className="bg-primary h-full"
+                      style={{ width: `${pct}%` }}
+                      aria-hidden="true"
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : null}
+      </section>
 
       <section
         aria-label="Profil pelamar"
@@ -581,7 +713,15 @@ export default async function TenantApplicationDetailPage({
             <h3 className="text-foreground mb-3 text-sm font-medium">
               Jadwalkan wawancara baru
             </h3>
-            <InterviewScheduleForm applicationId={application.id} />
+            <InterviewScheduleForm
+              applicationId={application.id}
+              suggestedQuestions={suggestedQuestions.map((q) => ({
+                id: q.id,
+                text: q.text,
+                category: q.category,
+                difficulty: q.difficulty,
+              }))}
+            />
           </div>
         )}
       </section>

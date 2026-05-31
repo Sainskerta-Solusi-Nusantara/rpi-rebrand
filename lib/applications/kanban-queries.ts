@@ -20,6 +20,8 @@ export type KanbanCard = {
   appliedAt: Date
   updatedAt: Date
   status: ApplicationStatus
+  aiScore: number | null
+  aiTags: string[]
 }
 
 export type KanbanColumn = {
@@ -137,6 +139,8 @@ export const getKanbanData = cache(
       appliedAt: true,
       updatedAt: true,
       jobId: true,
+      aiScore: true,
+      aiTags: true,
       user: { select: { name: true, email: true, image: true } },
       job: { select: { id: true, title: true } },
     } as const
@@ -170,6 +174,8 @@ export const getKanbanData = cache(
         appliedAt: a.appliedAt,
         updatedAt: a.updatedAt,
         status: a.status,
+        aiScore: a.aiScore,
+        aiTags: a.aiTags,
       })
 
       return {

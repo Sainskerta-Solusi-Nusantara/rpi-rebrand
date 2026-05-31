@@ -52,6 +52,15 @@ const envSchema = z.object({
 
   // ----- Cron / scheduled jobs -----
   CRON_SECRET: optionalString,
+
+  // ----- Web Push (VAPID) -----
+  // Generate via: npx web-push generate-vapid-keys
+  // NEXT_PUBLIC_VAPID_PUBLIC_KEY is exposed to the browser (URL-safe base64)
+  // VAPID_PRIVATE_KEY stays server-side
+  // VAPID_SUBJECT must be a "mailto:..." or "https://..." URI per RFC 8292
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: optionalString,
+  VAPID_PRIVATE_KEY: optionalString,
+  VAPID_SUBJECT: optionalString,
 })
 
 const parsed = envSchema.safeParse({
@@ -73,6 +82,9 @@ const parsed = envSchema.safeParse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
   CRON_SECRET: process.env.CRON_SECRET,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT,
 })
 
 if (!parsed.success) {

@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
-import { Gift } from 'lucide-react'
+import { Gift, Wallet } from 'lucide-react'
 import { getOnboardingChecklist } from '@/lib/onboarding/checklist'
 import { OnboardingChecklist } from '@/components/organisms/onboarding-checklist'
 import { RecommendedJobsWidget } from '@/components/organisms/recommended-jobs-widget'
@@ -130,24 +130,44 @@ export default async function DashboardOverviewPage() {
             <RecommendedJobsWidget userId={userId} limit={6} />
           </Suspense>
 
-          <Link
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            href={'/dashboard/referral' as any}
-            className="border-border bg-card hover:bg-muted block rounded-2xl border p-5 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="bg-primary/10 text-primary inline-flex h-10 w-10 items-center justify-center rounded-full">
-                <Gift className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <div className="flex-1">
-                <div className="font-heading text-base">Undang teman ke RPI</div>
-                <p className="text-muted-foreground text-sm">
-                  Bagikan kode referral Anda dan lacak undangan yang berhasil.
-                </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={'/dashboard/referral' as any}
+              className="border-border bg-card hover:bg-muted block rounded-2xl border p-5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="bg-primary/10 text-primary inline-flex h-10 w-10 items-center justify-center rounded-full">
+                  <Gift className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div className="flex-1">
+                  <div className="font-heading text-base">Undang teman ke RPI</div>
+                  <p className="text-muted-foreground text-sm">
+                    Bagikan kode referral Anda dan lacak undangan yang berhasil.
+                  </p>
+                </div>
+                <span className="text-primary text-sm font-medium">Buka →</span>
               </div>
-              <span className="text-primary text-sm font-medium">Buka →</span>
-            </div>
-          </Link>
+            </Link>
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={'/dashboard/salary-insights' as any}
+              className="border-border bg-card hover:bg-muted block rounded-2xl border p-5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="bg-primary/10 text-primary inline-flex h-10 w-10 items-center justify-center rounded-full">
+                  <Wallet className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div className="flex-1">
+                  <div className="font-heading text-base">Wawasan gaji</div>
+                  <p className="text-muted-foreground text-sm">
+                    Lihat estimasi gaji pasar per kategori, level, dan lokasi.
+                  </p>
+                </div>
+                <span className="text-primary text-sm font-medium">Buka →</span>
+              </div>
+            </Link>
+          </div>
 
           <section>
             <h2 className="font-heading text-xl mb-4">Progres Belajar</h2>

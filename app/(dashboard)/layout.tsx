@@ -9,6 +9,7 @@ import {
   getRecentNotifications,
   getUnreadNotificationCount,
 } from '@/lib/notifications/queries'
+import { SwRegister } from '@/app/sw-register'
 
 // Resilient layout-template + SessionProvider lookup.
 function makeFallback() {
@@ -74,6 +75,7 @@ export default async function DashboardGroupLayout({
   return (
     <SessionProvider session={session}>
       <ThemeProvider initial={branding ?? undefined}>
+        <SwRegister />
         <DashboardLayout
           session={session}
           tenant={tenant ?? undefined}
