@@ -266,6 +266,11 @@ model User {
   quizAttempts            QuizAttempt[]       @relation("QuizAttemptUser")
   pushSubscriptions       PushSubscription[]
   interviewQuestions      InterviewQuestion[] @relation("InterviewQuestionCreatedBy")
+  calendarAccounts        CalendarAccount[]
+  assessmentsCreated      Assessment[]        @relation("AssessmentCreatedBy")
+  assessmentAttempts      AssessmentAttempt[] @relation("AssessmentAttemptUser")
+  moderationFlagsReported ModerationFlag[]    @relation("ModerationReporter")
+  moderationFlagsResolved ModerationFlag[]    @relation("ModerationResolver")
 
   @@index([globalRole])
   @@index([status])
@@ -400,6 +405,130 @@ model EmailDigestLog {
   @@unique([userId, period])
   @@index([userId])
   @@map("email_digest_logs")
+}
+
+model CalendarAccount {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  provider      String    // google | microsoft
+  providerEmail String    @map("provider_email")
+  calendarId    String?   @map("calendar_id")
+  accessToken   String    @map("access_token")
+  refreshToken  String?   @map("refresh_token")
+  expiresAt     DateTime? @map("expires_at")
+  scope         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user   User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events CalendarEventMapping[]
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("calendar_accounts")
+}
+
+model CalendarEventMapping {
+  id                String   @id @default(cuid())
+  interviewId       String   @unique @map("interview_id")
+  calendarAccountId String   @map("calendar_account_id")
+  externalEventId   String   @map("external_event_id")
+  htmlLink          String?  @map("html_link")
+  syncedAt          DateTime @default(now()) @map("synced_at")
+
+  interview       InterviewSchedule @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  calendarAccount CalendarAccount   @relation(fields: [calendarAccountId], references: [id], onDelete: Cascade)
+
+  @@index([calendarAccountId])
+  @@map("calendar_event_mappings")
+}
+
+model Assessment {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  title        String
+  description  String
+  category     String // technical | soft | language | cognitive
+  durationMin  Int      @default(30) @map("duration_min")
+  passingScore Int      @default(70) @map("passing_score")
+  status       String   @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  createdById  String?  @map("created_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  createdBy User?                @relation("AssessmentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  questions AssessmentQuestion[]
+  attempts  AssessmentAttempt[]
+
+  @@index([status])
+  @@index([category, status])
+  @@map("assessments")
+}
+
+model AssessmentQuestion {
+  id           String @id @default(cuid())
+  assessmentId String @map("assessment_id")
+  text         String
+  type         String // multiple_choice | true_false | multi_select
+  order        Int
+
+  assessment Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  choices    AssessmentChoice[]
+
+  @@index([assessmentId, order])
+  @@map("assessment_questions")
+}
+
+model AssessmentChoice {
+  id         String  @id @default(cuid())
+  questionId String  @map("question_id")
+  text       String
+  isCorrect  Boolean @default(false) @map("is_correct")
+  order      Int
+
+  question AssessmentQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, order])
+  @@map("assessment_choices")
+}
+
+model AssessmentAttempt {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  assessmentId String    @map("assessment_id")
+  score        Int       @default(0)
+  passed       Boolean   @default(false)
+  answers      Json
+  startedAt    DateTime  @default(now()) @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+
+  user       User       @relation("AssessmentAttemptUser", fields: [userId], references: [id], onDelete: Cascade)
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, assessmentId])
+  @@index([assessmentId, completedAt])
+  @@map("assessment_attempts")
+}
+
+model ModerationFlag {
+  id           String    @id @default(cuid())
+  resourceType String    @map("resource_type") // job | course | user | profile | message | application
+  resourceId   String    @map("resource_id")
+  reason       String // spam | inappropriate | misleading | copyright | other
+  description  String?
+  reportedById String?   @map("reported_by_id")
+  status       String    @default("pending") // pending | reviewing | resolved | dismissed
+  resolution   String?
+  resolvedById String?   @map("resolved_by_id")
+  resolvedAt   DateTime? @map("resolved_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  reportedBy User? @relation("ModerationReporter", fields: [reportedById], references: [id], onDelete: SetNull)
+  resolvedBy User? @relation("ModerationResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([resourceType, resourceId])
+  @@map("moderation_flags")
 }
 
 model InterviewQuestion {
@@ -606,9 +735,10 @@ model InterviewSchedule {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  application Application         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  createdBy   User?               @relation("InterviewCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  scorecard   InterviewScorecard?
+  application    Application           @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdBy      User?                 @relation("InterviewCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  scorecard      InterviewScorecard?
+  calendarEvent  CalendarEventMapping?
 
   @@index([applicationId])
   @@index([scheduledAt])

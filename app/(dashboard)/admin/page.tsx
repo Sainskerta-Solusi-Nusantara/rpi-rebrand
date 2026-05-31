@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
+import { getFlagCounts } from '@/lib/moderation/queries'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,20 +42,29 @@ export default async function AdminOverviewPage() {
   const since = new Date()
   since.setMonth(since.getMonth() - 5)
 
-  const [usersTotal, tenantsTotal, jobsTotal, applicationsTotal, recentUsers, recentJobs, pendingTenants] =
-    await Promise.all([
-      prisma.user.count().catch(() => 0),
-      prisma.tenant.count().catch(() => 0),
-      prisma.job.count().catch(() => 0),
-      prisma.application.count().catch(() => 0),
-      prisma.user
-        .findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } })
-        .catch(() => []),
-      prisma.job
-        .findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } })
-        .catch(() => []),
-      prisma.tenant.count({ where: { status: 'PROVISIONING' } }).catch(() => 0),
-    ])
+  const [
+    usersTotal,
+    tenantsTotal,
+    jobsTotal,
+    applicationsTotal,
+    recentUsers,
+    recentJobs,
+    pendingTenants,
+    flagCounts,
+  ] = await Promise.all([
+    prisma.user.count().catch(() => 0),
+    prisma.tenant.count().catch(() => 0),
+    prisma.job.count().catch(() => 0),
+    prisma.application.count().catch(() => 0),
+    prisma.user
+      .findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } })
+      .catch(() => []),
+    prisma.job
+      .findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } })
+      .catch(() => []),
+    prisma.tenant.count({ where: { status: 'PROVISIONING' } }).catch(() => 0),
+    getFlagCounts(),
+  ])
 
   function bucketize(items: { createdAt: Date }[]) {
     const buckets: Record<string, number> = {}
@@ -103,9 +113,15 @@ export default async function AdminOverviewPage() {
       id: 'moderasi',
       label: 'Moderasi',
       content: (
-        <div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <KPICard label="Menunggu" value={flagCounts.pending} />
+            <KPICard label="Ditinjau" value={flagCounts.reviewing} />
+            <KPICard label="Selesai" value={flagCounts.resolved} />
+            <KPICard label="Ditolak" value={flagCounts.dismissed} />
+          </div>
           <a className="text-primary underline" href="/admin/moderasi">
-            Antrian moderasi
+            Buka antrian moderasi
           </a>
         </div>
       ),

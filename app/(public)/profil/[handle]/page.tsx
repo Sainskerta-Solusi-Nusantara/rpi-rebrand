@@ -15,6 +15,9 @@ import {
 
 import { findPublicProfile } from '@/lib/profile/public-queries'
 import { ShareProfileBar } from '@/components/organisms/share-profile-bar'
+import { ReportFlagButton } from '@/components/organisms/report-flag-button'
+import { getMyPassedAssessmentBadges } from '@/lib/assessments/attempt-actions'
+import { AssessmentBadge } from '@/components/organisms/assessment-badge'
 
 type Params = { handle: string }
 
@@ -87,6 +90,7 @@ export default async function PublicProfilePage({
   const skills = profile.resume?.skills ?? []
   const languages = profile.resume?.languages ?? []
   const certificates = profile.certificates
+  const assessmentBadges = await getMyPassedAssessmentBadges(profile.id)
 
   return (
     <div className="bg-background">
@@ -385,8 +389,49 @@ export default async function PublicProfilePage({
         </section>
       )}
 
+      {/* SERTIFIKASI & ASESMEN — lencana dari standalone assessments */}
+      {assessmentBadges.length > 0 && (
+        <section
+          aria-label="Sertifikasi dan Asesmen"
+          className="border-border border-t bg-muted/30"
+        >
+          <div className="mx-auto w-full max-w-5xl px-6 py-12 md:py-14">
+            <div className="mb-8 flex items-center gap-3">
+              <span
+                className="grid size-9 place-items-center rounded-lg text-white"
+                style={{ background: 'hsl(220, 50%, 14%)' }}
+                aria-hidden
+              >
+                <Award className="h-5 w-5" />
+              </span>
+              <h2 className="font-heading text-2xl font-bold text-foreground md:text-3xl">
+                Sertifikasi & Asesmen
+              </h2>
+            </div>
+            <p className="text-muted-foreground -mt-4 mb-6 text-sm">
+              Lencana di bawah dikeluarkan oleh RPI setelah kandidat lulus
+              asesmen keterampilan resmi.
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {assessmentBadges.map((b) => (
+                <li key={b.assessmentSlug}>
+                  <AssessmentBadge
+                    title={b.title}
+                    category={b.category}
+                    score={b.score}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       {/* EMPTY-STATE FALLBACK if no resume + no certs */}
-      {!hasResume && certificates.length === 0 && !profile.bio && (
+      {!hasResume &&
+        certificates.length === 0 &&
+        assessmentBadges.length === 0 &&
+        !profile.bio && (
         <section className="mx-auto w-full max-w-5xl px-6 py-12 md:py-14">
           <div className="border-border bg-card rounded-2xl border p-10 text-center">
             <UserRound
@@ -437,6 +482,9 @@ export default async function PublicProfilePage({
                 url={profile.shareUrl}
                 displayName={profile.displayName}
               />
+            </div>
+            <div className="mt-6 border-t border-border pt-4">
+              <ReportFlagButton resourceType="profile" resourceId={profile.id} />
             </div>
           </div>
         </div>

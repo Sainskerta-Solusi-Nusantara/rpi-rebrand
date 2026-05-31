@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
 import { ApplyJobModal, type ApplyJobResume } from '@/components/organisms/apply-job-modal'
+import { ReportFlagButton } from '@/components/organisms/report-flag-button'
 import { SalaryWidget } from '@/components/organisms/salary-widget'
 import { auth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
@@ -485,6 +486,9 @@ export default async function JobDetailPage({ params }: { params: Params }) {
                 Lihat lowongan lain
               </Link>
             </Button>
+          </div>
+          <div className="mt-8 flex flex-col items-center gap-2">
+            <ReportFlagButton resourceType="job" resourceId={job.id} />
           </div>
         </div>
       </section>

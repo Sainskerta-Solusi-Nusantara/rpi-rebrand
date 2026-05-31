@@ -9,6 +9,7 @@ import { AccountDeleteForm } from '@/components/organisms/account-delete-form'
 import { DisableTotpForm, RegenerateRecoveryCodesForm } from '@/components/organisms/totp-manage-forms'
 import { EmailChangeForm } from '@/components/organisms/email-change-form'
 import { RevokeDeviceButton, SignOutAllDevicesForm } from '@/components/organisms/device-revoke-controls'
+import { CalendarConnectCard } from '@/components/organisms/calendar-connect-card'
 
 export const metadata = { title: 'Keamanan Akun — Dasbor' }
 
@@ -25,11 +26,17 @@ function truncate(value: string | null, max = 60): string {
 export default async function KeamananPage({
   searchParams,
 }: {
-  searchParams?: { linked?: string }
+  searchParams?: { linked?: string; calendar?: string; reason?: string }
 }) {
   const session = await requireAuth('/dashboard/keamanan')
   const userId = session.user.id
   const showLinkedBanner = searchParams?.linked === '1'
+  const calendarStatus =
+    searchParams?.calendar === 'connected'
+      ? ({ kind: 'connected' } as const)
+      : searchParams?.calendar === 'error'
+        ? ({ kind: 'error', reason: searchParams?.reason } as const)
+        : undefined
 
   const [events, snapshot, ownedTenantCount, devices] = await Promise.all([
     getRecentAuthEvents(userId, 10),
@@ -453,6 +460,8 @@ export default async function KeamananPage({
           Unduh data saya (JSON)
         </a>
       </section>
+
+      <CalendarConnectCard status={calendarStatus} />
 
       <section
         aria-label="Hapus akun"

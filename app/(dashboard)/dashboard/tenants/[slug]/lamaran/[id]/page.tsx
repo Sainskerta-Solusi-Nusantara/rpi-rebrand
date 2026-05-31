@@ -23,6 +23,7 @@ import {
 } from '@/components/organisms/application-status-form'
 import { InterviewScheduleForm } from '@/components/organisms/interview-schedule-form'
 import { InterviewRowActions } from '@/components/organisms/interview-row-actions'
+import { SyncInterviewButton } from '@/components/organisms/sync-interview-button'
 import { ScorecardSummary } from '@/components/organisms/scorecard-summary'
 import { InterviewPipelineView } from '@/components/organisms/interview-pipeline-view'
 import { PipelineEditor } from '@/components/organisms/interview-pipeline-editor'
@@ -174,6 +175,9 @@ export default async function TenantApplicationDetailPage({
         stageOrder: true,
         stageName: true,
         scorecard: { select: { id: true } },
+        calendarEvent: {
+          select: { externalEventId: true, htmlLink: true },
+        },
       },
     })
     .catch(
@@ -190,8 +194,20 @@ export default async function TenantApplicationDetailPage({
           stageOrder: number
           stageName: string | null
           scorecard: { id: string } | null
+          calendarEvent: { externalEventId: string; htmlLink: string | null } | null
         }>,
     )
+
+  // Show "Sinkronkan ke Google Calendar" only when the current recruiter has
+  // a connected calendar account. We render the button per interview row.
+  const viewerCalendarAccount = canManage
+    ? await prisma.calendarAccount
+        .findFirst({
+          where: { userId: session.user.id, provider: 'google' },
+          select: { id: true },
+        })
+        .catch(() => null)
+    : null
 
   const scorecardSummary = await summarizeApplicationScorecards(application.id)
   const pipelineSummary = await summarizePipelineByStage(application.id)
@@ -700,6 +716,19 @@ export default async function TenantApplicationDetailPage({
                         stageOrder: iv.stageOrder,
                         stageName: iv.stageName,
                       }}
+                    />
+                  )}
+                  {canManage && viewerCalendarAccount && (
+                    <SyncInterviewButton
+                      interviewId={iv.id}
+                      syncedMapping={
+                        iv.calendarEvent
+                          ? {
+                              externalEventId: iv.calendarEvent.externalEventId,
+                              htmlLink: iv.calendarEvent.htmlLink,
+                            }
+                          : null
+                      }
                     />
                   )}
                 </li>
