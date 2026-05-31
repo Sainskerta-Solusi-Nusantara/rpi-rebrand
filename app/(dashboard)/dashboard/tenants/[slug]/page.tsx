@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3, GraduationCap, MailQuestion } from 'lucide-react'
+import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3, GraduationCap, MailQuestion, Users, Code } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission, canAccessTenant } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
@@ -184,6 +184,26 @@ export default async function ManageTenantPage({
             >
               <MailQuestion className="h-4 w-4" aria-hidden="true" />
               Email templates
+            </Link>
+          )}
+          {canManageJobs && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/talent-pool` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <Users className="h-4 w-4" aria-hidden="true" />
+              Talent pool
+            </Link>
+          )}
+          {canManageJobs && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/embed` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <Code className="h-4 w-4" aria-hidden="true" />
+              Embed widget
             </Link>
           )}
           {canEditBranding && (

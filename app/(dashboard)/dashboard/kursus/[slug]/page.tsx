@@ -15,6 +15,9 @@ import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
 import { LessonProgressControls } from '@/components/organisms/lesson-progress-controls'
 import { ClaimCertificateButton } from '@/components/organisms/claim-certificate-button'
+import { QuizTaker } from '@/components/organisms/quiz-taker'
+import { getQuizForAttempt } from '@/lib/quizzes/queries'
+import { startAttempt } from '@/lib/quizzes/attempt-actions'
 
 export const metadata = { title: 'Pemutar Kursus' }
 
@@ -89,6 +92,7 @@ export default async function CoursePlayerPage({
               contentBody: true,
               order: true,
               durationMin: true,
+              quiz: { select: { id: true } },
             },
           },
         },
@@ -132,6 +136,74 @@ export default async function CoursePlayerPage({
       select: { id: true },
     })
     .catch(() => null)
+
+  // ---------------------------------------------------------------------------
+  // Quiz support: if the current lesson is a QUIZ with a configured quiz,
+  // either resume the in-progress attempt or start a fresh one. We deliberately
+  // only autostart when there's no completed attempt yet — otherwise we'd
+  // create a new attempt on every page render. Already-passed attempts skip
+  // autostart so the user lands directly on the "Lulus" screen via QuizTaker's
+  // own retry button.
+  // ---------------------------------------------------------------------------
+  let quizPanel: {
+    attemptId: string
+    quiz: {
+      id: string
+      passingScore: number
+      questions: Array<{
+        id: string
+        text: string
+        type: string
+        choices: Array<{ id: string; text: string }>
+      }>
+    }
+  } | null = null
+  let quizUnavailable: string | null = null
+
+  if (
+    currentLesson.contentType === 'QUIZ' &&
+    'quiz' in currentLesson &&
+    currentLesson.quiz?.id
+  ) {
+    const quizId = currentLesson.quiz.id
+    const forAttempt = await getQuizForAttempt(quizId, userId)
+    if (!forAttempt || forAttempt.questions.length === 0) {
+      quizUnavailable = 'Kuis ini belum memiliki pertanyaan.'
+    } else {
+      // Reuse an in-progress (incomplete) attempt; otherwise start a new one.
+      const incomplete = await prisma.quizAttempt.findFirst({
+        where: { quizId, userId, completedAt: null },
+        orderBy: { startedAt: 'desc' },
+        select: { id: true },
+      })
+      if (incomplete) {
+        quizPanel = {
+          attemptId: incomplete.id,
+          quiz: {
+            id: forAttempt.id,
+            passingScore: forAttempt.passingScore,
+            questions: forAttempt.questions,
+          },
+        }
+      } else {
+        const r = await startAttempt({ quizId })
+        if (r.ok && r.data) {
+          quizPanel = {
+            attemptId: r.data.attemptId,
+            quiz: {
+              id: r.data.quiz.id,
+              passingScore: r.data.quiz.passingScore,
+              questions: r.data.quiz.questions,
+            },
+          }
+        } else if (!r.ok) {
+          quizUnavailable = r.error
+        }
+      }
+    }
+  } else if (currentLesson.contentType === 'QUIZ') {
+    quizUnavailable = 'Kuis belum dikonfigurasi.'
+  }
 
   const progress = Math.max(0, Math.min(100, enrollment.progress))
   const isCompleted = enrollment.status === 'COMPLETED'
@@ -317,19 +389,25 @@ export default async function CoursePlayerPage({
                   </div>
                 )
               ) : currentLesson.contentType === 'QUIZ' ? (
-                <div className="border-border bg-muted/30 rounded-lg border p-6 text-center">
-                  <Activity
-                    className="text-muted-foreground mx-auto h-8 w-8"
-                    aria-hidden
+                quizPanel ? (
+                  <QuizTaker
+                    attemptId={quizPanel.attemptId}
+                    quiz={quizPanel.quiz}
                   />
-                  <p className="text-foreground mt-2 font-medium">
-                    Quiz belum tersedia
-                  </p>
-                  <p className="text-muted-foreground mt-1 text-sm">
-                    Fitur kuis akan segera hadir. Anda tetap dapat menandai
-                    pelajaran ini selesai.
-                  </p>
-                </div>
+                ) : (
+                  <div className="border-border bg-muted/30 rounded-lg border p-6 text-center">
+                    <Activity
+                      className="text-muted-foreground mx-auto h-8 w-8"
+                      aria-hidden
+                    />
+                    <p className="text-foreground mt-2 font-medium">
+                      Kuis belum tersedia
+                    </p>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      {quizUnavailable ?? 'Belum dikonfigurasi.'}
+                    </p>
+                  </div>
+                )
               ) : (
                 <article className="prose prose-sm max-w-none">
                   {currentLesson.contentBody ? (

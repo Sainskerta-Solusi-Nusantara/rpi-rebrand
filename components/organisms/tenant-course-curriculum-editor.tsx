@@ -19,6 +19,7 @@ import {
   updateLesson,
   updateModule,
 } from '@/lib/tenants/course-actions'
+import { QuizEditor } from '@/components/organisms/quiz-editor'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -761,6 +762,12 @@ function LessonForm({
           Batal
         </button>
       </div>
+
+      {isEdit && lesson && contentType === LessonContentType.QUIZ && (
+        <div className="border-border bg-card mt-4 rounded-lg border p-4">
+          <QuizEditor lessonId={lesson.id} />
+        </div>
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, FileText } from 'lucide-react'
+import { ChevronLeft, FileText, LayoutGrid } from 'lucide-react'
 import { ApplicationStatus, Prisma } from '@prisma/client'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
@@ -220,6 +220,24 @@ export default async function TenantApplicationsPage({
             <span className="text-foreground font-medium">{tenant.name}</span>.
           </p>
         </div>
+        {canManage ? (
+          <div className="flex items-center gap-2">
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={
+                buildHref(
+                  `/dashboard/tenants/${tenant.slug}/lamaran/kanban`,
+                  { jobId: jobIdFilter, q: search || undefined },
+                  {},
+                ) as any
+              }
+              className="border-border hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+            >
+              <LayoutGrid className="size-4" aria-hidden="true" />
+              Tampilan Kanban
+            </Link>
+          </div>
+        ) : null}
       </header>
 
       <form

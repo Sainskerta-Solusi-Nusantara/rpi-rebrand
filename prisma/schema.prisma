@@ -262,6 +262,7 @@ model User {
   scorecardsAuthored      InterviewScorecard[] @relation("ScorecardAuthor")
   referrals               Referral[]
   referralUsages          ReferralUsage[]     @relation("ReferralReferred")
+  quizAttempts            QuizAttempt[]       @relation("QuizAttemptUser")
 
   @@index([globalRole])
   @@index([status])
@@ -396,6 +397,66 @@ model EmailDigestLog {
   @@unique([userId, period])
   @@index([userId])
   @@map("email_digest_logs")
+}
+
+model Quiz {
+  id            String        @id @default(cuid())
+  lessonId      String        @unique @map("lesson_id")
+  passingScore  Int           @default(70) @map("passing_score")
+  shuffle       Boolean       @default(false)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id     String @id @default(cuid())
+  quizId String @map("quiz_id")
+  text   String
+  type   String // multiple_choice | true_false | multi_select
+  order  Int
+
+  quiz    Quiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  choices QuizChoice[]
+
+  @@index([quizId, order])
+  @@map("quiz_questions")
+}
+
+model QuizChoice {
+  id         String  @id @default(cuid())
+  questionId String  @map("question_id")
+  text       String
+  isCorrect  Boolean @default(false) @map("is_correct")
+  order      Int
+
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, order])
+  @@map("quiz_choices")
+}
+
+model QuizAttempt {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  quizId      String    @map("quiz_id")
+  score       Int       @default(0)
+  passed      Boolean   @default(false)
+  answers     Json
+  startedAt   DateTime  @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+
+  user User @relation("QuizAttemptUser", fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([userId, quizId])
+  @@index([quizId, completedAt])
+  @@map("quiz_attempts")
 }
 
 model Referral {
@@ -862,6 +923,7 @@ model Lesson {
 
   module   Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   progress LessonProgress[]
+  quiz     Quiz?
 
   @@index([moduleId, order])
   @@map("lessons")

@@ -1,0 +1,242 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { CheckCircle2, Loader2, RotateCcw, XCircle } from 'lucide-react'
+
+import {
+  startAttempt,
+  submitAttempt,
+  type SubmitAttemptResult,
+} from '@/lib/quizzes/attempt-actions'
+
+const btnPrimary =
+  'inline-flex items-center justify-center gap-1.5 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60'
+
+const btnSecondary =
+  'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-1.5 rounded-md border px-4 py-2 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
+
+export type QuizTakerQuiz = {
+  id: string
+  passingScore: number
+  questions: Array<{
+    id: string
+    text: string
+    type: string
+    choices: Array<{ id: string; text: string }>
+  }>
+}
+
+export function QuizTaker({
+  attemptId: initialAttemptId,
+  quiz: initialQuiz,
+}: {
+  attemptId: string
+  quiz: QuizTakerQuiz
+}) {
+  const router = useRouter()
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [attemptId, setAttemptId] = useState(initialAttemptId)
+  const [quiz, setQuiz] = useState<QuizTakerQuiz>(initialQuiz)
+  const [answers, setAnswers] = useState<Record<string, Set<string>>>({})
+  const [result, setResult] = useState<SubmitAttemptResult | null>(null)
+
+  function toggleChoice(questionId: string, choiceId: string, multi: boolean) {
+    setAnswers((prev) => {
+      const next = { ...prev }
+      const cur = new Set(next[questionId] ?? [])
+      if (multi) {
+        if (cur.has(choiceId)) cur.delete(choiceId)
+        else cur.add(choiceId)
+      } else {
+        cur.clear()
+        cur.add(choiceId)
+      }
+      next[questionId] = cur
+      return next
+    })
+  }
+
+  function handleSubmit() {
+    setError(null)
+    const unanswered = quiz.questions.filter(
+      (q) => !answers[q.id] || answers[q.id]!.size === 0,
+    )
+    if (unanswered.length > 0) {
+      setError(
+        `Mohon jawab semua pertanyaan (${unanswered.length} masih kosong).`,
+      )
+      return
+    }
+    const payload = quiz.questions.map((q) => ({
+      questionId: q.id,
+      choiceIds: Array.from(answers[q.id] ?? []),
+    }))
+    startTransition(async () => {
+      const r = await submitAttempt({ attemptId, answers: payload })
+      if (!r.ok) {
+        setError(r.error)
+        return
+      }
+      setResult(r.data ?? null)
+      router.refresh()
+    })
+  }
+
+  function handleRetry() {
+    setError(null)
+    startTransition(async () => {
+      const r = await startAttempt({ quizId: quiz.id })
+      if (!r.ok) {
+        setError(r.error)
+        return
+      }
+      if (r.data) {
+        setAttemptId(r.data.attemptId)
+        setQuiz(r.data.quiz)
+        setAnswers({})
+        setResult(null)
+      }
+    })
+  }
+
+  if (result) {
+    return (
+      <div className="space-y-4">
+        <div
+          className={
+            'border-border rounded-lg border p-6 text-center ' +
+            (result.passed
+              ? 'bg-emerald-50'
+              : 'bg-rose-50')
+          }
+        >
+          <div className="flex justify-center">
+            {result.passed ? (
+              <CheckCircle2
+                className="h-10 w-10 text-emerald-600"
+                aria-hidden="true"
+              />
+            ) : (
+              <XCircle className="h-10 w-10 text-rose-600" aria-hidden="true" />
+            )}
+          </div>
+          <p
+            className={
+              'mt-3 text-xl font-semibold ' +
+              (result.passed ? 'text-emerald-800' : 'text-rose-800')
+            }
+          >
+            {result.passed ? 'Lulus!' : 'Belum lulus'}
+          </p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Skor Anda: <strong>{result.score}/100</strong> ·{' '}
+            {result.correctCount}/{result.totalCount} benar
+          </p>
+          <p className="text-muted-foreground text-xs">
+            Skor lulus: {quiz.passingScore}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-2">
+          <button
+            type="button"
+            onClick={handleRetry}
+            disabled={pending}
+            className={btnSecondary}
+          >
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            Coba lagi
+          </button>
+          {result.passed && (
+            <button
+              type="button"
+              onClick={() => router.refresh()}
+              disabled={pending}
+              className={btnPrimary}
+            >
+              Lanjut ke pelajaran berikutnya
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="text-muted-foreground border-border border-l-4 bg-muted/30 px-4 py-2 text-xs">
+        Skor lulus minimum: <strong>{quiz.passingScore}</strong> dari 100.
+      </div>
+
+      <ol className="space-y-5">
+        {quiz.questions.map((q, idx) => {
+          const isMulti = q.type === 'multi_select'
+          const selected = answers[q.id] ?? new Set<string>()
+          return (
+            <li
+              key={q.id}
+              className="border-border bg-card rounded-lg border p-4"
+            >
+              <p className="text-muted-foreground text-xs font-medium uppercase">
+                Pertanyaan {idx + 1} dari {quiz.questions.length}
+              </p>
+              <p className="text-foreground mt-1 font-medium">{q.text}</p>
+              <ul className="mt-3 space-y-2">
+                {q.choices.map((c) => {
+                  const checked = selected.has(c.id)
+                  return (
+                    <li key={c.id}>
+                      <label
+                        className={
+                          'flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition ' +
+                          (checked
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:bg-muted/40')
+                        }
+                      >
+                        <input
+                          type={isMulti ? 'checkbox' : 'radio'}
+                          name={`q-${q.id}`}
+                          checked={checked}
+                          onChange={() => toggleChoice(q.id, c.id, isMulti)}
+                          disabled={pending}
+                          className="h-4 w-4"
+                        />
+                        <span>{c.text}</span>
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            </li>
+          )
+        })}
+      </ol>
+
+      {error && (
+        <p
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          {error}
+        </p>
+      )}
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={pending}
+          className={btnPrimary}
+        >
+          {pending && (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          )}
+          Kumpulkan jawaban
+        </button>
+      </div>
+    </div>
+  )
+}
