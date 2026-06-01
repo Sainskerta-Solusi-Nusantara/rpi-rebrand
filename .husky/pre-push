@@ -1,0 +1,7 @@
+echo "→ Running next build to catch issues Vercel would reject (~30s)…"
+npm run build || {
+  echo ""
+  echo "✗ Build failed. Push aborted — Vercel deploy would also fail."
+  echo "  See memory/feedback_vercel_build_strictness.md for common traps."
+  exit 1
+}
