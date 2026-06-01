@@ -35,7 +35,7 @@ import {
 } from '@/lib/scorecards/queries'
 import { getQuestionSetForTenant } from '@/lib/interview-questions/queries'
 import { getApplicationAnswers } from '@/lib/jobs/question-queries'
-import type { JobQuestionType } from '@/lib/jobs/question-actions'
+import type { JobQuestionType } from '@/lib/jobs/question-constants'
 import { getThreadForApplication } from '@/lib/messaging/queries'
 import { ApplicationScreeningBadge } from '@/components/organisms/application-screening-badge'
 import { RunScreeningButton } from '@/components/organisms/run-screening-button'

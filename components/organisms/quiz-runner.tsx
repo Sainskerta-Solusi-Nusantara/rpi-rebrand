@@ -25,11 +25,8 @@ import {
   XCircle,
 } from 'lucide-react'
 
-import {
-  MAX_ATTEMPTS_PER_QUIZ,
-  startQuizAttempt,
-  submitQuizAttempt,
-} from '@/lib/quiz/quiz-actions'
+import { startQuizAttempt, submitQuizAttempt } from '@/lib/quiz/quiz-actions'
+import { MAX_ATTEMPTS_PER_QUIZ } from '@/lib/quiz/quiz-constants'
 
 const btnPrimary =
   'inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'

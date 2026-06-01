@@ -16,9 +16,11 @@ import {
   deleteJobQuestion,
   reorderJobQuestion,
   updateJobQuestion,
+} from '@/lib/jobs/question-actions'
+import {
   JOB_QUESTION_TYPES,
   type JobQuestionType,
-} from '@/lib/jobs/question-actions'
+} from '@/lib/jobs/question-constants'
 
 const TYPE_LABELS: Record<JobQuestionType, string> = {
   short_text: 'Teks pendek',

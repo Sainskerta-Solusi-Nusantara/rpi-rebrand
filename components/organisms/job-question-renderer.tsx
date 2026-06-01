@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Upload, X } from 'lucide-react'
-import type { JobQuestionType } from '@/lib/jobs/question-actions'
+import type { JobQuestionType } from '@/lib/jobs/question-constants'
 import { uploadJobAnswerAttachment } from '@/lib/applications/answer-actions'
 
 const inputClass =

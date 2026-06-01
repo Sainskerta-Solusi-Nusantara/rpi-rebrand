@@ -6,7 +6,7 @@ import {
   scheduleInterview,
   updateInterview,
 } from '@/lib/tenants/interview-actions'
-import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-actions'
+import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-constants'
 
 type InterviewType = 'video' | 'onsite' | 'phone'
 

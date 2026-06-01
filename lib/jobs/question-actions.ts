@@ -7,29 +7,12 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
-
-export type ActionResult<T = undefined> =
-  | { ok: true; data?: T }
-  | { ok: false; error: string; field?: string }
-
-// =============================================================================
-// Question type catalogue
-// =============================================================================
-
-export const JOB_QUESTION_TYPES = [
-  'short_text',
-  'long_text',
-  'single_choice',
-  'multi_choice',
-  'file_url',
-  'yes_no',
-] as const
-export type JobQuestionType = (typeof JOB_QUESTION_TYPES)[number]
-
-export const CHOICE_TYPES: ReadonlyArray<JobQuestionType> = [
-  'single_choice',
-  'multi_choice',
-]
+import {
+  JOB_QUESTION_TYPES,
+  CHOICE_TYPES,
+  type ActionResult,
+  type JobQuestionType,
+} from '@/lib/jobs/question-constants'
 
 // =============================================================================
 // Helpers

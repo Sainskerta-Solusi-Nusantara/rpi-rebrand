@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { AuditAction, type Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
-import { type JobQuestionType } from '@/lib/jobs/question-actions'
+import { type JobQuestionType } from '@/lib/jobs/question-constants'
 import {
   ALLOWED_JOB_ATTACHMENT_MIME,
   MAX_JOB_ATTACHMENT_BYTES,

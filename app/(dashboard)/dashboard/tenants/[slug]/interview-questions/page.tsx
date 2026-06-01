@@ -5,7 +5,7 @@ import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
 import { listQuestions } from '@/lib/interview-questions/queries'
-import { QUESTION_CATEGORIES } from '@/lib/interview-questions/actions'
+import { QUESTION_CATEGORIES } from '@/lib/interview-questions/constants'
 import { InterviewQuestionCard } from '@/components/organisms/interview-question-card'
 import { QuestionForm } from '@/components/organisms/interview-question-form'
 

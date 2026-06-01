@@ -6,8 +6,8 @@ import { ArrowDown, ArrowUp, Plus } from 'lucide-react'
 import {
   reorderStages,
   quickAddStage,
-  DEFAULT_STAGE_NAMES,
 } from '@/lib/tenants/interview-stage-actions'
+import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-constants'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'

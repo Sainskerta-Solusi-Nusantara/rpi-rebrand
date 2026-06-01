@@ -7,7 +7,7 @@ import {
   deleteEmailTemplate,
   type TemplateStatus,
 } from '@/lib/tenants/email-template-actions'
-import { renderTemplate } from '@/lib/tenants/email-template-resolver'
+import { renderTemplate } from '@/lib/tenants/email-template-render'
 
 type Banner =
   | { kind: 'idle' }

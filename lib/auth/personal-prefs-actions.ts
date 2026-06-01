@@ -75,4 +75,3 @@ export async function updatePersonalPrefs(formData: FormData): Promise<ActionRes
   }
 }
 
-export const SUPPORTED_TIMEZONES_LIST = SUPPORTED_TIMEZONES

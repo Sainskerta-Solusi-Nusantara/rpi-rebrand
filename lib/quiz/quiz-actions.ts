@@ -7,32 +7,11 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { issueCertificate } from '@/lib/quiz/certificate-issuer'
-
-// -----------------------------------------------------------------------------
-// Constants & types
-// -----------------------------------------------------------------------------
-
-/**
- * Hard cap on quiz attempts per (user, quiz). Configurable later via a
- * per-quiz field or tenant setting — for now this lives as a single global
- * constant so the policy is easy to audit.
- */
-export const MAX_ATTEMPTS_PER_QUIZ = 5
-
-export type StartAttemptResult =
-  | { ok: true; attemptId: string }
-  | { ok: false; error: string }
-
-export type SubmitAttemptResult =
-  | {
-      ok: true
-      score: number
-      passed: boolean
-      certificateIssued: boolean
-      certificateId?: string
-      certificateNumber?: string
-    }
-  | { ok: false; error: string }
+import {
+  MAX_ATTEMPTS_PER_QUIZ,
+  type StartAttemptResult,
+  type SubmitAttemptResult,
+} from '@/lib/quiz/quiz-constants'
 
 // -----------------------------------------------------------------------------
 // Helpers

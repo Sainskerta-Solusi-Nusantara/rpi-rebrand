@@ -9,17 +9,11 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { scheduleInterview } from '@/lib/tenants/interview-actions'
 
+import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-constants'
+
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
   | { ok: false; error: string; field?: string }
-
-export const DEFAULT_STAGE_NAMES = [
-  'Screening',
-  'Technical',
-  'Behavioral',
-  'HR / Cultural Fit',
-  'Final',
-] as const
 
 function getRequestMeta() {
   try {

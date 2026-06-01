@@ -1,6 +1,6 @@
 import { cache } from 'react'
 import { prisma } from '@/lib/db'
-import type { JobQuestionType } from '@/lib/jobs/question-actions'
+import type { JobQuestionType } from '@/lib/jobs/question-constants'
 
 export type JobQuestionRow = {
   id: string

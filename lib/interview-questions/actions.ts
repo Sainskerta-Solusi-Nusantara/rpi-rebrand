@@ -8,24 +8,11 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { normalizeSkill } from '@/lib/skills/search'
-
-export type ActionResult<T = undefined> =
-  | { ok: true; data?: T }
-  | { ok: false; error: string; field?: string }
-
-/**
- * Allowed question categories. Indonesian copy is rendered in the UI but the
- * stored value is the canonical English slug so server-side filters stay
- * stable across locales.
- */
-export const QUESTION_CATEGORIES = [
-  'technical',
-  'behavioral',
-  'situational',
-  'culture',
-  'other',
-] as const
-export type QuestionCategory = (typeof QUESTION_CATEGORIES)[number]
+import {
+  QUESTION_CATEGORIES,
+  type ActionResult,
+  type QuestionCategory,
+} from '@/lib/interview-questions/constants'
 
 function getRequestMeta() {
   try {

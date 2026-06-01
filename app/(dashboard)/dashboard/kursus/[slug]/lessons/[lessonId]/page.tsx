@@ -27,7 +27,8 @@ import {
   getQuizForLesson,
   getQuizAttemptsForUser,
 } from '@/lib/quiz/quiz-queries'
-import { startQuizAttempt, MAX_ATTEMPTS_PER_QUIZ } from '@/lib/quiz/quiz-actions'
+import { startQuizAttempt } from '@/lib/quiz/quiz-actions'
+import { MAX_ATTEMPTS_PER_QUIZ } from '@/lib/quiz/quiz-constants'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Pelajaran' }

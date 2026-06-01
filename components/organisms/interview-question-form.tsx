@@ -3,12 +3,11 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Star } from 'lucide-react'
+import { createQuestion, updateQuestion } from '@/lib/interview-questions/actions'
 import {
-  createQuestion,
-  updateQuestion,
   QUESTION_CATEGORIES,
   type QuestionCategory,
-} from '@/lib/interview-questions/actions'
+} from '@/lib/interview-questions/constants'
 import { SkillAutocomplete } from '@/components/organisms/skill-autocomplete'
 
 export type QuestionFormInitial = {
