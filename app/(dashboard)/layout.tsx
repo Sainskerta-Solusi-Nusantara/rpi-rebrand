@@ -85,7 +85,7 @@ export default async function DashboardGroupLayout({
         })
         .catch(() => null)
     : null
-  const branding = await getTenantBranding(slug).catch(() => null)
+  const branding = await getTenantBranding(slug ?? null).catch(() => null)
 
   const userId = session.user.id
   const [notificationsUnreadCount, recentNotifications, mentionUnreadCount] =
@@ -97,7 +97,7 @@ export default async function DashboardGroupLayout({
 
   return (
     <SessionProvider session={session}>
-      <ThemeProvider initial={branding ?? undefined}>
+      <ThemeProvider initial={branding?.tokens} customCss={branding?.customCss ?? null}>
         <SwRegister />
         <DashboardLayout
           session={session}

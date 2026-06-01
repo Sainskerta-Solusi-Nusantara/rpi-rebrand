@@ -114,11 +114,11 @@ export default async function DashboardOverviewPage() {
   for (const a of applications) {
     const meta = `${a.job.tenant?.name ?? ''} • ${a.job.location ?? ''}`
     if (a.status === 'APPLIED' || a.status === 'REVIEWED') {
-      kanbanColumns[1].items.push({ id: a.id, title: a.job.title, meta })
+      kanbanColumns[1]!.items.push({ id: a.id, title: a.job.title, meta })
     } else if (a.status === 'SHORTLISTED' || a.status === 'INTERVIEW') {
-      kanbanColumns[2].items.push({ id: a.id, title: a.job.title, meta })
+      kanbanColumns[2]!.items.push({ id: a.id, title: a.job.title, meta })
     } else if (a.status === 'OFFERED' || a.status === 'HIRED') {
-      kanbanColumns[3].items.push({ id: a.id, title: a.job.title, meta })
+      kanbanColumns[3]!.items.push({ id: a.id, title: a.job.title, meta })
     }
   }
 

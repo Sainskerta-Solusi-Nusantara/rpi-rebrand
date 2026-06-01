@@ -170,7 +170,7 @@ function mergeCategories(
     return FALLBACK_CATEGORIES.map((c) => ({ ...c, _isFallback: true }))
   }
   return input.slice(0, 8).map((c, i) => {
-    const fb = FALLBACK_CATEGORIES[i % FALLBACK_CATEGORIES.length]
+    const fb = FALLBACK_CATEGORIES[i % FALLBACK_CATEGORIES.length]!
     const Icon = (c.icon && ICON_MAP[c.icon]) || fb.icon
     return {
       id: c.id,

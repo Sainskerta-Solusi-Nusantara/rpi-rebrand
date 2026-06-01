@@ -30,7 +30,7 @@ export const metadata = { title: 'Branding Platform' }
 
 export default async function AdminBrandingPage() {
   // Platform-default branding (no tenant context).
-  const branding = await getTenantBranding(undefined).catch(() => null)
+  const branding = await getTenantBranding(null).catch(() => null)
 
   return (
     <div className="p-6 max-w-4xl">

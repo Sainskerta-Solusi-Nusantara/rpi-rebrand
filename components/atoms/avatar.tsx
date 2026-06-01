@@ -27,16 +27,17 @@ export interface AvatarProps
   src?: string | null
   alt?: string
   name?: string | null
+  fallback?: React.ReactNode
 }
 
 export const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   AvatarProps
->(({ className, size, src, alt, name, children, ...props }, ref) => (
+>(({ className, size, src, alt, name, fallback, children, ...props }, ref) => (
   <AvatarPrimitive.Root ref={ref} className={cn(avatarVariants({ size }), className)} {...props}>
     {src && <AvatarPrimitive.Image src={src} alt={alt ?? name ?? ''} className="aspect-square h-full w-full object-cover" />}
     <AvatarPrimitive.Fallback className="flex h-full w-full items-center justify-center bg-primary/10 font-semibold text-primary">
-      {children ?? getInitials(name)}
+      {children ?? fallback ?? getInitials(name)}
     </AvatarPrimitive.Fallback>
   </AvatarPrimitive.Root>
 ))

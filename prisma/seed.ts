@@ -57,7 +57,7 @@ function daysAgo(n: number): Date {
 }
 
 function pick<T>(arr: T[], i: number): T {
-  return arr[i % arr.length];
+  return arr[i % arr.length]!;
 }
 
 // -----------------------------------------------------------------------------
@@ -92,7 +92,19 @@ const JOBSEEKERS: { email: string; name: string; headline: string; location: str
   { email: "joko@example.com",    name: "Joko Susilo",     headline: "QA Engineer",             location: "Malang" },
 ];
 
-const RPI_JOBS = [
+type JobSeed = {
+  title: string
+  cat: string
+  type: EmploymentType
+  level: ExperienceLevel
+  locType: LocationType
+  location: string
+  min: number
+  max: number
+}
+type CourseSeed = { title: string; level: CourseLevel; duration: number }
+
+const RPI_JOBS: JobSeed[] = [
   { title: "Senior Backend Engineer",   cat: "it-software",  type: EmploymentType.FULL_TIME, level: ExperienceLevel.SENIOR, locType: LocationType.HYBRID, location: "Jakarta",   min: 25_000_000, max: 40_000_000 },
   { title: "Frontend Engineer (React)", cat: "it-software",  type: EmploymentType.FULL_TIME, level: ExperienceLevel.MID,    locType: LocationType.REMOTE, location: "Remote",    min: 18_000_000, max: 28_000_000 },
   { title: "Product Designer",          cat: "design",       type: EmploymentType.FULL_TIME, level: ExperienceLevel.MID,    locType: LocationType.HYBRID, location: "Jakarta",   min: 15_000_000, max: 25_000_000 },
@@ -110,7 +122,7 @@ const RPI_JOBS = [
   { title: "Data Scientist",            cat: "it-software",  type: EmploymentType.FULL_TIME, level: ExperienceLevel.SENIOR, locType: LocationType.REMOTE, location: "Remote",    min: 25_000_000, max: 40_000_000 },
 ];
 
-const TELKOM_JOBS = [
+const TELKOM_JOBS: JobSeed[] = [
   { title: "Network Engineer",            cat: "it-software", type: EmploymentType.FULL_TIME, level: ExperienceLevel.MID,      locType: LocationType.ONSITE, location: "Bandung",  min: 14_000_000, max: 22_000_000 },
   { title: "Senior Cloud Architect",      cat: "it-software", type: EmploymentType.FULL_TIME, level: ExperienceLevel.SENIOR,   locType: LocationType.HYBRID, location: "Jakarta",  min: 35_000_000, max: 55_000_000 },
   { title: "Cybersecurity Specialist",    cat: "it-software", type: EmploymentType.FULL_TIME, level: ExperienceLevel.SENIOR,   locType: LocationType.ONSITE, location: "Jakarta",  min: 28_000_000, max: 45_000_000 },
@@ -128,14 +140,14 @@ const TELKOM_JOBS = [
   { title: "Talent Acquisition Partner",  cat: "hr",          type: EmploymentType.FULL_TIME, level: ExperienceLevel.MID,      locType: LocationType.HYBRID, location: "Jakarta",  min: 12_000_000, max: 18_000_000 },
 ];
 
-const RPI_COURSES = [
+const RPI_COURSES: CourseSeed[] = [
   { title: "Fundamentals of JavaScript",   level: CourseLevel.BEGINNER,    duration: 12 },
   { title: "Mastering React for Production", level: CourseLevel.INTERMEDIATE, duration: 24 },
   { title: "SQL and Postgres Deep Dive",   level: CourseLevel.INTERMEDIATE, duration: 18 },
   { title: "Resume & Interview Bootcamp",  level: CourseLevel.BEGINNER,    duration: 6 },
 ];
 
-const TELKOM_COURSES = [
+const TELKOM_COURSES: CourseSeed[] = [
   { title: "5G Network Fundamentals",      level: CourseLevel.INTERMEDIATE, duration: 20 },
   { title: "Cloud Native Architecture",    level: CourseLevel.ADVANCED,    duration: 30 },
   { title: "Cybersecurity Essentials",     level: CourseLevel.BEGINNER,    duration: 14 },
@@ -402,7 +414,7 @@ async function seedCourses(
           data: {
             moduleId: mod.id,
             title: `Lesson ${m}.${l}`,
-            contentType: types[(l - 1) % types.length],
+            contentType: types[(l - 1) % types.length]!,
             contentUrl: "https://example.com/lesson.mp4",
             contentBody: "Lesson body content (markdown).",
             order: l,

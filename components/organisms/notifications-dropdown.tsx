@@ -101,14 +101,18 @@ export function NotificationsDropdown({
                   </div>
                 )
                 return (
-                  <li key={n.id}>{n.href ? <Link href={n.href}>{Body}</Link> : Body}</li>
+                  <li key={n.id}>{n.href ? (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    <Link href={n.href as any}>{Body}</Link>
+                  ) : Body}</li>
                 )
               })
             )}
           </ul>
 
           <div className="border-t border-border px-4 py-2 text-center">
-            <Link href={viewAllHref} className="text-sm text-secondary hover:underline">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <Link href={viewAllHref as any} className="text-sm text-secondary hover:underline">
               Lihat semua
             </Link>
           </div>

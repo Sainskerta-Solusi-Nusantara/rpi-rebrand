@@ -25,9 +25,9 @@ const linkVariants = cva(
 
 export interface LinkProps
   extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>,
-    Omit<NextLinkProps, 'href'>,
+    Omit<NextLinkProps<string>, 'href'>,
     VariantProps<typeof linkVariants> {
-  href: NextLinkProps['href']
+  href: NextLinkProps<string>['href']
   external?: boolean
 }
 

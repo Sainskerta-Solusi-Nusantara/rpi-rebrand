@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Icon, type IconProps } from '@/components/atoms/icon'
 import { cn } from '@/lib/utils'
 
-export interface NotificationItemProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface NotificationItemProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode
   body?: React.ReactNode
   time?: React.ReactNode

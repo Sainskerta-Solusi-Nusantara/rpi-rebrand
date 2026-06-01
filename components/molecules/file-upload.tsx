@@ -4,7 +4,7 @@ import * as React from 'react'
 import { UploadCloud, X, File as FileIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export interface FileUploadProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'> {
+export interface FileUploadProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'> {
   accept?: string
   multiple?: boolean
   maxSizeMB?: number

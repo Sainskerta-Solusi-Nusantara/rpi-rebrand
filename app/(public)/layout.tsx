@@ -33,10 +33,10 @@ export default async function PublicGroupLayout({
         .catch(() => null)
     : null
 
-  const branding = await getTenantBranding(slug).catch(() => null)
+  const branding = await getTenantBranding(slug ?? null).catch(() => null)
 
   return (
-    <ThemeProvider initial={branding ?? undefined}>
+    <ThemeProvider initial={branding?.tokens} customCss={branding?.customCss ?? null}>
       <PublicLayout tenant={tenant ?? undefined}>{children}</PublicLayout>
     </ThemeProvider>
   )

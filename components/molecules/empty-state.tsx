@@ -3,7 +3,7 @@ import { Inbox } from 'lucide-react'
 import { Icon, type IconProps } from '@/components/atoms/icon'
 import { cn } from '@/lib/utils'
 
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode
   description?: React.ReactNode
   icon?: IconProps['icon']

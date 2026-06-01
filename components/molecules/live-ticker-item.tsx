@@ -29,7 +29,8 @@ export const LiveTickerItem = React.forwardRef<HTMLDivElement, LiveTickerItemPro
         'flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2 shadow-sm',
         className,
       )}
-      {...props}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {...(props as any)}
     >
       {live && <LiveDot size="sm" tone="success" label="Lowongan baru" />}
       <Avatar src={companyLogo ?? undefined} name={company} size="sm" />

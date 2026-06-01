@@ -60,7 +60,8 @@ export function PartnerLayout({ children, tenant, className }: PartnerLayoutProp
               <Stat icon={Briefcase} label={tp.activeJobs} value={tenant.activeJobs ?? 0} />
               <Stat icon={Users} label={tp.candidates} value={tenant.totalCandidates ?? 0} />
               <Link
-                href="/dashboard/jobs/new"
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={'/dashboard/jobs/new' as any}
                 className="hidden md:inline-flex items-center justify-center gap-1.5 self-center rounded-md bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground hover:brightness-110"
               >
                 <Sparkles className="h-4 w-4" /> {tp.postJob}

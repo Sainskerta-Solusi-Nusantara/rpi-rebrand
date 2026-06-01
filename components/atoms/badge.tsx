@@ -13,6 +13,10 @@ const badgeVariants = cva(
         success: 'border-transparent bg-success/15 text-success',
         warning: 'border-transparent bg-warning/15 text-warning',
         destructive: 'border-transparent bg-destructive/15 text-destructive',
+        gold: 'border-transparent bg-[color:var(--ring)]/15 text-[color:var(--ring)]',
+        indigo: 'border-transparent bg-indigo-100 text-indigo-700',
+        navy: 'border-transparent bg-[hsl(220,50%,14%)] text-white',
+        muted: 'border-transparent bg-muted text-muted-foreground',
       },
       size: {
         sm: 'px-2 py-0.5 text-[10px]',
@@ -25,11 +29,13 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  tone?: VariantProps<typeof badgeVariants>['variant']
+}
 
 export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
-  ({ className, variant, size, ...props }, ref) => (
-    <span ref={ref} className={cn(badgeVariants({ variant, size }), className)} {...props} />
+  ({ className, variant, tone, size, ...props }, ref) => (
+    <span ref={ref} className={cn(badgeVariants({ variant: tone ?? variant, size }), className)} {...props} />
   ),
 )
 Badge.displayName = 'Badge'

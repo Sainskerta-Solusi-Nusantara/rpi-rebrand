@@ -87,7 +87,8 @@ export function TenantCard({ tenant, className }: TenantCardProps) {
     </article>
   )
   return tenant.href ? (
-    <Link href={tenant.href} className="block">
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <Link href={tenant.href as any} className="block">
       {inner}
     </Link>
   ) : (

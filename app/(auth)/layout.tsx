@@ -61,11 +61,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               </div>
               <p className="mt-6 text-center text-xs text-muted-foreground">
                 Dengan melanjutkan, Anda menyetujui{' '}
-                <Link href="/terms" className="underline hover:text-foreground">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                <Link href={'/terms' as any} className="underline hover:text-foreground">
                   Syarat
                 </Link>{' '}
                 &amp;{' '}
-                <Link href="/privacy" className="underline hover:text-foreground">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                <Link href={'/privacy' as any} className="underline hover:text-foreground">
                   Kebijakan Privasi
                 </Link>
                 .

@@ -16,7 +16,7 @@ const I18nContext = React.createContext<I18nContextValue | null>(null)
 function readCookie(): Locale {
   if (typeof document === 'undefined') return defaultLocale
   const m = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`))
-  const v = m ? decodeURIComponent(m[1]) : null
+  const v = m && m[1] ? decodeURIComponent(m[1]) : null
   return (locales as string[]).includes(v ?? '') ? (v as Locale) : defaultLocale
 }
 

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-export interface StatProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface StatProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children' | 'prefix'> {
   value: number
   label: React.ReactNode
   prefix?: React.ReactNode

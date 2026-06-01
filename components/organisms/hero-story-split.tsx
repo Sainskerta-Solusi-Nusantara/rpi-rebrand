@@ -74,13 +74,15 @@ export function HeroStorySplit({
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg" variant="secondary">
-              <Link href={primaryHref}>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <Link href={primaryHref as any}>
                 {primaryLabel}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="bg-transparent border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
-              <Link href={secondaryHref}>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <Link href={secondaryHref as any}>
                 <GraduationCap className="h-4 w-4" />
                 {secondaryLabel}
               </Link>

@@ -1,0 +1,5 @@
+echo "→ Running lint-staged on changed files…"
+npx lint-staged || exit 1
+
+echo "→ Running type-check on the whole project…"
+npx tsc --noEmit || exit 1

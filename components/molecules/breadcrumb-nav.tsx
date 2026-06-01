@@ -28,7 +28,8 @@ export const BreadcrumbNav = React.forwardRef<HTMLElement, BreadcrumbNavProps>(
             <li key={idx} className="inline-flex items-center gap-1.5">
               {it.href && !isLast ? (
                 <NextLink
-                  href={it.href}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  href={it.href as any}
                   className="rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   {it.label}

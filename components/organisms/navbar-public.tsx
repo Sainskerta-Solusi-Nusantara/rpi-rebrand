@@ -60,7 +60,8 @@ export function NavbarPublic({ tenant, links, className }: NavbarPublicProps) {
           {navLinks.map((l) => (
             <Link
               key={l.href}
-              href={l.href}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={l.href as any}
               className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
             >
               {l.label}
@@ -116,7 +117,8 @@ export function NavbarPublic({ tenant, links, className }: NavbarPublicProps) {
               {navLinks.map((l) => (
                 <Link
                   key={l.href}
-                  href={l.href}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  href={l.href as any}
                   onClick={() => setOpen(false)}
                   className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground"
                 >

@@ -72,7 +72,8 @@ export function CmdKPalette({ open, onOpenChange, items = DEFAULT_ITEMS }: CmdKP
     (item: CmdKItem) => {
       onOpenChange(false)
       if (item.onSelect) item.onSelect()
-      if (item.href) router.push(item.href)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (item.href) router.push(item.href as any)
     },
     [onOpenChange, router],
   )

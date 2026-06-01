@@ -219,7 +219,8 @@ export function TestimonialVideo({ testimonial, className }: TestimonialVideoPro
           {/* CTA */}
           <div className="mt-8">
             <Link
-              href="/stories"
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={'/stories' as any}
               className="group inline-flex items-center gap-2 text-sm font-semibold text-secondary transition hover:text-secondary/80"
             >
               Lihat Lebih Banyak Cerita

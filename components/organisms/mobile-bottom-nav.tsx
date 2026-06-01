@@ -49,7 +49,8 @@ export function MobileBottomNav({ items, className }: MobileBottomNavProps) {
           return (
             <li key={it.href}>
               <Link
-                href={it.href}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={it.href as any}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'flex flex-col items-center justify-center gap-1 py-2.5 text-[10px]',
