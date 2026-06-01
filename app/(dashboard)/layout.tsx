@@ -9,6 +9,7 @@ import {
   getRecentNotifications,
   getUnreadNotificationCount,
 } from '@/lib/notifications/queries'
+import { countUnreadMentionsForUser } from '@/lib/applications/note-queries'
 import { userMustEnrollTwoFactor } from '@/lib/auth/totp-policy'
 import { SwRegister } from '@/app/sw-register'
 
@@ -87,10 +88,12 @@ export default async function DashboardGroupLayout({
   const branding = await getTenantBranding(slug).catch(() => null)
 
   const userId = session.user.id
-  const [notificationsUnreadCount, recentNotifications] = await Promise.all([
-    getUnreadNotificationCount(userId).catch(() => 0),
-    getRecentNotifications(userId, 10).catch(() => []),
-  ])
+  const [notificationsUnreadCount, recentNotifications, mentionUnreadCount] =
+    await Promise.all([
+      getUnreadNotificationCount(userId).catch(() => 0),
+      getRecentNotifications(userId, 10).catch(() => []),
+      countUnreadMentionsForUser(userId).catch(() => 0),
+    ])
 
   return (
     <SessionProvider session={session}>
@@ -101,6 +104,7 @@ export default async function DashboardGroupLayout({
           tenant={tenant ?? undefined}
           notificationsUnreadCount={notificationsUnreadCount}
           recentNotifications={recentNotifications}
+          mentionUnreadCount={mentionUnreadCount}
         >
           {children}
         </DashboardLayout>

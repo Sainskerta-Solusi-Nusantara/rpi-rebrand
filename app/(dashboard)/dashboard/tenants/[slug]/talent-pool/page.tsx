@@ -110,6 +110,29 @@ export default async function TalentPoolPage({
 
   if (forbidden) notFound()
 
+  // Average match score per candidate (across their applications). The
+  // talent-pool view doesn't target a specific job, so we show the candidate's
+  // historical aggregate as a soft hint. Cheap groupBy on Application.aiScore.
+  const candidateIds = items.map((c) => c.userId)
+  const avgScoreByUser = new Map<string, number>()
+  if (candidateIds.length > 0) {
+    const grouped = await prisma.application
+      .groupBy({
+        by: ['userId'],
+        where: { userId: { in: candidateIds }, aiScore: { not: null } },
+        _avg: { aiScore: true },
+      })
+      .catch(
+        () =>
+          [] as Array<{ userId: string; _avg: { aiScore: number | null } }>,
+      )
+    for (const g of grouped) {
+      if (typeof g._avg.aiScore === 'number') {
+        avgScoreByUser.set(g.userId, Math.round(g._avg.aiScore))
+      }
+    }
+  }
+
   // -- Lightweight search audit (best-effort, fire-and-forget) -------------
   // We log non-empty searches so admins can audit recruiter usage. Failures
   // are swallowed since the page should still render.
@@ -329,6 +352,7 @@ export default async function TalentPoolPage({
                 key={c.userId}
                 candidate={c}
                 tenantSlug={tenant.slug}
+                avgMatchScore={avgScoreByUser.get(c.userId) ?? null}
               />
             ))}
           </div>

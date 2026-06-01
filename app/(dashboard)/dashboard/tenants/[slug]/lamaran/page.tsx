@@ -111,8 +111,11 @@ export default async function TenantApplicationsPage({
       ? Math.floor(minScoreRaw)
       : undefined
 
+  // Accept both `sort=score` (legacy) and `sort=score_desc` (match scorer
+   // contract) so external links keep working.
   const sortByScore =
-    typeof searchParams.sort === 'string' && searchParams.sort === 'score'
+    typeof searchParams.sort === 'string' &&
+    (searchParams.sort === 'score' || searchParams.sort === 'score_desc')
 
   const pageRaw =
     typeof searchParams.page === 'string' ? Number(searchParams.page) : 1
@@ -269,7 +272,7 @@ export default async function TenantApplicationsPage({
     jobId: jobIdFilter,
     q: search || undefined,
     minScore: typeof minScore === 'number' ? String(minScore) : undefined,
-    sort: sortByScore ? 'score' : undefined,
+    sort: sortByScore ? 'score_desc' : undefined,
     page: String(page),
   }
   const baseHref = `/dashboard/tenants/${tenant.slug}/lamaran`
@@ -421,11 +424,11 @@ export default async function TenantApplicationsPage({
           <select
             id="f-sort"
             name="sort"
-            defaultValue={sortByScore ? 'score' : ''}
+            defaultValue={sortByScore ? 'score_desc' : ''}
             className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm"
           >
             <option value="">Prioritas status</option>
-            <option value="score">Skor AI tertinggi</option>
+            <option value="score_desc">Skor kecocokan tertinggi</option>
           </select>
         </div>
         <div className="flex items-end gap-2 sm:col-span-4">

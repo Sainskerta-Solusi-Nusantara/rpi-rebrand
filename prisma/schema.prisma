@@ -141,34 +141,34 @@ enum AuditAction {
 // =============================================================================
 
 model Tenant {
-  id                       String       @id @default(cuid())
-  slug                     String       @unique
-  name                     String
-  customDomain             String?      @unique @map("custom_domain")
-  domainVerificationToken  String?      @map("domain_verification_token")
-  domainVerifiedAt         DateTime?    @map("domain_verified_at")
-  planTier                 PlanTier     @default(FREE) @map("plan_tier")
-  status                   TenantStatus @default(PROVISIONING)
-  ownerUserId              String?      @map("owner_user_id")
-  createdAt                DateTime     @default(now()) @map("created_at")
-  updatedAt                DateTime     @updatedAt @map("updated_at")
+  id                      String       @id @default(cuid())
+  slug                    String       @unique
+  name                    String
+  customDomain            String?      @unique @map("custom_domain")
+  domainVerificationToken String?      @map("domain_verification_token")
+  domainVerifiedAt        DateTime?    @map("domain_verified_at")
+  planTier                PlanTier     @default(FREE) @map("plan_tier")
+  status                  TenantStatus @default(PROVISIONING)
+  ownerUserId             String?      @map("owner_user_id")
+  createdAt               DateTime     @default(now()) @map("created_at")
+  updatedAt               DateTime     @updatedAt @map("updated_at")
 
-  branding      Branding?
-  users         UserTenant[]
-  jobs          Job[]
-  courses       Course[]
-  auditLogs     AuditLog[]
-  subscriptions Subscription[]
-  invitations   Invitation[]
-  teamMembers   TeamMember[]
-  applications  Application[]
-  stripeCustomerId    String?               @unique @map("stripe_customer_id")
-  requireTwoFactor    Boolean               @default(false) @map("require_two_factor")
-  webhooks            TenantWebhook[]
-  apiKeys             TenantApiKey[]
-  emailTemplates      TenantEmailTemplate[]
-  interviewQuestions  InterviewQuestion[]
-  retentionPolicies   AuditRetentionPolicy[]
+  branding             Branding?
+  users                UserTenant[]
+  jobs                 Job[]
+  courses              Course[]
+  auditLogs            AuditLog[]
+  subscriptions        Subscription[]
+  invitations          Invitation[]
+  teamMembers          TeamMember[]
+  applications         Application[]
+  stripeCustomerId     String?                @unique @map("stripe_customer_id")
+  requireTwoFactor     Boolean                @default(false) @map("require_two_factor")
+  webhooks             TenantWebhook[]
+  apiKeys              TenantApiKey[]
+  emailTemplates       TenantEmailTemplate[]
+  interviewQuestions   InterviewQuestion[]
+  retentionPolicies    AuditRetentionPolicy[]
   featureFlagOverrides FeatureFlagOverride[]
 
   @@index([planTier])
@@ -177,31 +177,31 @@ model Tenant {
 }
 
 model Branding {
-  id                  String  @id @default(cuid())
-  tenantId            String  @unique @map("tenant_id")
-  logoLight           String? @map("logo_light")
-  logoDark            String? @map("logo_dark")
+  id                  String   @id @default(cuid())
+  tenantId            String   @unique @map("tenant_id")
+  logoLight           String?  @map("logo_light")
+  logoDark            String?  @map("logo_dark")
   favicon             String?
-  primaryColor        String  @default("#0A2540") @map("primary_color")
-  primaryForeground   String  @default("#FFFFFF") @map("primary_foreground")
-  secondaryColor      String  @default("#C9A961") @map("secondary_color")
-  secondaryForeground String  @default("#0A2540") @map("secondary_foreground")
-  accentColor         String  @default("#635BFF") @map("accent_color")
-  accentForeground    String  @default("#FFFFFF") @map("accent_foreground")
-  backgroundColor     String  @default("#FFFFFF") @map("background_color")
-  foregroundColor     String  @default("#0A2540") @map("foreground_color")
-  mutedColor          String  @default("#F5F5F4") @map("muted_color")
-  mutedForeground     String  @default("#6B7280") @map("muted_foreground")
-  borderColor         String  @default("#E5E7EB") @map("border_color")
-  destructiveColor    String  @default("#EF4444") @map("destructive_color")
-  successColor        String  @default("#10B981") @map("success_color")
-  warningColor        String  @default("#F59E0B") @map("warning_color")
-  ringColor           String  @default("#C9A961") @map("ring_color")
-  fontHeading         String  @default("Playfair Display") @map("font_heading")
-  fontBody            String  @default("Inter") @map("font_body")
-  radius              Int     @default(12)
-  density             String  @default("normal")
-  customCss           String? @map("custom_css")
+  primaryColor        String   @default("#0A2540") @map("primary_color")
+  primaryForeground   String   @default("#FFFFFF") @map("primary_foreground")
+  secondaryColor      String   @default("#C9A961") @map("secondary_color")
+  secondaryForeground String   @default("#0A2540") @map("secondary_foreground")
+  accentColor         String   @default("#635BFF") @map("accent_color")
+  accentForeground    String   @default("#FFFFFF") @map("accent_foreground")
+  backgroundColor     String   @default("#FFFFFF") @map("background_color")
+  foregroundColor     String   @default("#0A2540") @map("foreground_color")
+  mutedColor          String   @default("#F5F5F4") @map("muted_color")
+  mutedForeground     String   @default("#6B7280") @map("muted_foreground")
+  borderColor         String   @default("#E5E7EB") @map("border_color")
+  destructiveColor    String   @default("#EF4444") @map("destructive_color")
+  successColor        String   @default("#10B981") @map("success_color")
+  warningColor        String   @default("#F59E0B") @map("warning_color")
+  ringColor           String   @default("#C9A961") @map("ring_color")
+  fontHeading         String   @default("Playfair Display") @map("font_heading")
+  fontBody            String   @default("Inter") @map("font_body")
+  radius              Int      @default(12)
+  density             String   @default("normal")
+  customCss           String?  @map("custom_css")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -214,77 +214,79 @@ model Branding {
 // =============================================================================
 
 model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
-  emailVerified DateTime?  @map("email_verified")
-  passwordHash  String?    @map("password_hash")
-  name          String?
-  image         String?
-  phone         String?
-  bio           String?
-  headline      String?
-  location      String?
-  globalRole    GlobalRole @default(USER) @map("global_role")
-  status        UserStatus @default(ACTIVE)
-  lastLoginAt        DateTime? @map("last_login_at")
-  sessionsValidFrom  DateTime? @map("sessions_valid_from")
-  locale             String?
-  timezone           String?
-  username             String?  @unique
-  profilePublic        Boolean  @default(false) @map("profile_public")
-  referredByCode       String?  @map("referred_by_code")
-  onboardingStep       Int      @default(0) @map("onboarding_step")
-  onboardingCompleted  Boolean  @default(false) @map("onboarding_completed")
-  totpSecret         String?   @map("totp_secret")
-  totpEnabledAt      DateTime? @map("totp_enabled_at")
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
+  id                  String     @id @default(cuid())
+  email               String     @unique
+  emailVerified       DateTime?  @map("email_verified")
+  passwordHash        String?    @map("password_hash")
+  name                String?
+  image               String?
+  phone               String?
+  bio                 String?
+  headline            String?
+  location            String?
+  globalRole          GlobalRole @default(USER) @map("global_role")
+  status              UserStatus @default(ACTIVE)
+  lastLoginAt         DateTime?  @map("last_login_at")
+  sessionsValidFrom   DateTime?  @map("sessions_valid_from")
+  locale              String?
+  timezone            String?
+  username            String?    @unique
+  profilePublic       Boolean    @default(false) @map("profile_public")
+  referredByCode      String?    @map("referred_by_code")
+  onboardingStep      Int        @default(0) @map("onboarding_step")
+  onboardingCompleted Boolean    @default(false) @map("onboarding_completed")
+  totpSecret          String?    @map("totp_secret")
+  totpEnabledAt       DateTime?  @map("totp_enabled_at")
+  createdAt           DateTime   @default(now()) @map("created_at")
+  updatedAt           DateTime   @updatedAt @map("updated_at")
 
-  accounts            Account[]
-  sessions            Session[]
-  tenants             UserTenant[]
-  jobsPosted          Job[]                @relation("JobPostedBy")
-  applications        Application[]
-  savedJobs           SavedJob[]
-  enrollments         Enrollment[]
-  certificates        Certificate[]
-  resumes             Resume[]
-  notifications       Notification[]
-  auditLogs           AuditLog[]
-  teamLed             TeamMember[]         @relation("TeamLead")
-  memberOfTeam        TeamMember[]         @relation("TeamMember")
-  coursesTaught       Course[]             @relation("CourseInstructor")
-  passwordResetTokens     PasswordResetToken[]
-  emailVerificationTokens EmailVerificationToken[]
-  emailChangeRequests     EmailChangeRequest[]
-  totpRecoveryCodes       TotpRecoveryCode[]
-  personalAccessTokens    PersonalAccessToken[]
-  devices                 UserDevice[]
-  notificationPref        NotificationPref?
-  tenantApiKeysCreated    TenantApiKey[]    @relation("TenantApiKeyCreatedBy")
-  emailDigestLogs         EmailDigestLog[]
-  savedSearches           SavedSearch[]
-  interviewsCreated       InterviewSchedule[] @relation("InterviewCreatedBy")
-  messagesSent            Message[]           @relation("MessageSender")
-  scorecardsAuthored      InterviewScorecard[] @relation("ScorecardAuthor")
-  referrals               Referral[]
-  referralUsages          ReferralUsage[]     @relation("ReferralReferred")
-  quizAttempts            QuizAttempt[]       @relation("QuizAttemptUser")
-  pushSubscriptions       PushSubscription[]
-  interviewQuestions      InterviewQuestion[] @relation("InterviewQuestionCreatedBy")
-  calendarAccounts        CalendarAccount[]
-  assessmentsCreated      Assessment[]        @relation("AssessmentCreatedBy")
-  assessmentAttempts      AssessmentAttempt[] @relation("AssessmentAttemptUser")
-  moderationFlagsReported ModerationFlag[]    @relation("ModerationReporter")
-  moderationFlagsResolved ModerationFlag[]    @relation("ModerationResolver")
-  articlesAuthored        Article[]           @relation("ArticleAuthor")
-  retentionPoliciesCreated AuditRetentionPolicy[] @relation("RetentionPolicyCreatedBy")
-  featureFlagsCreated      FeatureFlag[]          @relation("FeatureFlagCreatedBy")
+  accounts                 Account[]
+  sessions                 Session[]
+  tenants                  UserTenant[]
+  jobsPosted               Job[]                    @relation("JobPostedBy")
+  applications             Application[]
+  savedJobs                SavedJob[]
+  enrollments              Enrollment[]
+  certificates             Certificate[]
+  resumes                  Resume[]
+  notifications            Notification[]
+  auditLogs                AuditLog[]
+  teamLed                  TeamMember[]             @relation("TeamLead")
+  memberOfTeam             TeamMember[]             @relation("TeamMember")
+  coursesTaught            Course[]                 @relation("CourseInstructor")
+  passwordResetTokens      PasswordResetToken[]
+  emailVerificationTokens  EmailVerificationToken[]
+  emailChangeRequests      EmailChangeRequest[]
+  totpRecoveryCodes        TotpRecoveryCode[]
+  personalAccessTokens     PersonalAccessToken[]
+  devices                  UserDevice[]
+  notificationPref         NotificationPref?
+  tenantApiKeysCreated     TenantApiKey[]           @relation("TenantApiKeyCreatedBy")
+  emailDigestLogs          EmailDigestLog[]
+  savedSearches            SavedSearch[]
+  interviewsCreated        InterviewSchedule[]      @relation("InterviewCreatedBy")
+  messagesSent             Message[]                @relation("MessageSender")
+  scorecardsAuthored       InterviewScorecard[]     @relation("ScorecardAuthor")
+  referrals                Referral[]
+  referralUsages           ReferralUsage[]          @relation("ReferralReferred")
+  quizAttempts             QuizAttempt[]            @relation("QuizAttemptUser")
+  pushSubscriptions        PushSubscription[]
+  interviewQuestions       InterviewQuestion[]      @relation("InterviewQuestionCreatedBy")
+  calendarAccounts         CalendarAccount[]
+  assessmentsCreated       Assessment[]             @relation("AssessmentCreatedBy")
+  assessmentAttempts       AssessmentAttempt[]      @relation("AssessmentAttemptUser")
+  moderationFlagsReported  ModerationFlag[]         @relation("ModerationReporter")
+  moderationFlagsResolved  ModerationFlag[]         @relation("ModerationResolver")
+  articlesAuthored         Article[]                @relation("ArticleAuthor")
+  retentionPoliciesCreated AuditRetentionPolicy[]   @relation("RetentionPolicyCreatedBy")
+  featureFlagsCreated      FeatureFlag[]            @relation("FeatureFlagCreatedBy")
   featureFlagOverrides     FeatureFlagOverride[]
-  withdrawnApplications    Application[]          @relation("ApplicationWithdrawnBy")
-  incidentsCreated         IncidentReport[]       @relation("IncidentCreatedBy")
-  incidentUpdatesPosted    IncidentUpdate[]       @relation("IncidentUpdatePostedBy")
-  maintenancesCreated      ScheduledMaintenance[] @relation("MaintenanceCreatedBy")
+  withdrawnApplications    Application[]            @relation("ApplicationWithdrawnBy")
+  applicationNotesAuthored ApplicationNote[]        @relation("ApplicationNoteAuthor")
+  applicationNoteMentions  ApplicationNoteMention[] @relation("ApplicationNoteMentionedUser")
+  incidentsCreated         IncidentReport[]         @relation("IncidentCreatedBy")
+  incidentUpdatesPosted    IncidentUpdate[]         @relation("IncidentUpdatePostedBy")
+  maintenancesCreated      ScheduledMaintenance[]   @relation("MaintenanceCreatedBy")
   cookieConsents           CookieConsent[]
 
   @@index([globalRole])
@@ -373,10 +375,12 @@ model WebhookDelivery {
   webhookId    String    @map("webhook_id")
   event        String
   payload      Json
-  status       String    // pending | success | failed
+  status       String // pending | success | failed | dead_letter
   statusCode   Int?      @map("status_code")
   responseBody String?   @map("response_body")
   attempt      Int       @default(1)
+  error        String?
+  nextRetryAt  DateTime? @map("next_retry_at")
   createdAt    DateTime  @default(now()) @map("created_at")
   deliveredAt  DateTime? @map("delivered_at")
 
@@ -384,6 +388,7 @@ model WebhookDelivery {
 
   @@index([webhookId, createdAt])
   @@index([status])
+  @@index([status, nextRetryAt])
   @@map("webhook_deliveries")
 }
 
@@ -445,7 +450,7 @@ model ApplicationAnswer {
   id            String   @id @default(cuid())
   applicationId String   @map("application_id")
   questionId    String   @map("question_id")
-  value         String   // canonical text representation; for multi_choice store JSON-encoded array
+  value         String // canonical text representation; for multi_choice store JSON-encoded array
   createdAt     DateTime @default(now()) @map("created_at")
 
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
@@ -456,17 +461,53 @@ model ApplicationAnswer {
   @@map("application_answers")
 }
 
+model ApplicationNote {
+  id            String   @id @default(cuid())
+  applicationId String   @map("application_id")
+  authorId      String   @map("author_id")
+  parentNoteId  String?  @map("parent_note_id")
+  body          String
+  pinned        Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  application Application              @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  author      User                     @relation("ApplicationNoteAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  parent      ApplicationNote?         @relation("NoteReplies", fields: [parentNoteId], references: [id], onDelete: Cascade)
+  replies     ApplicationNote[]        @relation("NoteReplies")
+  mentions    ApplicationNoteMention[]
+
+  @@index([applicationId, createdAt])
+  @@index([parentNoteId])
+  @@map("application_notes")
+}
+
+model ApplicationNoteMention {
+  id              String    @id @default(cuid())
+  noteId          String    @map("note_id")
+  mentionedUserId String    @map("mentioned_user_id")
+  notifiedAt      DateTime? @map("notified_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  note          ApplicationNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  mentionedUser User            @relation("ApplicationNoteMentionedUser", fields: [mentionedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, mentionedUserId])
+  @@index([mentionedUserId])
+  @@map("application_note_mentions")
+}
+
 model IncidentReport {
-  id                String   @id @default(cuid())
-  title             String
-  severity          String // minor | major | critical
-  status            String // investigating | identified | monitoring | resolved
-  affectedServices  Json     @map("affected_services") // string[]
-  startedAt         DateTime @default(now()) @map("started_at")
-  resolvedAt        DateTime? @map("resolved_at")
-  createdById       String?  @map("created_by_id")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id               String    @id @default(cuid())
+  title            String
+  severity         String // minor | major | critical
+  status           String // investigating | identified | monitoring | resolved
+  affectedServices Json      @map("affected_services") // string[]
+  startedAt        DateTime  @default(now()) @map("started_at")
+  resolvedAt       DateTime? @map("resolved_at")
+  createdById      String?   @map("created_by_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   createdBy User?            @relation("IncidentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updates   IncidentUpdate[]
@@ -477,12 +518,12 @@ model IncidentReport {
 }
 
 model IncidentUpdate {
-  id           String   @id @default(cuid())
-  incidentId   String   @map("incident_id")
-  status       String // investigating | identified | monitoring | resolved
-  message      String
-  postedById   String?  @map("posted_by_id")
-  postedAt     DateTime @default(now()) @map("posted_at")
+  id         String   @id @default(cuid())
+  incidentId String   @map("incident_id")
+  status     String // investigating | identified | monitoring | resolved
+  message    String
+  postedById String?  @map("posted_by_id")
+  postedAt   DateTime @default(now()) @map("posted_at")
 
   incident IncidentReport @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   postedBy User?          @relation("IncidentUpdatePostedBy", fields: [postedById], references: [id], onDelete: SetNull)
@@ -492,16 +533,16 @@ model IncidentUpdate {
 }
 
 model ScheduledMaintenance {
-  id                String   @id @default(cuid())
-  title             String
-  description       String?
-  affectedServices  Json     @map("affected_services")
-  scheduledStart    DateTime @map("scheduled_start")
-  scheduledEnd      DateTime @map("scheduled_end")
-  status            String   @default("planned") // planned | in_progress | completed | cancelled
-  createdById       String?  @map("created_by_id")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(cuid())
+  title            String
+  description      String?
+  affectedServices Json     @map("affected_services")
+  scheduledStart   DateTime @map("scheduled_start")
+  scheduledEnd     DateTime @map("scheduled_end")
+  status           String   @default("planned") // planned | in_progress | completed | cancelled
+  createdById      String?  @map("created_by_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   createdBy User? @relation("MaintenanceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
@@ -510,18 +551,18 @@ model ScheduledMaintenance {
 }
 
 model CookieConsent {
-  id          String   @id @default(cuid())
-  userId      String?  @map("user_id")
-  sessionId   String   @map("session_id") // cookie ID — anon or per-session
-  necessary   Boolean  @default(true)
-  analytics   Boolean  @default(false)
-  marketing   Boolean  @default(false)
-  functional  Boolean  @default(false)
-  ipAddress   String?  @map("ip_address")
-  userAgent   String?  @map("user_agent")
-  version     Int      @default(1)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  sessionId  String   @map("session_id") // cookie ID — anon or per-session
+  necessary  Boolean  @default(true)
+  analytics  Boolean  @default(false)
+  marketing  Boolean  @default(false)
+  functional Boolean  @default(false)
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  version    Int      @default(1)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -539,7 +580,7 @@ model FeatureFlag {
   enabled      Boolean  @default(false)
   percentage   Int      @default(0)
   segmentRules Json?    @map("segment_rules") // [{attr, op, values}]
-  environments Json?    // {dev: bool, staging: bool, prod: bool}
+  environments Json? // {dev: bool, staging: bool, prod: bool}
   createdById  String?  @map("created_by_id")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -570,13 +611,13 @@ model FeatureFlagOverride {
 }
 
 model StripeWebhookEvent {
-  id          String   @id @default(cuid())
-  eventId     String   @unique @map("event_id")
+  id          String    @id @default(cuid())
+  eventId     String    @unique @map("event_id")
   type        String
   payload     Json
   processedAt DateTime? @map("processed_at")
   error       String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   @@index([type, createdAt])
   @@map("stripe_webhook_events")
@@ -626,7 +667,7 @@ model Article {
 model CalendarAccount {
   id            String    @id @default(cuid())
   userId        String    @map("user_id")
-  provider      String    // google | microsoft
+  provider      String // google | microsoft
   providerEmail String    @map("provider_email")
   calendarId    String?   @map("calendar_id")
   accessToken   String    @map("access_token")
@@ -751,7 +792,7 @@ model InterviewQuestion {
   id          String   @id @default(cuid())
   tenantId    String   @map("tenant_id")
   text        String
-  category    String   // technical | behavioral | situational | culture | other
+  category    String // technical | behavioral | situational | culture | other
   difficulty  Int      @default(3) // 1-5
   tags        String[]
   createdById String?  @map("created_by_id")
@@ -767,12 +808,12 @@ model InterviewQuestion {
 }
 
 model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  endpoint  String   @unique
-  keys      Json
-  userAgent String?  @map("user_agent")
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  endpoint   String   @unique
+  keys       Json
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
   lastSeenAt DateTime @default(now()) @map("last_seen_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -782,12 +823,12 @@ model PushSubscription {
 }
 
 model Quiz {
-  id            String        @id @default(cuid())
-  lessonId      String        @unique @map("lesson_id")
-  passingScore  Int           @default(70) @map("passing_score")
-  shuffle       Boolean       @default(false)
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
+  id           String   @id @default(cuid())
+  lessonId     String   @unique @map("lesson_id")
+  passingScore Int      @default(70) @map("passing_score")
+  shuffle      Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   questions QuizQuestion[]
@@ -803,7 +844,7 @@ model QuizQuestion {
   type   String // multiple_choice | true_false | multi_select
   order  Int
 
-  quiz    Quiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
   choices QuizChoice[]
 
   @@index([quizId, order])
@@ -857,11 +898,11 @@ model Referral {
 }
 
 model ReferralUsage {
-  id              String   @id @default(cuid())
-  referralId      String   @map("referral_id")
-  referredUserId  String   @unique @map("referred_user_id")
-  appliedJobId    String?  @map("applied_job_id")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id             String   @id @default(cuid())
+  referralId     String   @map("referral_id")
+  referredUserId String   @unique @map("referred_user_id")
+  appliedJobId   String?  @map("applied_job_id")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   referral     Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
   referredUser User     @relation("ReferralReferred", fields: [referredUserId], references: [id], onDelete: Cascade)
@@ -884,13 +925,13 @@ model MessageThread {
 }
 
 model Message {
-  id                 String    @id @default(cuid())
-  threadId           String    @map("thread_id")
-  senderId           String    @map("sender_id")
-  body               String
-  readByCandidateAt  DateTime? @map("read_by_candidate_at")
-  readByRecruiterAt  DateTime? @map("read_by_recruiter_at")
-  createdAt          DateTime  @default(now()) @map("created_at")
+  id                String    @id @default(cuid())
+  threadId          String    @map("thread_id")
+  senderId          String    @map("sender_id")
+  body              String
+  readByCandidateAt DateTime? @map("read_by_candidate_at")
+  readByRecruiterAt DateTime? @map("read_by_recruiter_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
 
   thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   sender User          @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
@@ -904,9 +945,9 @@ model InterviewScorecard {
   id             String   @id @default(cuid())
   interviewId    String   @unique @map("interview_id")
   authorId       String   @map("author_id")
-  ratings        Json     // array of {criterion: string, score: int 1-5}
+  ratings        Json // array of {criterion: string, score: int 1-5}
   notes          String?
-  recommendation String   // strong_hire | hire | no_hire | strong_no_hire
+  recommendation String // strong_hire | hire | no_hire | strong_no_hire
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -920,7 +961,7 @@ model InterviewScorecard {
 model TenantEmailTemplate {
   id        String   @id @default(cuid())
   tenantId  String   @map("tenant_id")
-  status    String   // ApplicationStatus enum value: REVIEWED | SHORTLISTED | INTERVIEW | OFFERED | HIRED | REJECTED
+  status    String // ApplicationStatus enum value: REVIEWED | SHORTLISTED | INTERVIEW | OFFERED | HIRED | REJECTED
   subject   String
   body      String
   enabled   Boolean  @default(true)
@@ -951,10 +992,10 @@ model InterviewSchedule {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  application    Application           @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  createdBy      User?                 @relation("InterviewCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  scorecard      InterviewScorecard?
-  calendarEvent  CalendarEventMapping?
+  application   Application           @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdBy     User?                 @relation("InterviewCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  scorecard     InterviewScorecard?
+  calendarEvent CalendarEventMapping?
 
   @@index([applicationId])
   @@index([scheduledAt])
@@ -962,18 +1003,18 @@ model InterviewSchedule {
 }
 
 model SavedSearch {
-  id              String    @id @default(cuid())
-  userId          String    @map("user_id")
-  name            String
-  query           String?
-  categorySlug    String?   @map("category_slug")
-  location        String?
-  employmentType  String?   @map("employment_type")
-  emailAlerts     Boolean   @default(true) @map("email_alerts")
-  lastAlertAt     DateTime? @map("last_alert_at")
-  lastAlertCount  Int       @default(0) @map("last_alert_count")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  name           String
+  query          String?
+  categorySlug   String?   @map("category_slug")
+  location       String?
+  employmentType String?   @map("employment_type")
+  emailAlerts    Boolean   @default(true) @map("email_alerts")
+  lastAlertAt    DateTime? @map("last_alert_at")
+  lastAlertCount Int       @default(0) @map("last_alert_count")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -983,14 +1024,14 @@ model SavedSearch {
 }
 
 model NotificationPref {
-  id                  String   @id @default(cuid())
-  userId              String   @unique @map("user_id")
-  emailLoginAlert     Boolean  @default(true) @map("email_login_alert")
-  emailSecurityEvent  Boolean  @default(true) @map("email_security_event")
-  emailInvitation     Boolean  @default(true) @map("email_invitation")
-  emailMarketing      Boolean  @default(false) @map("email_marketing")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(cuid())
+  userId             String   @unique @map("user_id")
+  emailLoginAlert    Boolean  @default(true) @map("email_login_alert")
+  emailSecurityEvent Boolean  @default(true) @map("email_security_event")
+  emailInvitation    Boolean  @default(true) @map("email_invitation")
+  emailMarketing     Boolean  @default(false) @map("email_marketing")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -998,17 +1039,17 @@ model NotificationPref {
 }
 
 model UserDevice {
-  id            String    @id @default(cuid())
-  userId        String    @map("user_id")
-  fingerprint   String
-  userAgent     String    @map("user_agent")
-  ipFirstSeen   String?   @map("ip_first_seen")
-  ipLastSeen    String?   @map("ip_last_seen")
-  firstSeenAt   DateTime  @default(now()) @map("first_seen_at")
-  lastSeenAt    DateTime  @default(now()) @map("last_seen_at")
-  loginCount    Int       @default(1) @map("login_count")
-  alertSentAt   DateTime? @map("alert_sent_at")
-  revokedAt     DateTime? @map("revoked_at")
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  fingerprint String
+  userAgent   String    @map("user_agent")
+  ipFirstSeen String?   @map("ip_first_seen")
+  ipLastSeen  String?   @map("ip_last_seen")
+  firstSeenAt DateTime  @default(now()) @map("first_seen_at")
+  lastSeenAt  DateTime  @default(now()) @map("last_seen_at")
+  loginCount  Int       @default(1) @map("login_count")
+  alertSentAt DateTime? @map("alert_sent_at")
+  revokedAt   DateTime? @map("revoked_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1089,12 +1130,12 @@ model PasswordResetToken {
 // =============================================================================
 
 model UserTenant {
-  id        String     @id @default(cuid())
-  userId    String     @map("user_id")
-  tenantId  String     @map("tenant_id")
-  role      TenantRole @default(MEMBER)
-  status    String     @default("active")
-  joinedAt  DateTime   @default(now()) @map("joined_at")
+  id       String     @id @default(cuid())
+  userId   String     @map("user_id")
+  tenantId String     @map("tenant_id")
+  role     TenantRole @default(MEMBER)
+  status   String     @default("active")
+  joinedAt DateTime   @default(now()) @map("joined_at")
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1156,31 +1197,31 @@ model JobCategory {
 }
 
 model Job {
-  id              String          @id @default(cuid())
-  tenantId        String          @map("tenant_id")
-  title           String
-  slug            String
-  description     String
+  id               String          @id @default(cuid())
+  tenantId         String          @map("tenant_id")
+  title            String
+  slug             String
+  description      String
   responsibilities String?
-  requirements    String?
-  benefits        String?
-  salaryMin       Int?            @map("salary_min")
-  salaryMax       Int?            @map("salary_max")
-  salaryCurrency  String          @default("IDR") @map("salary_currency")
-  salaryPeriod    String          @default("month") @map("salary_period")
-  employmentType  EmploymentType  @default(FULL_TIME) @map("employment_type")
-  experienceLevel ExperienceLevel @default(MID) @map("experience_level")
-  location        String
-  locationType    LocationType    @default(ONSITE) @map("location_type")
-  categoryId      String?         @map("category_id")
-  tags            String[]
-  status          JobStatus       @default(DRAFT)
-  postedById      String          @map("posted_by_id")
-  views           Int             @default(0)
-  publishedAt     DateTime?       @map("published_at")
-  expiredAt       DateTime?       @map("expired_at")
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @updatedAt @map("updated_at")
+  requirements     String?
+  benefits         String?
+  salaryMin        Int?            @map("salary_min")
+  salaryMax        Int?            @map("salary_max")
+  salaryCurrency   String          @default("IDR") @map("salary_currency")
+  salaryPeriod     String          @default("month") @map("salary_period")
+  employmentType   EmploymentType  @default(FULL_TIME) @map("employment_type")
+  experienceLevel  ExperienceLevel @default(MID) @map("experience_level")
+  location         String
+  locationType     LocationType    @default(ONSITE) @map("location_type")
+  categoryId       String?         @map("category_id")
+  tags             String[]
+  status           JobStatus       @default(DRAFT)
+  postedById       String          @map("posted_by_id")
+  views            Int             @default(0)
+  publishedAt      DateTime?       @map("published_at")
+  expiredAt        DateTime?       @map("expired_at")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   category     JobCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -1210,18 +1251,21 @@ model Application {
   appliedAt   DateTime          @default(now()) @map("applied_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
 
-  aiScore         Int?                @map("ai_score")
-  aiTags          String[]            @map("ai_tags")
-  withdrawnAt     DateTime?           @map("withdrawn_at")
-  withdrawReason  String?             @map("withdraw_reason")
-  withdrawnById   String?             @map("withdrawn_by_id")
-  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  job             Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  withdrawnBy     User?               @relation("ApplicationWithdrawnBy", fields: [withdrawnById], references: [id], onDelete: SetNull)
-  interviews      InterviewSchedule[]
-  messageThread   MessageThread?
-  answers         ApplicationAnswer[]
+  aiScore          Int?                @map("ai_score")
+  aiTags           String[]            @map("ai_tags")
+  aiScoreBreakdown Json?               @map("ai_score_breakdown")
+  aiScoredAt       DateTime?           @map("ai_scored_at")
+  withdrawnAt      DateTime?           @map("withdrawn_at")
+  withdrawReason   String?             @map("withdraw_reason")
+  withdrawnById    String?             @map("withdrawn_by_id")
+  tenant           Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  job              Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawnBy      User?               @relation("ApplicationWithdrawnBy", fields: [withdrawnById], references: [id], onDelete: SetNull)
+  interviews       InterviewSchedule[]
+  messageThread    MessageThread?
+  answers          ApplicationAnswer[]
+  recruiterNotes   ApplicationNote[]
 
   @@unique([jobId, userId])
   @@index([tenantId, status])
@@ -1289,11 +1333,11 @@ model Course {
 }
 
 model Module {
-  id           String  @id @default(cuid())
-  courseId     String  @map("course_id")
-  title        String
-  order        Int
-  durationMin  Int     @default(0) @map("duration_min")
+  id          String @id @default(cuid())
+  courseId    String @map("course_id")
+  title       String
+  order       Int
+  durationMin Int    @default(0) @map("duration_min")
 
   course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons Lesson[]
@@ -1329,9 +1373,9 @@ model Enrollment {
   enrolledAt  DateTime         @default(now()) @map("enrolled_at")
   completedAt DateTime?        @map("completed_at")
 
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course          Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessonProgress  LessonProgress[]
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course         Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonProgress LessonProgress[]
 
   @@unique([userId, courseId])
   @@index([userId, status])
@@ -1339,11 +1383,11 @@ model Enrollment {
 }
 
 model LessonProgress {
-  id            String    @id @default(cuid())
-  enrollmentId  String    @map("enrollment_id")
-  lessonId      String    @map("lesson_id")
-  completedAt   DateTime? @map("completed_at")
-  watchSeconds  Int       @default(0) @map("watch_seconds")
+  id           String    @id @default(cuid())
+  enrollmentId String    @map("enrollment_id")
+  lessonId     String    @map("lesson_id")
+  completedAt  DateTime? @map("completed_at")
+  watchSeconds Int       @default(0) @map("watch_seconds")
 
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)

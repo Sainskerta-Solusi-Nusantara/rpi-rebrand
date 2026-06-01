@@ -31,6 +31,8 @@ export interface DashboardLayoutProps {
   notificationsUnreadCount?: number
   /** Recent notifications for the topbar bell, server-fetched. */
   recentNotifications?: NotificationItem[]
+  /** Unread @mention count for the current user. */
+  mentionUnreadCount?: number
 }
 
 /**
@@ -83,6 +85,7 @@ export function DashboardLayout({
   sidebarFooterItems,
   notificationsUnreadCount,
   recentNotifications,
+  mentionUnreadCount,
 }: DashboardLayoutProps) {
   const { data: session } = useSession()
   const [cmdOpen, setCmdOpen] = React.useState(false)
@@ -111,6 +114,7 @@ export function DashboardLayout({
           onOpenCmdK={() => setCmdOpen(true)}
           notificationsUnreadCount={notificationsUnreadCount}
           recentNotifications={recentNotifications}
+          mentionUnreadCount={mentionUnreadCount}
         />
         <main className="flex-1 p-4 pb-24 md:p-6 md:pb-6">{children}</main>
       </div>

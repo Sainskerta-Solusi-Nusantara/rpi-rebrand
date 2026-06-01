@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { MapPin, FileText, ExternalLink, Briefcase } from 'lucide-react'
 import type { TalentPoolCandidate } from '@/lib/talent-pool/queries'
 import { TalentPoolOutreachModal } from './talent-pool-outreach-modal'
+import { MatchScoreBadge } from './match-score-badge'
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
 
@@ -17,9 +18,15 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
 export function TalentPoolCard({
   candidate,
   tenantSlug,
+  avgMatchScore,
 }: {
   candidate: TalentPoolCandidate
   tenantSlug: string
+  /**
+   * Optional aggregate of the candidate's persisted match scores across
+   * the applications they have submitted. Hidden when null.
+   */
+  avgMatchScore?: number | null
 }) {
   const initials = candidate.displayName
     .split(/\s+/)
@@ -58,6 +65,14 @@ export function TalentPoolCard({
             </p>
           )}
         </div>
+        {typeof avgMatchScore === 'number' ? (
+          <div
+            className="shrink-0"
+            title="Rata-rata skor kecocokan dari lamaran sebelumnya"
+          >
+            <MatchScoreBadge score={avgMatchScore} size="sm" />
+          </div>
+        ) : null}
       </header>
 
       <dl className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3, GraduationCap, MailQuestion, Users, Code, HelpCircle, TrendingUp, Archive, FileSpreadsheet, History, ShieldCheck } from 'lucide-react'
+import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3, GraduationCap, MailQuestion, Users, Code, HelpCircle, TrendingUp, Archive, FileSpreadsheet, History, ShieldCheck, Rss } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission, canAccessTenant } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
@@ -10,6 +10,12 @@ import {
   MemberRowActions,
   TransferOwnershipForm,
 } from '@/components/organisms/tenant-member-actions'
+import { FeedUrlBlock } from '@/components/organisms/feed-url-block'
+
+const PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://rumahpekerja.id').replace(
+  /\/+$/,
+  '',
+)
 
 export const metadata = { title: 'Kelola Tenant — Dasbor' }
 
@@ -179,6 +185,16 @@ export default async function ManageTenantPage({
           {canManageJobs && (
             <Link
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={'#job-feed' as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <Rss className="h-4 w-4" aria-hidden="true" />
+              Feed XML
+            </Link>
+          )}
+          {canManageJobs && (
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               href={`/dashboard/tenants/${tenant.slug}/email-templates` as any}
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
@@ -317,6 +333,52 @@ export default async function ManageTenantPage({
             </Link>
           )}
         </nav>
+      )}
+
+      {canManageJobs && (
+        <section
+          id="job-feed"
+          aria-label="Feed XML lowongan"
+          className="border-border bg-card rounded-2xl border p-6 space-y-4"
+        >
+          <div className="flex items-center gap-2">
+            <Rss className="h-5 w-5" aria-hidden="true" />
+            <h2 className="font-heading text-lg">Feed XML lowongan</h2>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Bagikan URL di bawah ini ke mitra ATS, agregator, atau LinkedIn /
+            Indeed agar mereka menarik lowongan tenant {tenant.name} secara
+            otomatis. Feed di-cache 10 menit di edge.
+          </p>
+          <div className="space-y-3">
+            <FeedUrlBlock
+              label="Generic Atom 1.0"
+              description="Format RSS / Atom standar untuk feed reader umum."
+              url={`${PUBLIC_BASE_URL}/jobs/feed.xml?format=atom&tenant=${tenant.slug}`}
+            />
+            <FeedUrlBlock
+              label="LinkedIn Jobs XML"
+              description="Format khusus LinkedIn Talent Hub Limited Listings."
+              url={`${PUBLIC_BASE_URL}/jobs/feed.xml?format=linkedin&tenant=${tenant.slug}`}
+            />
+            <FeedUrlBlock
+              label="Indeed XML"
+              description="Format XML standar Indeed (jobtype, salary, referencenumber)."
+              url={`${PUBLIC_BASE_URL}/jobs/feed.xml?format=indeed&tenant=${tenant.slug}`}
+            />
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Lihat{' '}
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={'/jobs/feed-info' as any}
+              className="underline"
+            >
+              dokumentasi feed publik
+            </Link>{' '}
+            untuk contoh curl dan rekomendasi polling.
+          </p>
+        </section>
       )}
 
       <section

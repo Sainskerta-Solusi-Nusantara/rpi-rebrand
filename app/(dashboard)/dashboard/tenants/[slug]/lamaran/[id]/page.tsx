@@ -44,6 +44,11 @@ import {
   BREAKDOWN_MAX,
   type ScreeningBreakdown,
 } from '@/lib/applications/screening'
+import { MatchScoreCard } from '@/components/organisms/match-score-card'
+import type { MatchBreakdown } from '@/lib/match/match-scorer'
+import { scoreApplicationToJob } from '@/lib/match/match-scorer'
+import { ApplicationNotesSection } from '@/components/organisms/application-notes-section'
+import type { TenantMember } from '@/components/organisms/notes-composer'
 
 export const metadata = { title: 'Detail Lamaran — Dasbor' }
 
@@ -165,6 +170,43 @@ export default async function TenantApplicationDetailPage({
     tenant.id,
     'job.update',
   )
+  // Notes section permissions:
+  // - canPinNotes: matches `canManage` (job.update => recruiter+).
+  // - canModerateNotes: tenant admin scope (team.remove) — used for delete-anyone.
+  const canPinNotes = canManage
+  const canModerateNotes = hasTenantPermission(
+    globalRole,
+    tenants,
+    tenant.id,
+    'team.remove',
+  )
+
+  // Pull active tenant members to drive the @mention autocomplete.
+  // Limited to active memberships; users without a username are excluded
+  // (they can't be mentioned anyway since mentions key on username).
+  const tenantMemberRows = await prisma.userTenant
+    .findMany({
+      where: { tenantId: tenant.id, status: 'active' },
+      select: {
+        user: {
+          select: { id: true, username: true, name: true },
+        },
+      },
+      take: 200,
+    })
+    .catch(
+      () =>
+        [] as Array<{
+          user: { id: string; username: string | null; name: string | null }
+        }>,
+    )
+  const tenantMembers: TenantMember[] = tenantMemberRows
+    .filter((r) => Boolean(r.user.username))
+    .map((r) => ({
+      userId: r.user.id,
+      username: r.user.username as string,
+      name: r.user.name,
+    }))
 
   const application = await prisma.application
     .findFirst({
@@ -179,6 +221,8 @@ export default async function TenantApplicationDetailPage({
         updatedAt: true,
         aiScore: true,
         aiTags: true,
+        aiScoreBreakdown: true,
+        aiScoredAt: true,
         withdrawnAt: true,
         withdrawReason: true,
         withdrawnBy: { select: { id: true, name: true, email: true } },
@@ -199,9 +243,13 @@ export default async function TenantApplicationDetailPage({
             id: true,
             title: true,
             slug: true,
+            description: true,
+            requirements: true,
+            tags: true,
             location: true,
             employmentType: true,
             locationType: true,
+            experienceLevel: true,
           },
         },
       },
@@ -327,6 +375,54 @@ export default async function TenantApplicationDetailPage({
     return out
   }
   const screeningBreakdown = readBreakdown(screeningAudit?.metadata)
+
+  // ---- Match score (separate from legacy AI screening) ----
+  // Parse the persisted breakdown if present; otherwise compute an unsaved
+  // preview from the current job + resume so the card always has something to
+  // show. Notes are derived from the freshly computed result.
+  const persistedMatchBreakdown =
+    application.aiScoreBreakdown &&
+    typeof application.aiScoreBreakdown === 'object'
+      ? (application.aiScoreBreakdown as unknown as MatchBreakdown)
+      : null
+
+  // Re-run the pure scorer locally — cheap, deterministic, and lets us
+  // surface tags+notes even when no breakdown row was persisted yet.
+  let matchPreview: ReturnType<typeof scoreApplicationToJob> | null = null
+  try {
+    const previewResume = await prisma.resume
+      .findFirst({
+        where: { userId: application.user.id },
+        orderBy: [{ isPrimary: 'desc' }, { updatedAt: 'desc' }],
+        select: { fileUrl: true, content: true },
+      })
+      .catch(() => null)
+    matchPreview = scoreApplicationToJob(
+      { coverLetter: application.coverLetter },
+      {
+        title: application.job.title,
+        description: application.job.description,
+        requirements: application.job.requirements,
+        employmentType: application.job.employmentType,
+        experienceLevel: application.job.experienceLevel,
+        location: application.job.location,
+        locationType: application.job.locationType,
+        tags: application.job.tags,
+      },
+      previewResume ?? undefined,
+      { headline: application.user.headline, location: application.user.location },
+    )
+  } catch (err) {
+    console.error('[lamaran/[id]] match preview failed', err)
+  }
+
+  const matchBreakdown = persistedMatchBreakdown ?? matchPreview?.breakdown ?? null
+  const matchScore = application.aiScore ?? matchPreview?.score ?? null
+  const matchTags =
+    application.aiTags && application.aiTags.length > 0
+      ? application.aiTags
+      : matchPreview?.tags ?? []
+  const matchNotes = matchPreview?.notes ?? []
 
   // Recruiter-side unread badge for this thread: count messages the recruiter
   // hasn't read yet AND that weren't sent by this viewer.
@@ -471,6 +567,16 @@ export default async function TenantApplicationDetailPage({
           </div>
         </section>
       )}
+
+      <MatchScoreCard
+        applicationId={application.id}
+        score={matchScore}
+        breakdown={matchBreakdown}
+        tags={matchTags}
+        notes={matchNotes}
+        scoredAt={application.aiScoredAt ?? null}
+        canManage={canManage}
+      />
 
       <section
         aria-label="AI screening"
@@ -718,6 +824,14 @@ export default async function TenantApplicationDetailPage({
           />
         </section>
       )}
+
+      <ApplicationNotesSection
+        applicationId={application.id}
+        currentUserId={session.user.id}
+        canPin={canPinNotes}
+        canModerate={canModerateNotes}
+        tenantMembers={tenantMembers}
+      />
 
       <ScorecardSummary summary={scorecardSummary} />
 

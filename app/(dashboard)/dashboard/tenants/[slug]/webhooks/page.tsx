@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Webhook, History, Info } from 'lucide-react'
+import { ChevronLeft, Webhook, History, Info, Skull } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
@@ -8,6 +8,8 @@ import {
   CreateWebhookForm,
   WebhookRowActions,
 } from '@/components/organisms/tenant-webhook-forms'
+import { WebhookStatsCard } from '@/components/organisms/webhook-stats-card'
+import { getDeliveryStats } from '@/lib/webhooks/delivery-queries'
 import { WEBHOOK_EVENT_LABELS, type WebhookEvent } from '@/lib/webhooks/events'
 
 export const metadata = { title: 'Webhook Tenant — Dasbor' }
@@ -20,11 +22,13 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
 function statusBadge(status: string): { label: string; tone: string } {
   switch (status) {
     case 'success':
-      return { label: 'Sukses', tone: 'bg-green-100 text-green-800' }
+      return { label: 'Berhasil', tone: 'bg-green-100 text-green-800' }
     case 'failed':
       return { label: 'Gagal', tone: 'bg-red-100 text-red-800' }
     case 'pending':
-      return { label: 'Pending', tone: 'bg-amber-100 text-amber-800' }
+      return { label: 'Tertunda', tone: 'bg-amber-100 text-amber-800' }
+    case 'dead_letter':
+      return { label: 'Surat mati', tone: 'bg-zinc-200 text-zinc-800' }
     default:
       return { label: status, tone: 'bg-muted text-muted-foreground' }
   }
@@ -58,7 +62,7 @@ export default async function TenantWebhooksPage({
     notFound()
   }
 
-  const [webhooks, deliveries] = await Promise.all([
+  const [webhooks, deliveries, deadLetterCount] = await Promise.all([
     prisma.tenantWebhook
       .findMany({
         where: { tenantId: tenant.id },
@@ -97,7 +101,19 @@ export default async function TenantWebhooksPage({
         },
       })
       .catch(() => []),
+    prisma.webhookDelivery
+      .count({
+        where: { status: 'dead_letter', webhook: { tenantId: tenant.id } },
+      })
+      .catch(() => 0),
   ])
+
+  // Load per-webhook stats in parallel for the inline summary card.
+  const statsByWebhook = await Promise.all(
+    webhooks.map((w) =>
+      getDeliveryStats(w.id).catch(() => null),
+    ),
+  )
 
   return (
     <div className="p-6 space-y-8 max-w-5xl">
@@ -112,17 +128,28 @@ export default async function TenantWebhooksPage({
         </Link>
       </div>
 
-      <header>
-        <div className="flex items-center gap-2">
-          <Webhook className="h-6 w-6" aria-hidden="true" />
-          <h1 className="font-heading text-2xl md:text-3xl">Webhook</h1>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Webhook className="h-6 w-6" aria-hidden="true" />
+            <h1 className="font-heading text-2xl md:text-3xl">Webhook</h1>
+          </div>
+          <p className="text-muted-foreground mt-1">
+            Kirim notifikasi otomatis ke sistem eksternal saat event terjadi di tenant{' '}
+            <span className="font-medium text-foreground">{tenant.name}</span>.
+            Setiap permintaan ditandatangani HMAC-SHA256 melalui header{' '}
+            <code className="bg-muted rounded px-1 text-xs">X-RPI-Signature</code>.
+            Pengiriman yang gagal otomatis dicoba ulang hingga 5 kali (1m, 5m, 30m, 2j).
+          </p>
         </div>
-        <p className="text-muted-foreground mt-1">
-          Kirim notifikasi otomatis ke sistem eksternal saat event terjadi di tenant{' '}
-          <span className="font-medium text-foreground">{tenant.name}</span>.
-          Setiap permintaan ditandatangani HMAC-SHA256 melalui header{' '}
-          <code className="bg-muted rounded px-1 text-xs">X-RPI-Signature</code>.
-        </p>
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={`/dashboard/tenants/${tenant.slug}/webhooks/dead-letter` as any}
+          className="border-border bg-card hover:bg-muted/40 inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+        >
+          <Skull className="h-4 w-4" aria-hidden="true" />
+          Surat mati ({deadLetterCount})
+        </Link>
       </header>
 
       <section
@@ -140,69 +167,87 @@ export default async function TenantWebhooksPage({
 
         {webhooks.length > 0 && (
           <ul className="mt-6 space-y-3">
-            {webhooks.map((w) => {
+            {webhooks.map((w, idx) => {
               const last = w.deliveries[0]
+              const stats = statsByWebhook[idx]
               return (
                 <li
                   key={w.id}
-                  className="border-border bg-background flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-start sm:justify-between"
+                  className="border-border bg-background space-y-3 rounded-md border p-4"
                 >
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-foreground">{w.name}</span>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                          w.enabled
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        {w.enabled ? 'Aktif' : 'Nonaktif'}
-                      </span>
-                    </div>
-                    <div className="text-muted-foreground break-all font-mono text-xs">
-                      {w.url}
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {w.events.map((ev) => (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium text-foreground">{w.name}</span>
                         <span
-                          key={ev}
-                          title={ev}
-                          className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            w.enabled
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
                         >
-                          {eventLabel(ev)}
+                          {w.enabled ? 'Aktif' : 'Nonaktif'}
                         </span>
-                      ))}
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      {last ? (
-                        <>
-                          Pengiriman terakhir:{' '}
-                          <span className="text-foreground">
-                            {dateFmt.format(last.createdAt)}
-                          </span>
-                          {' • '}
+                      </div>
+                      <div className="text-muted-foreground break-all font-mono text-xs">
+                        {w.url}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {w.events.map((ev) => (
                           <span
-                            className={`inline-flex items-center rounded-full px-1.5 py-0.5 font-medium ${
-                              statusBadge(last.status).tone
-                            }`}
+                            key={ev}
+                            title={ev}
+                            className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
                           >
-                            {statusBadge(last.status).label}
+                            {eventLabel(ev)}
                           </span>
-                          {last.statusCode != null && (
-                            <span className="ml-1 font-mono">HTTP {last.statusCode}</span>
-                          )}
-                        </>
-                      ) : (
-                        <>Belum ada pengiriman.</>
-                      )}
+                        ))}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        {last ? (
+                          <>
+                            Pengiriman terakhir:{' '}
+                            <span className="text-foreground">
+                              {dateFmt.format(last.createdAt)}
+                            </span>
+                            {' • '}
+                            <span
+                              className={`inline-flex items-center rounded-full px-1.5 py-0.5 font-medium ${
+                                statusBadge(last.status).tone
+                              }`}
+                            >
+                              {statusBadge(last.status).label}
+                            </span>
+                            {last.statusCode != null && (
+                              <span className="ml-1 font-mono">HTTP {last.statusCode}</span>
+                            )}
+                          </>
+                        ) : (
+                          <>Belum ada pengiriman.</>
+                        )}
+                      </div>
+                      <div>
+                        <Link
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          href={`/dashboard/tenants/${tenant.slug}/webhooks/${w.id}/deliveries` as any}
+                          className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
+                        >
+                          <History className="h-3 w-3" aria-hidden="true" />
+                          Lihat riwayat pengiriman
+                        </Link>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <WebhookRowActions
+                        webhook={{ id: w.id, name: w.name, enabled: w.enabled }}
+                      />
                     </div>
                   </div>
-                  <div className="shrink-0">
-                    <WebhookRowActions
-                      webhook={{ id: w.id, name: w.name, enabled: w.enabled }}
-                    />
-                  </div>
+                  {stats && stats.total > 0 && (
+                    <div className="border-border/60 border-t pt-3">
+                      <WebhookStatsCard stats={stats} compact />
+                    </div>
+                  )}
                 </li>
               )
             })}

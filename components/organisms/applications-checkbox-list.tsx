@@ -10,6 +10,7 @@ import {
 } from './applications-bulk-toolbar'
 import { ApplicationStatusSelect } from './application-status-form'
 import { ApplicationScreeningBadge } from './application-screening-badge'
+import { MatchScoreBadge } from './match-score-badge'
 
 export type ApplicationRow = {
   id: string
@@ -141,6 +142,7 @@ export function ApplicationsCheckboxList({
               <th className="p-3 font-medium">Lowongan</th>
               <th className="p-3 font-medium">Status</th>
               <th className="p-3 font-medium">Dilamar</th>
+              <th className="p-3 font-medium">Skor cocok</th>
               <th className="p-3 font-medium">AI Score</th>
               <th className="p-3 font-medium">Diperbarui</th>
               <th className="p-3 font-medium text-right">Aksi</th>
@@ -218,6 +220,9 @@ export function ApplicationsCheckboxList({
                     {dateFmt.format(new Date(row.appliedAt))}
                   </td>
                   <td className="p-3">
+                    <MatchScoreBadge score={row.aiScore} size="sm" />
+                  </td>
+                  <td className="p-3">
                     <ApplicationScreeningBadge
                       score={row.aiScore}
                       tags={row.aiTags}
@@ -245,7 +250,7 @@ export function ApplicationsCheckboxList({
               <tr>
                 <td
                   className="text-muted-foreground p-6 text-center"
-                  colSpan={canManage ? 8 : 7}
+                  colSpan={canManage ? 9 : 8}
                 >
                   Belum ada lamaran yang cocok dengan filter.
                 </td>

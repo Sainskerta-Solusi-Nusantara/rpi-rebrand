@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { MessageSquare, Search } from 'lucide-react'
+import Link from 'next/link'
+import { AtSign, MessageSquare, Search } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { Avatar } from '@/components/atoms/avatar'
 import { cn, getInitials } from '@/lib/utils'
@@ -16,6 +17,8 @@ export interface TopBarProps {
   notificationsUnreadCount?: number
   /** Recent notifications for the dropdown panel, fetched on the server. */
   recentNotifications?: NotificationItem[]
+  /** Unread @mention count for the badge on the mentions link. */
+  mentionUnreadCount?: number
 }
 
 export function TopBar({
@@ -24,6 +27,7 @@ export function TopBar({
   className,
   notificationsUnreadCount = 0,
   recentNotifications = [],
+  mentionUnreadCount = 0,
 }: TopBarProps) {
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = React.useState(false)
@@ -68,6 +72,28 @@ export function TopBar({
         >
           <MessageSquare className="h-5 w-5" />
         </button>
+
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={'/dashboard/mentions' as any}
+          className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+          aria-label={
+            mentionUnreadCount > 0
+              ? `Mention saya (${mentionUnreadCount} belum dibaca)`
+              : 'Mention saya'
+          }
+          title="Mention saya"
+        >
+          <AtSign className="h-5 w-5" />
+          {mentionUnreadCount > 0 ? (
+            <span
+              aria-hidden="true"
+              className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-medium text-secondary-foreground ring-2 ring-background"
+            >
+              {mentionUnreadCount > 99 ? '99+' : mentionUnreadCount}
+            </span>
+          ) : null}
+        </Link>
 
         <NotificationsBell
           initialCount={notificationsUnreadCount}
