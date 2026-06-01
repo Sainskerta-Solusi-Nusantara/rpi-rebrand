@@ -30,6 +30,11 @@ function getRequestMeta() {
   }
 }
 
+const answerInputSchema = z.object({
+  questionId: z.string().min(1),
+  value: z.string().max(20_000),
+})
+
 const submitApplicationSchema = z.object({
   jobSlug: z.string().min(1, 'Slug lowongan wajib diisi.'),
   resumeId: z
@@ -42,6 +47,7 @@ const submitApplicationSchema = z.object({
     .max(5000, 'Cover letter maksimal 5000 karakter.')
     .optional()
     .or(z.literal('').transform(() => undefined)),
+  answers: z.array(answerInputSchema).max(50).optional(),
 })
 
 /**
@@ -57,6 +63,7 @@ export async function submitApplication(input: {
   jobSlug: string
   resumeId?: string
   coverLetter?: string
+  answers?: Array<{ questionId: string; value: string }>
 }): Promise<ActionResult> {
   const session = await auth()
   if (!session?.user?.id) {
@@ -75,6 +82,7 @@ export async function submitApplication(input: {
   }
   const { jobSlug, resumeId } = parsed.data
   const coverLetter = parsed.data.coverLetter?.trim() || undefined
+  const answersInput = parsed.data.answers ?? []
 
   try {
     const job = await prisma.job.findFirst({
@@ -111,6 +119,33 @@ export async function submitApplication(input: {
       return {
         ok: false,
         error: 'Anda sudah pernah melamar lowongan ini.',
+      }
+    }
+
+    // Pre-flight: pull custom questions to verify all required ones are
+    // answered BEFORE we create the application. This avoids partial-state
+    // applications when the candidate skipped a required field client-side.
+    const customQuestions = await prisma.jobQuestion.findMany({
+      where: { jobId: job.id },
+      select: { id: true, label: true, required: true },
+    })
+    if (customQuestions.length > 0) {
+      const answersById = new Map<string, string>()
+      for (const a of answersInput) {
+        if (a && typeof a.questionId === 'string') {
+          answersById.set(a.questionId, typeof a.value === 'string' ? a.value : '')
+        }
+      }
+      for (const q of customQuestions) {
+        if (!q.required) continue
+        const v = answersById.get(q.id)
+        if (v === undefined || v.trim().length === 0) {
+          return {
+            ok: false,
+            error: `Pertanyaan "${q.label}" wajib dijawab.`,
+            field: 'answers',
+          }
+        }
       }
     }
 
@@ -156,11 +191,33 @@ export async function submitApplication(input: {
           tenantSlug: job.tenant.slug,
           hasResume: Boolean(resumeUrl),
           hasCoverLetter: Boolean(coverLetter),
+          answerCount: answersInput.length,
         },
         ip: meta.ip,
         userAgent: meta.userAgent,
       },
     })
+
+    // Persist custom-question answers. Validation already enforced required
+    // questions above; this call validates each answer against the question's
+    // declared type/options. Failure here is non-fatal — log and continue so
+    // the application itself remains the source of truth.
+    if (answersInput.length > 0) {
+      try {
+        const { saveApplicationAnswers } = await import(
+          '@/lib/applications/answer-actions'
+        )
+        const result = await saveApplicationAnswers({
+          applicationId: application.id,
+          answers: answersInput,
+        })
+        if (!result.ok) {
+          console.error('[submitApplication] save answers failed', result.error)
+        }
+      } catch (err) {
+        console.error('[submitApplication] save answers threw', err)
+      }
+    }
 
     // Best-effort notifications — never fail the submission on email errors.
     const baseUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')

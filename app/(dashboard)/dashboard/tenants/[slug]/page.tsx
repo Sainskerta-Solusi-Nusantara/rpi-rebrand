@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3, GraduationCap, MailQuestion, Users, Code, HelpCircle, TrendingUp, Archive } from 'lucide-react'
+import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3, GraduationCap, MailQuestion, Users, Code, HelpCircle, TrendingUp, Archive, FileSpreadsheet } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission, canAccessTenant } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
@@ -388,9 +388,19 @@ export default async function ManageTenantPage({
           aria-label="Undang anggota"
           className="border-border bg-card rounded-2xl border p-6"
         >
-          <div className="mb-4 flex items-center gap-2">
-            <UserPlus className="h-5 w-5" aria-hidden="true" />
-            <h2 className="font-heading text-lg">Undang anggota baru</h2>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" aria-hidden="true" />
+              <h2 className="font-heading text-lg">Undang anggota baru</h2>
+            </div>
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/anggota/import` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
+            >
+              <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
+              Impor CSV
+            </Link>
           </div>
           <TenantInviteForm tenantSlug={tenant.slug} />
         </section>

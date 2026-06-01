@@ -4,6 +4,11 @@ import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, FileText, Send, X } from 'lucide-react'
 import { submitApplication } from '@/lib/applications/actions'
+import {
+  JobQuestionRenderer,
+  type AnswerMap,
+  type JobQuestionForRenderer,
+} from '@/components/organisms/job-question-renderer'
 
 export type ApplyJobResume = {
   id: string
@@ -17,11 +22,13 @@ export function ApplyJobModal({
   jobTitle,
   tenantName,
   resumes,
+  questions = [],
 }: {
   jobSlug: string
   jobTitle: string
   tenantName: string
   resumes: ApplyJobResume[]
+  questions?: JobQuestionForRenderer[]
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -42,22 +49,40 @@ export function ApplyJobModal({
   const primaryId = sortedResumes.find((r) => r.isPrimary)?.id ?? ''
   const [resumeId, setResumeId] = useState<string>(primaryId)
   const [coverLetter, setCoverLetter] = useState<string>('')
+  const [answers, setAnswers] = useState<AnswerMap>({})
 
   function reset() {
     setError(null)
     setSuccess(false)
     setResumeId(primaryId)
     setCoverLetter('')
+    setAnswers({})
   }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+
+    // Client-side required-question guard — server re-validates.
+    for (const q of questions) {
+      if (!q.required) continue
+      const v = answers[q.id]
+      if (!v || v.trim().length === 0) {
+        setError(`Pertanyaan "${q.label}" wajib dijawab.`)
+        return
+      }
+    }
+
+    const answersPayload = questions
+      .map((q) => ({ questionId: q.id, value: answers[q.id] ?? '' }))
+      .filter((a) => a.value.length > 0)
+
     startTransition(async () => {
       const r = await submitApplication({
         jobSlug,
         resumeId: resumeId || undefined,
         coverLetter: coverLetter.trim() || undefined,
+        answers: answersPayload.length > 0 ? answersPayload : undefined,
       })
       if (!r.ok) {
         setError(r.error)
@@ -168,6 +193,15 @@ export function ApplyJobModal({
               </p>
             )}
           </div>
+
+          {questions.length > 0 && (
+            <JobQuestionRenderer
+              questions={questions}
+              currentAnswers={answers}
+              onChange={setAnswers}
+              disabled={pending}
+            />
+          )}
 
           <div className="space-y-1.5">
             <label

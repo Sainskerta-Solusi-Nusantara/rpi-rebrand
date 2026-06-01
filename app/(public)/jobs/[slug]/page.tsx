@@ -22,10 +22,12 @@ import {
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
 import { ApplyJobModal, type ApplyJobResume } from '@/components/organisms/apply-job-modal'
+import type { JobQuestionForRenderer } from '@/components/organisms/job-question-renderer'
 import { ReportFlagButton } from '@/components/organisms/report-flag-button'
 import { SalaryWidget } from '@/components/organisms/salary-widget'
 import { auth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
+import { getJobQuestions } from '@/lib/jobs/question-queries'
 import type { ExperienceLevel } from '@prisma/client'
 import {
   EMPLOYMENT_TYPE_LABEL,
@@ -109,6 +111,18 @@ export default async function JobDetailPage({ params }: { params: Params }) {
 
   const session = await auth()
   const userId = session?.user?.id ?? null
+
+  const jobQuestions: JobQuestionForRenderer[] = (
+    await getJobQuestions(job.id)
+  ).map((q) => ({
+    id: q.id,
+    label: q.label,
+    type: q.type,
+    required: q.required,
+    options: q.options,
+    helpText: q.helpText,
+    order: q.order,
+  }))
 
   let existingApplicationStatus: string | null = null
   let userResumes: ApplyJobResume[] = []
@@ -368,6 +382,7 @@ export default async function JobDetailPage({ params }: { params: Params }) {
                         jobTitle={job.title}
                         tenantName={job.company}
                         resumes={userResumes}
+                        questions={jobQuestions}
                       />
                     )
                   ) : (

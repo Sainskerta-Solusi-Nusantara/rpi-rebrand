@@ -2,16 +2,30 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { ArrowRight, Check, Circle, PartyPopper, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowRight, Check, Circle, PartyPopper, Wand2, X } from 'lucide-react'
 import type { ChecklistStep } from '@/lib/onboarding/checklist'
+import { skipOnboarding } from '@/lib/onboarding/wizard-actions'
+import { MAX_WIZARD_STEP_INDEX } from '@/lib/onboarding/wizard-config'
 
 const DISMISS_KEY = 'rpi_onboarding_dismissed'
 
 export interface OnboardingChecklistProps {
   steps: ChecklistStep[]
+  /** Current saved wizard step (0..N). Used to deep-link "Buka wizard". */
+  wizardStep?: number
+  /** Whether the user has marked the wizard as completed. */
+  wizardCompleted?: boolean
 }
 
-export function OnboardingChecklist({ steps }: OnboardingChecklistProps) {
+export function OnboardingChecklist({
+  steps,
+  wizardStep,
+  wizardCompleted,
+}: OnboardingChecklistProps) {
+  const router = useRouter()
+  const [closing, setClosing] = React.useState(false)
+  const [closeError, setCloseError] = React.useState<string | null>(null)
   const [mounted, setMounted] = React.useState(false)
   const [dismissed, setDismissed] = React.useState(false)
 
@@ -43,6 +57,31 @@ export function OnboardingChecklist({ steps }: OnboardingChecklistProps) {
     }
     setDismissed(true)
   }
+
+  function handleCloseWizard() {
+    setCloseError(null)
+    setClosing(true)
+    void (async () => {
+      try {
+        const result = await skipOnboarding()
+        if (!result.ok) {
+          setCloseError(result.error)
+          setClosing(false)
+          return
+        }
+        router.refresh()
+      } catch {
+        setCloseError('Terjadi kesalahan. Coba lagi.')
+        setClosing(false)
+      }
+    })()
+  }
+
+  const safeWizardStep =
+    typeof wizardStep === 'number' && wizardStep >= 0
+      ? Math.min(wizardStep, MAX_WIZARD_STEP_INDEX)
+      : 0
+  const wizardHref = `/welcome/${safeWizardStep}`
 
   return (
     <section
@@ -123,6 +162,33 @@ export function OnboardingChecklist({ steps }: OnboardingChecklistProps) {
           <span>Bagus! Lanjutkan untuk menyelesaikan semua langkah.</span>
         </div>
       )}
+
+      <div className="border-border mt-5 flex flex-col gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+        {!wizardCompleted ? (
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={wizardHref as any}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition"
+          >
+            <Wand2 className="h-4 w-4" aria-hidden="true" />
+            Buka wizard onboarding
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={handleCloseWizard}
+            disabled={closing}
+            className="text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium underline-offset-4 transition hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {closing ? 'Memuat…' : 'Tutup wizard'}
+          </button>
+        )}
+        {closeError && (
+          <span role="alert" className="text-destructive text-xs">
+            {closeError}
+          </span>
+        )}
+      </div>
     </section>
   )
 }

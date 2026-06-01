@@ -54,6 +54,7 @@ export default async function DashboardOverviewPage() {
     enrollments,
     applications,
     checklist,
+    wizardUser,
   ] = await Promise.all([
     prisma.application.count({ where: { userId } }).catch(() => 0),
     prisma.savedJob.count({ where: { userId } }).catch(() => 0),
@@ -86,6 +87,12 @@ export default async function DashboardOverviewPage() {
       })
       .catch(() => []),
     getOnboardingChecklist(userId),
+    prisma.user
+      .findUnique({
+        where: { id: userId },
+        select: { onboardingStep: true, onboardingCompleted: true },
+      })
+      .catch(() => null),
   ])
 
   const kanbanColumns = [
@@ -213,7 +220,11 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="p-6">
-      <OnboardingChecklist steps={checklist} />
+      <OnboardingChecklist
+        steps={checklist}
+        wizardStep={wizardUser?.onboardingStep ?? 0}
+        wizardCompleted={wizardUser?.onboardingCompleted ?? false}
+      />
       <header className="mb-6">
         <h1 className="font-heading text-2xl md:text-3xl">
           Halo, {session.user.name ?? 'Pekerja'} 👋

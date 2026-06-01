@@ -226,9 +226,11 @@ model User {
   sessionsValidFrom  DateTime? @map("sessions_valid_from")
   locale             String?
   timezone           String?
-  username           String?   @unique
-  profilePublic      Boolean   @default(false) @map("profile_public")
-  referredByCode     String?   @map("referred_by_code")
+  username             String?  @unique
+  profilePublic        Boolean  @default(false) @map("profile_public")
+  referredByCode       String?  @map("referred_by_code")
+  onboardingStep       Int      @default(0) @map("onboarding_step")
+  onboardingCompleted  Boolean  @default(false) @map("onboarding_completed")
   totpSecret         String?   @map("totp_secret")
   totpEnabledAt      DateTime? @map("totp_enabled_at")
   createdAt     DateTime   @default(now()) @map("created_at")
@@ -406,6 +408,40 @@ model EmailDigestLog {
   @@unique([userId, period])
   @@index([userId])
   @@map("email_digest_logs")
+}
+
+model JobQuestion {
+  id        String   @id @default(cuid())
+  jobId     String   @map("job_id")
+  label     String
+  type      String // short_text | long_text | single_choice | multi_choice | file_url | yes_no
+  required  Boolean  @default(false)
+  options   Json? // array of strings for single_choice/multi_choice
+  helpText  String?  @map("help_text")
+  order     Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  job     Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  answers ApplicationAnswer[]
+
+  @@index([jobId, order])
+  @@map("job_questions")
+}
+
+model ApplicationAnswer {
+  id            String   @id @default(cuid())
+  applicationId String   @map("application_id")
+  questionId    String   @map("question_id")
+  value         String   // canonical text representation; for multi_choice store JSON-encoded array
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  question    JobQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, questionId])
+  @@index([applicationId])
+  @@map("application_answers")
 }
 
 model Article {
@@ -994,6 +1030,7 @@ model Job {
   postedBy     User          @relation("JobPostedBy", fields: [postedById], references: [id], onDelete: Cascade)
   applications Application[]
   savedBy      SavedJob[]
+  questions    JobQuestion[]
 
   @@unique([tenantId, slug])
   @@index([tenantId, status])
@@ -1023,6 +1060,7 @@ model Application {
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   interviews    InterviewSchedule[]
   messageThread MessageThread?
+  answers       ApplicationAnswer[]
 
   @@unique([jobId, userId])
   @@index([tenantId, status])

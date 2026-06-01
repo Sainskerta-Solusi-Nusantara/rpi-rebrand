@@ -200,3 +200,63 @@ export async function deleteLocalResumeFile(
     // Ignore — the file may already be gone.
   }
 }
+
+// ---------------------------------------------------------------------------
+// Job application attachments (file_url answers to custom questions)
+// ---------------------------------------------------------------------------
+
+const ATTACHMENT_MIME_TO_EXT: Record<string, string> = {
+  ...RESUME_MIME_TO_EXT,
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'text/plain': 'txt',
+}
+
+export const ALLOWED_JOB_ATTACHMENT_MIME = Object.keys(ATTACHMENT_MIME_TO_EXT)
+export const MAX_JOB_ATTACHMENT_BYTES = 10 * 1024 * 1024 // 10 MB
+
+export function jobAttachmentExtForMime(mime: string): string | null {
+  return ATTACHMENT_MIME_TO_EXT[mime] ?? null
+}
+
+/**
+ * Save a generic attachment uploaded by a candidate as an answer to a
+ * `file_url` custom job question. Stored under
+ * `public/uploads/job-attachments/{userId}/` so Next can serve it directly.
+ */
+export async function saveJobAttachment(opts: {
+  userId: string
+  buffer: Buffer
+  mime: string
+}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const ext = jobAttachmentExtForMime(opts.mime)
+  if (!ext) return { ok: false, error: 'Format berkas tidak didukung.' }
+  if (opts.buffer.length > MAX_JOB_ATTACHMENT_BYTES) {
+    return { ok: false, error: 'Ukuran berkas melebihi 10 MB.' }
+  }
+
+  if (env.STORAGE_PROVIDER === 'r2') {
+    return { ok: false, error: 'Storage provider R2 belum dikonfigurasi.' }
+  }
+
+  try {
+    const baseDir = path.join(
+      process.cwd(),
+      'public',
+      'uploads',
+      'job-attachments',
+      opts.userId,
+    )
+    await fs.mkdir(baseDir, { recursive: true })
+    const filename = `${randomBasename()}.${ext}`
+    await fs.writeFile(path.join(baseDir, filename), opts.buffer)
+    return {
+      ok: true,
+      url: `/uploads/job-attachments/${opts.userId}/${filename}`,
+    }
+  } catch (err) {
+    console.error('[saveJobAttachment] failed', err)
+    return { ok: false, error: 'Gagal menyimpan berkas.' }
+  }
+}

@@ -32,6 +32,8 @@ import {
   summarizePipelineByStage,
 } from '@/lib/scorecards/queries'
 import { getQuestionSetForTenant } from '@/lib/interview-questions/queries'
+import { getApplicationAnswers } from '@/lib/jobs/question-queries'
+import type { JobQuestionType } from '@/lib/jobs/question-actions'
 import { getThreadForApplication } from '@/lib/messaging/queries'
 import { ApplicationScreeningBadge } from '@/components/organisms/application-screening-badge'
 import { RunScreeningButton } from '@/components/organisms/run-screening-button'
@@ -81,6 +83,49 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
   dateStyle: 'medium',
   timeStyle: 'short',
 })
+
+function formatAnswerValue(
+  value: string,
+  type: JobQuestionType,
+): React.ReactNode {
+  if (!value) return <span className="text-muted-foreground italic">—</span>
+  switch (type) {
+    case 'multi_choice': {
+      try {
+        const arr = JSON.parse(value)
+        if (Array.isArray(arr) && arr.length > 0) {
+          return (
+            <ul className="list-disc pl-5">
+              {arr.map((v: unknown, i: number) => (
+                <li key={i}>{typeof v === 'string' ? v : String(v)}</li>
+              ))}
+            </ul>
+          )
+        }
+        return <span className="text-muted-foreground italic">—</span>
+      } catch {
+        return value
+      }
+    }
+    case 'yes_no':
+      return value === 'yes' ? 'Ya' : value === 'no' ? 'Tidak' : value
+    case 'file_url':
+      return (
+        <a
+          href={value}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="text-primary underline"
+        >
+          Buka berkas
+        </a>
+      )
+    case 'long_text':
+      return <p className="whitespace-pre-line">{value}</p>
+    default:
+      return value
+  }
+}
 
 function metadataPreview(value: unknown): string {
   if (!value) return ''
@@ -211,6 +256,7 @@ export default async function TenantApplicationDetailPage({
 
   const scorecardSummary = await summarizeApplicationScorecards(application.id)
   const pipelineSummary = await summarizePipelineByStage(application.id)
+  const customAnswers = await getApplicationAnswers(application.id)
 
   // Suggested-questions block for the "new interview" form. We infer the
   // likely next-stage category from the most recent interview's stageName —
@@ -534,6 +580,35 @@ export default async function TenantApplicationDetailPage({
           </div>
         </div>
       </section>
+
+      {customAnswers.length > 0 && (
+        <section
+          aria-label="Jawaban kandidat"
+          className="border-border bg-card rounded-2xl border p-6 space-y-4"
+        >
+          <h2 className="font-heading text-lg">Jawaban kandidat</h2>
+          <p className="text-muted-foreground text-sm">
+            Jawaban atas pertanyaan kustom yang dikonfigurasi pada lowongan ini.
+          </p>
+          <dl className="space-y-4">
+            {customAnswers.map((a) => (
+              <div key={a.id}>
+                <dt className="text-foreground text-sm font-medium">
+                  {a.question.label}
+                </dt>
+                {a.question.helpText && (
+                  <p className="text-muted-foreground text-xs">
+                    {a.question.helpText}
+                  </p>
+                )}
+                <dd className="text-foreground mt-1 text-sm">
+                  {formatAnswerValue(a.value, a.question.type)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
 
       {(application.resumeUrl || application.coverLetter) && (
         <section

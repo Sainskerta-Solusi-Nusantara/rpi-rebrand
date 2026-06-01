@@ -1,0 +1,415 @@
+'use client'
+
+import { useState, useTransition, useRef } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import {
+  CheckCircle2,
+  XCircle,
+  Upload,
+  AlertTriangle,
+  Info,
+} from 'lucide-react'
+import {
+  parseAndValidateMembersCsv,
+  bulkImportMembers,
+  type PreviewResult,
+  type ImportResult,
+  type PreviewRowStatus,
+} from '@/lib/tenants/member-import-actions'
+
+const inputClass =
+  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
+
+const textareaClass = `${inputClass} min-h-[10rem] font-mono text-xs leading-relaxed`
+
+const labelClass = 'text-muted-foreground text-xs uppercase tracking-wide'
+
+const btnPrimary =
+  'inline-flex items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60'
+
+const btnSecondary =
+  'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
+
+type Stage =
+  | { kind: 'upload'; error?: string }
+  | { kind: 'preview'; preview: PreviewResult; csvText: string; error?: string }
+  | { kind: 'result'; result: ImportResult }
+
+function statusBadge(status: PreviewRowStatus) {
+  if (status === 'valid') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+        <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+        Valid
+      </span>
+    )
+  }
+  if (status === 'error') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+        <XCircle className="h-3 w-3" aria-hidden="true" />
+        Error
+      </span>
+    )
+  }
+  // skip:*
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+      <Info className="h-3 w-3" aria-hidden="true" />
+      Dilewati
+    </span>
+  )
+}
+
+export function TenantMembersImportForm({
+  tenantSlug,
+}: {
+  tenantSlug: string
+}) {
+  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [pending, startTransition] = useTransition()
+  const [csvText, setCsvText] = useState('')
+  const [stage, setStage] = useState<Stage>({ kind: 'upload' })
+
+  function resetToUpload() {
+    setStage({ kind: 'upload' })
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const text =
+        typeof reader.result === 'string'
+          ? reader.result
+          : new TextDecoder('utf-8').decode(reader.result as ArrayBuffer)
+      setCsvText(text)
+    }
+    reader.onerror = () => {
+      setStage({
+        kind: 'upload',
+        error: 'Gagal membaca file. Coba lagi.',
+      })
+    }
+    reader.readAsText(file, 'utf-8')
+  }
+
+  function handlePreview() {
+    if (!csvText.trim()) {
+      setStage({
+        kind: 'upload',
+        error: 'Tempel atau unggah CSV terlebih dahulu.',
+      })
+      return
+    }
+    startTransition(async () => {
+      const res = await parseAndValidateMembersCsv({ tenantSlug, csvText })
+      if (!res.ok) {
+        setStage({ kind: 'upload', error: res.error })
+        return
+      }
+      setStage({ kind: 'preview', preview: res.data!, csvText })
+    })
+  }
+
+  function handleImport() {
+    if (stage.kind !== 'preview') return
+    const csv = stage.csvText
+    startTransition(async () => {
+      const res = await bulkImportMembers({ tenantSlug, csvText: csv })
+      if (!res.ok) {
+        setStage({
+          kind: 'preview',
+          preview: stage.preview,
+          csvText: stage.csvText,
+          error: res.error,
+        })
+        return
+      }
+      setStage({ kind: 'result', result: res.data! })
+      router.refresh()
+    })
+  }
+
+  if (stage.kind === 'upload') {
+    return (
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <label htmlFor="csv-file" className={labelClass}>
+            Unggah file CSV
+          </label>
+          <input
+            ref={fileInputRef}
+            id="csv-file"
+            type="file"
+            accept=".csv,text/csv"
+            onChange={handleFileChange}
+            disabled={pending}
+            className={inputClass}
+          />
+          <p className="text-muted-foreground text-xs">
+            Atau tempel langsung isi CSV di bawah ini.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="csv-text" className={labelClass}>
+            Tempel isi CSV
+          </label>
+          <textarea
+            id="csv-text"
+            value={csvText}
+            onChange={(e) => setCsvText(e.target.value)}
+            disabled={pending}
+            placeholder="email,role,name"
+            className={textareaClass}
+          />
+        </div>
+
+        {stage.error && (
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {stage.error}
+          </p>
+        )}
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handlePreview}
+            disabled={pending || !csvText.trim()}
+            className={btnPrimary}
+          >
+            <Upload className="h-4 w-4" aria-hidden="true" />
+            {pending ? 'Memproses…' : 'Parse & preview'}
+          </button>
+          {csvText && (
+            <button
+              type="button"
+              onClick={() => {
+                setCsvText('')
+                if (fileInputRef.current) fileInputRef.current.value = ''
+              }}
+              disabled={pending}
+              className={btnSecondary}
+            >
+              Bersihkan
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (stage.kind === 'preview') {
+    const { preview } = stage
+    return (
+      <div className="space-y-5">
+        <div className="border-border flex flex-wrap items-center gap-4 rounded-2xl border bg-card p-4 text-sm">
+          <div>
+            <p className="text-muted-foreground text-xs uppercase">
+              Total baris
+            </p>
+            <p className="text-foreground font-semibold">{preview.totalRows}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground text-xs uppercase">Valid</p>
+            <p className="text-success font-semibold">{preview.validCount}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground text-xs uppercase">Dilewati</p>
+            <p className="font-semibold text-amber-700">{preview.skipCount}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground text-xs uppercase">Error</p>
+            <p className="text-destructive font-semibold">
+              {preview.errorCount}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <p className={labelClass}>Header terdeteksi</p>
+          <div className="flex flex-wrap gap-2">
+            {preview.headers.map((h, idx) => (
+              <code
+                key={`${h}-${idx}`}
+                className="bg-muted rounded px-2 py-0.5 text-xs"
+              >
+                {h}
+              </code>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-border overflow-x-auto rounded-2xl border bg-card">
+          <table className="min-w-full text-sm">
+            <thead className="bg-muted/50 text-left">
+              <tr>
+                <th className="p-3 font-medium">Baris</th>
+                <th className="p-3 font-medium">Status</th>
+                <th className="p-3 font-medium">Email</th>
+                <th className="p-3 font-medium">Peran</th>
+                <th className="p-3 font-medium">Nama</th>
+                <th className="p-3 font-medium">Catatan</th>
+              </tr>
+            </thead>
+            <tbody className="divide-border divide-y">
+              {preview.rows.map((r) => {
+                const isError = r.status === 'error'
+                return (
+                  <tr key={r.lineNum}>
+                    <td className="p-3 font-mono text-xs">{r.lineNum}</td>
+                    <td className="p-3">{statusBadge(r.status)}</td>
+                    <td className="p-3 text-xs">
+                      {(r.parsed?.email ?? r.raw.email ?? '').slice(0, 80)}
+                    </td>
+                    <td className="p-3 text-xs">
+                      {r.parsed?.role ?? r.raw.role ?? '—'}
+                    </td>
+                    <td className="p-3 text-xs">
+                      {r.parsed?.name ?? r.raw.name ?? '—'}
+                    </td>
+                    <td className="p-3 text-xs">
+                      {isError ? (
+                        <ul className="space-y-0.5 text-destructive">
+                          {r.errors.map((e, i) => (
+                            <li key={i}>{e}</li>
+                          ))}
+                        </ul>
+                      ) : r.note ? (
+                        <span className="text-amber-700">{r.note}</span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {stage.error && (
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {stage.error}
+          </p>
+        )}
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleImport}
+            disabled={pending || preview.validCount === 0}
+            className={btnPrimary}
+          >
+            {pending
+              ? 'Mengirim undangan…'
+              : `Kirim ${preview.validCount} undangan valid`}
+          </button>
+          <button
+            type="button"
+            onClick={resetToUpload}
+            disabled={pending}
+            className={btnSecondary}
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // result stage
+  const { result } = stage
+  const allOk = result.skipped === 0
+  return (
+    <div className="space-y-5">
+      <div
+        className={`rounded-2xl border p-5 ${
+          allOk
+            ? 'border-success/30 bg-success/10'
+            : 'border-amber-400/40 bg-amber-50'
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          {allOk ? (
+            <CheckCircle2
+              className="text-success mt-0.5 h-6 w-6"
+              aria-hidden="true"
+            />
+          ) : (
+            <AlertTriangle
+              className="mt-0.5 h-6 w-6 text-amber-700"
+              aria-hidden="true"
+            />
+          )}
+          <div className="space-y-2 text-sm">
+            <p className="font-heading text-lg">
+              {allOk ? 'Impor selesai' : 'Impor selesai sebagian'}
+            </p>
+            <ul className="space-y-1">
+              <li>
+                Total baris: <span className="font-mono">{result.total}</span>
+              </li>
+              <li>
+                Undangan terkirim:{' '}
+                <span className="text-success font-mono font-semibold">
+                  {result.invited}
+                </span>
+              </li>
+              <li>
+                Dilewati:{' '}
+                <span className="font-mono font-semibold text-amber-700">
+                  {result.skipped}
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {result.errors.length > 0 && (
+        <div className="border-border overflow-x-auto rounded-2xl border bg-card">
+          <table className="min-w-full text-sm">
+            <thead className="bg-muted/50 text-left">
+              <tr>
+                <th className="p-3 font-medium">Baris</th>
+                <th className="p-3 font-medium">Pesan</th>
+              </tr>
+            </thead>
+            <tbody className="divide-border divide-y">
+              {result.errors.map((e) => (
+                <tr key={e.lineNum}>
+                  <td className="p-3 font-mono text-xs">{e.lineNum}</td>
+                  <td className="p-3 text-xs text-destructive">{e.error}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-3">
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={`/dashboard/tenants/${tenantSlug}` as any}
+          className={btnPrimary}
+        >
+          Kembali ke tenant
+        </Link>
+        <button type="button" onClick={resetToUpload} className={btnSecondary}>
+          Impor lagi
+        </button>
+      </div>
+    </div>
+  )
+}

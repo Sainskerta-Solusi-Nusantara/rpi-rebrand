@@ -8,6 +8,8 @@ import {
   JobForm,
   type JobFormInitial,
 } from '@/components/organisms/tenant-job-form'
+import { JobQuestionEditor } from '@/components/organisms/job-question-editor'
+import { getJobQuestions } from '@/lib/jobs/question-queries'
 
 export const metadata = { title: 'Edit Lowongan — Dasbor' }
 
@@ -63,6 +65,8 @@ export default async function EditJobPage({
 
   if (!job || job.tenantId !== tenant.id) notFound()
 
+  const jobQuestions = await getJobQuestions(job.id)
+
   const initial: JobFormInitial = {
     title: job.title,
     description: job.description,
@@ -110,6 +114,28 @@ export default async function EditJobPage({
           jobId={job.id}
           initial={initial}
           categories={categories}
+        />
+      </section>
+
+      <section className="border-border bg-card rounded-2xl border p-6 space-y-4">
+        <div>
+          <h2 className="font-heading text-lg">Pertanyaan kustom</h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Tambahkan pertanyaan tambahan yang harus dijawab kandidat saat
+            melamar. Berguna untuk menyaring kandidat sebelum tahap review.
+          </p>
+        </div>
+        <JobQuestionEditor
+          jobId={job.id}
+          initialQuestions={jobQuestions.map((q) => ({
+            id: q.id,
+            label: q.label,
+            type: q.type,
+            required: q.required,
+            options: q.options,
+            helpText: q.helpText,
+            order: q.order,
+          }))}
         />
       </section>
     </div>
