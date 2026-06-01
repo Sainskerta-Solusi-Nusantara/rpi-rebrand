@@ -28,6 +28,7 @@ import {
   getQuizAttemptsForUser,
 } from '@/lib/quiz/quiz-queries'
 import { startQuizAttempt, MAX_ATTEMPTS_PER_QUIZ } from '@/lib/quiz/quiz-actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Pelajaran' }
 
@@ -54,6 +55,7 @@ export default async function LessonPage({ params }: { params: Params }) {
   const callback = `/dashboard/kursus/${params.slug}/lessons/${params.lessonId}`
   const session = await requireAuth(callback)
   const userId = session.user.id
+  const t = await getServerT()
 
   const course = await prisma.course.findFirst({
     where: { slug: params.slug, status: 'PUBLISHED' },
@@ -103,7 +105,7 @@ export default async function LessonPage({ params }: { params: Params }) {
   if (lesson.quiz?.id) {
     const quiz = await getQuizForLesson(lesson.id)
     if (!quiz || quiz.questions.length === 0) {
-      quizUnavailable = 'Kuis belum siap'
+      quizUnavailable = t.dashboard.courses.lesson.quizNotReady
     } else {
       const allAttempts = await getQuizAttemptsForUser(userId, quiz.id)
       const completed = allAttempts.filter((a) => a.completedAt !== null)
@@ -123,7 +125,7 @@ export default async function LessonPage({ params }: { params: Params }) {
             attemptId = await startQuizAttempt(quiz.id)
           } catch (e: unknown) {
             quizUnavailable =
-              e instanceof Error ? e.message : 'Tidak dapat memulai kuis.'
+              e instanceof Error ? e.message : t.dashboard.courses.lesson.quizCannotStart
             attemptId = ''
           }
         }
@@ -156,7 +158,7 @@ export default async function LessonPage({ params }: { params: Params }) {
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Kembali ke {course.title}
+          {t.dashboard.courses.lesson.backTo.replace('{course}', course.title)}
         </Link>
       </div>
 
@@ -201,14 +203,14 @@ export default async function LessonPage({ params }: { params: Params }) {
                 <div className="border-border bg-muted/30 grid aspect-video place-items-center rounded-lg border">
                   <span className="text-muted-foreground inline-flex items-center gap-2 text-sm">
                     <PlayCircle className="h-5 w-5" aria-hidden />
-                    Video belum tersedia.
+                    {t.dashboard.courses.player.videoUnavailable}
                   </span>
                 </div>
               )
             ) : lesson.contentType === 'QUIZ' ? (
               <div className="text-muted-foreground inline-flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4" aria-hidden />
-                Kerjakan kuis di bawah ini untuk menyelesaikan pelajaran.
+                {t.dashboard.courses.lesson.quizDoBelow}
               </div>
             ) : (
               <article className="prose prose-sm max-w-none">
@@ -218,7 +220,7 @@ export default async function LessonPage({ params }: { params: Params }) {
                   </p>
                 ) : (
                   <p className="text-muted-foreground">
-                    Materi pelajaran belum tersedia.
+                    {t.dashboard.courses.player.materialUnavailable}
                   </p>
                 )}
                 {lesson.contentUrl && (
@@ -230,7 +232,7 @@ export default async function LessonPage({ params }: { params: Params }) {
                       className="text-primary inline-flex items-center gap-1 text-sm font-medium underline-offset-2 hover:underline"
                     >
                       <BookOpen className="h-4 w-4" aria-hidden />
-                      Buka materi terkait
+                      {t.dashboard.courses.player.openMaterial}
                     </a>
                   </p>
                 )}
@@ -241,10 +243,10 @@ export default async function LessonPage({ params }: { params: Params }) {
           {lesson.quiz?.id && (
             <div className="border-border bg-card rounded-2xl border p-6">
               <h2 className="font-heading text-foreground text-lg font-semibold">
-                Kuis pelajaran
+                {t.dashboard.courses.lesson.quizSectionTitle}
               </h2>
               <p className="text-muted-foreground mt-1 text-sm">
-                Selesaikan kuis untuk menandai pelajaran ini lulus.
+                {t.dashboard.courses.lesson.quizSectionDesc}
               </p>
               <div className="mt-5">
                 {quizPanel ? (
@@ -255,16 +257,15 @@ export default async function LessonPage({ params }: { params: Params }) {
                   />
                 ) : attemptsExhausted ? (
                   <div className="border-border bg-rose-50 rounded-lg border p-4 text-sm text-rose-800">
-                    Batas percobaan tercapai. Anda telah menggunakan{' '}
-                    {MAX_ATTEMPTS_PER_QUIZ} percobaan untuk kuis ini.
+                    {t.dashboard.courses.lesson.attemptsExhausted.replace('{n}', String(MAX_ATTEMPTS_PER_QUIZ))}
                   </div>
                 ) : (
                   <div className="border-border bg-muted/30 rounded-lg border p-6 text-center">
                     <p className="text-foreground font-medium">
-                      Kuis belum tersedia
+                      {t.dashboard.courses.player.quizUnavailable}
                     </p>
                     <p className="text-muted-foreground mt-1 text-sm">
-                      {quizUnavailable ?? 'Belum dikonfigurasi.'}
+                      {quizUnavailable ?? t.dashboard.courses.player.notConfiguredFallback}
                     </p>
                   </div>
                 )}

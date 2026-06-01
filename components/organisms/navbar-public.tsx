@@ -52,7 +52,7 @@ export function NavbarPublic({ tenant, links, className }: NavbarPublicProps) {
       )}
     >
       <div className="container mx-auto flex h-16 max-w-7xl items-center gap-4 px-6">
-        <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="Beranda">
+        <Link href="/" className="flex items-center gap-2 shrink-0" aria-label={t.public.nav.home}>
           <Logo tenantName={tenant?.name} tenantLogoUrl={tenant?.logoUrl ?? undefined} />
         </Link>
 
@@ -73,7 +73,7 @@ export function NavbarPublic({ tenant, links, className }: NavbarPublicProps) {
             type="search"
             placeholder={t.hero.searchPlaceholder}
             prefix={<Search className="h-4 w-4 text-muted-foreground" aria-hidden />}
-            aria-label="Pencarian"
+            aria-label={t.public.nav.search}
           />
         </div>
 
@@ -94,7 +94,7 @@ export function NavbarPublic({ tenant, links, className }: NavbarPublicProps) {
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground hover:bg-muted"
-            aria-label={open ? 'Tutup menu' : 'Buka menu'}
+            aria-label={open ? t.public.nav.closeMenu : t.public.nav.openMenu}
             aria-expanded={open}
             onClick={() => setOpen((s) => !s)}
           >
@@ -110,7 +110,7 @@ export function NavbarPublic({ tenant, links, className }: NavbarPublicProps) {
               type="search"
               placeholder={t.hero.searchPlaceholder}
               prefix={<Search className="h-4 w-4 text-muted-foreground" aria-hidden />}
-              aria-label="Pencarian"
+              aria-label={t.public.nav.search}
             />
             <nav className="flex flex-col gap-1">
               {navLinks.map((l) => (

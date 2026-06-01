@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth/session'
 import { SavedSearchList } from '@/components/organisms/saved-search-list'
 import { PencarianTersimpanClient } from './client'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Pencarian Tersimpan — Dasbor' }
 
@@ -12,16 +13,16 @@ export const metadata = { title: 'Pencarian Tersimpan — Dasbor' }
  */
 export default async function PencarianTersimpanPage() {
   const session = await requireAuth('/dashboard/pencarian-tersimpan')
+  const t = await getServerT()
   const listNode = await SavedSearchList({ userId: session.user.id })
 
   return (
     <div className="space-y-8 p-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">Pencarian Tersimpan</h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{t.dashboard.savedSearches.title}</h1>
           <p className="text-muted-foreground mt-1">
-            Simpan kriteria pencarian lowongan favorit Anda dan terima alert email
-            mingguan saat ada lowongan baru yang cocok.
+            {t.dashboard.savedSearches.subtitle}
           </p>
         </div>
       </header>

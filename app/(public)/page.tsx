@@ -13,6 +13,7 @@ import { FAQAccordion } from '@/components/organisms/faq-accordion'
 import { CTABanner } from '@/components/organisms/cta-banner'
 import { ArticleCard } from '@/components/organisms/article-card'
 import { getRecentArticles } from '@/lib/blog/queries'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata: Metadata = {
   title: 'Karier, Kursus & Mitra Kerja — Rumah Pekerja Indonesia',
@@ -35,6 +36,8 @@ async function getTenantId(): Promise<string | null> {
 }
 
 export default async function HomePage() {
+  const t = await getServerT()
+  const th = t.public.home
   const tenantId = await getTenantId()
   const jobWhere = {
     status: 'PUBLISHED' as const,
@@ -207,24 +210,24 @@ export default async function HomePage() {
       {recentArticles.length > 0 && (
         <section
           className="bg-muted/30 py-20 md:py-24"
-          aria-label="Artikel terbaru"
+          aria-label={th.latestArticlesEyebrow}
         >
           <div className="container mx-auto w-full max-w-6xl px-6">
             <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <span className="text-muted-foreground inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em]">
                   <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
-                  Artikel terbaru
+                  {th.latestArticlesEyebrow}
                 </span>
                 <h2 className="font-heading text-foreground mt-3 text-2xl font-semibold md:text-3xl">
-                  Cerita dan panduan dari tim RPI
+                  {th.latestArticlesTitle}
                 </h2>
               </div>
               <Link
                 href="/blog"
                 className="text-[color:var(--ring)] inline-flex items-center gap-1 text-sm font-medium"
               >
-                Lihat semua artikel
+                {th.viewAllArticles}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </div>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, Rss, FileCode, Linkedin, Globe } from 'lucide-react'
 import { FeedUrlBlock } from '@/components/organisms/feed-url-block'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata: Metadata = {
   title: 'Feed XML lowongan — Sindikasi',
@@ -15,34 +16,24 @@ const BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://rumahpekerja.id').
   '',
 )
 
-const formats = [
-  {
-    key: 'atom',
-    label: 'Generic Atom 1.0',
-    icon: Rss,
-    description:
-      'Format RSS / Atom standar (RFC 4287). Bisa dibaca aplikasi feed reader, agregator umum, atau pipeline scraping ringan.',
-    url: `${BASE_URL}/jobs/feed.xml?format=atom`,
-  },
-  {
-    key: 'linkedin',
-    label: 'LinkedIn Jobs XML',
-    icon: Linkedin,
-    description:
-      'Format khusus LinkedIn Talent Hub (XML feed). Cocok untuk integrasi Limited Listings / mitra LinkedIn yang menarik lowongan secara terjadwal.',
-    url: `${BASE_URL}/jobs/feed.xml?format=linkedin`,
-  },
-  {
-    key: 'indeed',
-    label: 'Indeed XML',
-    icon: FileCode,
-    description:
-      'Format XML standar Indeed (lihat docs.indeed.com). Mendukung field salary, jobtype, dan referencenumber per lowongan.',
-    url: `${BASE_URL}/jobs/feed.xml?format=indeed`,
-  },
-] as const
+const FORMAT_KEYS = ['atom', 'linkedin', 'indeed'] as const
+const FORMAT_ICONS = {
+  atom: Rss,
+  linkedin: Linkedin,
+  indeed: FileCode,
+} as const
 
-export default function FeedInfoPage() {
+export default async function FeedInfoPage() {
+  const t = await getServerT()
+  const tf = t.public.feedInfo
+  const formats = FORMAT_KEYS.map((key) => ({
+    key,
+    label: tf.formats[key].label,
+    icon: FORMAT_ICONS[key],
+    description: tf.formats[key].description,
+    url: `${BASE_URL}/jobs/feed.xml?format=${key}`,
+  }))
+
   return (
     <main className="mx-auto max-w-3xl space-y-10 px-4 py-12">
       <div>
@@ -52,7 +43,7 @@ export default function FeedInfoPage() {
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke daftar lowongan
+          {tf.backToJobs}
         </Link>
       </div>
 
@@ -60,23 +51,18 @@ export default function FeedInfoPage() {
         <div className="bg-muted inline-flex size-12 items-center justify-center rounded-xl">
           <Rss className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h1 className="font-heading text-3xl md:text-4xl">Feed XML lowongan</h1>
+        <h1 className="font-heading text-3xl md:text-4xl">{tf.title}</h1>
         <p className="text-muted-foreground text-base">
-          RPI menyediakan feed XML publik berisi lowongan terbaru sehingga
-          aplikasi ATS, agregator, dan mitra distribusi seperti LinkedIn dan
-          Indeed dapat menarik data tanpa scraping. Feed di-cache 10 menit di
-          edge — cocok untuk dipoll setiap 15–30 menit.
+          {tf.intro}
         </p>
       </header>
 
       <section className="space-y-5" aria-labelledby="feeds-publik">
         <h2 id="feeds-publik" className="font-heading text-2xl">
-          Feed publik
+          {tf.publicFeeds.title}
         </h2>
         <p className="text-muted-foreground text-sm">
-          Setiap URL di bawah ini mengembalikan paling banyak 500 lowongan
-          terbaru berstatus PUBLISHED, diurutkan menurun berdasarkan tanggal
-          publikasi.
+          {tf.publicFeeds.body}
         </p>
 
         <div className="space-y-5">
@@ -107,31 +93,28 @@ export default function FeedInfoPage() {
 
       <section className="space-y-3" aria-labelledby="feed-tenant">
         <h2 id="feed-tenant" className="font-heading text-2xl">
-          Feed per tenant
+          {tf.tenantFeed.title}
         </h2>
         <p className="text-muted-foreground text-sm">
-          Mitra ATS yang hanya menarik lowongan dari satu tenant tertentu dapat
-          menambahkan parameter <code className="font-mono">?tenant={'{slug}'}</code>{' '}
-          ke URL feed. Contoh:
+          {tf.tenantFeed.body} <code className="font-mono">?tenant={'{slug}'}</code>{' '}
+          {tf.tenantFeed.bodyTail}
         </p>
         <FeedUrlBlock
           url={`${BASE_URL}/jobs/feed.xml?format=atom&tenant=tenant-anda`}
-          description="Ganti tenant-anda dengan slug tenant Anda."
+          description={tf.tenantFeed.replaceHint}
         />
         <p className="text-muted-foreground text-xs">
-          Bila tenant tidak ditemukan atau belum memiliki lowongan PUBLISHED,
-          server akan merespons 404 dengan body XML yang menjelaskan alasannya.
+          {tf.tenantFeed.notFound}
         </p>
       </section>
 
       <section className="space-y-3" aria-labelledby="untuk-ats">
         <h2 id="untuk-ats" className="font-heading text-2xl">
-          Untuk mitra ATS
+          {tf.forAts.title}
         </h2>
         <p className="text-muted-foreground text-sm">
-          Berikut contoh perintah curl untuk masing-masing format. Semua
-          response menggunakan <code className="font-mono">Content-Type: application/xml; charset=utf-8</code>{' '}
-          dan header <code className="font-mono">Cache-Control: public, s-maxage=600, stale-while-revalidate=1800</code>.
+          {tf.forAts.body} <code className="font-mono">Content-Type: application/xml; charset=utf-8</code>{' '}
+          {tf.forAts.bodyMid} <code className="font-mono">Cache-Control: public, s-maxage=600, stale-while-revalidate=1800</code>.
         </p>
         <pre className="border-border bg-muted/40 overflow-x-auto rounded-md border p-3 text-xs">
 {`# Generic Atom (default)
@@ -150,25 +133,12 @@ curl -sSL "${BASE_URL}/jobs/feed.xml?format=atom&tenant=acme" -o jobs.acme.atom.
 
       <section className="space-y-3" aria-labelledby="jadwal-refresh">
         <h2 id="jadwal-refresh" className="font-heading text-2xl">
-          Jadwal refresh
+          {tf.refreshSchedule.title}
         </h2>
         <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
-          <li>
-            Feed dibangun ulang on-demand dan di-cache <strong>10 menit</strong> di edge.
-          </li>
-          <li>
-            Selama jendela <strong>30 menit stale-while-revalidate</strong>, CDN
-            menyajikan versi cache lama sementara me-refresh di latar belakang.
-          </li>
-          <li>
-            Rekomendasi polling untuk mitra ATS: setiap <strong>15–30 menit</strong>.
-            Polling lebih sering tidak menghasilkan data lebih baru dan hanya
-            menambah biaya bandwidth.
-          </li>
-          <li>
-            Maksimum <strong>500 lowongan</strong> per feed, diurutkan menurun
-            menurut <code className="font-mono">publishedAt</code>.
-          </li>
+          {tf.refreshSchedule.items.map((item, idx) => (
+            <li key={idx} dangerouslySetInnerHTML={{ __html: item }} />
+          ))}
         </ul>
       </section>
 
@@ -179,12 +149,11 @@ curl -sSL "${BASE_URL}/jobs/feed.xml?format=atom&tenant=acme" -o jobs.acme.atom.
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4" aria-hidden="true" />
           <h2 id="bantuan" className="font-heading text-lg">
-            Butuh bantuan integrasi?
+            {tf.help.title}
           </h2>
         </div>
         <p className="text-muted-foreground text-sm">
-          Hubungi tim partnership kami untuk diskusi format khusus, frekuensi
-          push, atau perjanjian distribusi formal.
+          {tf.help.body}
         </p>
       </section>
     </main>

@@ -19,6 +19,8 @@ import { TopBar } from '@/components/organisms/top-bar'
 import type { NotificationItem } from '@/components/organisms/notifications-bell'
 import { CmdKPalette } from '@/components/organisms/cmd-k-palette'
 import { MobileBottomNav } from '@/components/organisms/mobile-bottom-nav'
+import { useI18n } from '@/lib/i18n/i18n-provider'
+import type { Dictionary } from '@/lib/i18n/dictionary'
 
 export interface DashboardLayoutProps {
   children: React.ReactNode
@@ -38,25 +40,25 @@ export interface DashboardLayoutProps {
 /**
  * Build sidebar items based on a session's global role.
  */
-function buildMenuFromSession(globalRole?: string): MiniSidebarItem[] {
+function buildMenuFromSession(t: Dictionary, globalRole?: string): MiniSidebarItem[] {
   const base: MiniSidebarItem[] = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/jobs', label: 'Lowongan', icon: Briefcase, matchPrefix: true },
-    { href: '/dashboard/lms', label: 'Pelatihan', icon: GraduationCap, matchPrefix: true },
-    { href: '/dashboard/messages', label: 'Pesan', icon: MessageSquare, matchPrefix: true },
-    { href: '/dashboard/calendar', label: 'Kalender', icon: Calendar, matchPrefix: true },
+    { href: '/dashboard', label: t.dashboard.sidebar.dashboardLabel, icon: LayoutDashboard },
+    { href: '/dashboard/jobs', label: t.dashboard.nav.jobs, icon: Briefcase, matchPrefix: true },
+    { href: '/dashboard/lms', label: t.dashboard.nav.lms, icon: GraduationCap, matchPrefix: true },
+    { href: '/dashboard/messages', label: t.dashboard.nav.messages, icon: MessageSquare, matchPrefix: true },
+    { href: '/dashboard/calendar', label: t.dashboard.nav.calendar, icon: Calendar, matchPrefix: true },
   ]
 
   if (globalRole === 'PARTNER' || globalRole === 'ADMIN' || globalRole === 'SUPERADMIN') {
     base.push({
       href: '/dashboard/talents',
-      label: 'Talenta',
+      label: t.dashboard.nav.talents,
       icon: Users,
       matchPrefix: true,
     })
     base.push({
       href: '/dashboard/analytics',
-      label: 'Analitik',
+      label: t.dashboard.nav.analytics,
       icon: BarChart3,
       matchPrefix: true,
     })
@@ -65,7 +67,7 @@ function buildMenuFromSession(globalRole?: string): MiniSidebarItem[] {
   if (globalRole === 'ADMIN' || globalRole === 'SUPERADMIN') {
     base.push({
       href: '/dashboard/tenants',
-      label: 'Tenant',
+      label: t.dashboard.nav.tenants,
       icon: Building2,
       matchPrefix: true,
     })
@@ -74,10 +76,12 @@ function buildMenuFromSession(globalRole?: string): MiniSidebarItem[] {
   return base
 }
 
-const DEFAULT_FOOTER: MiniSidebarItem[] = [
-  { href: '/dashboard/settings', label: 'Pengaturan', icon: Settings, matchPrefix: true },
-  { href: '/help', label: 'Bantuan', icon: HelpCircle },
-]
+function buildDefaultFooter(t: Dictionary): MiniSidebarItem[] {
+  return [
+    { href: '/dashboard/settings', label: t.dashboard.nav.settings, icon: Settings, matchPrefix: true },
+    { href: '/help', label: t.dashboard.nav.help, icon: HelpCircle },
+  ]
+}
 
 export function DashboardLayout({
   children,
@@ -88,12 +92,15 @@ export function DashboardLayout({
   mentionUnreadCount,
 }: DashboardLayoutProps) {
   const { data: session } = useSession()
+  const { t } = useI18n()
   const [cmdOpen, setCmdOpen] = React.useState(false)
 
   const items = React.useMemo(
-    () => sidebarItems ?? buildMenuFromSession(session?.user?.globalRole),
-    [sidebarItems, session?.user?.globalRole],
+    () => sidebarItems ?? buildMenuFromSession(t, session?.user?.globalRole),
+    [sidebarItems, session?.user?.globalRole, t],
   )
+
+  const defaultFooter = React.useMemo(() => buildDefaultFooter(t), [t])
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -108,7 +115,7 @@ export function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <MiniSidebar items={items} footerItems={sidebarFooterItems ?? DEFAULT_FOOTER} />
+      <MiniSidebar items={items} footerItems={sidebarFooterItems ?? defaultFooter} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar
           onOpenCmdK={() => setCmdOpen(true)}

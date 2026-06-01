@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { Logo } from '@/components/atoms/logo'
 import { Button } from '@/components/atoms/button'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 import { cn } from '@/lib/utils'
 
 export interface FooterPublicProps {
@@ -23,34 +24,6 @@ export interface FooterPublicProps {
   tenantLogoUrl?: string | null
   className?: string
 }
-
-const workerLinks = [
-  { label: 'Cari Kerja', href: '/jobs' },
-  { label: 'Kursus & Pelatihan', href: '/courses' },
-  { label: 'Bangun CV', href: '/cv-builder' },
-  { label: 'Komunitas', href: '/community' },
-]
-
-const companyLinks = [
-  { label: 'Posting Lowongan', href: '/employers/post-job' },
-  { label: 'Cari Talenta', href: '/employers/talent-search' },
-  { label: 'Harga', href: '/pricing' },
-  { label: 'Solusi Enterprise', href: '/enterprise' },
-]
-
-const aboutLinks = [
-  { label: 'Tentang Kami', href: '/about' },
-  { label: 'Karier di RPI', href: '/careers' },
-  { label: 'Mitra', href: '/partners' },
-  { label: 'Kontak', href: '/contact' },
-]
-
-const legalLinks = [
-  { label: 'Privasi', href: '/privacy' },
-  { label: 'Ketentuan', href: '/terms' },
-  { label: 'Kebijakan Cookie', href: '/cookies' },
-  { label: 'Status', href: '/status' },
-]
 
 const socials = [
   { label: 'Facebook', href: 'https://facebook.com', Icon: Facebook },
@@ -65,7 +38,33 @@ export function FooterPublic({
   tenantLogoUrl,
   className,
 }: FooterPublicProps) {
+  const { t } = useI18n()
   const year = new Date().getFullYear()
+
+  const workerLinks = [
+    { label: t.public.footer.workerLinks.findJob, href: '/jobs' },
+    { label: t.public.footer.workerLinks.coursesTraining, href: '/courses' },
+    { label: t.public.footer.workerLinks.buildCV, href: '/cv-builder' },
+    { label: t.public.footer.workerLinks.community, href: '/community' },
+  ]
+  const companyLinks = [
+    { label: t.public.footer.companyLinks.postJob, href: '/employers/post-job' },
+    { label: t.public.footer.companyLinks.talentSearch, href: '/employers/talent-search' },
+    { label: t.public.footer.companyLinks.pricing, href: '/pricing' },
+    { label: t.public.footer.companyLinks.enterprise, href: '/enterprise' },
+  ]
+  const aboutLinks = [
+    { label: t.public.footer.aboutLinks.about, href: '/about' },
+    { label: t.public.footer.aboutLinks.careers, href: '/careers' },
+    { label: t.public.footer.aboutLinks.partners, href: '/partners' },
+    { label: t.public.footer.aboutLinks.contact, href: '/contact' },
+  ]
+  const legalLinks = [
+    { label: t.public.footer.legalLinks.privacy, href: '/privacy' },
+    { label: t.public.footer.legalLinks.terms, href: '/terms' },
+    { label: t.public.footer.legalLinks.cookie, href: '/cookies' },
+    { label: t.public.footer.legalLinks.status, href: '/status' },
+  ]
 
   const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -85,24 +84,24 @@ export function FooterPublic({
             <div className="mb-3 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Newsletter
+                {t.public.footer.newsletterEyebrow}
               </span>
             </div>
             <h3 className="font-heading text-2xl font-semibold leading-tight text-foreground md:text-3xl">
-              5 lowongan premium setiap Senin.
+              {t.public.footer.newsletterTitle}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground md:text-base">
-              Kurasi editor RPI dikirim langsung ke email-mu. Tanpa spam.
+              {t.public.footer.newsletterSubtitle}
             </p>
           </div>
 
           <form
             onSubmit={handleNewsletterSubmit}
             className="flex flex-col gap-2 md:flex-row"
-            aria-label="Form berlangganan newsletter"
+            aria-label={t.public.footer.newsletterFormLabel}
           >
             <label htmlFor="newsletter-email" className="sr-only">
-              Alamat email
+              {t.public.footer.emailLabel}
             </label>
             <div className="relative flex-1">
               <Mail
@@ -113,12 +112,12 @@ export function FooterPublic({
                 id="newsletter-email"
                 type="email"
                 required
-                placeholder="nama@email.com"
+                placeholder={t.public.footer.emailPlaceholder}
                 className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-[color:var(--ring)] focus:ring-1 focus:ring-[color:var(--ring)]"
               />
             </div>
             <Button type="submit" size="lg" className="h-12 gap-2">
-              Berlangganan
+              {t.public.footer.subscribe}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </form>
@@ -140,8 +139,7 @@ export function FooterPublic({
             </div>
 
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Infrastruktur karier untuk Indonesia — pekerja, perusahaan, dan
-              instansi nasional.
+              {t.public.footer.tagline}
             </p>
 
             <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
@@ -182,7 +180,7 @@ export function FooterPublic({
           {/* Worker links */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Untuk Pekerja
+              {t.public.footer.forWorkers}
             </h4>
             <ul className="mt-5 space-y-3">
               {workerLinks.map((l) => (
@@ -201,7 +199,7 @@ export function FooterPublic({
           {/* Company links */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Untuk Perusahaan
+              {t.public.footer.forCompanies}
             </h4>
             <ul className="mt-5 space-y-3">
               {companyLinks.map((l) => (
@@ -220,7 +218,7 @@ export function FooterPublic({
           {/* About links */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Tentang RPI
+              {t.public.footer.aboutCompany}
             </h4>
             <ul className="mt-5 space-y-3">
               {aboutLinks.map((l) => (
@@ -240,7 +238,7 @@ export function FooterPublic({
         {/* Bottom strip */}
         <div className="mt-12 flex flex-col gap-6 border-t border-border pt-8 md:flex-row md:items-center md:justify-between">
           <p className="text-xs text-muted-foreground">
-            © {year} {tenantName}. All rights reserved.
+            © {year} {tenantName}. {t.public.footer.allRightsReserved}
           </p>
 
           <ul className="flex flex-wrap items-center gap-x-6 gap-y-2">

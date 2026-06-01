@@ -5,6 +5,7 @@ import { CourseCard } from '@/components/molecules/course-card'
 import CoursesSidebar from '@/components/organisms/courses-sidebar'
 import CoursesHeaderChips from '@/components/molecules/courses-header-chips'
 import CoursesSortPills from '@/components/molecules/courses-sort-pills'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import {
   type CourseDuration,
   type CourseLevel,
@@ -26,17 +27,7 @@ export const metadata: Metadata = {
     'Tingkatkan keterampilan dengan kursus terstruktur, sertifikat, dan jalur karier yang dirancang untuk pekerja Indonesia.',
 }
 
-const LEVEL_LABEL: Record<CourseLevel, string> = {
-  beginner: 'Pemula',
-  intermediate: 'Menengah',
-  advanced: 'Lanjutan',
-}
-
-const SORT_LABEL: Record<CourseSort, string> = {
-  newest: 'Terbaru',
-  popular: 'Terpopuler',
-  alpha: 'A–Z',
-}
+// Labels are sourced from the dictionary at render time.
 
 type FilterState = {
   level?: CourseLevel
@@ -102,6 +93,11 @@ export default async function CoursesPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getServerT()
+  const tc = t.public.courses
+  const LEVEL_LABEL: Record<CourseLevel, string> = tc.levelLabels
+  const SORT_LABEL: Record<CourseSort, string> = tc.sortLabels
+
   const rawLevel =
     typeof searchParams.level === 'string' ? searchParams.level.toLowerCase() : ''
   const level: CourseLevel | undefined =
@@ -253,21 +249,21 @@ export default async function CoursesPage({
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
       <header className="mb-8">
-        <h1 className="font-heading text-3xl md:text-4xl">Kursus & Pelatihan</h1>
+        <h1 className="font-heading text-3xl md:text-4xl">{tc.title}</h1>
         <p className="text-muted-foreground mt-2">
-          {result.total.toLocaleString('id-ID')} kursus tersedia
+          {result.total.toLocaleString('id-ID')} {tc.counter.courses}
           {activeQuery && (
             <>
-              {' '}untuk &ldquo;
+              {' '}{t.public.jobs.counter.forQuery} &ldquo;
               <strong className="text-foreground font-medium">{activeQuery}</strong>
               &rdquo;
             </>
           )}
           {totalPages > 1 && (
             <>
-              {' '}· halaman{' '}
+              {' '}· {t.public.jobs.counter.page}{' '}
               <strong className="text-foreground font-medium">{activePage}</strong>{' '}
-              dari {totalPages}
+              {t.public.jobs.counter.of} {totalPages}
             </>
           )}
         </p>
@@ -280,9 +276,9 @@ export default async function CoursesPage({
               type="search"
               name="q"
               defaultValue={activeQuery}
-              placeholder="Cari kursus, topik, atau instruktur…"
+              placeholder={tc.searchPlaceholder}
               className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
-              aria-label="Cari kursus"
+              aria-label={tc.searchAria}
             />
             {activeQuery && (
               <Link
@@ -291,14 +287,14 @@ export default async function CoursesPage({
                 className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
               >
                 <X className="h-3 w-3" aria-hidden />
-                Bersihkan
+                {tc.clear}
               </Link>
             )}
             <button
               type="submit"
               className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
             >
-              Cari
+              {tc.searchCta}
             </button>
           </div>
           {/* Preserve other filters on submit */}
@@ -336,19 +332,17 @@ export default async function CoursesPage({
           {courses.length === 0 ? (
             <div className="border-border bg-card rounded-2xl border p-12 text-center">
               <h2 className="font-heading text-foreground text-lg font-semibold">
-                Tidak ada kursus
+                {tc.empty.title}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                {hasAnyFilter
-                  ? 'Belum ada kursus yang cocok dengan filter saat ini.'
-                  : 'Belum ada kursus terdaftar.'}
+                {hasAnyFilter ? tc.empty.withFilter : tc.empty.none}
               </p>
               {hasAnyFilter && (
                 <Link
                   href="/courses"
                   className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
                 >
-                  Bersihkan filter
+                  {tc.empty.clear}
                 </Link>
               )}
             </div>
@@ -379,6 +373,11 @@ export default async function CoursesPage({
               current={current}
               page={activePage}
               totalPages={totalPages}
+              labels={{
+                previous: t.public.jobs.pagination.previous,
+                next: t.public.jobs.pagination.next,
+                pageAria: t.public.jobs.pagination.pageAria,
+              }}
             />
           )}
         </section>
@@ -391,10 +390,12 @@ function CoursesPagination({
   current,
   page,
   totalPages,
+  labels,
 }: {
   current: FilterState
   page: number
   totalPages: number
+  labels: { previous: string; next: string; pageAria: string }
 }) {
   const prevPage = Math.max(1, page - 1)
   const nextPage = Math.min(totalPages, page + 1)
@@ -418,9 +419,9 @@ function CoursesPagination({
       aria-label="Pagination"
       className="text-muted-foreground mt-10 flex flex-wrap items-center justify-center gap-2 text-sm"
     >
-      <PageLink current={current} page={prevPage} disabled={page === 1} aria="Sebelumnya">
+      <PageLink current={current} page={prevPage} disabled={page === 1} aria={labels.previous}>
         <ChevronLeft className="h-4 w-4" aria-hidden />
-        <span className="hidden sm:inline">Sebelumnya</span>
+        <span className="hidden sm:inline">{labels.previous}</span>
       </PageLink>
 
       {pages.map((p, i) =>
@@ -434,7 +435,7 @@ function CoursesPagination({
             current={current}
             page={p}
             active={p === page}
-            aria={`Halaman ${p}`}
+            aria={`${labels.pageAria} ${p}`}
           >
             {p}
           </PageLink>
@@ -445,9 +446,9 @@ function CoursesPagination({
         current={current}
         page={nextPage}
         disabled={page === totalPages}
-        aria="Berikutnya"
+        aria={labels.next}
       >
-        <span className="hidden sm:inline">Berikutnya</span>
+        <span className="hidden sm:inline">{labels.next}</span>
         <ChevronRight className="h-4 w-4" aria-hidden />
       </PageLink>
     </nav>

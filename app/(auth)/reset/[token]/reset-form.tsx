@@ -1,30 +1,43 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { resetPassword } from '@/lib/auth/actions'
-
-const schema = z
-  .object({
-    password: z
-      .string()
-      .min(8, 'Password minimal 8 karakter')
-      .regex(/[A-Za-z]/, 'Password harus berisi huruf')
-      .regex(/[0-9]/, 'Password harus berisi angka'),
-    confirm: z.string(),
-  })
-  .refine((d) => d.password === d.confirm, {
-    path: ['confirm'],
-    message: 'Konfirmasi password tidak cocok',
-  })
-
-type FormValues = z.infer<typeof schema>
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export function ResetForm({ token }: { token: string }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tr = t.auth.reset
+
+  const schema = useMemo(
+    () =>
+      z
+        .object({
+          password: z
+            .string()
+            .min(8, tr.errors.passwordMin)
+            .regex(/[A-Za-z]/, tr.errors.passwordLetter)
+            .regex(/[0-9]/, tr.errors.passwordNumber),
+          confirm: z.string(),
+        })
+        .refine((d) => d.password === d.confirm, {
+          path: ['confirm'],
+          message: tr.errors.confirmMismatch,
+        }),
+    [
+      tr.errors.passwordMin,
+      tr.errors.passwordLetter,
+      tr.errors.passwordNumber,
+      tr.errors.confirmMismatch,
+    ],
+  )
+
+  type FormValues = z.infer<typeof schema>
+
   const [isPending, startTransition] = useTransition()
   const [submitError, setSubmitError] = useState<string | null>(null)
   const {
@@ -66,13 +79,13 @@ export function ResetForm({ token }: { token: string }) {
     <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="space-y-2">
         <label htmlFor="password" className="block text-sm font-medium text-foreground">
-          Password baru
+          {tr.newPasswordLabel}
         </label>
         <input
           id="password"
           type="password"
           autoComplete="new-password"
-          placeholder="Minimal 8 karakter, huruf & angka"
+          placeholder={tr.newPasswordPlaceholder}
           aria-invalid={Boolean(errors.password)}
           className={inputClass}
           {...register('password')}
@@ -84,13 +97,13 @@ export function ResetForm({ token }: { token: string }) {
 
       <div className="space-y-2">
         <label htmlFor="confirm" className="block text-sm font-medium text-foreground">
-          Konfirmasi password baru
+          {tr.confirmNewLabel}
         </label>
         <input
           id="confirm"
           type="password"
           autoComplete="new-password"
-          placeholder="Ulangi password baru"
+          placeholder={tr.confirmNewPlaceholder}
           aria-invalid={Boolean(errors.confirm)}
           className={inputClass}
           {...register('confirm')}
@@ -114,7 +127,7 @@ export function ResetForm({ token }: { token: string }) {
         disabled={isPending}
         className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? 'Menyimpan…' : 'Simpan password baru'}
+        {isPending ? tr.submitting : tr.submit}
         <span aria-hidden className="text-[hsl(43,74%,55%)]">
           →
         </span>

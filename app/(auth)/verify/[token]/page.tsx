@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { verifyEmail } from '@/lib/auth/actions'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = {
   title: 'Verifikasi Email · Rumah Pekerja Indonesia',
@@ -15,20 +16,22 @@ export default async function VerifyTokenPage({
   const result = await verifyEmail(params.token)
   const session = await auth()
   const signedIn = Boolean(session?.user?.id)
+  const t = await getServerT()
+  const tv = t.auth.verify.token
 
   if (!result.ok) {
     const message =
       result.reason === 'expired'
-        ? 'Tautan verifikasi sudah kedaluwarsa. Minta tautan baru dari halaman keamanan.'
+        ? tv.reasonExpired
         : result.reason === 'used'
-          ? 'Tautan verifikasi ini sudah digunakan. Jika email Anda belum terverifikasi, minta tautan baru.'
-          : 'Tautan verifikasi tidak valid. Pastikan Anda membuka tautan terbaru dari email.'
+          ? tv.reasonUsed
+          : tv.reasonInvalid
 
     return (
       <div className="space-y-6">
         <header className="space-y-2">
           <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-            Verifikasi gagal
+            {tv.failTitle}
           </h2>
           <p className="text-sm text-muted-foreground">{message}</p>
         </header>
@@ -39,7 +42,7 @@ export default async function VerifyTokenPage({
               href="/dashboard/keamanan"
               className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
             >
-              Buka pengaturan keamanan
+              {tv.ctaSecurity}
               <span aria-hidden className="text-[hsl(43,74%,55%)]">
                 →
               </span>
@@ -49,7 +52,7 @@ export default async function VerifyTokenPage({
               href="/login"
               className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
             >
-              Masuk untuk minta tautan baru
+              {tv.ctaLogin}
               <span aria-hidden className="text-[hsl(43,74%,55%)]">
                 →
               </span>
@@ -71,12 +74,10 @@ export default async function VerifyTokenPage({
 
       <header className="space-y-2 text-center">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-          {result.alreadyVerified ? 'Email sudah terverifikasi' : 'Email berhasil diverifikasi'}
+          {result.alreadyVerified ? tv.alreadyTitle : tv.successTitle}
         </h2>
         <p className="text-sm text-muted-foreground">
-          {result.alreadyVerified
-            ? 'Tidak ada yang perlu dilakukan — akun Anda sudah aktif.'
-            : 'Terima kasih. Akun Anda sekarang aktif sepenuhnya.'}
+          {result.alreadyVerified ? tv.alreadyBody : tv.successBody}
         </p>
       </header>
 
@@ -85,7 +86,7 @@ export default async function VerifyTokenPage({
           href={signedIn ? '/dashboard' : '/login'}
           className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
         >
-          {signedIn ? 'Lanjut ke dashboard' : 'Masuk ke akun Anda'}
+          {signedIn ? tv.ctaDashboard : tv.ctaToLogin}
           <span aria-hidden className="text-[hsl(43,74%,55%)]">
             →
           </span>

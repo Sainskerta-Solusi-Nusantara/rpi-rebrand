@@ -1,17 +1,20 @@
 import Link from 'next/link'
 import { requestPasswordReset } from '@/lib/auth/actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = {
   title: 'Lupa Password · Rumah Pekerja Indonesia',
   description: 'Atur ulang password akun RPI Anda.',
 }
 
-export default function ForgotPasswordPage({
+export default async function ForgotPasswordPage({
   searchParams,
 }: {
   searchParams?: { sent?: string }
 }) {
   const sent = searchParams?.sent === '1'
+  const t = await getServerT()
+  const tr = t.auth.reset
 
   async function action(formData: FormData) {
     'use server'
@@ -28,11 +31,10 @@ export default function ForgotPasswordPage({
     <div className="space-y-6">
       <header className="space-y-2">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-          Lupa password?
+          {tr.forgotTitle}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Masukkan email Anda. Jika terdaftar, kami akan mengirim instruksi
-          untuk mengatur ulang password.
+          {tr.forgotPrompt}
         </p>
       </header>
 
@@ -41,14 +43,13 @@ export default function ForgotPasswordPage({
           role="status"
           className="rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
         >
-          Jika email Anda terdaftar, instruksi reset password sudah kami
-          kirim. Periksa juga folder spam.
+          {tr.forgotSentNotice}
         </div>
       ) : (
         <form action={action} className="space-y-5" noValidate>
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium text-foreground">
-              Email
+              {tr.forgotEmailLabel}
             </label>
             <input
               id="email"
@@ -56,7 +57,7 @@ export default function ForgotPasswordPage({
               type="email"
               required
               autoComplete="email"
-              placeholder="nama@email.com"
+              placeholder={tr.forgotEmailPlaceholder}
               className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
             />
           </div>
@@ -65,7 +66,7 @@ export default function ForgotPasswordPage({
             type="submit"
             className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2"
           >
-            Kirim instruksi reset
+            {tr.forgotSubmit}
             <span aria-hidden className="text-[hsl(43,74%,55%)]">
               →
             </span>
@@ -74,9 +75,9 @@ export default function ForgotPasswordPage({
       )}
 
       <p className="text-center text-sm text-muted-foreground">
-        Ingat password Anda?{' '}
+        {tr.forgotRemember}{' '}
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Kembali ke masuk
+          {tr.forgotBackToLogin}
         </Link>
       </p>
     </div>

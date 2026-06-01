@@ -13,6 +13,7 @@ import {
   FlagToggleSwitch,
   FlagDeleteButton,
 } from '@/components/organisms/feature-flag-controls'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Edit Feature Flag — Dasbor' }
 
@@ -51,6 +52,7 @@ export default async function EditFeatureFlagPage({
   if (session.user.globalRole !== 'SUPERADMIN') {
     notFound()
   }
+  const t = await getServerT()
 
   const flag = await getFlagById(params.id)
   if (!flag) {
@@ -71,7 +73,7 @@ export default async function EditFeatureFlagPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke daftar
+          {t.dashboard.featureFlags.backToList}
         </Link>
       </div>
 
@@ -85,15 +87,15 @@ export default async function EditFeatureFlagPage({
         </div>
         <div className="flex items-center gap-4">
           <FlagToggleSwitch id={flag.id} initialEnabled={flag.enabled} />
-          <FlagDeleteButton id={flag.id} label="Hapus flag" />
+          <FlagDeleteButton id={flag.id} label={t.dashboard.featureFlags.deleteFlag} />
         </div>
       </header>
 
       <section
-        aria-label="Konfigurasi flag"
+        aria-label={t.dashboard.featureFlags.configLabel}
         className="border-border bg-card rounded-2xl border p-6"
       >
-        <h2 className="font-heading mb-4 text-lg">Konfigurasi</h2>
+        <h2 className="font-heading mb-4 text-lg">{t.dashboard.featureFlags.configTitle}</h2>
         <FeatureFlagForm
           mode="edit"
           flagId={flag.id}
@@ -110,15 +112,14 @@ export default async function EditFeatureFlagPage({
       </section>
 
       <section
-        aria-label="Override"
+        aria-label={t.dashboard.featureFlags.overrideLabel}
         className="border-border bg-card rounded-2xl border p-6"
       >
         <h2 className="font-heading mb-4 text-lg">
-          Override ({flag.overrideCount})
+          {t.dashboard.featureFlags.overrideTitle.replace('{n}', String(flag.overrideCount))}
         </h2>
         <p className="text-muted-foreground mb-4 text-sm">
-          Override mengganti hasil evaluasi untuk pengguna atau tenant tertentu — tetapi
-          kill-switch (status nonaktif) selalu mengalahkan override.
+          {t.dashboard.featureFlags.overrideDesc}
         </p>
         <FeatureFlagOverridesTable
           flagId={flag.id}

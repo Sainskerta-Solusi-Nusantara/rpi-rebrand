@@ -18,6 +18,7 @@ import { ClaimCertificateButton } from '@/components/organisms/claim-certificate
 import { QuizTaker } from '@/components/organisms/quiz-taker'
 import { getQuizForAttempt } from '@/lib/quizzes/queries'
 import { startAttempt } from '@/lib/quizzes/attempt-actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Pemutar Kursus' }
 
@@ -31,14 +32,6 @@ const LESSON_TYPE_ICON = {
   ASSIGNMENT: FileText,
   DOWNLOAD: FileText,
 } as const
-
-const LESSON_TYPE_LABEL: Record<string, string> = {
-  VIDEO: 'Video',
-  ARTICLE: 'Artikel',
-  QUIZ: 'Kuis',
-  ASSIGNMENT: 'Tugas',
-  DOWNLOAD: 'Unduhan',
-}
 
 function youtubeEmbed(url: string): string | null {
   try {
@@ -66,6 +59,15 @@ export default async function CoursePlayerPage({
 }) {
   const session = await requireAuth(`/dashboard/kursus/${params.slug}`)
   const userId = session.user.id
+  const t = await getServerT()
+
+  const LESSON_TYPE_LABEL: Record<string, string> = {
+    VIDEO: t.dashboard.courses.player.lessonTypes.VIDEO,
+    ARTICLE: t.dashboard.courses.player.lessonTypes.ARTICLE,
+    QUIZ: t.dashboard.courses.player.lessonTypes.QUIZ,
+    ASSIGNMENT: t.dashboard.courses.player.lessonTypes.ASSIGNMENT,
+    DOWNLOAD: t.dashboard.courses.player.lessonTypes.DOWNLOAD,
+  }
 
   // Resolve the course by slug (PUBLISHED). Slug is tenant-scoped so we use
   // findFirst, mirroring `lib/courses-data.ts#findCourse`.
@@ -168,7 +170,7 @@ export default async function CoursePlayerPage({
     const quizId = currentLesson.quiz.id
     const forAttempt = await getQuizForAttempt(quizId, userId)
     if (!forAttempt || forAttempt.questions.length === 0) {
-      quizUnavailable = 'Kuis ini belum memiliki pertanyaan.'
+      quizUnavailable = t.dashboard.courses.player.quizNoQuestions
     } else {
       // Reuse an in-progress (incomplete) attempt; otherwise start a new one.
       const incomplete = await prisma.quizAttempt.findFirst({
@@ -202,7 +204,7 @@ export default async function CoursePlayerPage({
       }
     }
   } else if (currentLesson.contentType === 'QUIZ') {
-    quizUnavailable = 'Kuis belum dikonfigurasi.'
+    quizUnavailable = t.dashboard.courses.player.quizNotConfigured
   }
 
   const progress = Math.max(0, Math.min(100, enrollment.progress))
@@ -217,12 +219,12 @@ export default async function CoursePlayerPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Kembali ke kursus saya
+          {t.dashboard.courses.player.back}
         </Link>
         {isCompleted && (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-            Selesai
+            {t.dashboard.courses.player.completedBadge}
           </span>
         )}
       </div>
@@ -245,9 +247,11 @@ export default async function CoursePlayerPage({
             />
           </div>
           <div className="text-muted-foreground mt-1.5 flex items-center justify-between text-xs">
-            <span>Progres: {progress}%</span>
+            <span>{t.dashboard.courses.player.progress.replace('{n}', String(progress))}</span>
             <span>
-              {completedSet.size}/{flatLessons.length} pelajaran selesai
+              {t.dashboard.courses.player.lessonsDone
+                .replace('{done}', String(completedSet.size))
+                .replace('{total}', String(flatLessons.length))}
             </span>
           </div>
         </div>
@@ -258,11 +262,11 @@ export default async function CoursePlayerPage({
           <div className="flex items-start gap-3">
             <Award className="text-[color:var(--ring)] mt-0.5 h-6 w-6" aria-hidden />
             <div>
-              <p className="text-foreground font-medium">Selamat, kursus selesai!</p>
+              <p className="text-foreground font-medium">{t.dashboard.courses.player.completedTitle}</p>
               <p className="text-muted-foreground text-sm">
                 {existingCert
-                  ? 'Sertifikat Anda sudah tersedia.'
-                  : 'Klaim sertifikat kelulusan Anda sekarang.'}
+                  ? t.dashboard.courses.player.certificateAvailable
+                  : t.dashboard.courses.player.certificateClaim}
               </p>
             </div>
           </div>
@@ -273,7 +277,7 @@ export default async function CoursePlayerPage({
               className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium"
             >
               <Award className="h-4 w-4" aria-hidden />
-              Lihat sertifikat
+              {t.dashboard.courses.player.viewCertificate}
             </Link>
           ) : (
             <ClaimCertificateButton enrollmentId={enrollment.id} />
@@ -285,9 +289,11 @@ export default async function CoursePlayerPage({
         {/* Sidebar: modules + lessons */}
         <aside className="border-border bg-card overflow-hidden rounded-2xl border">
           <div className="border-border border-b px-4 py-3">
-            <h2 className="font-heading text-sm font-semibold">Daftar Materi</h2>
+            <h2 className="font-heading text-sm font-semibold">{t.dashboard.courses.player.toc}</h2>
             <p className="text-muted-foreground mt-0.5 text-xs">
-              {course.modules.length} modul · {flatLessons.length} pelajaran
+              {t.dashboard.courses.player.tocMeta
+                .replace('{modules}', String(course.modules.length))
+                .replace('{lessons}', String(flatLessons.length))}
             </p>
           </div>
           <ol className="divide-border divide-y">
@@ -329,7 +335,7 @@ export default async function CoursePlayerPage({
                             )}
                             <span className="flex-1 truncate">{l.title}</span>
                             <span className="text-muted-foreground shrink-0 text-[10px]">
-                              {l.durationMin} mnt
+                              {l.durationMin} {t.dashboard.courses.player.minutesShort}
                             </span>
                           </Link>
                         </li>
@@ -384,7 +390,7 @@ export default async function CoursePlayerPage({
                   <div className="border-border bg-muted/30 grid aspect-video place-items-center rounded-lg border">
                     <span className="text-muted-foreground inline-flex items-center gap-2 text-sm">
                       <PlayCircle className="h-5 w-5" aria-hidden />
-                      Video belum tersedia.
+                      {t.dashboard.courses.player.videoUnavailable}
                     </span>
                   </div>
                 )
@@ -401,10 +407,10 @@ export default async function CoursePlayerPage({
                       aria-hidden
                     />
                     <p className="text-foreground mt-2 font-medium">
-                      Kuis belum tersedia
+                      {t.dashboard.courses.player.quizUnavailable}
                     </p>
                     <p className="text-muted-foreground mt-1 text-sm">
-                      {quizUnavailable ?? 'Belum dikonfigurasi.'}
+                      {quizUnavailable ?? t.dashboard.courses.player.notConfiguredFallback}
                     </p>
                   </div>
                 )
@@ -416,7 +422,7 @@ export default async function CoursePlayerPage({
                     </p>
                   ) : (
                     <p className="text-muted-foreground">
-                      Materi pelajaran belum tersedia.
+                      {t.dashboard.courses.player.materialUnavailable}
                     </p>
                   )}
                   {currentLesson.contentUrl && (
@@ -428,7 +434,7 @@ export default async function CoursePlayerPage({
                         className="text-primary inline-flex items-center gap-1 text-sm font-medium underline-offset-2 hover:underline"
                       >
                         <BookOpen className="h-4 w-4" aria-hidden />
-                        Buka materi terkait
+                        {t.dashboard.courses.player.openMaterial}
                       </a>
                     </p>
                   )}

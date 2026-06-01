@@ -13,6 +13,7 @@ import { getComponentName } from '@/lib/status/components'
 import { StatusBadge, type StatusBadgeVariant } from '@/components/organisms/status-badge'
 import { StatusComponentGrid } from '@/components/organisms/status-component-grid'
 import { IncidentCard } from '@/components/organisms/incident-card'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 // Health checks + DB queries are cheap, but 30 s is enough to absorb a
 // thundering herd from external monitoring tools polling the page.
@@ -29,19 +30,7 @@ const OVERALL_VARIANT: Record<OverallStatus, StatusBadgeVariant> = {
   maintenance: 'maintenance',
 }
 
-const OVERALL_LABEL: Record<OverallStatus, string> = {
-  operational: 'Semua sistem normal',
-  degraded: 'Sebagian terdegradasi',
-  major_outage: 'Gangguan mayor',
-  maintenance: 'Sedang pemeliharaan',
-}
-
-const MAINTENANCE_STATUS_LABEL: Record<string, string> = {
-  planned: 'Direncanakan',
-  in_progress: 'Sedang berjalan',
-  completed: 'Selesai',
-  cancelled: 'Dibatalkan',
-}
+// Labels are derived from the dictionary at render time.
 
 function formatDate(d: Date): string {
   return new Intl.DateTimeFormat('id-ID', {
@@ -88,6 +77,11 @@ const FALLBACK_OVERALL = {
 }
 
 export default async function PublicStatusPage() {
+  const t = await getServerT()
+  const ts = t.public.status
+  const OVERALL_LABEL: Record<OverallStatus, string> = ts.overallStatus
+  const MAINTENANCE_STATUS_LABEL: Record<string, string> = ts.maintenanceStatus
+
   const [{ status: overall, health, activeIncidents, ongoingMaintenance }, upcomingMaintenance, recentIncidents] =
     await Promise.all([
       getOverallStatus().catch(() => FALLBACK_OVERALL),
@@ -104,10 +98,10 @@ export default async function PublicStatusPage() {
         {/* Header */}
         <header className="space-y-4">
           <p className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-            Status sistem
+            {ts.eyebrow}
           </p>
           <h1 className="font-heading text-3xl md:text-4xl">
-            Status layanan Rumah Pekerja Indonesia
+            {ts.title}
           </h1>
           <div className="flex flex-wrap items-center gap-3">
             <StatusBadge
@@ -116,7 +110,7 @@ export default async function PublicStatusPage() {
               size="lg"
             />
             <p className="text-muted-foreground text-sm">
-              Diperbarui setiap 30 detik
+              {ts.updatedEvery}
             </p>
           </div>
         </header>
@@ -124,11 +118,11 @@ export default async function PublicStatusPage() {
         {/* Ongoing maintenance banner */}
         {ongoingMaintenance.length > 0 ? (
           <section
-            aria-label="Pemeliharaan berjalan"
+            aria-label={ts.sections.ongoingMaintenanceLabel}
             className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-4"
           >
             <h2 className="font-medium text-blue-700 dark:text-blue-300">
-              Pemeliharaan sedang berjalan
+              {ts.sections.ongoingMaintenanceTitle}
             </h2>
             <ul className="mt-2 space-y-1 text-sm">
               {ongoingMaintenance.map((m) => (
@@ -140,7 +134,7 @@ export default async function PublicStatusPage() {
                     {m.title}
                   </Link>{' '}
                   <span className="text-muted-foreground">
-                    · selesai pada {formatDate(m.scheduledEnd)}
+                    · {ts.sections.completesAt} {formatDate(m.scheduledEnd)}
                   </span>
                 </li>
               ))}
@@ -153,7 +147,7 @@ export default async function PublicStatusPage() {
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5" aria-hidden />
             <h2 id="komponen-heading" className="font-heading text-xl">
-              Komponen sistem
+              {ts.sections.components}
             </h2>
           </div>
           <StatusComponentGrid health={health} />
@@ -164,12 +158,12 @@ export default async function PublicStatusPage() {
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5" aria-hidden />
             <h2 id="insiden-aktif-heading" className="font-heading text-xl">
-              Insiden aktif
+              {ts.sections.activeIncidents}
             </h2>
           </div>
           {activeIncidents.length === 0 ? (
             <p className="border-border bg-card text-muted-foreground rounded-xl border p-4 text-sm">
-              Tidak ada insiden aktif. Semua layanan berjalan normal.
+              {ts.sections.noActiveIncidents}
             </p>
           ) : (
             <div className="space-y-3">
@@ -185,12 +179,12 @@ export default async function PublicStatusPage() {
           <div className="flex items-center gap-2">
             <CalendarClock className="h-5 w-5" aria-hidden />
             <h2 id="maintenance-heading" className="font-heading text-xl">
-              Pemeliharaan mendatang
+              {ts.sections.upcomingMaintenance}
             </h2>
           </div>
           {upcomingMaintenance.length === 0 ? (
             <p className="border-border bg-card text-muted-foreground rounded-xl border p-4 text-sm">
-              Belum ada pemeliharaan terjadwal.
+              {ts.sections.noUpcomingMaintenance}
             </p>
           ) : (
             <div className="space-y-3">
@@ -224,7 +218,7 @@ export default async function PublicStatusPage() {
                   ) : null}
                   {m.affectedServices.length > 0 ? (
                     <p className="text-muted-foreground mt-2 text-xs">
-                      Layanan terdampak:{' '}
+                      {ts.sections.affectedServices}{' '}
                       <span className="text-foreground/80">
                         {m.affectedServices.map(getComponentName).join(', ')}
                       </span>
@@ -241,17 +235,17 @@ export default async function PublicStatusPage() {
           <div className="flex items-center gap-2">
             <History className="h-5 w-5" aria-hidden />
             <h2 id="history-heading" className="font-heading text-xl">
-              Riwayat 30 hari
+              {ts.sections.history}
             </h2>
           </div>
           {historyDays.length === 0 ? (
             <p className="border-border bg-card text-muted-foreground rounded-xl border p-4 text-sm">
-              Tidak ada insiden yang tercatat dalam 30 hari terakhir.
+              {ts.sections.noHistory}
             </p>
           ) : (
             <details className="border-border bg-card rounded-xl border p-4">
               <summary className="cursor-pointer text-sm font-medium">
-                Lihat {resolvedHistory.length} insiden terselesaikan
+                {ts.sections.viewResolved.replace('{count}', String(resolvedHistory.length))}
               </summary>
               <div className="mt-4 space-y-6">
                 {historyDays.map((bucket) => (
@@ -291,10 +285,10 @@ export default async function PublicStatusPage() {
             className="text-primary inline-flex items-center gap-1 text-sm hover:underline"
           >
             <Rss className="h-4 w-4" aria-hidden />
-            Subscribe via JSON feed
+            {ts.subscribe}
           </a>
           <span className="text-muted-foreground text-xs">
-            Untuk integrasi pemantauan eksternal.
+            {ts.subscribeNote}
           </span>
         </footer>
       </div>

@@ -3,20 +3,9 @@ import { Award, BookOpen, Clock, GraduationCap, PlayCircle } from 'lucide-react'
 
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Kursus Saya' }
-
-const LEVEL_LABEL: Record<string, string> = {
-  BEGINNER: 'Pemula',
-  INTERMEDIATE: 'Menengah',
-  ADVANCED: 'Lanjutan',
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  IN_PROGRESS: 'Sedang berjalan',
-  COMPLETED: 'Selesai',
-  EXPIRED: 'Kedaluwarsa',
-}
 
 type StatusFilter = 'all' | 'IN_PROGRESS' | 'COMPLETED'
 
@@ -34,6 +23,19 @@ export default async function CandidateCoursesPage({
   const session = await requireAuth('/dashboard/kursus')
   const userId = session.user.id
   const filter = parseFilter(searchParams.status)
+  const t = await getServerT()
+
+  const LEVEL_LABEL: Record<string, string> = {
+    BEGINNER: t.dashboard.courses.level.BEGINNER,
+    INTERMEDIATE: t.dashboard.courses.level.INTERMEDIATE,
+    ADVANCED: t.dashboard.courses.level.ADVANCED,
+  }
+
+  const STATUS_LABEL: Record<string, string> = {
+    IN_PROGRESS: t.dashboard.courses.status.IN_PROGRESS,
+    COMPLETED: t.dashboard.courses.status.COMPLETED,
+    EXPIRED: t.dashboard.courses.status.EXPIRED,
+  }
 
   const [enrollments, certificates] = await Promise.all([
     prisma.enrollment
@@ -72,22 +74,22 @@ export default async function CandidateCoursesPage({
   }
 
   const TABS: { id: StatusFilter; label: string }[] = [
-    { id: 'all', label: 'Semua' },
-    { id: 'IN_PROGRESS', label: 'Sedang berjalan' },
-    { id: 'COMPLETED', label: 'Selesai' },
+    { id: 'all', label: t.dashboard.courses.tabs.all },
+    { id: 'IN_PROGRESS', label: t.dashboard.courses.tabs.inProgress },
+    { id: 'COMPLETED', label: t.dashboard.courses.tabs.completed },
   ]
 
   return (
     <div className="space-y-6 p-6">
       <header>
-        <h1 className="font-heading text-2xl md:text-3xl">Kursus Saya</h1>
+        <h1 className="font-heading text-2xl md:text-3xl">{t.dashboard.courses.title}</h1>
         <p className="text-muted-foreground mt-1">
-          Pantau progres semua kursus yang Anda ikuti dan klaim sertifikat setelah selesai.
+          {t.dashboard.courses.subtitle}
         </p>
       </header>
 
       <nav
-        aria-label="Filter status kursus"
+        aria-label={t.dashboard.courses.filterLabel}
         className="border-border flex flex-wrap gap-2 border-b pb-3"
       >
         {TABS.map((t) => {
@@ -118,17 +120,17 @@ export default async function CandidateCoursesPage({
             aria-hidden
           />
           <p className="text-foreground mt-3 font-medium">
-            Anda belum mendaftar kursus apapun.
+            {t.dashboard.courses.empty}
           </p>
           <p className="text-muted-foreground mx-auto mt-1 max-w-md text-sm">
-            Lihat kursus tersedia di{' '}
+            {t.dashboard.courses.emptyDesc}{' '}
             <Link
               href="/courses"
               className="text-primary font-medium underline-offset-2 hover:underline"
             >
-              /kursus
+              {t.dashboard.courses.emptyLink}
             </Link>{' '}
-            dan mulai perjalanan belajar Anda.
+            {t.dashboard.courses.emptyDescTail}
           </p>
         </div>
       ) : (
@@ -164,12 +166,12 @@ export default async function CandidateCoursesPage({
                     <div className="text-muted-foreground mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                       <span className="inline-flex items-center gap-1">
                         <Clock className="h-3 w-3" aria-hidden />
-                        {e.course.durationHours} jam
+                        {e.course.durationHours} {t.dashboard.courses.hoursSuffix}
                       </span>
                       <span>
                         {LEVEL_LABEL[e.course.level] ?? e.course.level}
                       </span>
-                      <span>{e.course._count.modules} modul</span>
+                      <span>{e.course._count.modules} {t.dashboard.courses.modulesSuffix}</span>
                     </div>
                   </div>
 
@@ -199,7 +201,7 @@ export default async function CandidateCoursesPage({
                       className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium"
                     >
                       <PlayCircle className="h-3.5 w-3.5" aria-hidden />
-                      {e.status === 'COMPLETED' ? 'Tinjau ulang' : 'Lanjutkan'}
+                      {e.status === 'COMPLETED' ? t.dashboard.courses.review : t.dashboard.courses.continue}
                     </Link>
                     {e.status === 'COMPLETED' && certId && (
                       <Link
@@ -208,7 +210,7 @@ export default async function CandidateCoursesPage({
                         className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium"
                       >
                         <Award className="h-3.5 w-3.5" aria-hidden />
-                        Lihat sertifikat
+                        {t.dashboard.courses.viewCertificate}
                       </Link>
                     )}
                   </div>

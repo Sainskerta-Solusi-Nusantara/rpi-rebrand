@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { WithdrawApplicationButton } from '@/components/organisms/withdraw-application-button'
 import { applicationsWithThread } from '@/lib/messaging/queries'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,6 +44,7 @@ export default async function ApplicationsKanbanPage({
   const session = await getServerSession(authOptions)
   if (!session?.user) redirect('/login?callbackUrl=/lamaran')
   const userId = session.user.id
+  const t = await getServerT()
 
   // "Termasuk yang ditarik" toggle. Default OFF so the kanban + active list
   // don't show abandoned attempts; the candidate can opt back in via the
@@ -91,7 +93,7 @@ export default async function ApplicationsKanbanPage({
   const columns = [
     {
       id: 'SAVED',
-      title: 'Disimpan',
+      title: t.dashboard.home.kanbanColumns.saved,
       items: savedJobs.map((s) => ({
         id: s.id,
         title: s.job.title,
@@ -101,7 +103,7 @@ export default async function ApplicationsKanbanPage({
     },
     {
       id: 'APPLIED',
-      title: 'Dilamar',
+      title: t.dashboard.home.kanbanColumns.applied,
       items: applications
         .filter((a) => a.status === 'APPLIED' || a.status === 'REVIEWED')
         .map((a) => ({
@@ -113,7 +115,7 @@ export default async function ApplicationsKanbanPage({
     },
     {
       id: 'INTERVIEW',
-      title: 'Wawancara',
+      title: t.dashboard.home.kanbanColumns.interview,
       items: applications
         .filter((a) => a.status === 'SHORTLISTED' || a.status === 'INTERVIEW')
         .map((a) => ({
@@ -125,7 +127,7 @@ export default async function ApplicationsKanbanPage({
     },
     {
       id: 'OFFER',
-      title: 'Penawaran',
+      title: t.dashboard.home.kanbanColumns.offer,
       items: applications
         .filter((a) => a.status === 'OFFERED' || a.status === 'HIRED')
         .map((a) => ({
@@ -182,14 +184,14 @@ export default async function ApplicationsKanbanPage({
   }
 
   const STATUS_LABEL: Record<string, string> = {
-    APPLIED: 'Dilamar',
-    REVIEWED: 'Ditinjau',
-    SHORTLISTED: 'Shortlist',
-    INTERVIEW: 'Wawancara',
-    OFFERED: 'Penawaran',
-    REJECTED: 'Ditolak',
-    WITHDRAWN: 'Ditarik',
-    HIRED: 'Diterima',
+    APPLIED: t.dashboard.applications.status.APPLIED,
+    REVIEWED: t.dashboard.applications.status.REVIEWED,
+    SHORTLISTED: t.dashboard.applications.status.SHORTLISTED,
+    INTERVIEW: t.dashboard.applications.status.INTERVIEW,
+    OFFERED: t.dashboard.applications.status.OFFERED,
+    REJECTED: t.dashboard.applications.status.REJECTED,
+    WITHDRAWN: t.dashboard.applications.status.WITHDRAWN,
+    HIRED: t.dashboard.applications.status.HIRED,
   }
 
   const withdrawnApplications = applications.filter(
@@ -200,9 +202,9 @@ export default async function ApplicationsKanbanPage({
     <div className="p-6">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">Lamaran Saya</h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{t.dashboard.applications.title}</h1>
           <p className="text-muted-foreground mt-1">
-            Pantau status setiap lamaran dari disimpan hingga penawaran.
+            {t.dashboard.applications.subtitle}
           </p>
         </div>
         {/* Filter chip toggle — reload with ?includeWithdrawn=1. We use a plain
@@ -220,7 +222,7 @@ export default async function ApplicationsKanbanPage({
               : 'border-border bg-background text-foreground hover:bg-muted'
           }`}
         >
-          Termasuk yang ditarik
+          {t.dashboard.applications.includeWithdrawn}
           {includeWithdrawn && withdrawnApplications.length > 0 && (
             <span className="bg-primary-foreground/20 ml-1 inline-flex items-center justify-center rounded-full px-1.5 text-[10px]">
               {withdrawnApplications.length}
@@ -232,9 +234,9 @@ export default async function ApplicationsKanbanPage({
 
       {includeWithdrawn && withdrawnApplications.length > 0 && (
         <section className="mt-10">
-          <h2 className="font-heading text-xl">Lamaran ditarik</h2>
+          <h2 className="font-heading text-xl">{t.dashboard.applications.withdrawnSectionTitle}</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Lamaran yang Anda tarik. Masih dapat dikembalikan dalam 7 hari.
+            {t.dashboard.applications.withdrawnSectionDesc}
           </p>
           <ul className="mt-4 space-y-2">
             {withdrawnApplications.map((a) => (
@@ -252,14 +254,14 @@ export default async function ApplicationsKanbanPage({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-800">
-                    Lamaran ditarik
+                    {t.dashboard.applications.withdrawnBadge}
                   </span>
                   <Link
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     href={`/dashboard/lamaran/${a.id}` as any}
                     className="text-foreground text-xs font-medium hover:underline"
                   >
-                    Detail
+                    {t.dashboard.applications.detail}
                   </Link>
                 </div>
               </li>
@@ -270,9 +272,9 @@ export default async function ApplicationsKanbanPage({
 
       {withdrawable.length > 0 && (
         <section className="mt-10">
-          <h2 className="font-heading text-xl">Kelola lamaran aktif</h2>
+          <h2 className="font-heading text-xl">{t.dashboard.applications.manageActiveTitle}</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Anda dapat menarik lamaran selama belum masuk tahap penawaran.
+            {t.dashboard.applications.manageActiveDesc}
           </p>
           <ul className="mt-4 space-y-2">
             {withdrawable.map((a) => {
@@ -300,10 +302,10 @@ export default async function ApplicationsKanbanPage({
                         className="border-input bg-background text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium"
                       >
                         <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
-                        Pesan
+                        {t.dashboard.applications.messages}
                         {unread > 0 && (
                           <span
-                            aria-label={`${unread} pesan belum dibaca`}
+                            aria-label={t.dashboard.applications.unreadAria.replace('{n}', String(unread))}
                             className="bg-primary text-primary-foreground inline-flex min-w-[1.125rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
                           >
                             {Math.min(99, unread)}

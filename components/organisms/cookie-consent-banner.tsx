@@ -15,6 +15,7 @@ import {
   rejectAllNonEssentialCookies,
   saveCustomConsent,
 } from '@/lib/consent/consent-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Props = {
   initialPrefs?: StoredConsent | null
@@ -30,6 +31,8 @@ type Props = {
  */
 export function CookieConsentBanner({ initialPrefs }: Props) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tcc = t.public.cookieConsent
   const [pending, startTransition] = useTransition()
   const [dismissed, setDismissed] = useState(false)
   const [showCustom, setShowCustom] = useState(false)
@@ -70,7 +73,7 @@ export function CookieConsentBanner({ initialPrefs }: Props) {
     <div
       role="dialog"
       aria-live="polite"
-      aria-label="Pengaturan cookie"
+      aria-label={tcc.dialogLabel}
       className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background shadow-2xl"
     >
       <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-5">
@@ -80,21 +83,21 @@ export function CookieConsentBanner({ initialPrefs }: Props) {
               <Cookie className="h-5 w-5 text-foreground" aria-hidden="true" />
             </div>
             <div className="text-sm text-foreground">
-              <p className="font-medium">Cookie &amp; Privasi</p>
+              <p className="font-medium">{tcc.heading}</p>
               <p className="mt-1 text-muted-foreground">
-                Kami menggunakan cookie untuk meningkatkan pengalaman Anda. Lihat{' '}
+                {tcc.body}{' '}
                 <Link
                   href={'/privacy-policy' as Route}
                   className="underline underline-offset-2"
                 >
-                  Kebijakan Privasi
+                  {tcc.privacyPolicyLink}
                 </Link>{' '}
-                atau atur lewat{' '}
+                {tcc.orVia}{' '}
                 <Link
                   href={'/privacy-center' as Route}
                   className="underline underline-offset-2"
                 >
-                  Pusat Privasi
+                  {tcc.privacyCenterLink}
                 </Link>
                 .
               </p>
@@ -107,7 +110,7 @@ export function CookieConsentBanner({ initialPrefs }: Props) {
               disabled={pending}
               className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Tolak semua
+              {tcc.rejectAll}
             </button>
             <button
               type="button"
@@ -117,7 +120,7 @@ export function CookieConsentBanner({ initialPrefs }: Props) {
               disabled={pending}
               className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Atur preferensi
+              {tcc.managePreferences}
               <ChevronDown
                 aria-hidden="true"
                 className={`h-4 w-4 transition-transform ${showCustom ? 'rotate-180' : ''}`}
@@ -129,7 +132,7 @@ export function CookieConsentBanner({ initialPrefs }: Props) {
               disabled={pending}
               className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Terima semua
+              {tcc.acceptAll}
             </button>
           </div>
         </div>
@@ -154,7 +157,7 @@ export function CookieConsentBanner({ initialPrefs }: Props) {
                       </p>
                       {cat.examples.length ? (
                         <p className="mt-1 text-[11px] text-muted-foreground/80">
-                          Contoh: {cat.examples.join(', ')}
+                          {tcc.example} {cat.examples.join(', ')}
                         </p>
                       ) : null}
                     </div>
@@ -167,10 +170,10 @@ export function CookieConsentBanner({ initialPrefs }: Props) {
                           setPrefs((p) => ({ ...p, [cat.key]: e.target.checked }))
                         }
                         className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60"
-                        aria-label={`Aktifkan kategori ${cat.label}`}
+                        aria-label={`${tcc.enableCategory} ${cat.label}`}
                       />
                       <span className="text-xs text-muted-foreground">
-                        {cat.locked ? 'Wajib' : checked ? 'Aktif' : 'Nonaktif'}
+                        {cat.locked ? tcc.required : checked ? tcc.active : tcc.inactive}
                       </span>
                     </label>
                   </li>
@@ -184,7 +187,7 @@ export function CookieConsentBanner({ initialPrefs }: Props) {
                 disabled={pending}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {pending ? 'Menyimpan…' : 'Simpan preferensi'}
+                {pending ? tcc.saving : tcc.savePreferences}
               </button>
             </div>
           </div>

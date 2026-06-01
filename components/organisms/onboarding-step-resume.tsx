@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FileText, Upload } from 'lucide-react'
 import { advanceOnboardingStep } from '@/lib/onboarding/wizard-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface OnboardingStepResumeProps {
   nextStep: number
@@ -16,6 +17,8 @@ export function OnboardingStepResume({
   nextRoute,
 }: OnboardingStepResumeProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tr = t.auth.onboarding.resume
   const [isPending, startTransition] = React.useTransition()
   const [error, setError] = React.useState<string | null>(null)
 
@@ -36,8 +39,7 @@ export function OnboardingStepResume({
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground text-sm">
-        Resume yang lengkap meningkatkan peluang Anda dilirik perekrut. Pilih
-        salah satu opsi di bawah.
+        {tr.prompt}
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -50,9 +52,9 @@ export function OnboardingStepResume({
             <span className="bg-primary/10 text-primary inline-flex h-10 w-10 items-center justify-center rounded-full">
               <Upload className="h-5 w-5" aria-hidden="true" />
             </span>
-            <div className="font-heading text-base">Unggah CV</div>
+            <div className="font-heading text-base">{tr.uploadTitle}</div>
             <p className="text-muted-foreground text-sm">
-              Sudah punya CV? Unggah file PDF atau DOCX Anda.
+              {tr.uploadBody}
             </p>
           </div>
         </Link>
@@ -66,9 +68,9 @@ export function OnboardingStepResume({
             <span className="bg-primary/10 text-primary inline-flex h-10 w-10 items-center justify-center rounded-full">
               <FileText className="h-5 w-5" aria-hidden="true" />
             </span>
-            <div className="font-heading text-base">Buat resume baru</div>
+            <div className="font-heading text-base">{tr.createTitle}</div>
             <p className="text-muted-foreground text-sm">
-              Gunakan resume builder kami dengan template siap pakai.
+              {tr.createBody}
             </p>
           </div>
         </Link>
@@ -90,7 +92,7 @@ export function OnboardingStepResume({
           disabled={isPending}
           className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending ? 'Memuat…' : 'Lanjut'}
+          {isPending ? tr.submitting : tr.submit}
         </button>
       </div>
     </div>

@@ -7,6 +7,7 @@ import {
   getCurrentConsent,
   type ConsentHistoryEntry,
 } from '@/lib/consent/consent-queries'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { PrivacyCenterPrefsForm } from './prefs-form'
 
 export const metadata: Metadata = {
@@ -28,12 +29,15 @@ function formatDate(d: Date) {
   }
 }
 
-function categoryChips(entry: ConsentHistoryEntry) {
+function categoryChips(
+  entry: ConsentHistoryEntry,
+  labels: { necessary: string; analytics: string; marketing: string; functional: string; on: string; off: string },
+) {
   const items: { key: string; label: string; on: boolean }[] = [
-    { key: 'necessary', label: 'Diperlukan', on: entry.necessary },
-    { key: 'analytics', label: 'Analitik', on: entry.analytics },
-    { key: 'marketing', label: 'Pemasaran', on: entry.marketing },
-    { key: 'functional', label: 'Fungsional', on: entry.functional },
+    { key: 'necessary', label: labels.necessary, on: entry.necessary },
+    { key: 'analytics', label: labels.analytics, on: entry.analytics },
+    { key: 'marketing', label: labels.marketing, on: entry.marketing },
+    { key: 'functional', label: labels.functional, on: entry.functional },
   ]
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -47,7 +51,7 @@ function categoryChips(entry: ConsentHistoryEntry) {
               : 'bg-muted text-muted-foreground')
           }
         >
-          {it.label}: {it.on ? 'On' : 'Off'}
+          {it.label}: {it.on ? labels.on : labels.off}
         </span>
       ))}
     </div>
@@ -55,6 +59,8 @@ function categoryChips(entry: ConsentHistoryEntry) {
 }
 
 export default async function PrivacyCenterPage() {
+  const t = await getServerT()
+  const tp = t.public.privacyCenter
   const session = await auth().catch(() => null)
   const { prefs, sessionId } = await getCurrentConsent()
 
@@ -69,23 +75,22 @@ export default async function PrivacyCenterPage() {
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <header className="mb-8">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Cookie &amp; Privasi
+          {tp.eyebrow}
         </p>
-        <h1 className="mt-1 text-3xl font-semibold text-foreground">Pusat Privasi</h1>
+        <h1 className="mt-1 text-3xl font-semibold text-foreground">{tp.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Atur preferensi cookie Anda dan kelola data pribadi sesuai{' '}
+          {tp.intro}{' '}
           <Link href={'/privacy-policy' as Route} className="underline underline-offset-2">
-            Kebijakan Privasi
+            {tp.privacyPolicyLink}
           </Link>
           .
         </p>
       </header>
 
       <section className="mb-10 rounded-lg border border-border bg-background p-5">
-        <h2 className="text-lg font-semibold text-foreground">Pengaturan Privasi</h2>
+        <h2 className="text-lg font-semibold text-foreground">{tp.settings.title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Aktifkan atau nonaktifkan kategori cookie. Kategori &ldquo;Diperlukan&rdquo;
-          tidak dapat dimatikan karena dibutuhkan untuk login dan keamanan.
+          {tp.settings.body}
         </p>
         <div className="mt-5">
           <PrivacyCenterPrefsForm initial={prefs} />
@@ -93,14 +98,14 @@ export default async function PrivacyCenterPage() {
       </section>
 
       <section className="mb-10 rounded-lg border border-border bg-background p-5">
-        <h2 className="text-lg font-semibold text-foreground">Riwayat persetujuan</h2>
+        <h2 className="text-lg font-semibold text-foreground">{tp.history.title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Catatan perubahan persetujuan cookie Anda{' '}
-          {session?.user?.id ? 'di akun ini' : 'untuk sesi ini'}.
+          {tp.history.body}{' '}
+          {session?.user?.id ? tp.history.inAccount : tp.history.inSession}.
         </p>
         {history.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
-            Belum ada catatan persetujuan.
+            {tp.history.empty}
           </p>
         ) : (
           <ul className="mt-4 divide-y divide-border">
@@ -110,10 +115,10 @@ export default async function PrivacyCenterPage() {
                   <div className="text-sm text-foreground">
                     <span className="font-medium">{formatDate(entry.updatedAt)}</span>
                     <span className="ml-2 text-xs text-muted-foreground">
-                      versi {entry.version}
+                      {tp.history.version} {entry.version}
                     </span>
                   </div>
-                  {categoryChips(entry)}
+                  {categoryChips(entry, tp.categories)}
                 </div>
                 {(entry.ipAddress || entry.userAgent) && (
                   <p className="mt-1 text-[11px] text-muted-foreground">
@@ -133,9 +138,9 @@ export default async function PrivacyCenterPage() {
       </section>
 
       <section className="mb-10 rounded-lg border border-border bg-background p-5">
-        <h2 className="text-lg font-semibold text-foreground">Permintaan data</h2>
+        <h2 className="text-lg font-semibold text-foreground">{tp.dataRequests.title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Hak akses dan penghapusan data sesuai UU Pelindungan Data Pribadi.
+          {tp.dataRequests.body}
         </p>
         {session?.user?.id ? (
           <div className="mt-4 flex flex-wrap gap-3">
@@ -144,24 +149,24 @@ export default async function PrivacyCenterPage() {
               className="inline-flex items-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
               download
             >
-              Unduh data saya
+              {tp.dataRequests.downloadMyData}
             </a>
             <Link
               href="/dashboard/keamanan"
               className="inline-flex items-center rounded-md border border-destructive bg-background px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
             >
-              Hapus akun saya
+              {tp.dataRequests.deleteMyAccount}
             </Link>
           </div>
         ) : (
           <p className="mt-4 text-sm text-muted-foreground">
-            Untuk meminta ekspor atau penghapusan data,{' '}
+            {tp.dataRequests.guestPrefix}{' '}
             <Link href="/login" className="underline underline-offset-2">
-              masuk
+              {tp.dataRequests.signIn}
             </Link>{' '}
-            ke akun Anda atau{' '}
+            {tp.dataRequests.guestMid}{' '}
             <Link href="/contact" className="underline underline-offset-2">
-              hubungi support
+              {tp.dataRequests.contactSupport}
             </Link>
             .
           </p>
@@ -169,11 +174,11 @@ export default async function PrivacyCenterPage() {
       </section>
 
       <footer className="text-xs text-muted-foreground">
-        Lihat{' '}
+        {tp.footer.prefix}{' '}
         <Link href={'/privacy-policy' as Route} className="underline underline-offset-2">
-          Kebijakan Privasi
+          {tp.privacyPolicyLink}
         </Link>{' '}
-        untuk detail bagaimana data Anda diproses.
+        {tp.footer.suffix}
       </footer>
     </main>
   )

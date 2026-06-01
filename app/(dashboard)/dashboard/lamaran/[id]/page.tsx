@@ -8,19 +8,9 @@ import {
   WithdrawApplicationModal,
   ReopenApplicationButton,
 } from '@/components/organisms/withdraw-application-modal'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Detail Lamaran — Lamaran Saya' }
-
-const STATUS_LABELS: Record<ApplicationStatus, string> = {
-  APPLIED: 'Dilamar',
-  REVIEWED: 'Ditinjau',
-  SHORTLISTED: 'Shortlist',
-  INTERVIEW: 'Wawancara',
-  OFFERED: 'Penawaran',
-  HIRED: 'Diterima',
-  REJECTED: 'Ditolak',
-  WITHDRAWN: 'Ditarik',
-}
 
 const STATUS_TONE: Record<ApplicationStatus, string> = {
   APPLIED: 'bg-slate-100 text-slate-800',
@@ -55,6 +45,17 @@ export default async function CandidateApplicationDetailPage({
 }) {
   const session = await requireAuth(`/dashboard/lamaran/${params.id}`)
   const viewerId = session.user.id
+  const t = await getServerT()
+  const STATUS_LABELS: Record<ApplicationStatus, string> = {
+    APPLIED: t.dashboard.applications.status.APPLIED,
+    REVIEWED: t.dashboard.applications.status.REVIEWED,
+    SHORTLISTED: t.dashboard.applications.status.SHORTLISTED,
+    INTERVIEW: t.dashboard.applications.status.INTERVIEW,
+    OFFERED: t.dashboard.applications.status.OFFERED,
+    HIRED: t.dashboard.applications.status.HIRED,
+    REJECTED: t.dashboard.applications.status.REJECTED,
+    WITHDRAWN: t.dashboard.applications.status.WITHDRAWN,
+  }
 
   const application = await prisma.application
     .findUnique({
@@ -104,7 +105,7 @@ export default async function CandidateApplicationDetailPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke lamaran saya
+          {t.dashboard.applications.detailPage.backLink}
         </Link>
       </div>
 
@@ -115,8 +116,9 @@ export default async function CandidateApplicationDetailPage({
             {application.job.tenant?.name ?? ''}
           </p>
           <p className="text-muted-foreground mt-2 text-xs">
-            Dilamar {dateFmt.format(application.appliedAt)} · Diperbarui{' '}
-            {dateFmt.format(application.updatedAt)}
+            {t.dashboard.applications.detailPage.appliedOn
+              .replace('{date}', dateFmt.format(application.appliedAt))
+              .replace('{updated}', dateFmt.format(application.updatedAt))}
           </p>
         </div>
         <span
@@ -128,7 +130,7 @@ export default async function CandidateApplicationDetailPage({
 
       {application.status === ApplicationStatus.WITHDRAWN && (
         <section
-          aria-label="Lamaran ditarik"
+          aria-label={t.dashboard.applications.detailPage.withdrawnLabel}
           className="border-destructive/40 bg-destructive/5 rounded-2xl border p-5"
         >
           <div className="flex items-start gap-3">
@@ -137,29 +139,33 @@ export default async function CandidateApplicationDetailPage({
               aria-hidden="true"
             />
             <div className="flex-1">
-              <h2 className="text-destructive font-medium">Lamaran ditarik</h2>
+              <h2 className="text-destructive font-medium">{t.dashboard.applications.detailPage.withdrawnLabel}</h2>
               {application.withdrawnAt && (
                 <p className="text-foreground/80 mt-1 text-sm">
-                  Anda menarik lamaran ini pada{' '}
-                  {dateFmt.format(application.withdrawnAt)}.
+                  {t.dashboard.applications.detailPage.withdrawnOn.replace(
+                    '{date}',
+                    dateFmt.format(application.withdrawnAt),
+                  )}
                 </p>
               )}
               {application.withdrawReason && (
                 <p className="text-muted-foreground mt-2 whitespace-pre-line text-sm">
-                  Alasan: {application.withdrawReason}
+                  {t.dashboard.applications.detailPage.reason.replace(
+                    '{reason}',
+                    application.withdrawReason,
+                  )}
                 </p>
               )}
               {canReopen ? (
                 <div className="mt-4">
                   <ReopenApplicationButton applicationId={application.id} />
                   <p className="text-muted-foreground mt-2 text-xs">
-                    Anda dapat membatalkan penarikan ini dalam 7 hari sejak
-                    ditarik.
+                    {t.dashboard.applications.detailPage.canReopenNote}
                   </p>
                 </div>
               ) : (
                 <p className="text-muted-foreground mt-3 text-xs">
-                  Periode pembatalan penarikan (7 hari) sudah berakhir.
+                  {t.dashboard.applications.detailPage.reopenExpired}
                 </p>
               )}
             </div>
@@ -168,16 +174,16 @@ export default async function CandidateApplicationDetailPage({
       )}
 
       <section
-        aria-label="Detail lowongan"
+        aria-label={t.dashboard.applications.detailPage.jobSectionLabel}
         className="border-border bg-card rounded-2xl border p-6"
       >
         <div className="mb-4 flex items-center gap-2">
           <Briefcase className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Lowongan</h2>
+          <h2 className="font-heading text-lg">{t.dashboard.applications.detailPage.jobSectionTitle}</h2>
         </div>
         <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-muted-foreground text-xs uppercase">Judul</dt>
+            <dt className="text-muted-foreground text-xs uppercase">{t.dashboard.applications.detailPage.title}</dt>
             <dd className="text-foreground">
               <Link
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -189,14 +195,14 @@ export default async function CandidateApplicationDetailPage({
             </dd>
           </div>
           <div>
-            <dt className="text-muted-foreground text-xs uppercase">Lokasi</dt>
+            <dt className="text-muted-foreground text-xs uppercase">{t.dashboard.applications.detailPage.location}</dt>
             <dd>
               {application.job.location} · {application.job.locationType}
             </dd>
           </div>
           <div>
             <dt className="text-muted-foreground text-xs uppercase">
-              Tipe kerja
+              {t.dashboard.applications.detailPage.employmentType}
             </dt>
             <dd>{application.job.employmentType}</dd>
           </div>
@@ -205,17 +211,17 @@ export default async function CandidateApplicationDetailPage({
 
       {(application.resumeUrl || application.coverLetter) && (
         <section
-          aria-label="Berkas lamaran"
+          aria-label={t.dashboard.applications.detailPage.filesSectionLabel}
           className="border-border bg-card rounded-2xl border p-6 space-y-3"
         >
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5" aria-hidden="true" />
-            <h2 className="font-heading text-lg">Berkas lamaran</h2>
+            <h2 className="font-heading text-lg">{t.dashboard.applications.detailPage.filesSectionTitle}</h2>
           </div>
           {application.resumeUrl && (
             <div className="text-sm">
               <span className="text-muted-foreground text-xs uppercase block">
-                Resume
+                {t.dashboard.applications.detailPage.resume}
               </span>
               <a
                 href={application.resumeUrl}
@@ -223,14 +229,14 @@ export default async function CandidateApplicationDetailPage({
                 rel="noreferrer noopener"
                 className="text-foreground hover:underline"
               >
-                Unduh resume
+                {t.dashboard.applications.detailPage.downloadResume}
               </a>
             </div>
           )}
           {application.coverLetter && (
             <div className="text-sm">
               <span className="text-muted-foreground text-xs uppercase block">
-                Cover letter
+                {t.dashboard.applications.detailPage.coverLetter}
               </span>
               <p className="whitespace-pre-line">{application.coverLetter}</p>
             </div>
@@ -240,13 +246,12 @@ export default async function CandidateApplicationDetailPage({
 
       {canWithdraw && (
         <section
-          aria-label="Tindakan"
+          aria-label={t.dashboard.applications.detailPage.actionsLabel}
           className="border-border bg-card rounded-2xl border p-6"
         >
-          <h2 className="font-heading text-lg">Tarik lamaran</h2>
+          <h2 className="font-heading text-lg">{t.dashboard.applications.detailPage.withdrawTitle}</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Anda dapat menarik lamaran selama belum mencapai keputusan akhir.
-            Penarikan masih dapat dibatalkan dalam 7 hari.
+            {t.dashboard.applications.detailPage.withdrawDesc}
           </p>
           <div className="mt-4">
             <WithdrawApplicationModal applicationId={application.id} />

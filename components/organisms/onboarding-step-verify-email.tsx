@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Mail } from 'lucide-react'
 import { requestEmailVerification } from '@/lib/auth/actions'
 import { advanceOnboardingStep } from '@/lib/onboarding/wizard-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface OnboardingStepVerifyEmailProps {
   email: string
@@ -20,9 +21,11 @@ export function OnboardingStepVerifyEmail({
   nextRoute,
 }: OnboardingStepVerifyEmailProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tv = t.auth.onboarding.verifyEmail
   const [isPending, startTransition] = React.useTransition()
   const [message, setMessage] = React.useState<string | null>(
-    alreadyVerified ? 'Email Anda sudah terverifikasi.' : null,
+    alreadyVerified ? tv.alreadyVerified : null,
   )
   const [error, setError] = React.useState<string | null>(null)
 
@@ -35,7 +38,7 @@ export function OnboardingStepVerifyEmail({
         setError(result.error)
         return
       }
-      setMessage('Tautan verifikasi telah dikirim ke email Anda.')
+      setMessage(tv.sentNotice)
     })
   }
 
@@ -61,12 +64,11 @@ export function OnboardingStepVerifyEmail({
 
       <div className="space-y-2">
         <p className="text-foreground text-base">
-          Kami akan mengirim tautan verifikasi ke{' '}
-          <span className="font-semibold">{email}</span>.
+          {tv.bodyPrefix}{' '}
+          <span className="font-semibold">{email}</span>{tv.bodySuffix}
         </p>
         <p className="text-muted-foreground text-sm">
-          Buka tautan tersebut untuk mengaktifkan akun Anda. Anda tetap bisa
-          lanjut dan memverifikasi nanti.
+          {tv.helper}
         </p>
       </div>
 
@@ -95,7 +97,7 @@ export function OnboardingStepVerifyEmail({
             disabled={isPending}
             className="border-border text-foreground hover:bg-muted inline-flex items-center justify-center rounded-md border px-5 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPending ? 'Mengirim…' : 'Kirim ulang tautan'}
+            {isPending ? tv.resending : tv.resendCta}
           </button>
         )}
         <button
@@ -104,7 +106,7 @@ export function OnboardingStepVerifyEmail({
           disabled={isPending}
           className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {alreadyVerified ? 'Lanjut' : 'Lewati untuk sekarang'}
+          {alreadyVerified ? tv.continueVerifiedCta : tv.continueCta}
         </button>
       </div>
     </div>

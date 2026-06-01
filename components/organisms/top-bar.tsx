@@ -8,6 +8,8 @@ import { Avatar } from '@/components/atoms/avatar'
 import { cn, getInitials } from '@/lib/utils'
 import { NotificationsBell, type NotificationItem } from './notifications-bell'
 import { TenantSwitcher } from './tenant-switcher'
+import { LanguageSwitcher } from './language-switcher'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface TopBarProps {
   onOpenCmdK?: () => void
@@ -30,6 +32,7 @@ export function TopBar({
   mentionUnreadCount = 0,
 }: TopBarProps) {
   const { data: session } = useSession()
+  const { t } = useI18n()
   const [menuOpen, setMenuOpen] = React.useState(false)
   const menuRef = React.useRef<HTMLDivElement | null>(null)
 
@@ -52,10 +55,10 @@ export function TopBar({
         type="button"
         onClick={onOpenCmdK}
         className="group inline-flex h-10 flex-1 max-w-xl items-center gap-2 rounded-lg border border-input bg-muted/40 px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        aria-label="Buka command palette"
+        aria-label={t.dashboard.topBar.openCmdK}
       >
         <Search className="h-4 w-4" />
-        <span className="flex-1 text-left truncate">Cari atau lompat ke...</span>
+        <span className="flex-1 text-left truncate">{t.dashboard.topBar.searchPlaceholder}</span>
         <kbd className="hidden sm:inline-flex h-6 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
           <span className="text-xs">&#8984;</span>K
         </kbd>
@@ -68,7 +71,7 @@ export function TopBar({
           type="button"
           onClick={onOpenChat}
           className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-          aria-label="Pesan"
+          aria-label={t.dashboard.topBar.messages}
         >
           <MessageSquare className="h-5 w-5" />
         </button>
@@ -79,10 +82,10 @@ export function TopBar({
           className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
           aria-label={
             mentionUnreadCount > 0
-              ? `Mention saya (${mentionUnreadCount} belum dibaca)`
-              : 'Mention saya'
+              ? t.dashboard.topBar.mentionsUnreadAria.replace('{n}', String(mentionUnreadCount))
+              : t.dashboard.topBar.mentions
           }
-          title="Mention saya"
+          title={t.dashboard.topBar.mentions}
         >
           <AtSign className="h-5 w-5" />
           {mentionUnreadCount > 0 ? (
@@ -100,6 +103,8 @@ export function TopBar({
           recentItems={recentNotifications}
         />
 
+        <LanguageSwitcher variant="dropdown" />
+
         <div ref={menuRef} className="relative">
           <button
             type="button"
@@ -110,7 +115,7 @@ export function TopBar({
           >
             <Avatar
               src={session?.user?.image ?? undefined}
-              alt={session?.user?.name ?? 'Pengguna'}
+              alt={session?.user?.name ?? t.dashboard.topBar.userFallback}
               fallback={getInitials(session?.user?.name)}
               size="sm"
             />
@@ -121,7 +126,7 @@ export function TopBar({
               className="absolute right-0 mt-2 w-56 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
             >
               <div className="px-3 py-2 border-b border-border">
-                <p className="truncate text-sm font-medium">{session?.user?.name ?? 'Tamu'}</p>
+                <p className="truncate text-sm font-medium">{session?.user?.name ?? t.dashboard.topBar.guestFallback}</p>
                 <p className="truncate text-xs text-muted-foreground">{session?.user?.email}</p>
               </div>
               <a
@@ -129,21 +134,21 @@ export function TopBar({
                 href="/dashboard/profile"
                 className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
               >
-                Profil saya
+                {t.dashboard.topBar.myProfile}
               </a>
               <a
                 role="menuitem"
                 href="/dashboard/settings"
                 className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
               >
-                Pengaturan
+                {t.dashboard.topBar.settings}
               </a>
               <a
                 role="menuitem"
                 href="/api/auth/signout"
                 className="block rounded-md px-3 py-2 text-sm text-destructive hover:bg-muted"
               >
-                Keluar
+                {t.dashboard.topBar.signOut}
               </a>
             </div>
           ) : null}

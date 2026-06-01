@@ -8,6 +8,7 @@ import { signOut, useSession } from 'next-auth/react'
 import { Logo } from '@/components/atoms/logo'
 import { Avatar } from '@/components/atoms/avatar'
 import { cn, getInitials } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface MiniSidebarItem {
   href: string
@@ -32,6 +33,7 @@ export function MiniSidebar({
 }: MiniSidebarProps) {
   const pathname = usePathname() ?? '/'
   const { data: session } = useSession()
+  const { t } = useI18n()
   const [collapsed, setCollapsed] = React.useState(defaultCollapsed)
   const [hover, setHover] = React.useState(false)
   const expanded = !collapsed || hover
@@ -45,10 +47,10 @@ export function MiniSidebar({
         expanded ? 'w-64' : 'w-16',
         className,
       )}
-      aria-label="Navigasi utama"
+      aria-label={t.dashboard.nav.mainNavigation}
     >
       <div className={cn('flex h-16 items-center border-b border-border', expanded ? 'px-4 justify-between' : 'px-2 justify-center')}>
-        <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden" aria-label="Dashboard">
+        <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden" aria-label={t.dashboard.sidebar.dashboardLabel}>
           <Logo iconOnly={!expanded} />
         </Link>
         {expanded ? (
@@ -56,7 +58,7 @@ export function MiniSidebar({
             type="button"
             onClick={() => setCollapsed((s) => !s)}
             className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label={collapsed ? 'Kunci terbuka' : 'Ciutkan'}
+            aria-label={collapsed ? t.dashboard.sidebar.lockOpen : t.dashboard.sidebar.collapse}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
@@ -85,13 +87,13 @@ export function MiniSidebar({
         <div className={cn('flex items-center gap-3', expanded ? '' : 'flex-col')}>
           <Avatar
             src={session?.user?.image ?? undefined}
-            alt={session?.user?.name ?? 'Pengguna'}
+            alt={session?.user?.name ?? t.dashboard.topBar.userFallback}
             fallback={getInitials(session?.user?.name)}
             size="sm"
           />
           {expanded ? (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{session?.user?.name ?? 'Tamu'}</p>
+              <p className="truncate text-sm font-medium">{session?.user?.name ?? t.dashboard.topBar.guestFallback}</p>
               <p className="truncate text-xs text-muted-foreground">{session?.user?.email ?? ''}</p>
             </div>
           ) : null}
@@ -100,7 +102,7 @@ export function MiniSidebar({
               type="button"
               onClick={() => signOut({ callbackUrl: '/' })}
               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label="Keluar"
+              aria-label={t.dashboard.sidebar.signOut}
             >
               <LogOut className="h-4 w-4" />
             </button>

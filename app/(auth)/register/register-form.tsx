@@ -1,37 +1,53 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { registerUser } from '@/lib/auth/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 // TODO: swap inline inputs/button for @/components/atoms/* once available.
 
-const schema = z
-  .object({
-    name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(120),
-    email: z.string().email('Email tidak valid'),
-    password: z
-      .string()
-      .min(8, 'Password minimal 8 karakter')
-      .regex(/[A-Za-z]/, 'Password harus berisi huruf')
-      .regex(/[0-9]/, 'Password harus berisi angka'),
-    confirm: z.string(),
-    acceptTerms: z.literal(true, {
-      errorMap: () => ({ message: 'Anda harus menyetujui syarat & ketentuan' }),
-    }),
-  })
-  .refine((d) => d.password === d.confirm, {
-    path: ['confirm'],
-    message: 'Konfirmasi password tidak cocok',
-  })
-
-type FormValues = z.infer<typeof schema>
-
 export function RegisterForm() {
   const router = useRouter()
+  const { t } = useI18n()
+  const tr = t.auth.register
+
+  const schema = useMemo(
+    () =>
+      z
+        .object({
+          name: z.string().trim().min(2, tr.errors.nameMin).max(120),
+          email: z.string().email(tr.errors.emailInvalid),
+          password: z
+            .string()
+            .min(8, tr.errors.passwordMin)
+            .regex(/[A-Za-z]/, tr.errors.passwordLetter)
+            .regex(/[0-9]/, tr.errors.passwordNumber),
+          confirm: z.string(),
+          acceptTerms: z.literal(true, {
+            errorMap: () => ({ message: tr.errors.termsRequired }),
+          }),
+        })
+        .refine((d) => d.password === d.confirm, {
+          path: ['confirm'],
+          message: tr.errors.confirmMismatch,
+        }),
+    [
+      tr.errors.nameMin,
+      tr.errors.emailInvalid,
+      tr.errors.passwordMin,
+      tr.errors.passwordLetter,
+      tr.errors.passwordNumber,
+      tr.errors.termsRequired,
+      tr.errors.confirmMismatch,
+    ],
+  )
+
+  type FormValues = z.infer<typeof schema>
+
   const [isPending, startTransition] = useTransition()
   const [submitError, setSubmitError] = useState<string | null>(null)
   const {
@@ -80,13 +96,13 @@ export function RegisterForm() {
     <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="space-y-2">
         <label htmlFor="name" className="block text-sm font-medium text-foreground">
-          Nama lengkap
+          {tr.nameLabel}
         </label>
         <input
           id="name"
           type="text"
           autoComplete="name"
-          placeholder="Nama Anda"
+          placeholder={tr.namePlaceholder}
           aria-invalid={Boolean(errors.name)}
           className={inputClass}
           {...register('name')}
@@ -96,13 +112,13 @@ export function RegisterForm() {
 
       <div className="space-y-2">
         <label htmlFor="email" className="block text-sm font-medium text-foreground">
-          Email
+          {tr.emailLabel}
         </label>
         <input
           id="email"
           type="email"
           autoComplete="email"
-          placeholder="nama@email.com"
+          placeholder={tr.emailPlaceholder}
           aria-invalid={Boolean(errors.email)}
           className={inputClass}
           {...register('email')}
@@ -112,13 +128,13 @@ export function RegisterForm() {
 
       <div className="space-y-2">
         <label htmlFor="password" className="block text-sm font-medium text-foreground">
-          Password
+          {tr.passwordLabel}
         </label>
         <input
           id="password"
           type="password"
           autoComplete="new-password"
-          placeholder="Minimal 8 karakter, huruf & angka"
+          placeholder={tr.passwordPlaceholder}
           aria-invalid={Boolean(errors.password)}
           className={inputClass}
           {...register('password')}
@@ -130,13 +146,13 @@ export function RegisterForm() {
 
       <div className="space-y-2">
         <label htmlFor="confirm" className="block text-sm font-medium text-foreground">
-          Konfirmasi password
+          {tr.confirmLabel}
         </label>
         <input
           id="confirm"
           type="password"
           autoComplete="new-password"
-          placeholder="Ulangi password"
+          placeholder={tr.confirmPlaceholder}
           aria-invalid={Boolean(errors.confirm)}
           className={inputClass}
           {...register('confirm')}
@@ -153,7 +169,7 @@ export function RegisterForm() {
           {...register('acceptTerms')}
         />
         <span className="leading-snug text-muted-foreground">
-          Saya menyetujui Syarat &amp; Ketentuan dan Kebijakan Privasi RPI.
+          {tr.termsAgreement}
         </span>
       </label>
       {errors.acceptTerms && (
@@ -174,7 +190,7 @@ export function RegisterForm() {
         disabled={isPending}
         className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? 'Memproses…' : 'Daftar'}
+        {isPending ? tr.submitting : tr.submit}
         <span aria-hidden className="text-[hsl(43,74%,55%)]">
           →
         </span>

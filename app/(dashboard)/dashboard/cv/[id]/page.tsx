@@ -11,6 +11,7 @@ import {
 import { ResumeSuggestionsPanel } from '@/components/organisms/resume-suggestions-panel'
 import type { ResumeContent } from '@/lib/resumes/actions'
 import { analyzeResume, type AnalyzerResume } from '@/lib/resume/analyzer'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Edit CV' }
 
@@ -23,6 +24,7 @@ export default async function ResumeEditPage({
   if (!session?.user)
     redirect(`/login?callbackUrl=/dashboard/cv/${params.id}`)
   const userId = session.user.id
+  const t = await getServerT()
 
   const resume = await prisma.resume
     .findUnique({
@@ -81,13 +83,13 @@ export default async function ResumeEditPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke daftar CV
+          {t.dashboard.cv.backLink}
         </Link>
       </div>
       <header>
-        <h1 className="font-heading text-2xl md:text-3xl">Edit CV</h1>
+        <h1 className="font-heading text-2xl md:text-3xl">{t.dashboard.cv.title}</h1>
         <p className="text-muted-foreground mt-1">
-          Perbarui detail CV, unggah dokumen, dan susun konten builder.
+          {t.dashboard.cv.subtitle}
         </p>
       </header>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">

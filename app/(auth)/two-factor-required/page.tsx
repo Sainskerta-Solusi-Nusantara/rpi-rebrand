@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
 import { userMustEnrollTwoFactor } from '@/lib/auth/totp-policy'
 import { LeaveTenantButton } from '@/components/organisms/tenant-member-actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: '2FA Wajib — Rumah Pekerja Indonesia' }
 
@@ -50,6 +51,9 @@ export default async function TwoFactorRequiredPage({
     }
   }
 
+  const t = await getServerT()
+  const tw = t.auth.twoFactorRequired
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -57,18 +61,16 @@ export default async function TwoFactorRequiredPage({
           <ShieldCheck className="h-6 w-6" aria-hidden="true" />
         </div>
         <h1 className="font-heading text-2xl font-semibold text-foreground">
-          2FA wajib
+          {tw.heading}
         </h1>
       </div>
 
       <p className="text-sm text-foreground">
-        Tenant <strong>{tenant.tenantName}</strong> mewajibkan 2FA. Aktifkan
-        terlebih dulu untuk lanjut.
+        {tw.tenantNoticePrefix} <strong>{tenant.tenantName}</strong>{' '}
+        {tw.tenantNoticeSuffix}
       </p>
       <p className="text-muted-foreground text-sm">
-        Setelah diaktifkan, Anda akan dapat mengakses dasbor seperti biasa.
-        Anda hanya perlu mengaktifkan sekali — perangkat authenticator akan
-        meminta kode 6-digit saat login berikutnya.
+        {tw.explanation}
       </p>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -77,7 +79,7 @@ export default async function TwoFactorRequiredPage({
           href={'/dashboard/keamanan/2fa' as any}
           className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold transition-colors"
         >
-          Aktifkan 2FA sekarang
+          {tw.enableCta}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
         <Link
@@ -85,17 +87,17 @@ export default async function TwoFactorRequiredPage({
           className="border-border bg-background hover:bg-muted inline-flex h-10 items-center justify-center gap-2 rounded-md border px-4 text-sm font-medium text-foreground transition-colors"
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />
-          Keluar
+          {tw.logoutCta}
         </Link>
       </div>
 
       <div className="border-border bg-muted/30 rounded-md border p-4">
         <p className="mb-3 text-sm font-medium text-foreground">
-          Tidak ingin lanjut di tenant ini?
+          {tw.leaveTenantTitle}
         </p>
         <p className="text-muted-foreground mb-3 text-xs">
-          Anda dapat keluar dari <strong>{tenant.tenantName}</strong>. Setelah
-          keluar, kebijakan 2FA tenant ini tidak lagi berlaku untuk akun Anda.
+          {tw.leaveTenantBodyPrefix} <strong>{tenant.tenantName}</strong>
+          {tw.leaveTenantBodySuffix}
         </p>
         <LeaveTenantButton tenantSlug={tenant.tenantSlug} />
       </div>

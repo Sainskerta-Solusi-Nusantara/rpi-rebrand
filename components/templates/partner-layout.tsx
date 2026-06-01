@@ -6,6 +6,7 @@ import { ArrowRight, Briefcase, Sparkles, Users } from 'lucide-react'
 import { Avatar } from '@/components/atoms/avatar'
 import { Badge } from '@/components/atoms/badge'
 import { DashboardLayout } from './dashboard-layout'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 import { cn, getInitials } from '@/lib/utils'
 
 export interface PartnerTenantContext {
@@ -32,6 +33,8 @@ const PLAN_TONE: Record<PartnerTenantContext['plan'], 'gold' | 'indigo' | 'navy'
 }
 
 export function PartnerLayout({ children, tenant, className }: PartnerLayoutProps) {
+  const { t } = useI18n()
+  const tp = t.public.partnerLayout
   return (
     <DashboardLayout>
       <div className={cn('flex flex-col gap-6', className)}>
@@ -45,7 +48,7 @@ export function PartnerLayout({ children, tenant, className }: PartnerLayoutProp
                 fallback={getInitials(tenant.name)}
               />
               <div>
-                <p className="text-xs uppercase tracking-widest text-primary-foreground/60">Tenant aktif</p>
+                <p className="text-xs uppercase tracking-widest text-primary-foreground/60">{tp.activeTenant}</p>
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-heading text-xl">{tenant.name}</h2>
                   <Badge tone={PLAN_TONE[tenant.plan]}>{tenant.plan}</Badge>
@@ -54,13 +57,13 @@ export function PartnerLayout({ children, tenant, className }: PartnerLayoutProp
               </div>
             </div>
             <dl className="grid grid-cols-2 gap-6 md:grid-cols-3">
-              <Stat icon={Briefcase} label="Lowongan aktif" value={tenant.activeJobs ?? 0} />
-              <Stat icon={Users} label="Kandidat" value={tenant.totalCandidates ?? 0} />
+              <Stat icon={Briefcase} label={tp.activeJobs} value={tenant.activeJobs ?? 0} />
+              <Stat icon={Users} label={tp.candidates} value={tenant.totalCandidates ?? 0} />
               <Link
                 href="/dashboard/jobs/new"
                 className="hidden md:inline-flex items-center justify-center gap-1.5 self-center rounded-md bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground hover:brightness-110"
               >
-                <Sparkles className="h-4 w-4" /> Pasang lowongan
+                <Sparkles className="h-4 w-4" /> {tp.postJob}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </dl>

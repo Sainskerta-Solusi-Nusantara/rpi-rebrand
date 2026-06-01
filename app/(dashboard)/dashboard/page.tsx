@@ -8,6 +8,7 @@ import { Gift, Wallet } from 'lucide-react'
 import { getOnboardingChecklist } from '@/lib/onboarding/checklist'
 import { OnboardingChecklist } from '@/components/organisms/onboarding-checklist'
 import { RecommendedJobsWidget } from '@/components/organisms/recommended-jobs-widget'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,6 +46,7 @@ export default async function DashboardOverviewPage() {
   const session = await getServerSession(authOptions)
   if (!session?.user) redirect('/login?callbackUrl=/dashboard')
   const userId = session.user.id
+  const t = await getServerT()
 
   const [
     appliedCount,
@@ -98,16 +100,16 @@ export default async function DashboardOverviewPage() {
   const kanbanColumns = [
     {
       id: 'SAVED',
-      title: 'Disimpan',
+      title: t.dashboard.home.kanbanColumns.saved,
       items: [] as Array<{ id: string; title: string; meta?: string }>,
     },
-    { id: 'APPLIED', title: 'Dilamar', items: [] as Array<{ id: string; title: string; meta?: string }> },
+    { id: 'APPLIED', title: t.dashboard.home.kanbanColumns.applied, items: [] as Array<{ id: string; title: string; meta?: string }> },
     {
       id: 'INTERVIEW',
-      title: 'Wawancara',
+      title: t.dashboard.home.kanbanColumns.interview,
       items: [] as Array<{ id: string; title: string; meta?: string }>,
     },
-    { id: 'OFFER', title: 'Penawaran', items: [] as Array<{ id: string; title: string; meta?: string }> },
+    { id: 'OFFER', title: t.dashboard.home.kanbanColumns.offer, items: [] as Array<{ id: string; title: string; meta?: string }> },
   ]
   for (const a of applications) {
     const meta = `${a.job.tenant?.name ?? ''} • ${a.job.location ?? ''}`
@@ -123,14 +125,14 @@ export default async function DashboardOverviewPage() {
   const tabs = [
     {
       id: 'overview',
-      label: 'Ringkasan',
+      label: t.dashboard.home.tabs.overview,
       content: (
         <div className="space-y-8">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <KPICard label="Lamaran" value={appliedCount} />
-            <KPICard label="Disimpan" value={savedCount} />
-            <KPICard label="Kursus Aktif" value={enrollmentsActive} />
-            <KPICard label="Sertifikat" value={certificatesCount} />
+            <KPICard label={t.dashboard.home.kpis.applications} value={appliedCount} />
+            <KPICard label={t.dashboard.home.kpis.saved} value={savedCount} />
+            <KPICard label={t.dashboard.home.kpis.activeCourses} value={enrollmentsActive} />
+            <KPICard label={t.dashboard.home.kpis.certificates} value={certificatesCount} />
           </div>
 
           <Suspense fallback={<div className="bg-muted h-48 animate-pulse rounded-xl" />}>
@@ -148,12 +150,12 @@ export default async function DashboardOverviewPage() {
                   <Gift className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="flex-1">
-                  <div className="font-heading text-base">Undang teman ke RPI</div>
+                  <div className="font-heading text-base">{t.dashboard.home.referralCard.title}</div>
                   <p className="text-muted-foreground text-sm">
-                    Bagikan kode referral Anda dan lacak undangan yang berhasil.
+                    {t.dashboard.home.referralCard.description}
                   </p>
                 </div>
-                <span className="text-primary text-sm font-medium">Buka →</span>
+                <span className="text-primary text-sm font-medium">{t.dashboard.home.referralCard.cta}</span>
               </div>
             </Link>
             <Link
@@ -166,20 +168,20 @@ export default async function DashboardOverviewPage() {
                   <Wallet className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="flex-1">
-                  <div className="font-heading text-base">Wawasan gaji</div>
+                  <div className="font-heading text-base">{t.dashboard.home.salaryCard.title}</div>
                   <p className="text-muted-foreground text-sm">
-                    Lihat estimasi gaji pasar per kategori, level, dan lokasi.
+                    {t.dashboard.home.salaryCard.description}
                   </p>
                 </div>
-                <span className="text-primary text-sm font-medium">Buka →</span>
+                <span className="text-primary text-sm font-medium">{t.dashboard.home.salaryCard.cta}</span>
               </div>
             </Link>
           </div>
 
           <section>
-            <h2 className="font-heading text-xl mb-4">Progres Belajar</h2>
+            <h2 className="font-heading text-xl mb-4">{t.dashboard.home.learningProgress}</h2>
             {enrollments.length === 0 ? (
-              <p className="text-muted-foreground">Belum mendaftar kursus apa pun.</p>
+              <p className="text-muted-foreground">{t.dashboard.home.noEnrollments}</p>
             ) : (
               <ul className="space-y-3">
                 {enrollments.map((e) => (
@@ -204,15 +206,15 @@ export default async function DashboardOverviewPage() {
     },
     {
       id: 'kanban',
-      label: 'Pipeline',
+      label: t.dashboard.home.tabs.pipeline,
       content: <KanbanBoard columns={kanbanColumns} />,
     },
     {
       id: 'rekomendasi',
-      label: 'Rekomendasi',
+      label: t.dashboard.home.tabs.recommendations,
       content: (
         <Suspense fallback={<div className="bg-muted h-48 animate-pulse rounded-xl" />}>
-          <RecommendedJobsWidget userId={userId} limit={12} heading="Rekomendasi Personal" />
+          <RecommendedJobsWidget userId={userId} limit={12} heading={t.dashboard.home.personalRecommendations} />
         </Suspense>
       ),
     },
@@ -227,10 +229,10 @@ export default async function DashboardOverviewPage() {
       />
       <header className="mb-6">
         <h1 className="font-heading text-2xl md:text-3xl">
-          Halo, {session.user.name ?? 'Pekerja'} 👋
+          {t.dashboard.home.greeting.replace('{name}', session.user.name ?? t.dashboard.home.defaultName)}
         </h1>
         <p className="text-muted-foreground mt-1">
-          Berikut ringkasan aktivitas karier Anda hari ini.
+          {t.dashboard.home.subtitle}
         </p>
       </header>
       <TabbedWorkspace tabs={tabs} defaultTab="overview" />

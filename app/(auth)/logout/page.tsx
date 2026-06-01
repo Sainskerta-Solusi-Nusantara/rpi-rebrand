@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { LogoutActions } from './logout-actions'
 
 export const metadata = {
@@ -14,6 +15,9 @@ export default async function LogoutPage() {
     redirect('/')
   }
 
+  const t = await getServerT()
+  const tl = t.auth.logout
+
   return (
     <div className="space-y-6 text-center">
       <div
@@ -25,21 +29,21 @@ export default async function LogoutPage() {
 
       <header className="space-y-2">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-          Keluar dari RPI?
+          {tl.title}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Anda akan keluar sebagai{' '}
-          <strong className="text-foreground">{session.user.email}</strong>.
-          Anda dapat masuk kembali kapan saja.
+          {tl.bodyPrefix}{' '}
+          <strong className="text-foreground">{session.user.email}</strong>
+          {tl.bodySuffix}
         </p>
       </header>
 
       <LogoutActions />
 
       <p className="text-center text-sm text-muted-foreground">
-        Ingin tetap masuk?{' '}
+        {tl.stayPrompt}{' '}
         <Link href="/dashboard" className="font-medium text-primary hover:underline">
-          Kembali ke dasbor
+          {tl.backToDashboard}
         </Link>
       </p>
     </div>

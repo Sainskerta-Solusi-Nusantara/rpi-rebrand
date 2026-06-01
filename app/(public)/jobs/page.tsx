@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { JobCard } from '@/components/molecules/job-card'
 import { SaveSearchCta } from '@/components/organisms/save-search-cta'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import {
   getJobCategories,
   getJobsPage,
@@ -18,31 +19,13 @@ export const metadata: Metadata = {
 }
 
 // ---------------------------------------------------------------------------
-// Filter option definitions — enum value paired with Indonesian label.
+// Filter option enum value lists — labels are looked up from the dictionary
+// at render time so locale changes propagate without redeployment.
 // ---------------------------------------------------------------------------
 
-const EMPLOYMENT_OPTIONS: { value: string; label: string }[] = [
-  { value: 'FULL_TIME',  label: 'Penuh Waktu' },
-  { value: 'PART_TIME',  label: 'Paruh Waktu' },
-  { value: 'CONTRACT',   label: 'Kontrak' },
-  { value: 'INTERNSHIP', label: 'Magang' },
-  { value: 'FREELANCE',  label: 'Lepas' },
-]
-
-const LOCATION_OPTIONS: { value: string; label: string }[] = [
-  { value: 'ONSITE', label: 'Di Tempat' },
-  { value: 'HYBRID', label: 'Hibrida' },
-  { value: 'REMOTE', label: 'Jarak Jauh' },
-]
-
-const LEVEL_OPTIONS: { value: string; label: string }[] = [
-  { value: 'ENTRY',     label: 'Pemula' },
-  { value: 'JUNIOR',    label: 'Junior' },
-  { value: 'MID',       label: 'Menengah' },
-  { value: 'SENIOR',    label: 'Senior' },
-  { value: 'LEAD',      label: 'Lead' },
-  { value: 'EXECUTIVE', label: 'Eksekutif' },
-]
+const EMPLOYMENT_VALUES = ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'] as const
+const LOCATION_VALUES = ['ONSITE', 'HYBRID', 'REMOTE'] as const
+const LEVEL_VALUES = ['ENTRY', 'JUNIOR', 'MID', 'SENIOR', 'LEAD', 'EXECUTIVE'] as const
 
 // ---------------------------------------------------------------------------
 // URL helpers
@@ -108,11 +91,11 @@ function buildUrl(current: FilterState, patch: FilterPatch): string {
   return params.length ? `/jobs?${params.join('&')}` : '/jobs'
 }
 
-const SORT_OPTIONS: { value: JobSort; label: string }[] = [
-  { value: 'newest', label: 'Terbaru' },
-  { value: 'salary-high', label: 'Gaji ↓' },
-  { value: 'salary-low', label: 'Gaji ↑' },
-  { value: 'least-applicants', label: 'Sedikit pelamar' },
+const SORT_VALUES: JobSort[] = [
+  'newest',
+  'salary-high',
+  'salary-low',
+  'least-applicants',
 ]
 
 // ---------------------------------------------------------------------------
@@ -174,6 +157,25 @@ export default async function JobsListPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getServerT()
+  const tj = t.public.jobs
+  const employmentOptions = EMPLOYMENT_VALUES.map((value) => ({
+    value,
+    label: tj.employmentLabels[value],
+  }))
+  const locationOptions = LOCATION_VALUES.map((value) => ({
+    value,
+    label: tj.locationLabels[value],
+  }))
+  const levelOptions = LEVEL_VALUES.map((value) => ({
+    value,
+    label: tj.levelLabels[value],
+  }))
+  const sortOptions = SORT_VALUES.map((value) => ({
+    value,
+    label: tj.sortOptions[value],
+  }))
+
   const activeQuery =
     typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
   const activeCategory =
@@ -238,21 +240,21 @@ export default async function JobsListPage({
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
       <header className="mb-8">
-        <h1 className="font-heading text-3xl md:text-4xl">Lowongan Pekerjaan</h1>
+        <h1 className="font-heading text-3xl md:text-4xl">{tj.title}</h1>
         <p className="text-muted-foreground mt-2">
-          {total.toLocaleString('id-ID')} lowongan tersedia
+          {total.toLocaleString('id-ID')} {tj.counter.jobs}
           {activeQuery && (
             <>
-              {' '}untuk &ldquo;
+              {' '}{tj.counter.forQuery} &ldquo;
               <strong className="text-foreground font-medium">{activeQuery}</strong>
               &rdquo;
             </>
           )}
           {totalPages > 1 && (
             <>
-              {' '}· halaman{' '}
+              {' '}· {tj.counter.page}{' '}
               <strong className="text-foreground font-medium">{activePage}</strong>
-              {' '}dari {totalPages}
+              {' '}{tj.counter.of} {totalPages}
             </>
           )}
         </p>
@@ -265,9 +267,9 @@ export default async function JobsListPage({
               type="search"
               name="q"
               defaultValue={activeQuery}
-              placeholder="Cari judul, deskripsi, atau perusahaan…"
+              placeholder={tj.searchPlaceholder}
               className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
-              aria-label="Cari lowongan"
+              aria-label={tj.searchAria}
             />
             {activeQuery && (
               <Link
@@ -276,14 +278,14 @@ export default async function JobsListPage({
                 className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
               >
                 <X className="h-3 w-3" aria-hidden />
-                Bersihkan
+                {tj.clear}
               </Link>
             )}
             <button
               type="submit"
               className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
             >
-              Cari
+              {tj.searchCta}
             </button>
           </div>
           {/* Preserve other filters when submitting a new search */}
@@ -325,7 +327,7 @@ export default async function JobsListPage({
               />
             )}
             {activeTypes.map((v) => {
-              const opt = EMPLOYMENT_OPTIONS.find((o) => o.value === v)
+              const opt = employmentOptions.find((o) => o.value === v)
               if (!opt) return null
               return (
                 <FilterChip
@@ -336,7 +338,7 @@ export default async function JobsListPage({
               )
             })}
             {activeLocations.map((v) => {
-              const opt = LOCATION_OPTIONS.find((o) => o.value === v)
+              const opt = locationOptions.find((o) => o.value === v)
               if (!opt) return null
               return (
                 <FilterChip
@@ -347,7 +349,7 @@ export default async function JobsListPage({
               )
             })}
             {activeLevels.map((v) => {
-              const opt = LEVEL_OPTIONS.find((o) => o.value === v)
+              const opt = levelOptions.find((o) => o.value === v)
               if (!opt) return null
               return (
                 <FilterChip
@@ -371,17 +373,17 @@ export default async function JobsListPage({
               className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
             >
               <X className="h-3 w-3" aria-hidden />
-              Bersihkan semua
+              {tj.clearAll}
             </Link>
           </div>
         )}
       </header>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
-        <aside aria-label="Filter" className="space-y-8">
-          <FilterGroup title="Kategori">
+        <aside aria-label={tj.filtersLabel} className="space-y-8">
+          <FilterGroup title={tj.filters.category}>
             {categories.length === 0 ? (
-              <p className="text-muted-foreground text-xs">Belum ada kategori.</p>
+              <p className="text-muted-foreground text-xs">{tj.filters.noCategories}</p>
             ) : (
               categories.map((c) => (
                 <ToggleRow
@@ -399,8 +401,8 @@ export default async function JobsListPage({
             )}
           </FilterGroup>
 
-          <FilterGroup title="Jenis Pekerjaan">
-            {EMPLOYMENT_OPTIONS.map((o) => {
+          <FilterGroup title={tj.filters.employmentType}>
+            {employmentOptions.map((o) => {
               const active = activeTypes.includes(o.value)
               return (
                 <ToggleRow
@@ -413,8 +415,8 @@ export default async function JobsListPage({
             })}
           </FilterGroup>
 
-          <FilterGroup title="Lokasi">
-            {LOCATION_OPTIONS.map((o) => {
+          <FilterGroup title={tj.filters.location}>
+            {locationOptions.map((o) => {
               const active = activeLocations.includes(o.value)
               return (
                 <ToggleRow
@@ -429,8 +431,8 @@ export default async function JobsListPage({
             })}
           </FilterGroup>
 
-          <FilterGroup title="Tingkat Pengalaman">
-            {LEVEL_OPTIONS.map((o) => {
+          <FilterGroup title={tj.filters.experienceLevel}>
+            {levelOptions.map((o) => {
               const active = activeLevels.includes(o.value)
               return (
                 <ToggleRow
@@ -443,7 +445,7 @@ export default async function JobsListPage({
             })}
           </FilterGroup>
 
-          <FilterGroup title="Rentang Gaji (IDR/bulan)">
+          <FilterGroup title={tj.filters.salaryRange}>
             <div className="flex flex-wrap gap-1.5">
               {SALARY_PRESETS.map((p) => {
                 const active =
@@ -473,7 +475,7 @@ export default async function JobsListPage({
 
             <form method="get" action="/jobs" className="mt-4 space-y-2">
               <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                Atau kustom (IDR)
+                {tj.filters.customSalary}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -483,8 +485,8 @@ export default async function JobsListPage({
                   step={500_000}
                   name="salaryMin"
                   defaultValue={current.salaryMin ?? ''}
-                  placeholder="Min"
-                  aria-label="Gaji minimum"
+                  placeholder={tj.filters.minPlaceholder}
+                  aria-label={tj.filters.minAria}
                   className="border-border bg-background focus:border-[color:var(--ring)] focus:ring-[color:var(--ring)]/30 rounded-md border px-2 py-1.5 text-xs outline-none focus:ring-2"
                 />
                 <input
@@ -494,8 +496,8 @@ export default async function JobsListPage({
                   step={500_000}
                   name="salaryMax"
                   defaultValue={current.salaryMax ?? ''}
-                  placeholder="Max"
-                  aria-label="Gaji maksimum"
+                  placeholder={tj.filters.maxPlaceholder}
+                  aria-label={tj.filters.maxAria}
                   className="border-border bg-background focus:border-[color:var(--ring)] focus:ring-[color:var(--ring)]/30 rounded-md border px-2 py-1.5 text-xs outline-none focus:ring-2"
                 />
               </div>
@@ -524,22 +526,22 @@ export default async function JobsListPage({
                 type="submit"
                 className="border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] mt-1 inline-flex w-full items-center justify-center rounded-md border px-2 py-1.5 text-xs font-medium transition"
               >
-                Terapkan
+                {tj.filters.apply}
               </button>
             </form>
           </FilterGroup>
         </aside>
 
-        <section aria-label="Daftar lowongan">
+        <section aria-label={tj.listAria}>
           {hasAnyFilter && (
             <SaveSearchCta isAuthenticated={isAuthenticated} />
           )}
           {jobs.length > 0 && (
             <div className="mb-5 flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                Urutkan
+                {tj.sortLabel}
               </span>
-              {SORT_OPTIONS.map((o) => {
+              {sortOptions.map((o) => {
                 const active = activeSort === o.value
                 return (
                   <Link
@@ -562,19 +564,17 @@ export default async function JobsListPage({
           {jobs.length === 0 ? (
             <div className="border-border bg-card rounded-2xl border p-12 text-center">
               <h2 className="font-heading text-foreground text-lg font-semibold">
-                Tidak ada lowongan
+                {tj.empty.title}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                {hasAnyFilter
-                  ? 'Belum ada lowongan yang cocok dengan filter saat ini.'
-                  : 'Belum ada lowongan terdaftar.'}
+                {hasAnyFilter ? tj.empty.withFilter : tj.empty.none}
               </p>
               {hasAnyFilter && (
                 <Link
                   href="/jobs"
                   className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
                 >
-                  Bersihkan filter
+                  {tj.clearFilters}
                 </Link>
               )}
             </div>
@@ -605,6 +605,13 @@ export default async function JobsListPage({
               current={current}
               page={activePage}
               totalPages={totalPages}
+              labels={{
+                previous: tj.pagination.previous,
+                next: tj.pagination.next,
+                previousAria: tj.pagination.previousAria,
+                nextAria: tj.pagination.nextAria,
+                pageAria: tj.pagination.pageAria,
+              }}
             />
           )}
         </section>
@@ -701,14 +708,24 @@ function FilterChip({ label, clearHref }: { label: string; clearHref: string }) 
   )
 }
 
+type PaginationLabels = {
+  previous: string
+  next: string
+  previousAria: string
+  nextAria: string
+  pageAria: string
+}
+
 function Pagination({
   current,
   page,
   totalPages,
+  labels,
 }: {
   current: FilterState
   page: number
   totalPages: number
+  labels: PaginationLabels
 }) {
   const prevPage = Math.max(1, page - 1)
   const nextPage = Math.min(totalPages, page + 1)
@@ -737,10 +754,10 @@ function Pagination({
         current={current}
         page={prevPage}
         disabled={page === 1}
-        aria="Halaman sebelumnya"
+        aria={labels.previousAria}
       >
         <ChevronLeft className="h-4 w-4" aria-hidden />
-        <span className="hidden sm:inline">Sebelumnya</span>
+        <span className="hidden sm:inline">{labels.previous}</span>
       </PageLink>
 
       {pages.map((p, i) =>
@@ -754,7 +771,7 @@ function Pagination({
             current={current}
             page={p}
             active={p === page}
-            aria={`Halaman ${p}`}
+            aria={`${labels.pageAria} ${p}`}
           >
             {p}
           </PageLink>
@@ -765,9 +782,9 @@ function Pagination({
         current={current}
         page={nextPage}
         disabled={page === totalPages}
-        aria="Halaman berikutnya"
+        aria={labels.nextAria}
       >
-        <span className="hidden sm:inline">Berikutnya</span>
+        <span className="hidden sm:inline">{labels.next}</span>
         <ChevronRight className="h-4 w-4" aria-hidden />
       </PageLink>
     </nav>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Briefcase, GraduationCap, LayoutDashboard, PartyPopper } from 'lucide-react'
 import { completeOnboarding } from '@/lib/onboarding/wizard-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface OnboardingStepExploreProps {
   userName?: string | null
@@ -12,6 +13,8 @@ export interface OnboardingStepExploreProps {
 
 export function OnboardingStepExplore({ userName }: OnboardingStepExploreProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const te = t.auth.onboarding.explore
   const [isPending, startTransition] = React.useTransition()
   const [error, setError] = React.useState<string | null>(null)
 
@@ -29,6 +32,10 @@ export function OnboardingStepExplore({ userName }: OnboardingStepExploreProps) 
     })
   }
 
+  const title = userName
+    ? te.titleWithName.replace('{name}', userName)
+    : te.title
+
   return (
     <div className="space-y-6 text-center">
       <div className="bg-primary/10 text-primary mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full">
@@ -36,12 +43,9 @@ export function OnboardingStepExplore({ userName }: OnboardingStepExploreProps) 
       </div>
 
       <div className="space-y-2">
-        <h2 className="font-heading text-2xl md:text-3xl">
-          Anda siap{userName ? `, ${userName}` : ''}!
-        </h2>
+        <h2 className="font-heading text-2xl md:text-3xl">{title}</h2>
         <p className="text-muted-foreground mx-auto max-w-xl text-base">
-          Akun Anda sudah siap digunakan. Mulai jelajahi RPI dari salah satu
-          pintu di bawah.
+          {te.body}
         </p>
       </div>
 
@@ -64,9 +68,9 @@ export function OnboardingStepExplore({ userName }: OnboardingStepExploreProps) 
           <span className="bg-primary/10 text-primary mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full">
             <Briefcase className="h-5 w-5" aria-hidden="true" />
           </span>
-          <div className="font-heading text-base">Cari lowongan</div>
+          <div className="font-heading text-base">{te.jobsTitle}</div>
           <p className="text-muted-foreground text-sm">
-            Telusuri ribuan lowongan dari mitra terkurasi.
+            {te.jobsBody}
           </p>
         </button>
 
@@ -79,9 +83,9 @@ export function OnboardingStepExplore({ userName }: OnboardingStepExploreProps) 
           <span className="bg-primary/10 text-primary mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full">
             <GraduationCap className="h-5 w-5" aria-hidden="true" />
           </span>
-          <div className="font-heading text-base">Ikuti kursus</div>
+          <div className="font-heading text-base">{te.coursesTitle}</div>
           <p className="text-muted-foreground text-sm">
-            Tingkatkan skill dengan kelas dari pelatih ahli.
+            {te.coursesBody}
           </p>
         </button>
 
@@ -94,9 +98,9 @@ export function OnboardingStepExplore({ userName }: OnboardingStepExploreProps) 
           <span className="bg-primary/10 text-primary mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full">
             <LayoutDashboard className="h-5 w-5" aria-hidden="true" />
           </span>
-          <div className="font-heading text-base">Buka dashboard</div>
+          <div className="font-heading text-base">{te.dashboardTitle}</div>
           <p className="text-muted-foreground text-sm">
-            Lihat ringkasan aktivitas dan rekomendasi personal.
+            {te.dashboardBody}
           </p>
         </button>
       </div>
@@ -107,7 +111,7 @@ export function OnboardingStepExplore({ userName }: OnboardingStepExploreProps) 
           href={'/dashboard' as any}
           className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
         >
-          Atau pergi ke dashboard sekarang
+          {te.fallbackLink}
         </Link>
       </div>
     </div>

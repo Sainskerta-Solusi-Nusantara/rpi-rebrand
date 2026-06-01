@@ -7,6 +7,7 @@ import {
   TOTAL_WIZARD_STEPS,
   WIZARD_STEPS,
 } from '@/lib/onboarding/wizard-config'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { OnboardingProgressBar } from '@/components/organisms/onboarding-progress-bar'
 import { OnboardingSkipButton } from '@/components/organisms/onboarding-skip-button'
 import { OnboardingStepWelcome } from '@/components/organisms/onboarding-step-welcome'
@@ -69,6 +70,9 @@ export default async function WelcomeStepPage({ params }: PageProps) {
     redirect(nextRoute)
   }
 
+  const t = await getServerT()
+  const to = t.auth.onboarding
+
   let stepContent: React.ReactNode = null
   switch (stepDef.id) {
     case 'welcome':
@@ -116,6 +120,10 @@ export default async function WelcomeStepPage({ params }: PageProps) {
       break
   }
 
+  const stepFooterLabel = to.stepLabel
+    .replace('{current}', String(parsedStep + 1))
+    .replace('{total}', String(TOTAL_WIZARD_STEPS))
+
   return (
     <div className="flex flex-1 flex-col gap-8">
       <header className="space-y-4">
@@ -145,16 +153,14 @@ export default async function WelcomeStepPage({ params }: PageProps) {
       </section>
 
       <footer className="text-muted-foreground flex items-center justify-between gap-3 pb-2 text-xs">
-        <span>
-          Langkah {parsedStep + 1} dari {TOTAL_WIZARD_STEPS}
-        </span>
+        <span>{stepFooterLabel}</span>
         {parsedStep > 0 ? (
           <Link
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href={`/welcome/${parsedStep - 1}` as any}
             className="hover:text-foreground underline-offset-4 hover:underline"
           >
-            Kembali
+            {to.back}
           </Link>
         ) : (
           <span />

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Check } from 'lucide-react'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export interface OnboardingProgressBarProps {
   currentStep: number
@@ -12,7 +13,7 @@ export interface OnboardingProgressBarProps {
  * for each step with a checkmark for completed ones and a filled connector
  * between them. Server component — no client interactivity.
  */
-export function OnboardingProgressBar({
+export async function OnboardingProgressBar({
   currentStep,
   totalSteps,
   labels,
@@ -21,10 +22,17 @@ export function OnboardingProgressBar({
   const safeCurrent = Math.max(0, Math.min(currentStep, safeTotal - 1))
   const percent = Math.round(((safeCurrent + 1) / safeTotal) * 100)
 
+  const t = await getServerT()
+  const tp = t.auth.onboarding.progress
+
+  const groupLabel = tp.groupLabel
+    .replace('{current}', String(safeCurrent + 1))
+    .replace('{total}', String(safeTotal))
+
   return (
     <div
       role="group"
-      aria-label={`Langkah ${safeCurrent + 1} dari ${safeTotal}`}
+      aria-label={groupLabel}
       className="w-full"
     >
       <div className="flex items-center gap-2 sm:gap-3">
@@ -32,14 +40,18 @@ export function OnboardingProgressBar({
           const done = i < safeCurrent
           const active = i === safeCurrent
           const label = labels?.[i]
+          const baseLabel = label
+            ? tp.stepLabelWithName
+                .replace('{n}', String(i + 1))
+                .replace('{label}', label)
+            : tp.stepLabel.replace('{n}', String(i + 1))
+          const ariaLabel = `${baseLabel}${done ? tp.completed : ''}`
           return (
             <React.Fragment key={i}>
               <div className="flex flex-col items-center gap-1">
                 <span
                   aria-current={active ? 'step' : undefined}
-                  aria-label={`Langkah ${i + 1}${label ? `: ${label}` : ''}${
-                    done ? ' (selesai)' : ''
-                  }`}
+                  aria-label={ariaLabel}
                   className={
                     done
                       ? 'bg-primary text-primary-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold sm:h-8 sm:w-8'

@@ -7,26 +7,28 @@ import {
   FlagToggleSwitch,
   FlagDeleteButton,
 } from '@/components/organisms/feature-flag-controls'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Feature Flags — Dasbor' }
-
-function typeLabel(type: string): string {
-  switch (type) {
-    case 'boolean':
-      return 'Boolean'
-    case 'percentage':
-      return 'Persentase'
-    case 'segment':
-      return 'Segment'
-    default:
-      return type
-  }
-}
 
 export default async function FeatureFlagsListPage() {
   const session = await requireAuth('/dashboard/feature-flags')
   if (session.user.globalRole !== 'SUPERADMIN') {
     notFound()
+  }
+  const t = await getServerT()
+
+  function typeLabel(type: string): string {
+    switch (type) {
+      case 'boolean':
+        return t.dashboard.featureFlags.typeLabels.boolean
+      case 'percentage':
+        return t.dashboard.featureFlags.typeLabels.percentage
+      case 'segment':
+        return t.dashboard.featureFlags.typeLabels.segment
+      default:
+        return type
+    }
   }
 
   const flags = await getAllFlags()
@@ -40,7 +42,7 @@ export default async function FeatureFlagsListPage() {
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke dasbor
+          {t.dashboard.featureFlags.backToDashboard}
         </Link>
       </div>
 
@@ -48,10 +50,10 @@ export default async function FeatureFlagsListPage() {
         <div>
           <div className="flex items-center gap-2">
             <Flag className="h-6 w-6" aria-hidden="true" />
-            <h1 className="font-heading text-2xl md:text-3xl">Feature Flags</h1>
+            <h1 className="font-heading text-2xl md:text-3xl">{t.dashboard.featureFlags.title}</h1>
           </div>
           <p className="text-muted-foreground mt-1 max-w-2xl">
-            Kelola flag fitur untuk eksperimen, rollout bertahap, dan kill-switch.
+            {t.dashboard.featureFlags.subtitle}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -61,19 +63,19 @@ export default async function FeatureFlagsListPage() {
             className="bg-primary text-primary-foreground inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Kelola flag
+            {t.dashboard.featureFlags.manageCta}
           </Link>
         </div>
       </header>
 
       <section
-        aria-label="Daftar flag"
+        aria-label={t.dashboard.featureFlags.listLabel}
         className="border-border bg-card rounded-2xl border"
       >
         {flags.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-muted-foreground text-sm">
-              Belum ada feature flag. Klik &ldquo;Kelola flag&rdquo; untuk membuat yang pertama.
+              {t.dashboard.featureFlags.emptyState}
             </p>
           </div>
         ) : (
@@ -81,12 +83,12 @@ export default async function FeatureFlagsListPage() {
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-left">
                 <tr>
-                  <th className="p-3 font-medium">Key</th>
-                  <th className="p-3 font-medium">Nama</th>
-                  <th className="p-3 font-medium">Tipe</th>
-                  <th className="p-3 font-medium">Status</th>
-                  <th className="p-3 font-medium text-right">Override</th>
-                  <th className="p-3 font-medium text-right">Aksi</th>
+                  <th className="p-3 font-medium">{t.dashboard.featureFlags.headers.key}</th>
+                  <th className="p-3 font-medium">{t.dashboard.featureFlags.headers.name}</th>
+                  <th className="p-3 font-medium">{t.dashboard.featureFlags.headers.type}</th>
+                  <th className="p-3 font-medium">{t.dashboard.featureFlags.headers.status}</th>
+                  <th className="p-3 font-medium text-right">{t.dashboard.featureFlags.headers.overrides}</th>
+                  <th className="p-3 font-medium text-right">{t.dashboard.featureFlags.headers.actions}</th>
                 </tr>
               </thead>
               <tbody className="divide-border divide-y">
@@ -120,7 +122,7 @@ export default async function FeatureFlagsListPage() {
                           href={`/dashboard/feature-flags/${f.id}` as any}
                           className="border-border bg-background hover:bg-muted inline-flex h-8 items-center rounded-md border px-2.5 text-xs font-medium"
                         >
-                          Edit
+                          {t.dashboard.featureFlags.edit}
                         </Link>
                         <FlagDeleteButton id={f.id} />
                       </div>

@@ -12,6 +12,7 @@ import {
   rejectAllNonEssentialCookies,
   saveCustomConsent,
 } from '@/lib/consent/consent-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Banner = { kind: 'idle' } | { kind: 'success' } | { kind: 'error'; message: string }
 
@@ -21,6 +22,8 @@ export function PrivacyCenterPrefsForm({
   initial: StoredConsent | null
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tp = t.public.privacyCenter
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<Banner>({ kind: 'idle' })
   const [prefs, setPrefs] = useState<ConsentPrefs>({
@@ -45,7 +48,7 @@ export function PrivacyCenterPrefsForm({
         flash('success')
         router.refresh()
       } catch (err) {
-        flash('error', err instanceof Error ? err.message : 'Gagal menyimpan.')
+        flash('error', err instanceof Error ? err.message : tp.saveError)
       }
     })
   }
@@ -83,7 +86,7 @@ export function PrivacyCenterPrefsForm({
                 <p className="mt-0.5 text-xs text-muted-foreground">{cat.description}</p>
                 {cat.examples.length ? (
                   <p className="mt-1 text-[11px] text-muted-foreground/80">
-                    Contoh: {cat.examples.join(', ')}
+                    {tp.example} {cat.examples.join(', ')}
                   </p>
                 ) : null}
               </div>
@@ -96,10 +99,10 @@ export function PrivacyCenterPrefsForm({
                     setPrefs((p) => ({ ...p, [cat.key]: e.target.checked }))
                   }
                   className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60"
-                  aria-label={`Aktifkan kategori ${cat.label}`}
+                  aria-label={`${tp.enableCategory} ${cat.label}`}
                 />
                 <span className="text-xs text-muted-foreground">
-                  {cat.locked ? 'Wajib' : checked ? 'Aktif' : 'Nonaktif'}
+                  {cat.locked ? tp.required : checked ? tp.active : tp.inactive}
                 </span>
               </label>
             </li>
@@ -109,12 +112,12 @@ export function PrivacyCenterPrefsForm({
 
       {banner.kind === 'success' ? (
         <p className="text-xs text-emerald-700 dark:text-emerald-300">
-          Preferensi tersimpan.
+          {tp.saved}
         </p>
       ) : null}
       {banner.kind === 'error' ? (
         <p className="text-xs text-destructive">
-          {banner.message || 'Gagal menyimpan. Coba lagi.'}
+          {banner.message || tp.saveFailed}
         </p>
       ) : null}
 
@@ -126,7 +129,7 @@ export function PrivacyCenterPrefsForm({
             disabled={pending}
             className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Tolak semua
+            {tp.rejectAll}
           </button>
           <button
             type="button"
@@ -134,7 +137,7 @@ export function PrivacyCenterPrefsForm({
             disabled={pending}
             className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Terima semua
+            {tp.acceptAll}
           </button>
         </div>
         <button
@@ -143,7 +146,7 @@ export function PrivacyCenterPrefsForm({
           disabled={pending}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? 'Menyimpan…' : 'Simpan preferensi'}
+          {pending ? tp.saving : tp.savePreferences}
         </button>
       </div>
     </div>

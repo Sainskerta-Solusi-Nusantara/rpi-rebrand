@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Briefcase, GraduationCap, Home, User } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface MobileBottomNavItem {
   href: string
@@ -19,18 +20,22 @@ export interface MobileBottomNavProps {
   className?: string
 }
 
-const DEFAULT_ITEMS: MobileBottomNavItem[] = [
-  { href: '/dashboard', label: 'Beranda', icon: Home },
-  { href: '/dashboard/jobs', label: 'Lowongan', icon: Briefcase, matchPrefix: true },
-  { href: '/dashboard/lms', label: 'Pelatihan', icon: GraduationCap, matchPrefix: true },
-  { href: '/dashboard/profile', label: 'Profil', icon: User, matchPrefix: true },
-]
-
-export function MobileBottomNav({ items = DEFAULT_ITEMS, className }: MobileBottomNavProps) {
+export function MobileBottomNav({ items, className }: MobileBottomNavProps) {
   const pathname = usePathname() ?? '/'
+  const { t } = useI18n()
+  const defaultItems: MobileBottomNavItem[] = React.useMemo(
+    () => [
+      { href: '/dashboard', label: t.dashboard.nav.dashboard, icon: Home },
+      { href: '/dashboard/jobs', label: t.dashboard.nav.jobs, icon: Briefcase, matchPrefix: true },
+      { href: '/dashboard/lms', label: t.dashboard.nav.lms, icon: GraduationCap, matchPrefix: true },
+      { href: '/dashboard/profile', label: t.dashboard.nav.profile, icon: User, matchPrefix: true },
+    ],
+    [t],
+  )
+  const resolvedItems = items ?? defaultItems
   return (
     <nav
-      aria-label="Navigasi bawah"
+      aria-label={t.dashboard.nav.bottomNavigation}
       className={cn(
         'fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur md:hidden',
         'safe-area-inset-bottom',
@@ -38,7 +43,7 @@ export function MobileBottomNav({ items = DEFAULT_ITEMS, className }: MobileBott
       )}
     >
       <ul className="grid grid-cols-4">
-        {items.map((it) => {
+        {resolvedItems.map((it) => {
           const active = it.matchPrefix ? pathname.startsWith(it.href) : pathname === it.href
           const Icon = it.icon
           return (

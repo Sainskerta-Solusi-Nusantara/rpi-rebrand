@@ -5,7 +5,9 @@ import { redirect } from 'next/navigation'
 import { AvatarUploader } from '@/components/organisms/avatar-uploader'
 import { PersonalPrefsForm } from '@/components/organisms/personal-prefs-form'
 import { ProfileVisibilityForm } from '@/components/organisms/profile-visibility-form'
+import { LanguageSwitcherMount } from '@/components/organisms/language-switcher-mount'
 import { getPersonalPrefs } from '@/lib/auth/personal-prefs'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,6 +64,12 @@ export default async function ProfilePage() {
   if (!user) redirect('/login')
 
   const prefs = await getPersonalPrefs(userId)
+  const t = await getServerT()
+  const langCopy = t.common.language as {
+    sectionTitle?: string
+    sectionDescription?: string
+    label?: string
+  }
 
   return (
     <div className="p-6 space-y-8 max-w-3xl">
@@ -81,6 +89,17 @@ export default async function ProfilePage() {
       </section>
 
       <ProfileForm initial={user} />
+
+      <section className="border-border bg-card rounded-2xl border p-6">
+        <h2 className="font-heading mb-1 text-lg">
+          {langCopy.sectionTitle ?? 'Bahasa'}
+        </h2>
+        <p className="text-muted-foreground mb-4 text-sm">
+          {langCopy.sectionDescription ??
+            'Pilih bahasa antarmuka. Pengaturan ini juga memengaruhi format tanggal dan angka.'}
+        </p>
+        <LanguageSwitcherMount variant="inline" />
+      </section>
 
       <section className="border-border bg-card rounded-2xl border p-6">
         <h2 className="font-heading mb-1 text-lg">Bahasa & zona waktu</h2>

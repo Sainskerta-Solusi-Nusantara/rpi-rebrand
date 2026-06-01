@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Rss, Search } from 'lucide-react'
 import { ArticleCard } from '@/components/organisms/article-card'
 import BlogHeaderChips from '@/components/molecules/blog-header-chips'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import {
   listPublishedArticles,
   getPopularArticleTags,
@@ -49,6 +50,9 @@ export default async function BlogPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getServerT()
+  const tb = t.public.blog
+
   const tagParam =
     typeof searchParams.tag === 'string' && searchParams.tag.length > 0
       ? searchParams.tag.toLowerCase()
@@ -112,18 +116,17 @@ export default async function BlogPage({
         <div className="container mx-auto w-full max-w-4xl px-6 text-center">
           <span className="text-muted-foreground inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em]">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
-            Blog &amp; Insight
+            {tb.eyebrow}
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </span>
           <h1
             id="blog-hero-heading"
             className="font-heading text-foreground mt-4 text-balance text-3xl font-semibold leading-tight md:text-5xl"
           >
-            Wawasan praktis untuk pekerja, perekrut, dan pemimpin SDM
+            {tb.heroTitle}
           </h1>
           <p className="text-muted-foreground mx-auto mt-5 max-w-2xl text-balance text-base md:text-lg">
-            Tulisan dari tim RPI dan kontributor — riset pasar kerja, panduan
-            karier, dan pelajaran dari ribuan pencari kerja Indonesia.
+            {tb.heroBody}
           </p>
 
           <form action="/blog" method="get" className="mx-auto mt-8 flex max-w-xl gap-2">
@@ -136,7 +139,7 @@ export default async function BlogPage({
                 type="search"
                 name="q"
                 defaultValue={queryParam}
-                placeholder="Cari artikel"
+                placeholder={tb.searchPlaceholder}
                 className="border-input bg-background focus:border-ring focus:ring-ring/30 block w-full rounded-md border px-3 py-2 pl-9 text-sm shadow-sm focus:outline-none focus:ring-2"
               />
             </div>
@@ -145,7 +148,7 @@ export default async function BlogPage({
               type="submit"
               className="rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[hsl(220,50%,18%)]"
             >
-              Cari
+              {tb.searchCta}
             </button>
           </form>
 
@@ -156,7 +159,7 @@ export default async function BlogPage({
               className="text-muted-foreground hover:text-[color:var(--ring)] inline-flex items-center gap-1.5 text-xs font-medium underline-offset-2 transition hover:underline"
             >
               <Rss className="h-3.5 w-3.5" aria-hidden />
-              Berlangganan RSS
+              {tb.rss}
             </Link>
           </div>
         </div>
@@ -217,26 +220,24 @@ export default async function BlogPage({
       <section className="bg-background pb-20 pt-6 md:pb-24" aria-label="Daftar artikel">
         <div className="container mx-auto w-full max-w-6xl px-6">
           <div className="text-muted-foreground mb-6 text-sm">
-            {total.toLocaleString('id-ID')} artikel
-            {hasFilter ? ' sesuai filter saat ini' : ''}
+            {total.toLocaleString('id-ID')} {tb.articlesCount}
+            {hasFilter ? ` ${tb.matchingFilter}` : ''}
           </div>
 
           {items.length === 0 ? (
             <div className="border-border bg-card mx-auto max-w-xl rounded-2xl border p-10 text-center">
               <h2 className="font-heading text-foreground text-lg font-semibold">
-                Belum ada artikel
+                {tb.empty.title}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                {hasFilter
-                  ? 'Tidak ada artikel yang cocok dengan filter ini. Coba kata kunci lain atau hapus filter.'
-                  : 'Tulisan-tulisan baru akan muncul di sini segera. Pantau terus halaman ini.'}
+                {hasFilter ? tb.empty.withFilter : tb.empty.none}
               </p>
               {hasFilter && (
                 <Link
                   href="/blog"
                   className="mt-4 inline-flex rounded-md border border-[color:var(--ring)] px-3 py-1.5 text-sm text-[color:var(--ring)]"
                 >
-                  Hapus semua filter
+                  {tb.empty.clearAll}
                 </Link>
               )}
             </div>
@@ -271,10 +272,10 @@ export default async function BlogPage({
                     : 'hover:border-[color:var(--ring)] hover:text-[color:var(--ring)]'
                 }`}
               >
-                Sebelumnya
+                {tb.pagination.previous}
               </Link>
               <span className="text-muted-foreground text-sm">
-                Halaman {safePage} dari {totalPages}
+                {tb.pagination.pageOf.replace('{page}', String(safePage)).replace('{total}', String(totalPages))}
               </span>
               <Link
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -291,7 +292,7 @@ export default async function BlogPage({
                     : 'hover:border-[color:var(--ring)] hover:text-[color:var(--ring)]'
                 }`}
               >
-                Selanjutnya
+                {tb.pagination.next}
               </Link>
             </nav>
           )}

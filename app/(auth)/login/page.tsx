@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { LoginForm } from './login-form'
 
 export const metadata = {
@@ -25,6 +26,8 @@ export default async function LoginPage({
     redirect(searchParams?.callbackUrl ?? '/dashboard')
   }
 
+  const t = await getServerT()
+
   const showRegistered = searchParams?.registered === '1'
   const showSignedOut = searchParams?.signedOut === '1'
   const showReset = searchParams?.reset === '1'
@@ -34,10 +37,10 @@ export default async function LoginPage({
     <div className="space-y-6">
       <header className="space-y-2">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-          Selamat datang kembali
+          {t.auth.login.title}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Masuk untuk melanjutkan ke RPI.
+          {t.auth.login.subtitle}
         </p>
       </header>
 
@@ -46,7 +49,7 @@ export default async function LoginPage({
           role="status"
           className="rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
         >
-          Akun berhasil dibuat. Silakan masuk.
+          {t.auth.login.notices.registered}
         </div>
       )}
 
@@ -55,7 +58,7 @@ export default async function LoginPage({
           role="status"
           className="rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground"
         >
-          Anda telah keluar.
+          {t.auth.login.notices.signedOut}
         </div>
       )}
 
@@ -64,7 +67,7 @@ export default async function LoginPage({
           role="status"
           className="rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
         >
-          Password berhasil diperbarui. Silakan masuk dengan password baru.
+          {t.auth.login.notices.reset}
         </div>
       )}
 
@@ -73,7 +76,7 @@ export default async function LoginPage({
           role="status"
           className="rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
         >
-          Email berhasil diperbarui. Silakan masuk dengan email baru.
+          {t.auth.login.notices.emailChanged}
         </div>
       )}
 
@@ -81,9 +84,9 @@ export default async function LoginPage({
 
       <div className="space-y-2 text-center text-sm">
         <p className="text-muted-foreground">
-          Belum punya akun?{' '}
+          {t.auth.login.noAccount}{' '}
           <Link href="/register" className="font-medium text-primary hover:underline">
-            Daftar sekarang
+            {t.auth.login.signUpLink}
           </Link>
         </p>
         <p>
@@ -91,7 +94,7 @@ export default async function LoginPage({
             href="/forgot"
             className="text-sm text-muted-foreground hover:text-foreground hover:underline"
           >
-            Lupa password?
+            {t.auth.login.forgotPassword}
           </Link>
         </p>
       </div>

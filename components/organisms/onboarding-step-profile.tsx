@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { updateProfile } from '@/lib/auth/profile-actions'
 import { advanceOnboardingStep } from '@/lib/onboarding/wizard-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type OnboardingProfileInitial = {
   name: string | null
@@ -14,31 +15,6 @@ export type OnboardingProfileInitial = {
   bio: string | null
   location: string | null
 }
-
-const schema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, 'Nama minimal 2 karakter')
-    .max(120, 'Nama maksimal 120 karakter'),
-  headline: z
-    .string()
-    .max(200, 'Headline maksimal 200 karakter')
-    .optional()
-    .or(z.literal('')),
-  location: z
-    .string()
-    .max(120, 'Lokasi maksimal 120 karakter')
-    .optional()
-    .or(z.literal('')),
-  bio: z
-    .string()
-    .max(1000, 'Bio maksimal 1000 karakter')
-    .optional()
-    .or(z.literal('')),
-})
-
-type FormValues = z.infer<typeof schema>
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
@@ -60,8 +36,45 @@ export function OnboardingStepProfile({
   nextRoute,
 }: OnboardingStepProfileProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tp = t.auth.onboarding.profile
   const [isPending, startTransition] = React.useTransition()
   const [submitError, setSubmitError] = React.useState<string | null>(null)
+
+  const schema = React.useMemo(
+    () =>
+      z.object({
+        name: z
+          .string()
+          .trim()
+          .min(2, tp.errors.nameMin)
+          .max(120, tp.errors.nameMax),
+        headline: z
+          .string()
+          .max(200, tp.errors.headlineMax)
+          .optional()
+          .or(z.literal('')),
+        location: z
+          .string()
+          .max(120, tp.errors.locationMax)
+          .optional()
+          .or(z.literal('')),
+        bio: z
+          .string()
+          .max(1000, tp.errors.bioMax)
+          .optional()
+          .or(z.literal('')),
+      }),
+    [
+      tp.errors.nameMin,
+      tp.errors.nameMax,
+      tp.errors.headlineMax,
+      tp.errors.locationMax,
+      tp.errors.bioMax,
+    ],
+  )
+
+  type FormValues = z.infer<typeof schema>
 
   const {
     register,
@@ -133,13 +146,13 @@ export function OnboardingStepProfile({
 
       <div className="space-y-2">
         <label htmlFor="name" className="text-foreground block text-sm font-medium">
-          Nama lengkap <span className="text-destructive">*</span>
+          {tp.nameLabel} <span className="text-destructive">*</span>
         </label>
         <input
           id="name"
           type="text"
           autoComplete="name"
-          placeholder="Nama lengkap"
+          placeholder={tp.namePlaceholder}
           aria-invalid={Boolean(errors.name)}
           className={inputClass}
           {...register('name')}
@@ -154,12 +167,12 @@ export function OnboardingStepProfile({
           htmlFor="headline"
           className="text-foreground block text-sm font-medium"
         >
-          Headline
+          {tp.headlineLabel}
         </label>
         <input
           id="headline"
           type="text"
-          placeholder="Senior Engineer di Tokopedia"
+          placeholder={tp.headlinePlaceholder}
           aria-invalid={Boolean(errors.headline)}
           className={inputClass}
           {...register('headline')}
@@ -174,12 +187,12 @@ export function OnboardingStepProfile({
           htmlFor="location"
           className="text-foreground block text-sm font-medium"
         >
-          Lokasi
+          {tp.locationLabel}
         </label>
         <input
           id="location"
           type="text"
-          placeholder="Jakarta"
+          placeholder={tp.locationPlaceholder}
           aria-invalid={Boolean(errors.location)}
           className={inputClass}
           {...register('location')}
@@ -192,7 +205,7 @@ export function OnboardingStepProfile({
       <div className="space-y-2">
         <div className="flex items-baseline justify-between">
           <label htmlFor="bio" className="text-foreground block text-sm font-medium">
-            Bio singkat
+            {tp.bioLabel}
           </label>
           <span className="text-muted-foreground text-xs">{bioCount}/1000</span>
         </div>
@@ -200,7 +213,7 @@ export function OnboardingStepProfile({
           id="bio"
           rows={4}
           maxLength={1000}
-          placeholder="Ceritakan singkat tentang diri Anda…"
+          placeholder={tp.bioPlaceholder}
           aria-invalid={Boolean(errors.bio)}
           className={inputClass}
           {...register('bio')}
@@ -216,7 +229,7 @@ export function OnboardingStepProfile({
           disabled={isPending}
           className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending ? 'Menyimpan…' : 'Simpan & Lanjut'}
+          {isPending ? tp.submitting : tp.submit}
         </button>
       </div>
     </form>

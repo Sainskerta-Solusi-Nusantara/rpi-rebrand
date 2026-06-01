@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { checkEmailChangeToken } from '@/lib/auth/email-change-actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { ConfirmEmailChangeButton } from './confirm-button'
 
 export const metadata = {
@@ -13,22 +14,24 @@ export default async function VerifyEmailChangePage({
   params: { token: string }
 }) {
   const status = await checkEmailChangeToken(params.token)
+  const t = await getServerT()
+  const tc = t.auth.verify.change
 
   if (!status.valid) {
     const message =
       status.reason === 'expired'
-        ? 'Tautan konfirmasi sudah kedaluwarsa. Buka pengaturan keamanan untuk mulai permintaan baru.'
+        ? tc.reasonExpired
         : status.reason === 'used'
-          ? 'Tautan konfirmasi ini sudah digunakan.'
+          ? tc.reasonUsed
           : status.reason === 'taken'
-            ? 'Email tersebut sudah digunakan oleh akun lain.'
-            : 'Tautan konfirmasi tidak valid. Pastikan Anda membuka tautan terbaru dari email.'
+            ? tc.reasonTaken
+            : tc.reasonInvalid
 
     return (
       <div className="space-y-6">
         <header className="space-y-2">
           <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-            Tidak dapat mengonfirmasi
+            {tc.failTitle}
           </h2>
           <p className="text-sm text-muted-foreground">{message}</p>
         </header>
@@ -38,7 +41,7 @@ export default async function VerifyEmailChangePage({
             href="/dashboard/keamanan"
             className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
           >
-            Buka pengaturan keamanan
+            {tc.ctaSecurity}
             <span aria-hidden className="text-[hsl(43,74%,55%)]">
               →
             </span>
@@ -47,7 +50,7 @@ export default async function VerifyEmailChangePage({
             href="/login"
             className="text-center text-muted-foreground hover:text-foreground hover:underline"
           >
-            Kembali ke halaman masuk
+            {tc.ctaLogin}
           </Link>
         </div>
       </div>
@@ -58,13 +61,13 @@ export default async function VerifyEmailChangePage({
     <div className="space-y-6">
       <header className="space-y-2">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-          Konfirmasi email baru
+          {tc.title}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Anda akan mengganti email akun dari{' '}
-          <span className="font-mono">{status.oldEmail}</span> ke{' '}
-          <span className="font-mono">{status.newEmail}</span>. Setelah
-          konfirmasi, Anda harus masuk lagi menggunakan email baru.
+          {tc.bodyPrefix}{' '}
+          <span className="font-mono">{status.oldEmail}</span> {tc.bodyTo}{' '}
+          <span className="font-mono">{status.newEmail}</span>
+          {tc.bodySuffix}
         </p>
       </header>
 
@@ -72,7 +75,7 @@ export default async function VerifyEmailChangePage({
 
       <p className="text-center text-sm text-muted-foreground">
         <Link href="/dashboard/keamanan" className="font-medium text-primary hover:underline">
-          Batal — kembali ke keamanan
+          {tc.cancel}
         </Link>
       </p>
     </div>

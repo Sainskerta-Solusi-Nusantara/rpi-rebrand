@@ -1,3 +1,23 @@
+// Aggregated translation dictionary.
+//
+// Namespaces are split into separate files under ./dictionaries so multiple
+// authors can edit in parallel without merge conflicts:
+//   - home.ts        homepage (legacy keys — kept flat at root for backward compat)
+//   - common.ts      shared UI strings (actions, status, errors, language)
+//   - auth.ts        auth flows (login, register, verify, reset, 2FA, onboarding)
+//   - dashboard.ts   dashboard pages (nav, applications, security, settings)
+//   - publicpages.ts public marketing (pricing, tentang, contact, jobs, courses)
+//
+// All keys from `home.ts` are flattened at the root of each locale to preserve
+// existing callers (`t.nav.jobs`, `t.hero.headlineLine1`, etc.).
+// New code should use the namespaced form: `t.common.actions.save`, `t.auth.login.title`.
+
+import { home } from './dictionaries/home'
+import { common } from './dictionaries/common'
+import { auth } from './dictionaries/auth'
+import { dashboard } from './dictionaries/dashboard'
+import { publicpages } from './dictionaries/publicpages'
+
 export type Locale = 'id' | 'en'
 
 export const locales: Locale[] = ['id', 'en']
@@ -5,252 +25,18 @@ export const defaultLocale: Locale = 'id'
 
 export const dictionary = {
   id: {
-    nav: {
-      jobs: 'Lowongan',
-      lms: 'Kursus',
-      partners: 'Mitra',
-      about: 'Tentang',
-      login: 'Masuk',
-      register: 'Daftar',
-      menu: 'Menu',
-    },
-    hero: {
-      eyebrow: 'Per Mei 2026',
-      headlineLine1: 'Karier Indonesia',
-      headlineLine2: 'bertumbuh di sini.',
-      body: 'Satu platform untuk lowongan, pelatihan, dan mitra perekrut — dirancang untuk skala enterprise dan instansi nasional.',
-      ctaPrimary: 'Jelajahi Karier',
-      ctaSecondary: 'Untuk Perusahaan',
-      stats: {
-        talents: 'pekerja terdaftar',
-        jobs: 'lowongan aktif',
-        partners: 'mitra verified',
-        courses: 'kursus certified',
-      },
-      trustedBy: 'Dipercaya oleh',
-      searchPlaceholder: 'Cari posisi atau perusahaan',
-      searchCta: 'Cari',
-      locationPlaceholder: 'Lokasi',
-    },
-    sections: {
-      categoriesTitle: 'Jelajahi Kategori Pekerjaan',
-      latestJobsTitle: 'Lowongan Terbaru',
-      lmsTitle: 'Tingkatkan Keterampilan',
-      storiesTitle: 'Kisah Pekerja',
-    },
-    common: {
-      theme: 'Tema',
-      language: 'Bahasa',
-      lightMode: 'Mode Terang',
-      darkMode: 'Mode Gelap',
-      systemMode: 'Ikuti Sistem',
-    },
-    howItWorks: {
-      eyebrow: 'Cara Kerja',
-      title: 'Dari Daftar Hingga Diterima Kerja, dalam 4 Langkah Mudah',
-      subhead: 'Platform kami dirancang...',
-      cta: 'Mulai Sekarang Gratis',
-    },
-    whyChooseUs: {
-      eyebrow: 'Mengapa RPI',
-      title: 'Platform Karier yang Memikirkanmu',
-      subhead: 'Kami bukan sekadar papan lowongan...',
-    },
-    successStories: {
-      eyebrow: 'Kisah Sukses Alumni',
-      title: 'Ribuan Hidup Berubah Berkat RPI',
-      subhead: 'Cerita nyata dari pencari kerja...',
-      cta: 'Lihat 12.000+ Cerita Sukses',
-    },
-    featuredPartners: {
-      eyebrow: 'Mitra Resmi',
-      title: 'Dipercaya 850+ Perusahaan Top Indonesia',
-      subhead: 'Dari startup unicorn hingga BUMN...',
-      cta: 'Lihat 850+ Mitra Lainnya',
-    },
-    appPromo: {
-      eyebrow: 'Aplikasi Mobile',
-      title: 'Karier di Genggamanmu',
-      subhead: 'Lamar pekerjaan, terima notifikasi tawaran...',
-      downloadApple: 'Unduh di App Store',
-      downloadGoogle: 'Tersedia di Google Play',
-    },
-    careerInsights: {
-      eyebrow: 'Insight Karier',
-      title: 'Tips & Strategi untuk Karier yang Lebih Cerah',
-      subhead: 'Artikel pilihan dari para ahli karier...',
-      cta: 'Lihat Semua Artikel',
-      readTime: 'menit baca',
-    },
-    faq: {
-      eyebrow: 'Bantuan & FAQ',
-      title: 'Punya Pertanyaan? Kami Punya Jawabannya.',
-      subhead: 'Jawaban untuk pertanyaan yang paling sering ditanyakan...',
-      notFoundTitle: 'Masih belum menemukan jawaban?',
-      notFoundSubhead: 'Tim support kami siap membantu 7 hari seminggu.',
-      contactCta: 'Hubungi Kami',
-    },
-    newsletter: {
-      eyebrow: 'Newsletter Mingguan',
-      title: 'Dapatkan 5 Lowongan Premium Setiap Senin',
-      subhead: 'Kurasi pilihan dari editor RPI...',
-      emailLabel: 'Email',
-      nameLabel: 'Nama (opsional)',
-      cta: 'Berlangganan Gratis',
-      submitting: 'Mengirim...',
-      success: 'Berhasil! Cek email-mu untuk konfirmasi.',
-      privacy: 'Tanpa spam. Kami hargai privasimu.',
-    },
-    industries: {
-      eyebrow: 'Industri Berkembang',
-      title: 'Industri yang Paling Banyak Mencari Talenta',
-      subhead: 'Pilih industri yang cocok denganmu...',
-      explore: 'Jelajahi',
-      jobsLabel: 'lowongan',
-      avgSalary: 'gaji rata-rata',
-    },
-    skillChips: {
-      label: 'Pencarian Populer',
-      seeAll: 'Lihat semua',
-    },
-    footer: {
-      newsletterTitle: 'Dapatkan Info Lowongan Terbaru Setiap Minggu',
-      newsletterSubhead: 'Bergabung dengan 12.000+ pencari kerja yang sudah berlangganan.',
-      newsletterCta: 'Berlangganan',
-      forSeekers: 'Untuk Pekerja',
-      forEmployers: 'Untuk Perusahaan',
-      aboutCompany: 'Tentang RPI',
-      tagline: 'Platform SaaS multi-tenant untuk masa depan kerja Indonesia.',
-      copyright: '© 2025 Rumah Pekerja Indonesia. All rights reserved.',
-      madeIn: 'Made with ❤️ in Indonesia',
-      privacy: 'Privasi',
-      terms: 'Ketentuan',
-      cookie: 'Kebijakan Cookie',
-    },
+    ...home.id,
+    common: { ...home.id.common, ...common.id },
+    auth: auth.id,
+    dashboard: dashboard.id,
+    public: publicpages.id,
   },
   en: {
-    nav: {
-      jobs: 'Jobs',
-      lms: 'Courses',
-      partners: 'Partners',
-      about: 'About',
-      login: 'Sign in',
-      register: 'Sign up',
-      menu: 'Menu',
-    },
-    hero: {
-      eyebrow: 'May 2026',
-      headlineLine1: 'Indonesia’s careers',
-      headlineLine2: 'grow here.',
-      body: 'One platform for jobs, training, and recruiting partners — built for enterprise and national institutions.',
-      ctaPrimary: 'Explore Careers',
-      ctaSecondary: 'For Employers',
-      stats: {
-        talents: 'registered workers',
-        jobs: 'active jobs',
-        partners: 'verified partners',
-        courses: 'certified courses',
-      },
-      trustedBy: 'Trusted by',
-      searchPlaceholder: 'Search position or company',
-      searchCta: 'Search',
-      locationPlaceholder: 'Location',
-    },
-    sections: {
-      categoriesTitle: 'Explore Job Categories',
-      latestJobsTitle: 'Latest Jobs',
-      lmsTitle: 'Upgrade Your Skills',
-      storiesTitle: 'Worker Stories',
-    },
-    common: {
-      theme: 'Theme',
-      language: 'Language',
-      lightMode: 'Light Mode',
-      darkMode: 'Dark Mode',
-      systemMode: 'System',
-    },
-    howItWorks: {
-      eyebrow: 'How It Works',
-      title: 'From Sign Up to Hired in 4 Easy Steps',
-      subhead: 'Our platform is designed...',
-      cta: 'Get Started Free',
-    },
-    whyChooseUs: {
-      eyebrow: 'Why RPI',
-      title: 'A Career Platform That Cares',
-      subhead: 'We are more than just a job board...',
-    },
-    successStories: {
-      eyebrow: 'Alumni Success Stories',
-      title: 'Thousands of Lives Changed Through RPI',
-      subhead: 'Real stories from job seekers...',
-      cta: 'See 12,000+ Success Stories',
-    },
-    featuredPartners: {
-      eyebrow: 'Official Partners',
-      title: 'Trusted by 850+ Top Indonesian Companies',
-      subhead: 'From unicorn startups to SOEs...',
-      cta: 'See 850+ More Partners',
-    },
-    appPromo: {
-      eyebrow: 'Mobile App',
-      title: 'Your Career in Your Hands',
-      subhead: 'Apply, receive offer notifications...',
-      downloadApple: 'Download on the App Store',
-      downloadGoogle: 'Get it on Google Play',
-    },
-    careerInsights: {
-      eyebrow: 'Career Insights',
-      title: 'Tips & Strategy for a Brighter Career',
-      subhead: 'Curated articles from career experts...',
-      cta: 'See All Articles',
-      readTime: 'min read',
-    },
-    faq: {
-      eyebrow: 'Help & FAQ',
-      title: 'Have Questions? We Have Answers.',
-      subhead: 'Answers to the most frequently asked questions...',
-      notFoundTitle: 'Still didn\'t find an answer?',
-      notFoundSubhead: 'Our support team is ready to help 7 days a week.',
-      contactCta: 'Contact Us',
-    },
-    newsletter: {
-      eyebrow: 'Weekly Newsletter',
-      title: 'Get 5 Premium Jobs Every Monday',
-      subhead: 'Curated picks from RPI editors...',
-      emailLabel: 'Email',
-      nameLabel: 'Name (optional)',
-      cta: 'Subscribe Free',
-      submitting: 'Sending...',
-      success: 'Success! Check your email for confirmation.',
-      privacy: 'No spam. We respect your privacy.',
-    },
-    industries: {
-      eyebrow: 'Growing Industries',
-      title: 'Industries Hiring the Most Talent',
-      subhead: 'Choose the industry that fits you...',
-      explore: 'Explore',
-      jobsLabel: 'jobs',
-      avgSalary: 'avg salary',
-    },
-    skillChips: {
-      label: 'Popular Searches',
-      seeAll: 'See all',
-    },
-    footer: {
-      newsletterTitle: 'Get the Latest Job Info Every Week',
-      newsletterSubhead: 'Join 12,000+ job seekers who have subscribed.',
-      newsletterCta: 'Subscribe',
-      forSeekers: 'For Workers',
-      forEmployers: 'For Employers',
-      aboutCompany: 'About RPI',
-      tagline: 'Multi-tenant SaaS platform for the future of work in Indonesia.',
-      copyright: '© 2025 Rumah Pekerja Indonesia. All rights reserved.',
-      madeIn: 'Made with ❤️ in Indonesia',
-      privacy: 'Privacy',
-      terms: 'Terms',
-      cookie: 'Cookie Policy',
-    },
+    ...home.en,
+    common: { ...home.en.common, ...common.en },
+    auth: auth.en,
+    dashboard: dashboard.en,
+    public: publicpages.en,
   },
 } as const
 
