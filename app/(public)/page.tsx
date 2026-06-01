@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { HeroBanner } from '@/components/organisms/hero-banner'
@@ -9,6 +11,8 @@ import { LMSPathTimeline } from '@/components/organisms/lms-path-timeline'
 import { SuccessStories } from '@/components/organisms/success-stories'
 import { FAQAccordion } from '@/components/organisms/faq-accordion'
 import { CTABanner } from '@/components/organisms/cta-banner'
+import { ArticleCard } from '@/components/organisms/article-card'
+import { getRecentArticles } from '@/lib/blog/queries'
 
 export const metadata: Metadata = {
   title: 'Karier, Kursus & Mitra Kerja — Rumah Pekerja Indonesia',
@@ -114,6 +118,8 @@ export default async function HomePage() {
       .catch(() => null),
   ])
 
+  const recentArticles = await getRecentArticles(3).catch(() => [])
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -196,6 +202,43 @@ export default async function HomePage() {
 
       {/* 6. Social proof + FAQ + CTA closer */}
       <SuccessStories testimonial={featuredTestimonial} />
+
+      {/* 6b. Artikel terbaru — small DB-backed slot, hidden when no articles */}
+      {recentArticles.length > 0 && (
+        <section
+          className="bg-muted/30 py-20 md:py-24"
+          aria-label="Artikel terbaru"
+        >
+          <div className="container mx-auto w-full max-w-6xl px-6">
+            <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <span className="text-muted-foreground inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em]">
+                  <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+                  Artikel terbaru
+                </span>
+                <h2 className="font-heading text-foreground mt-3 text-2xl font-semibold md:text-3xl">
+                  Cerita dan panduan dari tim RPI
+                </h2>
+              </div>
+              <Link
+                href="/blog"
+                className="text-[color:var(--ring)] inline-flex items-center gap-1 text-sm font-medium"
+              >
+                Lihat semua artikel
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+            <ul className="grid gap-6 md:grid-cols-3">
+              {recentArticles.map((a) => (
+                <li key={a.id}>
+                  <ArticleCard article={a} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       <FAQAccordion />
       <CTABanner />
     </>

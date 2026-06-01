@@ -417,6 +417,37 @@ export async function scheduleInterview(input: {
       }
     }
 
+    // ---- BEGIN PUSH NOTIFICATION ----------------------------------------
+    // Critical event per PUSH_EVENT_CONFIG (interviewScheduled.critical ===
+    // true) — no NotificationPref gate. Sent to the candidate userId.
+    // Dynamic import is fire-and-forget; if push isn't configured the
+    // promise rejects silently. Date is formatted in the user-facing
+    // id-ID locale for readability inside the OS notification surface.
+    try {
+      const candidateUserId = ctx.application.userId
+      if (candidateUserId) {
+        const whenStr = scheduledAt.toLocaleString('id-ID', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        })
+        const pushTitle = 'Wawancara dijadwalkan'
+        const pushBody = `Wawancara untuk ${ctx.application.job.title} pada ${whenStr} (${type})`
+        const pushUrl = `/dashboard/lamaran/${applicationId}/wawancara`
+        void import('@/lib/push/dispatch')
+          .then((m) =>
+            m.dispatchPushToUser(candidateUserId, {
+              title: pushTitle,
+              body: pushBody,
+              url: pushUrl,
+            }),
+          )
+          .catch(() => {})
+      }
+    } catch {
+      // Best-effort only.
+    }
+    // ---- END PUSH NOTIFICATION ------------------------------------------
+
     revalidateForApplication(ctx.application.tenant.slug, applicationId)
     return { ok: true, data: { interviewId: interview.id } }
   } catch (err) {
@@ -524,6 +555,42 @@ export async function updateInterview(input: {
       },
     })
 
+    // ---- BEGIN PUSH NOTIFICATION ----------------------------------------
+    // Push only on SIGNIFICANT changes — a recruiter tweaking the stage
+    // name or notes shouldn't ping the candidate's phone. We treat
+    // scheduledAt / type / meetingUrl / location as significant; everything
+    // else is silent. interviewUpdated in PUSH_EVENT_CONFIG is critical
+    // (no pref gate) but we still want to avoid spamming the candidate.
+    const significantChanges = changed.filter((c) =>
+      ['scheduledAt', 'type', 'meetingUrl', 'location'].includes(c),
+    )
+    if (significantChanges.length > 0) {
+      try {
+        const candidateUserId = ctx.interview.application.userId
+        if (candidateUserId) {
+          const whenStr = scheduledAt.toLocaleString('id-ID', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          })
+          const pushTitle = 'Wawancara diperbarui'
+          const pushBody = `Wawancara untuk ${ctx.interview.application.job.title} pada ${whenStr} (${type})`
+          const pushUrl = `/dashboard/lamaran/${ctx.interview.application.id}/wawancara`
+          void import('@/lib/push/dispatch')
+            .then((m) =>
+              m.dispatchPushToUser(candidateUserId, {
+                title: pushTitle,
+                body: pushBody,
+                url: pushUrl,
+              }),
+            )
+            .catch(() => {})
+        }
+      } catch {
+        // Best-effort only.
+      }
+    }
+    // ---- END PUSH NOTIFICATION ------------------------------------------
+
     revalidateForApplication(
       ctx.interview.application.tenant.slug,
       ctx.interview.application.id,
@@ -587,6 +654,35 @@ export async function cancelInterview(
         console.error('[cancelInterview] candidate notify failed', err)
       }
     }
+
+    // ---- BEGIN PUSH NOTIFICATION ----------------------------------------
+    // Critical event (interviewCancelled in PUSH_EVENT_CONFIG). Always
+    // notify the candidate so they don't show up to a meeting that no
+    // longer exists. Fire-and-forget; failures are swallowed.
+    try {
+      const candidateUserId = ctx.interview.application.userId
+      if (candidateUserId) {
+        const whenStr = ctx.interview.scheduledAt.toLocaleString('id-ID', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        })
+        const pushTitle = 'Wawancara dibatalkan'
+        const pushBody = `Wawancara untuk ${ctx.interview.application.job.title} pada ${whenStr} telah dibatalkan`
+        const pushUrl = `/dashboard/lamaran/${ctx.interview.application.id}/wawancara`
+        void import('@/lib/push/dispatch')
+          .then((m) =>
+            m.dispatchPushToUser(candidateUserId, {
+              title: pushTitle,
+              body: pushBody,
+              url: pushUrl,
+            }),
+          )
+          .catch(() => {})
+      }
+    } catch {
+      // Best-effort only.
+    }
+    // ---- END PUSH NOTIFICATION ------------------------------------------
 
     revalidateForApplication(
       ctx.interview.application.tenant.slug,

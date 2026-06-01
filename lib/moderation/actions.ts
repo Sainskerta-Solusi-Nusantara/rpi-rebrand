@@ -275,6 +275,27 @@ export async function updateFlagStatus(input: {
           }),
         ),
       )
+
+      // ---- BEGIN PUSH NOTIFICATION ----------------------------------
+      // Mirror of the in-app Notification fan-out above. Critical event
+      // per PUSH_EVENT_CONFIG.moderationResolved — no NotificationPref
+      // gate. Dynamic import keeps push decoupled and best-effort. We
+      // intentionally use the generic "Laporan moderasi diselesaikan"
+      // title even for the dismissed branch — push surfaces are tiny and
+      // the user can read the resolution detail when they tap through.
+      const pushBody = 'Laporan Anda telah ditinjau'
+      void import('@/lib/push/dispatch')
+        .then((m) => {
+          for (const userId of recipients) {
+            m.dispatchPushToUser(userId, {
+              title: 'Laporan moderasi diselesaikan',
+              body: pushBody,
+              url: `/admin/moderasi/${flagId}`,
+            }).catch(() => {})
+          }
+        })
+        .catch(() => {})
+      // ---- END PUSH NOTIFICATION ------------------------------------
     }
 
     revalidatePath('/admin/moderasi')

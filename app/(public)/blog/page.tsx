@@ -1,186 +1,170 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Tag, User, Calendar } from 'lucide-react'
-import { NewsletterSignup } from '@/components/organisms/newsletter-signup'
-import {
-  BlogHero,
-  BlogFeatured,
-  BlogGrid,
-  BlogTopics,
-} from '@/components/organisms/blog-sections'
+import { Rss, Search } from 'lucide-react'
+import { ArticleCard } from '@/components/organisms/article-card'
 import BlogHeaderChips from '@/components/molecules/blog-header-chips'
 import {
-  type BlogArticle,
-  type BlogSort,
-  BLOG_CATEGORIES,
-  BLOG_PAGE_SIZE,
-  filterArticles,
-  findCategory,
-  sanitizeBlogSort,
-} from '@/lib/blog-data'
-import {
-  getBlogAuthors,
-  getBlogTags,
-  getBlogYears,
-} from '@/lib/blog-facets'
-
-/** Flatten the lib BlogArticle into the shape BlogGrid expects. Defined here
- * (server component) instead of importing from blog-sections, since exports
- * from a 'use client' file become client references and can't be called during
- * server render. */
-function toCard(a: BlogArticle) {
-  return {
-    slug: a.slug,
-    title: a.title,
-    excerpt: a.excerpt,
-    category: a.category,
-    author: a.author.name,
-    authorRole: a.author.role,
-    date: a.date,
-    readMin: a.readMin,
-    gradient: a.gradient,
-    emoji: a.emoji,
-  }
-}
+  listPublishedArticles,
+  getPopularArticleTags,
+} from '@/lib/blog/queries'
 
 export const metadata: Metadata = {
   title: 'Blog & Insight',
   description:
     'Cerita, riset, dan panduan praktis dari dunia kerja Indonesia — untuk pencari kerja, perekrut, dan pemimpin SDM.',
+  openGraph: {
+    title: 'Blog Rumah Pekerja Indonesia',
+    description:
+      'Cerita, riset, dan panduan praktis dari dunia kerja Indonesia.',
+    type: 'website',
+  },
 }
 
+const PAGE_SIZE = 9
+
 type BlogState = {
-  category: string
-  q?: string
-  sort: BlogSort
+  tag?: string
+  query?: string
   page: number
 }
 
 function buildBlogUrl(
   current: BlogState,
-  patch: Partial<{
-    category: string | null
-    q: string | null
-    sort: BlogSort
-    page: number
-    keepPage: boolean
-  }>,
+  patch: Partial<{ tag: string | null; query: string | null; page: number; keepPage: boolean }>,
 ): string {
   const next = {
-    category:
-      'category' in patch
-        ? (patch.category ?? 'all')
-        : current.category,
-    q: 'q' in patch ? patch.q ?? undefined : current.q,
-    sort: patch.sort ?? current.sort,
+    tag: 'tag' in patch ? (patch.tag ?? undefined) : current.tag,
+    query: 'query' in patch ? (patch.query ?? undefined) : current.query,
     page: patch.page ?? (patch.keepPage ? current.page : 1),
   }
   const params: string[] = []
-  if (next.q) params.push(`q=${encodeURIComponent(next.q)}`)
-  if (next.category && next.category !== 'all')
-    params.push(`category=${next.category}`)
-  if (next.sort !== 'newest') params.push(`sort=${next.sort}`)
+  if (next.query) params.push(`q=${encodeURIComponent(next.query)}`)
+  if (next.tag) params.push(`tag=${encodeURIComponent(next.tag)}`)
   if (next.page > 1) params.push(`page=${next.page}`)
   return params.length ? `/blog?${params.join('&')}` : '/blog'
 }
 
-export default function BlogPage({
+export default async function BlogPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
-  const rawCategory =
-    typeof searchParams.category === 'string' ? searchParams.category : 'all'
-  const activeCategory = BLOG_CATEGORIES.some((c) => c.slug === rawCategory)
-    ? rawCategory
-    : 'all'
-  const activeQuery =
+  const tagParam =
+    typeof searchParams.tag === 'string' && searchParams.tag.length > 0
+      ? searchParams.tag.toLowerCase()
+      : undefined
+  const queryParam =
     typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
-  const activeSort = sanitizeBlogSort(
-    typeof searchParams.sort === 'string' ? searchParams.sort : undefined,
-  )
-  const pageParam =
+  const pageRaw =
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
-  const activePage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1
 
   const current: BlogState = {
-    category: activeCategory,
-    q: activeQuery || undefined,
-    sort: activeSort,
-    page: activePage,
+    tag: tagParam,
+    query: queryParam || undefined,
+    page,
   }
-  const hasAnyFilter = activeCategory !== 'all' || !!activeQuery
+  const hasFilter = Boolean(tagParam) || Boolean(queryParam)
 
-  const allFiltered = filterArticles({
-    category: activeCategory,
-    q: activeQuery || undefined,
-    sort: activeSort,
-  })
-  const total = allFiltered.length
-  const totalPages = Math.max(1, Math.ceil(total / BLOG_PAGE_SIZE))
-  const safePage = Math.min(activePage, totalPages)
-  const pageStart = (safePage - 1) * BLOG_PAGE_SIZE
-  const articles = allFiltered
-    .slice(pageStart, pageStart + BLOG_PAGE_SIZE)
-    .map(toCard)
+  const [{ items, total }, popularTags] = await Promise.all([
+    listPublishedArticles({
+      tag: tagParam,
+      query: queryParam || undefined,
+      page,
+      pageSize: PAGE_SIZE,
+    }),
+    getPopularArticleTags(12),
+  ])
 
-  // Pre-build category hrefs (server-side) so the (client) BlogHero only
-  // receives plain serializable props.
-  const categoryHrefs: Record<string, string> = {}
-  for (const c of BLOG_CATEGORIES) {
-    categoryHrefs[c.slug] = buildBlogUrl(current, {
-      category: c.slug === 'all' ? null : c.slug,
-    })
-  }
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
 
-  // Sort dropdown options: each href applies the new sort and resets page.
-  const sortOptions: { value: BlogSort; label: string; href: string }[] = (
-    [
-      { value: 'newest', label: 'Terbaru' },
-      { value: 'alpha', label: 'A–Z' },
-      { value: 'quick', label: 'Baca cepat' },
-    ] as const
-  ).map((s) => ({
-    value: s.value,
-    label: s.label,
-    href: buildBlogUrl(current, { sort: s.value }),
-  }))
-
-  // Pagination links: prev/next/numbered + ellipsis (compact).
-  const paginationLinks = buildPaginationLinks(current, safePage, totalPages)
-
-  // Header chip strip — active filter chips with X-to-remove.
+  // Header chips for active filters.
   const headerChips: { label: string; clearHref: string }[] = []
-  if (activeQuery) {
+  if (queryParam) {
     headerChips.push({
-      label: `"${activeQuery}"`,
-      clearHref: buildBlogUrl(current, { q: null }),
+      label: `"${queryParam}"`,
+      clearHref: buildBlogUrl(current, { query: null }),
     })
   }
-  if (activeCategory !== 'all') {
-    const cat = findCategory(activeCategory)
-    if (cat) {
-      headerChips.push({
-        label: cat.label,
-        clearHref: buildBlogUrl(current, { category: null }),
-      })
-    }
+  if (tagParam) {
+    headerChips.push({
+      label: `#${tagParam}`,
+      clearHref: buildBlogUrl(current, { tag: null }),
+    })
   }
-
-  // Discovery rail data — top tags, authors, years for browsing sub-routes.
-  const topTags = getBlogTags().slice(0, 12)
-  const topAuthors = getBlogAuthors().slice(0, 6)
-  const years = getBlogYears()
 
   return (
     <>
-      <BlogHero
-        activeCategory={activeCategory}
-        activeQuery={activeQuery}
-        categoryHrefs={categoryHrefs}
-      />
+      {/* Hero */}
+      <section
+        className="relative isolate overflow-hidden bg-background pb-12 pt-16 md:pb-16 md:pt-24"
+        aria-labelledby="blog-hero-heading"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in oklab, var(--ring) 14%, transparent), transparent 65%)',
+          }}
+        />
+        <div className="container mx-auto w-full max-w-4xl px-6 text-center">
+          <span className="text-muted-foreground inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em]">
+            <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+            Blog &amp; Insight
+            <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
+          </span>
+          <h1
+            id="blog-hero-heading"
+            className="font-heading text-foreground mt-4 text-balance text-3xl font-semibold leading-tight md:text-5xl"
+          >
+            Wawasan praktis untuk pekerja, perekrut, dan pemimpin SDM
+          </h1>
+          <p className="text-muted-foreground mx-auto mt-5 max-w-2xl text-balance text-base md:text-lg">
+            Tulisan dari tim RPI dan kontributor — riset pasar kerja, panduan
+            karier, dan pelajaran dari ribuan pencari kerja Indonesia.
+          </p>
+
+          <form action="/blog" method="get" className="mx-auto mt-8 flex max-w-xl gap-2">
+            <div className="relative flex-1">
+              <Search
+                className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                aria-hidden
+              />
+              <input
+                type="search"
+                name="q"
+                defaultValue={queryParam}
+                placeholder="Cari artikel"
+                className="border-input bg-background focus:border-ring focus:ring-ring/30 block w-full rounded-md border px-3 py-2 pl-9 text-sm shadow-sm focus:outline-none focus:ring-2"
+              />
+            </div>
+            {tagParam && <input type="hidden" name="tag" value={tagParam} />}
+            <button
+              type="submit"
+              className="rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[hsl(220,50%,18%)]"
+            >
+              Cari
+            </button>
+          </form>
+
+          <div className="mt-4 flex justify-center">
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={'/feed.xml' as any}
+              className="text-muted-foreground hover:text-[color:var(--ring)] inline-flex items-center gap-1.5 text-xs font-medium underline-offset-2 transition hover:underline"
+            >
+              <Rss className="h-3.5 w-3.5" aria-hidden />
+              Berlangganan RSS
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Active filter chip strip */}
       {headerChips.length > 0 && (
-        <section className="bg-background pt-6" aria-label="Filter aktif">
+        <section className="bg-background pb-2 pt-2" aria-label="Filter aktif">
           <div className="container mx-auto w-full max-w-6xl px-6">
             <div className="flex justify-center">
               <BlogHeaderChips chips={headerChips} clearAllHref="/blog" />
@@ -188,176 +172,131 @@ export default function BlogPage({
           </div>
         </section>
       )}
-      <BlogFeatured />
-      <BlogGrid
-        articles={articles}
-        activeCategory={activeCategory}
-        activeQuery={activeQuery}
-        clearAllHref="/blog"
-        hasAnyFilter={hasAnyFilter}
-        totalCount={total}
-        page={safePage}
-        totalPages={totalPages}
-        sortOptions={sortOptions}
-        activeSort={activeSort}
-        paginationLinks={paginationLinks}
-      />
-      <BlogTopics />
 
-      {/* Discovery rail: browse by tag, author, or year */}
-      <section className="bg-muted/30 py-20 md:py-24" aria-label="Jelajahi blog">
-        <div className="container mx-auto w-full max-w-6xl px-6">
-          <div className="mb-10 text-center">
-            <div className="mb-3 flex items-center justify-center gap-3">
-              <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
-              <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-                Jelajahi
-              </span>
-              <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
-            </div>
-            <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
-              Telusuri blog lewat tag, penulis, atau arsip
-            </h2>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            {/* Tags */}
-            <div className="border-border bg-card rounded-2xl border p-6">
-              <h3 className="font-heading text-foreground mb-4 inline-flex items-center gap-2 text-base font-semibold">
-                <Tag className="text-[color:var(--ring)] h-4 w-4" aria-hidden />
-                Tag populer
-              </h3>
-              <ul className="flex flex-wrap gap-2">
-                {topTags.map((t) => (
-                  <li key={t.slug}>
+      {/* Popular tag chips */}
+      {popularTags.length > 0 && (
+        <section className="bg-background pb-6 pt-4" aria-label="Tag populer">
+          <div className="container mx-auto w-full max-w-6xl px-6">
+            <ul className="flex flex-wrap justify-center gap-2">
+              {popularTags.map((t) => {
+                const isActive = tagParam === t.tag
+                const href = buildBlogUrl(current, {
+                  tag: isActive ? null : t.tag,
+                })
+                return (
+                  <li key={t.tag}>
                     <Link
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      href={`/blog/tag/${t.slug}` as any}
-                      className="border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition"
+                      href={href as any}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
+                        isActive
+                          ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-white'
+                          : 'border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)]'
+                      }`}
                     >
-                      #{t.name}
-                      <span className="text-muted-foreground">{t.count}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Authors */}
-            <div className="border-border bg-card rounded-2xl border p-6">
-              <h3 className="font-heading text-foreground mb-4 inline-flex items-center gap-2 text-base font-semibold">
-                <User className="text-[color:var(--ring)] h-4 w-4" aria-hidden />
-                Penulis kami
-              </h3>
-              <ul className="space-y-3">
-                {topAuthors.map((a) => (
-                  <li key={a.slug}>
-                    <Link
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      href={`/blog/author/${a.slug}` as any}
-                      className="hover:bg-muted/40 group -mx-2 flex items-center gap-3 rounded-lg px-2 py-1.5 transition"
-                    >
+                      #{t.tag}
                       <span
-                        aria-hidden
-                        className="grid size-9 shrink-0 place-items-center rounded-full text-xs text-white"
-                        style={{ background: a.color }}
+                        className={
+                          isActive
+                            ? 'text-white/70'
+                            : 'text-muted-foreground'
+                        }
                       >
-                        {a.initial}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="text-foreground group-hover:text-[color:var(--ring)] block truncate text-sm font-medium transition">
-                          {a.name}
-                        </span>
-                        <span className="text-muted-foreground block truncate text-xs">
-                          {a.count} artikel · {a.role}
-                        </span>
+                        {t.count}
                       </span>
                     </Link>
                   </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Years */}
-            <div className="border-border bg-card rounded-2xl border p-6">
-              <h3 className="font-heading text-foreground mb-4 inline-flex items-center gap-2 text-base font-semibold">
-                <Calendar className="text-[color:var(--ring)] h-4 w-4" aria-hidden />
-                Arsip tahunan
-              </h3>
-              <ul className="space-y-1.5">
-                {years.map((y) => (
-                  <li key={y.year}>
-                    <Link
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      href={`/blog/archive/${y.year}` as any}
-                      className="text-foreground/80 hover:text-[color:var(--ring)] flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition"
-                    >
-                      <span>{y.year}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {y.count} artikel
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                )
+              })}
+            </ul>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <section className="bg-background py-20 md:py-24">
+      {/* Grid */}
+      <section className="bg-background pb-20 pt-6 md:pb-24" aria-label="Daftar artikel">
         <div className="container mx-auto w-full max-w-6xl px-6">
-          <NewsletterSignup />
+          <div className="text-muted-foreground mb-6 text-sm">
+            {total.toLocaleString('id-ID')} artikel
+            {hasFilter ? ' sesuai filter saat ini' : ''}
+          </div>
+
+          {items.length === 0 ? (
+            <div className="border-border bg-card mx-auto max-w-xl rounded-2xl border p-10 text-center">
+              <h2 className="font-heading text-foreground text-lg font-semibold">
+                Belum ada artikel
+              </h2>
+              <p className="text-muted-foreground mt-2 text-sm">
+                {hasFilter
+                  ? 'Tidak ada artikel yang cocok dengan filter ini. Coba kata kunci lain atau hapus filter.'
+                  : 'Tulisan-tulisan baru akan muncul di sini segera. Pantau terus halaman ini.'}
+              </p>
+              {hasFilter && (
+                <Link
+                  href="/blog"
+                  className="mt-4 inline-flex rounded-md border border-[color:var(--ring)] px-3 py-1.5 text-sm text-[color:var(--ring)]"
+                >
+                  Hapus semua filter
+                </Link>
+              )}
+            </div>
+          ) : (
+            <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {items.map((a) => (
+                <li key={a.id}>
+                  <ArticleCard article={a} />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <nav
+              className="mt-10 flex items-center justify-center gap-2"
+              aria-label="Pagination"
+            >
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={
+                  buildBlogUrl(current, {
+                    page: Math.max(1, safePage - 1),
+                    keepPage: true,
+                  }) as any
+                }
+                aria-disabled={safePage === 1}
+                className={`border-border rounded-md border px-3 py-1.5 text-sm ${
+                  safePage === 1
+                    ? 'text-muted-foreground pointer-events-none opacity-50'
+                    : 'hover:border-[color:var(--ring)] hover:text-[color:var(--ring)]'
+                }`}
+              >
+                Sebelumnya
+              </Link>
+              <span className="text-muted-foreground text-sm">
+                Halaman {safePage} dari {totalPages}
+              </span>
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                href={
+                  buildBlogUrl(current, {
+                    page: Math.min(totalPages, safePage + 1),
+                    keepPage: true,
+                  }) as any
+                }
+                aria-disabled={safePage === totalPages}
+                className={`border-border rounded-md border px-3 py-1.5 text-sm ${
+                  safePage === totalPages
+                    ? 'text-muted-foreground pointer-events-none opacity-50'
+                    : 'hover:border-[color:var(--ring)] hover:text-[color:var(--ring)]'
+                }`}
+              >
+                Selanjutnya
+              </Link>
+            </nav>
+          )}
         </div>
       </section>
     </>
   )
-}
-
-type PaginationLink =
-  | { kind: 'page'; page: number; active: boolean; href: string }
-  | { kind: 'ellipsis' }
-  | { kind: 'prev' | 'next'; disabled: boolean; href: string }
-
-function buildPaginationLinks(
-  current: BlogState,
-  page: number,
-  totalPages: number,
-): PaginationLink[] {
-  if (totalPages <= 1) return []
-  const links: PaginationLink[] = []
-
-  links.push({
-    kind: 'prev',
-    disabled: page === 1,
-    href: buildBlogUrl(current, {
-      page: Math.max(1, page - 1),
-      keepPage: true,
-    }),
-  })
-
-  const window = 1
-  for (let p = 1; p <= totalPages; p++) {
-    if (p === 1 || p === totalPages || (p >= page - window && p <= page + window)) {
-      links.push({
-        kind: 'page',
-        page: p,
-        active: p === page,
-        href: buildBlogUrl(current, { page: p, keepPage: true }),
-      })
-    } else if (links[links.length - 1]?.kind !== 'ellipsis') {
-      links.push({ kind: 'ellipsis' })
-    }
-  }
-
-  links.push({
-    kind: 'next',
-    disabled: page === totalPages,
-    href: buildBlogUrl(current, {
-      page: Math.min(totalPages, page + 1),
-      keepPage: true,
-    }),
-  })
-
-  return links
 }

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, GraduationCap, Plus } from 'lucide-react'
+import { ChevronLeft, GraduationCap, Plus, FileSpreadsheet } from 'lucide-react'
 import { CourseLevel, CourseStatus, Prisma } from '@prisma/client'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
@@ -158,14 +158,24 @@ export default async function TenantCoursesPage({
           </p>
         </div>
         {canCreate && (
-          <Link
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            href={`/dashboard/tenants/${tenant.slug}/kursus/new` as any}
-            className="inline-flex items-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Buat kursus
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/kursus/import` as any}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-foreground shadow-sm transition"
+            >
+              <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
+              Impor CSV
+            </Link>
+            <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={`/dashboard/tenants/${tenant.slug}/kursus/new` as any}
+              className="inline-flex items-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Buat kursus
+            </Link>
+          </div>
         )}
       </header>
 

@@ -271,6 +271,7 @@ model User {
   assessmentAttempts      AssessmentAttempt[] @relation("AssessmentAttemptUser")
   moderationFlagsReported ModerationFlag[]    @relation("ModerationReporter")
   moderationFlagsResolved ModerationFlag[]    @relation("ModerationResolver")
+  articlesAuthored        Article[]           @relation("ArticleAuthor")
 
   @@index([globalRole])
   @@index([status])
@@ -405,6 +406,28 @@ model EmailDigestLog {
   @@unique([userId, period])
   @@index([userId])
   @@map("email_digest_logs")
+}
+
+model Article {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  summary     String?
+  body        String // markdown
+  coverImage  String?   @map("cover_image")
+  status      String    @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  authorId    String?   @map("author_id")
+  tags        String[]
+  viewCount   Int       @default(0) @map("view_count")
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  author User? @relation("ArticleAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([status, publishedAt])
+  @@index([authorId])
+  @@map("articles")
 }
 
 model CalendarAccount {

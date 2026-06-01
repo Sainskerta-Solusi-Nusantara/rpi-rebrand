@@ -375,6 +375,25 @@ export const authOptions: NextAuthOptions = {
         } else {
           console.error('[signIn alert] mailer failed', sent.error)
         }
+
+        // ---- BEGIN PUSH NOTIFICATION ----------------------------------
+        // Parallel push delivery for new-device login alerts. Reuses the
+        // `login_alert` NotificationPref (`shouldSendEmail` already
+        // returned true above — same pref governs both channels per
+        // PUSH_EVENT_CONFIG.loginAlert.gate). Dynamic import keeps push
+        // optional; errors are swallowed so the auth flow stays clean.
+        const pushTitle = 'Login baru terdeteksi'
+        const pushBody = `Perangkat baru masuk ke akun Anda. Lokasi: ${approximateIp(ip) ?? 'tidak diketahui'}`
+        void import('@/lib/push/dispatch')
+          .then((m) =>
+            m.dispatchPushToUser(userId, {
+              title: pushTitle,
+              body: pushBody,
+              url: '/dashboard/keamanan',
+            }),
+          )
+          .catch(() => {})
+        // ---- END PUSH NOTIFICATION ------------------------------------
       } catch (err) {
         console.error('[signIn alert] failed', err)
       }

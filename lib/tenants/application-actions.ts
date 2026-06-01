@@ -286,6 +286,46 @@ export async function updateApplicationStatus(input: {
       }
     }
 
+    // ---- BEGIN PUSH NOTIFICATION ----------------------------------------
+    // Mirror of the candidate email path above for Web Push delivery.
+    // Same gating rules: skip no-op self-transitions and the APPLIED /
+    // WITHDRAWN edge cases. Application status changes are critical /
+    // transactional (PUSH_EVENT_CONFIG.applicationStatus.critical === true)
+    // so we DO NOT consult NotificationPref here — parallel to the email
+    // policy a few lines up.
+    //
+    // Dynamic import keeps `@/lib/push/dispatch` out of the static module
+    // graph: it avoids any chance of a circular import via Prisma re-exports
+    // and means the action stays callable even when Web Push isn't
+    // configured (no VAPID keys, no subscriptions table populated, etc.).
+    // Fire-and-forget: errors are swallowed via .catch(() => {}) so push
+    // never blocks or fails the status update.
+    if (shouldNotify) {
+      try {
+        const detail = await prisma.application.findUnique({
+          where: { id: applicationId },
+          select: {
+            userId: true,
+            job: { select: { title: true } },
+            tenant: { select: { name: true } },
+          },
+        })
+        if (detail?.userId && detail.job && detail.tenant) {
+          const title = 'Status lamaran diperbarui'
+          const body = `Lamaran Anda untuk ${detail.job.title} di ${detail.tenant.name} sekarang: ${newStatus}`
+          const url = `/dashboard/lamaran/${applicationId}`
+          void import('@/lib/push/dispatch')
+            .then((m) =>
+              m.dispatchPushToUser(detail.userId, { title, body, url }),
+            )
+            .catch(() => {})
+        }
+      } catch {
+        // Best-effort only — never let push lookup break the action.
+      }
+    }
+    // ---- END PUSH NOTIFICATION ------------------------------------------
+
     return { ok: true }
   } catch (err) {
     console.error('[updateApplicationStatus] failed', err)

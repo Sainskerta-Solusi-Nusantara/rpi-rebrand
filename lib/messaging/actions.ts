@@ -226,6 +226,9 @@ export async function sendMessage(input: {
     const candidateLink = `/dashboard/lamaran/${applicationId}/pesan`
     const recruiterLink = `/dashboard/tenants/${application.tenant.slug}/lamaran/${applicationId}/pesan`
     const preview = body.length > 200 ? body.slice(0, 200) + '…' : body
+    // Push uses a slightly shorter preview (120 chars) — mobile notification
+    // surfaces typically truncate well before 200.
+    const pushPreview = body.length > 120 ? body.slice(0, 120) + '…' : body
 
     if (role === 'recruiter' && recipientUserId) {
       await prisma.notification
@@ -241,6 +244,21 @@ export async function sendMessage(input: {
         .catch((err) => {
           console.error('[sendMessage] notify candidate failed', err)
         })
+
+      // ---- BEGIN PUSH NOTIFICATION ------------------------------------
+      // Recruiter → candidate. Treated as critical per PUSH_EVENT_CONFIG
+      // (newMessage.critical === true) — no NotificationPref gate. Dynamic
+      // import keeps push optional / decoupled. Fire-and-forget.
+      void import('@/lib/push/dispatch')
+        .then((m) =>
+          m.dispatchPushToUser(recipientUserId, {
+            title: `Pesan baru dari ${application.tenant.name}`,
+            body: pushPreview,
+            url: candidateLink,
+          }),
+        )
+        .catch(() => {})
+      // ---- END PUSH NOTIFICATION --------------------------------------
     } else if (role === 'candidate') {
       // Notify every tenant member with job.update access. We fan out to all
       // OWNER/ADMIN/RECRUITER memberships of this tenant so any of them can
@@ -268,6 +286,25 @@ export async function sendMessage(input: {
             })),
             skipDuplicates: true,
           })
+
+          // ---- BEGIN PUSH NOTIFICATION --------------------------------
+          // Candidate → recruiter fan-out. Each recruiter receives a push
+          // independently — failure to deliver to one MUST NOT prevent the
+          // others. dispatchPushToUser already swallows its own errors, so
+          // we just need to keep the import/import-failure path quiet too.
+          // Critical event per PUSH_EVENT_CONFIG (no pref gate).
+          void import('@/lib/push/dispatch')
+            .then((m) => {
+              for (const r of recruiters) {
+                m.dispatchPushToUser(r.userId, {
+                  title: `Pesan baru dari ${senderName}`,
+                  body: pushPreview,
+                  url: recruiterLink,
+                }).catch(() => {})
+              }
+            })
+            .catch(() => {})
+          // ---- END PUSH NOTIFICATION ----------------------------------
         }
       } catch (err) {
         console.error('[sendMessage] notify recruiters failed', err)
