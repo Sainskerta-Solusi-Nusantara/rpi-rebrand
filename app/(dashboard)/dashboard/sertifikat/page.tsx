@@ -1,5 +1,11 @@
 import Link from 'next/link'
-import { Award, Download, ExternalLink, GraduationCap } from 'lucide-react'
+import {
+  Award,
+  Download,
+  ExternalLink,
+  GraduationCap,
+  ShieldCheck,
+} from 'lucide-react'
 
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
@@ -49,62 +55,83 @@ export default async function CertificatesPage() {
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {certificates.map((c) => (
-            <li
-              key={c.id}
-              className="border-border bg-card flex flex-col rounded-2xl border p-6"
-            >
-              <div className="text-muted-foreground inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
-                <Award className="text-[color:var(--ring)] h-3.5 w-3.5" aria-hidden />
-                Sertifikat
-              </div>
-              <h2 className="font-heading text-foreground mt-1 line-clamp-2 text-lg">
-                {c.title}
-              </h2>
-              <dl className="text-muted-foreground mt-3 space-y-1.5 text-sm">
-                <div className="flex justify-between gap-3">
-                  <dt>Penerbit</dt>
-                  <dd className="text-foreground text-right">{c.issuer}</dd>
+          {certificates.map((c) => {
+            // Prefer certificateNumber for routing — falls back to id for
+            // legacy certificates issued before the number column existed.
+            const slug = c.certificateNumber ?? c.id
+            return (
+              <li
+                key={c.id}
+                className="border-border bg-card flex flex-col rounded-2xl border p-6"
+              >
+                <div className="text-muted-foreground inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
+                  <Award className="text-[color:var(--ring)] h-3.5 w-3.5" aria-hidden />
+                  Sertifikat
                 </div>
-                <div className="flex justify-between gap-3">
-                  <dt>Diterbitkan</dt>
-                  <dd className="text-foreground text-right">
-                    {new Intl.DateTimeFormat('id-ID', {
-                      dateStyle: 'medium',
-                    }).format(c.issuedAt)}
-                  </dd>
-                </div>
-                {c.course ? (
+                <h2 className="font-heading text-foreground mt-1 line-clamp-2 text-lg">
+                  {c.title}
+                </h2>
+                {c.certificateNumber && (
+                  <p className="text-muted-foreground mt-1 font-mono text-xs tracking-wider">
+                    {c.certificateNumber}
+                  </p>
+                )}
+                <dl className="text-muted-foreground mt-3 space-y-1.5 text-sm">
                   <div className="flex justify-between gap-3">
-                    <dt>Kursus</dt>
-                    <dd className="text-foreground text-right">{c.course.title}</dd>
+                    <dt>Penerbit</dt>
+                    <dd className="text-foreground text-right">{c.issuer}</dd>
                   </div>
-                ) : null}
-              </dl>
-              <div className="mt-auto flex flex-wrap gap-2 pt-4">
-                <Link
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={(`/sertifikat/${c.id}`) as any}
-                  className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                  Halaman verifikasi
-                </Link>
-                {c.fileUrl ? (
-                  <a
-                    href={c.fileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    download
+                  <div className="flex justify-between gap-3">
+                    <dt>Diterbitkan</dt>
+                    <dd className="text-foreground text-right">
+                      {new Intl.DateTimeFormat('id-ID', {
+                        dateStyle: 'medium',
+                      }).format(c.issuedAt)}
+                    </dd>
+                  </div>
+                  {c.course ? (
+                    <div className="flex justify-between gap-3">
+                      <dt>Kursus</dt>
+                      <dd className="text-foreground text-right">
+                        {c.course.title}
+                      </dd>
+                    </div>
+                  ) : null}
+                </dl>
+                <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                  <Link
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={(`/sertifikat/${slug}`) as any}
                     className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium"
                   >
                     <Download className="h-3.5 w-3.5" aria-hidden />
-                    Unduh SVG
-                  </a>
-                ) : null}
-              </div>
-            </li>
-          ))}
+                    Unduh sertifikat
+                  </Link>
+                  {c.certificateNumber && (
+                    <Link
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      href={(`/sertifikat/verify/${c.certificateNumber}`) as any}
+                      className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium"
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                      Verifikasi sertifikat
+                    </Link>
+                  )}
+                  {c.fileUrl ? (
+                    <a
+                      href={c.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                      Buka file
+                    </a>
+                  ) : null}
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

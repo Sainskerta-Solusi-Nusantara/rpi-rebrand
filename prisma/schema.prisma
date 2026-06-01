@@ -168,6 +168,7 @@ model Tenant {
   emailTemplates      TenantEmailTemplate[]
   interviewQuestions  InterviewQuestion[]
   retentionPolicies   AuditRetentionPolicy[]
+  featureFlagOverrides FeatureFlagOverride[]
 
   @@index([planTier])
   @@index([status])
@@ -277,6 +278,8 @@ model User {
   moderationFlagsResolved ModerationFlag[]    @relation("ModerationResolver")
   articlesAuthored        Article[]           @relation("ArticleAuthor")
   retentionPoliciesCreated AuditRetentionPolicy[] @relation("RetentionPolicyCreatedBy")
+  featureFlagsCreated      FeatureFlag[]          @relation("FeatureFlagCreatedBy")
+  featureFlagOverrides     FeatureFlagOverride[]
 
   @@index([globalRole])
   @@index([status])
@@ -445,6 +448,45 @@ model ApplicationAnswer {
   @@unique([applicationId, questionId])
   @@index([applicationId])
   @@map("application_answers")
+}
+
+model FeatureFlag {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  name         String
+  description  String?
+  type         String // boolean | percentage | segment
+  enabled      Boolean  @default(false)
+  percentage   Int      @default(0)
+  segmentRules Json?    @map("segment_rules") // [{attr, op, values}]
+  environments Json?    // {dev: bool, staging: bool, prod: bool}
+  createdById  String?  @map("created_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  createdBy User?                 @relation("FeatureFlagCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  overrides FeatureFlagOverride[]
+
+  @@index([enabled])
+  @@map("feature_flags")
+}
+
+model FeatureFlagOverride {
+  id        String   @id @default(cuid())
+  flagId    String   @map("flag_id")
+  userId    String?  @map("user_id")
+  tenantId  String?  @map("tenant_id")
+  value     Boolean
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  flag   FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  user   User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([flagId, userId, tenantId])
+  @@index([flagId])
+  @@map("feature_flag_overrides")
 }
 
 model StripeWebhookEvent {
@@ -1227,14 +1269,15 @@ model LessonProgress {
 }
 
 model Certificate {
-  id               String   @id @default(cuid())
-  userId           String   @map("user_id")
-  courseId         String?  @map("course_id")
-  jobApplicationId String?  @map("job_application_id")
-  title            String
-  fileUrl          String   @map("file_url")
-  issuedAt         DateTime @default(now()) @map("issued_at")
-  issuer           String
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  courseId          String?  @map("course_id")
+  jobApplicationId  String?  @map("job_application_id")
+  certificateNumber String?  @unique @map("certificate_number")
+  title             String
+  fileUrl           String   @map("file_url")
+  issuedAt          DateTime @default(now()) @map("issued_at")
+  issuer            String
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)

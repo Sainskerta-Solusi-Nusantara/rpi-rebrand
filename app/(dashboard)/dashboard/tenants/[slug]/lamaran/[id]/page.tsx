@@ -25,6 +25,7 @@ import { InterviewScheduleForm } from '@/components/organisms/interview-schedule
 import { InterviewRowActions } from '@/components/organisms/interview-row-actions'
 import { SyncInterviewButton } from '@/components/organisms/sync-interview-button'
 import { ScorecardSummary } from '@/components/organisms/scorecard-summary'
+import { InterviewScorecardSummary } from '@/components/organisms/interview-scorecard-summary'
 import { InterviewPipelineView } from '@/components/organisms/interview-pipeline-view'
 import { PipelineEditor } from '@/components/organisms/interview-pipeline-editor'
 import {
@@ -675,6 +676,8 @@ export default async function TenantApplicationDetailPage({
       )}
 
       <ScorecardSummary summary={scorecardSummary} />
+
+      <InterviewScorecardSummary applicationId={application.id} />
 
       <InterviewPipelineView pipeline={pipelineSummary} />
 

@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { JobCard } from '@/components/molecules/job-card'
+import { SaveSearchCta } from '@/components/organisms/save-search-cta'
+import { auth } from '@/lib/auth/session'
 import {
   getJobCategories,
   getJobsPage,
@@ -208,7 +210,7 @@ export default async function JobsListPage({
     activeSalaryMin !== undefined ||
     activeSalaryMax !== undefined
 
-  const [pageResult, categories] = await Promise.all([
+  const [pageResult, categories, session] = await Promise.all([
     getJobsPage(
       {
         q: activeQuery || undefined,
@@ -223,7 +225,9 @@ export default async function JobsListPage({
       activePage,
     ),
     getJobCategories(),
+    auth(),
   ])
+  const isAuthenticated = Boolean(session?.user)
   const jobs = pageResult.items
   const total = pageResult.total
   const totalPages = pageResult.totalPages
@@ -527,6 +531,9 @@ export default async function JobsListPage({
         </aside>
 
         <section aria-label="Daftar lowongan">
+          {hasAnyFilter && (
+            <SaveSearchCta isAuthenticated={isAuthenticated} />
+          )}
           {jobs.length > 0 && (
             <div className="mb-5 flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">

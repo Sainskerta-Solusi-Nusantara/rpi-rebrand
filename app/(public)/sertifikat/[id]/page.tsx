@@ -7,17 +7,35 @@ import { buildCertificateSvg } from '@/lib/enrollments/certificate-svg'
 
 type Params = { id: string }
 
+async function lookupCertificate(key: string) {
+  // Accept either the legacy CUID `id` or the new `certificateNumber`.
+  const byNumber = await prisma.certificate
+    .findUnique({
+      where: { certificateNumber: key },
+      include: {
+        course: { select: { title: true, slug: true } },
+        user: { select: { name: true, email: true } },
+      },
+    })
+    .catch(() => null)
+  if (byNumber) return byNumber
+  return prisma.certificate
+    .findUnique({
+      where: { id: key },
+      include: {
+        course: { select: { title: true, slug: true } },
+        user: { select: { name: true, email: true } },
+      },
+    })
+    .catch(() => null)
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Params
 }): Promise<Metadata> {
-  const cert = await prisma.certificate
-    .findUnique({
-      where: { id: params.id },
-      select: { title: true, issuer: true },
-    })
-    .catch(() => null)
+  const cert = await lookupCertificate(params.id)
   if (!cert) return { title: 'Sertifikat tidak ditemukan' }
   return {
     title: `${cert.title} — Verifikasi Sertifikat`,
@@ -30,15 +48,7 @@ export default async function CertificateVerifyPage({
 }: {
   params: Params
 }) {
-  const cert = await prisma.certificate
-    .findUnique({
-      where: { id: params.id },
-      include: {
-        course: { select: { title: true, slug: true } },
-        user: { select: { name: true, email: true } },
-      },
-    })
-    .catch(() => null)
+  const cert = await lookupCertificate(params.id)
   if (!cert) notFound()
 
   const recipientName =
