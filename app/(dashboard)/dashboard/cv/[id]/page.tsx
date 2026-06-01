@@ -8,7 +8,9 @@ import {
   ResumeBuilderForm,
   type ResumeBuilderInitial,
 } from '@/components/organisms/resume-builder-form'
+import { ResumeSuggestionsPanel } from '@/components/organisms/resume-suggestions-panel'
 import type { ResumeContent } from '@/lib/resumes/actions'
+import { analyzeResume, type AnalyzerResume } from '@/lib/resume/analyzer'
 
 export const metadata = { title: 'Edit CV' }
 
@@ -49,8 +51,30 @@ export default async function ResumeEditPage({
         : null,
   }
 
+  // Pull contact info for analyzer (NOT persisted as part of resume.content).
+  const user = await prisma.user
+    .findUnique({
+      where: { id: userId },
+      select: { email: true, phone: true },
+    })
+    .catch(() => null)
+
+  const analyzerInput: AnalyzerResume = {
+    name: resume.name,
+    fileUrl: resume.fileUrl,
+    summary: initial.content?.summary ?? undefined,
+    experiences: initial.content?.experiences ?? [],
+    educations: initial.content?.educations ?? [],
+    skills: initial.content?.skills ?? [],
+    languages: initial.content?.languages ?? [],
+    email: user?.email ?? undefined,
+    phone: user?.phone ?? undefined,
+    links: [],
+  }
+  const initialAnalysis = analyzeResume(analyzerInput)
+
   return (
-    <div className="max-w-3xl space-y-6 p-6">
+    <div className="max-w-5xl space-y-6 p-6">
       <div>
         <Link
           href="/dashboard/cv"
@@ -66,7 +90,17 @@ export default async function ResumeEditPage({
           Perbarui detail CV, unggah dokumen, dan susun konten builder.
         </p>
       </header>
-      <ResumeBuilderForm resume={initial} />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0">
+          <ResumeBuilderForm resume={initial} />
+        </div>
+        <aside className="lg:sticky lg:top-6 lg:self-start">
+          <ResumeSuggestionsPanel
+            resumeId={resume.id}
+            initialAnalysis={initialAnalysis}
+          />
+        </aside>
+      </div>
     </div>
   )
 }

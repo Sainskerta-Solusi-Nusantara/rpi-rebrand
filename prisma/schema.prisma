@@ -162,10 +162,12 @@ model Tenant {
   invitations   Invitation[]
   teamMembers   TeamMember[]
   applications  Application[]
+  stripeCustomerId    String?               @unique @map("stripe_customer_id")
   webhooks            TenantWebhook[]
   apiKeys             TenantApiKey[]
   emailTemplates      TenantEmailTemplate[]
   interviewQuestions  InterviewQuestion[]
+  retentionPolicies   AuditRetentionPolicy[]
 
   @@index([planTier])
   @@index([status])
@@ -274,6 +276,7 @@ model User {
   moderationFlagsReported ModerationFlag[]    @relation("ModerationReporter")
   moderationFlagsResolved ModerationFlag[]    @relation("ModerationResolver")
   articlesAuthored        Article[]           @relation("ArticleAuthor")
+  retentionPoliciesCreated AuditRetentionPolicy[] @relation("RetentionPolicyCreatedBy")
 
   @@index([globalRole])
   @@index([status])
@@ -442,6 +445,38 @@ model ApplicationAnswer {
   @@unique([applicationId, questionId])
   @@index([applicationId])
   @@map("application_answers")
+}
+
+model StripeWebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique @map("event_id")
+  type        String
+  payload     Json
+  processedAt DateTime? @map("processed_at")
+  error       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([type, createdAt])
+  @@map("stripe_webhook_events")
+}
+
+model AuditRetentionPolicy {
+  id             String   @id @default(cuid())
+  scope          String // global | tenant
+  tenantId       String?  @map("tenant_id")
+  resourceType   String   @map("resource_type") // wildcard "*" or e.g. "login", "application.message"
+  retentionDays  Int      @map("retention_days") // 90, 180, 365, 730, 0=forever
+  archiveEnabled Boolean  @default(false) @map("archive_enabled")
+  createdById    String?  @map("created_by_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("RetentionPolicyCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([scope, tenantId, resourceType])
+  @@index([scope, tenantId])
+  @@map("audit_retention_policies")
 }
 
 model Article {

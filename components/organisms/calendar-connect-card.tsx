@@ -1,5 +1,5 @@
-import { CalendarDays, Link2, Info } from 'lucide-react'
-import { getMyCalendarAccount } from '@/lib/calendar/actions'
+import { CalendarDays, Link2 } from 'lucide-react'
+import { getMyCalendarAccounts } from '@/lib/calendar/actions'
 import { CalendarDisconnectButton } from '@/components/organisms/calendar-disconnect-button'
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', {
@@ -8,12 +8,10 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
 })
 
 /**
- * Server component — shows the current user's connected calendar account
- * (provider + email + expiry), with a "Hubungkan" CTA for unconnected users
- * and a "Putuskan" client subcomponent for connected users.
- *
- * Microsoft is rendered as a disabled, "Segera hadir" placeholder so the UI
- * already advertises the roadmap.
+ * Server component — shows the current user's connected calendar accounts
+ * side-by-side (Google + Microsoft), each with its own connect/disconnect
+ * state. Microsoft now mirrors the Google flow via
+ * `/api/auth/microsoft-calendar/start`.
  */
 export async function CalendarConnectCard({
   status,
@@ -25,7 +23,9 @@ export async function CalendarConnectCard({
    */
   status?: { kind: 'connected' } | { kind: 'error'; reason?: string }
 }) {
-  const account = await getMyCalendarAccount()
+  const accounts = await getMyCalendarAccounts()
+  const google = accounts.find((a) => a.provider === 'google') ?? null
+  const microsoft = accounts.find((a) => a.provider === 'microsoft') ?? null
 
   return (
     <section
@@ -66,13 +66,13 @@ export async function CalendarConnectCard({
         <div className="border-border flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-sm font-medium">Google Calendar</div>
-            {account && account.provider === 'google' ? (
+            {google ? (
               <div className="text-muted-foreground text-xs">
-                {account.providerEmail}
-                {account.expiresAt && (
+                Terhubung sebagai {google.providerEmail}
+                {google.expiresAt && (
                   <>
                     {' '}
-                    · token kedaluwarsa {dateFmt.format(account.expiresAt)}
+                    · token kedaluwarsa {dateFmt.format(google.expiresAt)}
                   </>
                 )}
               </div>
@@ -83,7 +83,7 @@ export async function CalendarConnectCard({
             )}
           </div>
           <div className="flex flex-col items-start gap-2 sm:items-end">
-            {account && account.provider === 'google' ? (
+            {google ? (
               <>
                 <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                   Terhubung
@@ -102,33 +102,47 @@ export async function CalendarConnectCard({
           </div>
         </div>
 
-        {/* Microsoft row (soon) */}
-        <div className="border-border flex flex-col gap-3 rounded-lg border p-4 opacity-60 sm:flex-row sm:items-center sm:justify-between">
+        {/* Microsoft row */}
+        <div className="border-border flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-sm font-medium">Outlook / Microsoft 365</div>
-            <div className="text-muted-foreground text-xs">
-              Sinkronisasi dengan kalender Microsoft.
-            </div>
+            {microsoft ? (
+              <div className="text-muted-foreground text-xs">
+                Terhubung sebagai {microsoft.providerEmail}
+                {microsoft.expiresAt && (
+                  <>
+                    {' '}
+                    · token kedaluwarsa {dateFmt.format(microsoft.expiresAt)}
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="text-muted-foreground text-xs">
+                Belum terhubung. Hubungkan untuk sinkronisasi otomatis jadwal
+                wawancara ke Outlook Anda.
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-start gap-2 sm:items-end">
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Segera hadir"
-              className="border-border bg-background inline-flex cursor-not-allowed items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-muted-foreground"
-            >
-              <Link2 className="h-4 w-4" aria-hidden="true" />
-              Hubungkan Outlook
-            </button>
-            <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-              <Info className="h-3 w-3" aria-hidden="true" />
-              Segera hadir
-            </span>
+            {microsoft ? (
+              <>
+                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                  Terhubung
+                </span>
+                <CalendarDisconnectButton provider="microsoft" />
+              </>
+            ) : (
+              <a
+                href="/api/auth/microsoft-calendar/start"
+                className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-foreground transition"
+              >
+                <Link2 className="h-4 w-4" aria-hidden="true" />
+                Hubungkan Outlook
+              </a>
+            )}
           </div>
         </div>
       </div>
-
     </section>
   )
 }

@@ -27,6 +27,9 @@ const envSchema = z.object({
   // ----- OAuth (optional) -----
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
+  MICROSOFT_OAUTH_CLIENT_ID: optionalString,
+  MICROSOFT_OAUTH_CLIENT_SECRET: optionalString,
+  MICROSOFT_OAUTH_REDIRECT_URI: optionalUrl,
 
   // ----- Public -----
   NEXT_PUBLIC_APP_URL: z.string().url(),
@@ -70,6 +73,9 @@ const parsed = envSchema.safeParse({
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  MICROSOFT_OAUTH_CLIENT_ID: process.env.MICROSOFT_OAUTH_CLIENT_ID,
+  MICROSOFT_OAUTH_CLIENT_SECRET: process.env.MICROSOFT_OAUTH_CLIENT_SECRET,
+  MICROSOFT_OAUTH_REDIRECT_URI: process.env.MICROSOFT_OAUTH_REDIRECT_URI,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_ROOT_DOMAIN: process.env.NEXT_PUBLIC_ROOT_DOMAIN,
   STORAGE_PROVIDER: process.env.STORAGE_PROVIDER,

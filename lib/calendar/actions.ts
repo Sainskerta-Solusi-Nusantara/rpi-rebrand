@@ -28,6 +28,12 @@ import {
   refreshAccessToken,
   type GoogleEventInput,
 } from '@/lib/calendar/google-client'
+import {
+  createMicrosoftEvent,
+  deleteMicrosoftEvent,
+  refreshMicrosoftToken,
+  type MicrosoftEventInput,
+} from '@/lib/calendar/microsoft'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -84,6 +90,31 @@ export async function getMyCalendarAccount(): Promise<CalendarAccountSummary | n
 }
 
 /**
+ * Return ALL calendar accounts for the signed-in user (one per provider).
+ * Used by the dashboard integrasi/keamanan UI so that Google + Microsoft can
+ * be rendered side-by-side, each with its own connect/disconnect state.
+ */
+export async function getMyCalendarAccounts(): Promise<CalendarAccountSummary[]> {
+  const session = await auth()
+  if (!session?.user?.id) return []
+  return prisma.calendarAccount
+    .findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        provider: true,
+        providerEmail: true,
+        calendarId: true,
+        expiresAt: true,
+        scope: true,
+        createdAt: true,
+      },
+    })
+    .catch(() => [])
+}
+
+/**
  * Disconnect (delete) the current user's CalendarAccount for the given
  * provider. Cascades to CalendarEventMapping rows by schema.
  */
@@ -133,10 +164,16 @@ export async function disconnectCalendar(
 
 /**
  * Internal: ensure `account.accessToken` is still valid (>60s left). If not,
- * refresh and persist. Returns a valid accessToken or an error.
+ * refresh via the appropriate provider's token endpoint and persist.
+ * Returns a valid accessToken or an error.
+ *
+ * Provider-aware: dispatches to either `refreshAccessToken` (Google) or
+ * `refreshMicrosoftToken` (Graph). Both return shapes are normalized so this
+ * helper stays simple.
  */
 async function ensureFreshAccessToken(account: {
   id: string
+  provider: string
   accessToken: string
   refreshToken: string | null
   expiresAt: Date | null
@@ -148,6 +185,25 @@ async function ensureFreshAccessToken(account: {
   if (!account.refreshToken) {
     return { ok: false, error: 'Refresh token tidak tersedia, hubungkan ulang kalender.' }
   }
+
+  if (account.provider === 'microsoft') {
+    const refreshed = await refreshMicrosoftToken(account.refreshToken)
+    if (!refreshed.ok) return { ok: false, error: refreshed.error }
+    await prisma.calendarAccount
+      .update({
+        where: { id: account.id },
+        data: {
+          accessToken: refreshed.data.accessToken,
+          refreshToken: refreshed.data.refreshToken ?? account.refreshToken,
+          expiresAt: refreshed.data.expiresAt,
+          scope: refreshed.data.scope ?? undefined,
+        },
+      })
+      .catch(() => null)
+    return { ok: true, accessToken: refreshed.data.accessToken }
+  }
+
+  // Default: Google.
   const refreshed = await refreshAccessToken(account.refreshToken)
   if (!refreshed.ok) return { ok: false, error: refreshed.error }
   await prisma.calendarAccount
@@ -164,7 +220,12 @@ async function ensureFreshAccessToken(account: {
   return { ok: true, accessToken: refreshed.data.accessToken }
 }
 
-function buildGoogleEventFromInterview(interview: {
+/**
+ * Provider-agnostic interview projection used by both Google and Microsoft
+ * event-builders. Keeping a neutral shape here avoids drift between providers
+ * (e.g. accidentally adding a field to one and not the other).
+ */
+type InterviewProjection = {
   scheduledAt: Date
   durationMin: number
   type: string
@@ -176,7 +237,11 @@ function buildGoogleEventFromInterview(interview: {
     job: { title: string }
     user: { email: string; name: string | null }
   }
-}): GoogleEventInput {
+}
+
+function buildGoogleEventFromInterview(
+  interview: InterviewProjection,
+): GoogleEventInput {
   const start = interview.scheduledAt
   const end = new Date(start.getTime() + interview.durationMin * 60_000)
   const stage = interview.stageName ? ` (${interview.stageName})` : ''
@@ -208,13 +273,76 @@ function buildGoogleEventFromInterview(interview: {
 }
 
 /**
- * Sync an interview to the current user's Google Calendar. Idempotent for
- * the "already synced" case (returns existing mapping).
+ * Microsoft Graph event body. Note Graph wants HTML for `body.content`
+ * (Google takes plain-text `description`). We re-encode line breaks as <br>
+ * and HTML-escape the user-controlled strings to defend against injection
+ * into the rendered event description in Outlook web.
+ */
+function buildMicrosoftEventFromInterview(
+  interview: InterviewProjection,
+): MicrosoftEventInput {
+  const start = interview.scheduledAt
+  const end = new Date(start.getTime() + interview.durationMin * 60_000)
+  const stage = interview.stageName ? ` (${interview.stageName})` : ''
+  const subject = `Wawancara: ${interview.application.job.title}${stage}`
+
+  const escape = (s: string) =>
+    s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+
+  const lines = [
+    `Pelamar: ${escape(interview.application.user.name ?? interview.application.user.email)}`,
+    `Jenis: ${escape(interview.type)}`,
+    interview.meetingUrl
+      ? `Tautan meeting: <a href="${escape(interview.meetingUrl)}">${escape(interview.meetingUrl)}</a>`
+      : '',
+    interview.notes
+      ? `Catatan:<br>${escape(interview.notes).replace(/\n/g, '<br>')}`
+      : '',
+  ].filter(Boolean)
+
+  const tz = 'Asia/Jakarta'
+  const event: MicrosoftEventInput = {
+    subject,
+    body: { contentType: 'HTML', content: lines.join('<br>') },
+    start: { dateTime: start.toISOString(), timeZone: tz },
+    end: { dateTime: end.toISOString(), timeZone: tz },
+    attendees: [
+      {
+        emailAddress: {
+          address: interview.application.user.email,
+          name: interview.application.user.name ?? undefined,
+        },
+        type: 'required',
+      },
+    ],
+  }
+  if (interview.type === 'onsite' && interview.location) {
+    event.location = { displayName: interview.location }
+  }
+  return event
+}
+
+/**
+ * Sync an interview to the current user's calendar. Idempotent for the
+ * "already synced" case (returns existing mapping).
+ *
+ * Provider abstraction:
+ *  - Looks up ALL connected accounts for the actor. If both Google and
+ *    Microsoft are connected, the event is created on BOTH calendars so
+ *    the recruiter sees it wherever they work. But because schema enforces
+ *    `CalendarEventMapping.interviewId @unique`, only one provider's
+ *    mapping is persisted (preference: Google for backward-compat with
+ *    existing event-log UI). Other-provider event ids are recorded in
+ *    the audit log's `metadata.alsoSyncedTo` for traceability.
+ *  - If neither is connected, returns a localized error.
  *
  * Requires:
  *  - Caller is signed in
  *  - Caller has `job.update` for the tenant
- *  - Caller has a connected `google` CalendarAccount
  */
 export async function syncInterviewToCalendar(
   interviewId: string,
@@ -265,10 +393,11 @@ export async function syncInterviewToCalendar(
     return { ok: false, error: 'Anda tidak memiliki izin.' }
   }
 
-  const account = await prisma.calendarAccount.findUnique({
-    where: { userId_provider: { userId: actorId, provider: 'google' } },
+  const accounts = await prisma.calendarAccount.findMany({
+    where: { userId: actorId, provider: { in: ['google', 'microsoft'] } },
     select: {
       id: true,
+      provider: true,
       accessToken: true,
       refreshToken: true,
       expiresAt: true,
@@ -276,14 +405,17 @@ export async function syncInterviewToCalendar(
       providerEmail: true,
     },
   })
-  if (!account) {
+  if (accounts.length === 0) {
     return {
       ok: false,
-      error: 'Belum ada kalender Google terhubung. Buka Keamanan untuk menghubungkan.',
+      error:
+        'Belum ada kalender terhubung. Buka Integrasi untuk menghubungkan Google atau Outlook.',
     }
   }
 
-  // If already synced, treat as success — update event instead (light path).
+  // If already synced, treat as success — caller intent is "make sure this
+  // is on a calendar"; an existing mapping satisfies that. Future work:
+  // detect when a second provider was added later and back-fill.
   if (interview.calendarEvent) {
     return {
       ok: true,
@@ -294,27 +426,81 @@ export async function syncInterviewToCalendar(
     }
   }
 
-  const fresh = await ensureFreshAccessToken(account)
-  if (!fresh.ok) return { ok: false, error: fresh.error }
+  // Prefer Google first so the persisted mapping matches the historical
+  // behavior. Microsoft (if present) is then created best-effort.
+  const ordered = [...accounts].sort((a, b) =>
+    a.provider === 'google' ? -1 : b.provider === 'google' ? 1 : 0,
+  )
 
-  const event = buildGoogleEventFromInterview(interview)
-  const created = await createCalendarEvent({
-    accessToken: fresh.accessToken,
-    calendarId: account.calendarId,
-    event,
-  })
-  if (!created.ok) {
-    return { ok: false, error: `Gagal membuat event: ${created.error}` }
+  const created: Array<{
+    provider: string
+    accountId: string
+    externalEventId: string
+    htmlLink: string | null
+  }> = []
+  const errors: Array<{ provider: string; error: string }> = []
+
+  for (const account of ordered) {
+    const fresh = await ensureFreshAccessToken(account)
+    if (!fresh.ok) {
+      errors.push({ provider: account.provider, error: fresh.error })
+      continue
+    }
+    if (account.provider === 'microsoft') {
+      const payload = buildMicrosoftEventFromInterview(interview)
+      const r = await createMicrosoftEvent(fresh.accessToken, payload)
+      if (!r.ok) {
+        errors.push({ provider: account.provider, error: r.error })
+        continue
+      }
+      created.push({
+        provider: account.provider,
+        accountId: account.id,
+        externalEventId: r.data.externalEventId,
+        htmlLink: r.data.htmlLink || null,
+      })
+    } else {
+      // google
+      const event = buildGoogleEventFromInterview(interview)
+      const r = await createCalendarEvent({
+        accessToken: fresh.accessToken,
+        calendarId: account.calendarId,
+        event,
+      })
+      if (!r.ok) {
+        errors.push({ provider: account.provider, error: r.error })
+        continue
+      }
+      created.push({
+        provider: account.provider,
+        accountId: account.id,
+        externalEventId: r.data.id,
+        htmlLink: r.data.htmlLink || null,
+      })
+    }
   }
 
+  if (created.length === 0) {
+    const summary = errors.map((e) => `${e.provider}: ${e.error}`).join('; ')
+    return { ok: false, error: `Gagal membuat event: ${summary}` }
+  }
+
+  // Persist the FIRST successful provider as the canonical mapping (Google
+  // wins by sort above). Any others go into the audit log for traceability.
+  const primary = created[0]
+  if (!primary) {
+    // Unreachable: `created.length === 0` is handled above, but TS can't see it.
+    return { ok: false, error: 'Gagal membuat event.' }
+  }
+  const secondary = created.slice(1)
   const meta = getRequestMeta()
   try {
     const mapping = await prisma.calendarEventMapping.create({
       data: {
         interviewId: interview.id,
-        calendarAccountId: account.id,
-        externalEventId: created.data.id,
-        htmlLink: created.data.htmlLink || null,
+        calendarAccountId: primary.accountId,
+        externalEventId: primary.externalEventId,
+        htmlLink: primary.htmlLink,
       },
       select: { id: true, externalEventId: true, htmlLink: true },
     })
@@ -328,8 +514,12 @@ export async function syncInterviewToCalendar(
           resourceId: mapping.id,
           metadata: {
             interviewId: interview.id,
-            provider: 'google',
+            provider: primary.provider,
             externalEventId: mapping.externalEventId,
+            alsoSyncedTo: secondary.map((s) => ({
+              provider: s.provider,
+              externalEventId: s.externalEventId,
+            })),
           },
           ip: meta.ip,
           userAgent: meta.userAgent,
@@ -342,17 +532,22 @@ export async function syncInterviewToCalendar(
     )
     return {
       ok: true,
-      data: { externalEventId: mapping.externalEventId, htmlLink: mapping.htmlLink },
+      data: {
+        externalEventId: mapping.externalEventId,
+        htmlLink: mapping.htmlLink,
+      },
     }
   } catch (err) {
-    // If unique constraint hits because of a race, treat as already synced.
     if (
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === 'P2002'
     ) {
       return {
         ok: true,
-        data: { externalEventId: created.data.id, htmlLink: created.data.htmlLink || null },
+        data: {
+          externalEventId: primary.externalEventId,
+          htmlLink: primary.htmlLink,
+        },
       }
     }
     console.error('[syncInterviewToCalendar] failed', err)
@@ -426,19 +621,33 @@ export async function unsyncInterview(
 
   const fresh = await ensureFreshAccessToken({
     id: mapping.calendarAccount.id,
+    provider: mapping.calendarAccount.provider,
     accessToken: mapping.calendarAccount.accessToken,
     refreshToken: mapping.calendarAccount.refreshToken,
     expiresAt: mapping.calendarAccount.expiresAt,
   })
-  if (fresh.ok && mapping.calendarAccount.provider === 'google') {
-    const del = await deleteCalendarEvent({
-      accessToken: fresh.accessToken,
-      calendarId: mapping.calendarAccount.calendarId,
-      eventId: mapping.externalEventId,
-    })
-    if (!del.ok) {
-      // Don't fail the unsync if remote already gone — we still want local cleanup.
-      console.warn('[unsyncInterview] remote delete failed:', del.error)
+  if (fresh.ok) {
+    if (mapping.calendarAccount.provider === 'google') {
+      const del = await deleteCalendarEvent({
+        accessToken: fresh.accessToken,
+        calendarId: mapping.calendarAccount.calendarId,
+        eventId: mapping.externalEventId,
+      })
+      if (!del.ok) {
+        // Don't fail the unsync if remote already gone — we still want local cleanup.
+        console.warn('[unsyncInterview] google remote delete failed:', del.error)
+      }
+    } else if (mapping.calendarAccount.provider === 'microsoft') {
+      const del = await deleteMicrosoftEvent(
+        fresh.accessToken,
+        mapping.externalEventId,
+      )
+      if (!del.ok) {
+        console.warn(
+          '[unsyncInterview] microsoft remote delete failed:',
+          del.error,
+        )
+      }
     }
   }
 

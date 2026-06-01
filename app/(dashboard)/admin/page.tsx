@@ -152,6 +152,14 @@ export default async function AdminOverviewPage() {
           <a href="/admin/audit" className="border-border rounded-md border px-3 py-1.5">
             Audit
           </a>
+          {isSuperAdmin ? (
+            <a
+              href="/dashboard/audit-retention"
+              className="border-border rounded-md border px-3 py-1.5"
+            >
+              Retensi audit
+            </a>
+          ) : null}
         </nav>
       </header>
 
