@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Mail, Globe, Clock, ShieldCheck, ShieldX } from 'lucide-react'
+import { ChevronLeft, Mail, Globe, Clock, ShieldCheck, ShieldX, KeyRound } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { AdminUserActions } from '@/components/organisms/admin-user-actions'
@@ -224,6 +224,17 @@ export default async function AdminUserDetailPage({
             canChangeStatus={canChangeStatus}
             isSelf={isSelf}
           />
+          {actorRole === 'SUPERADMIN' && (
+            <div className="border-border mt-6 border-t pt-4">
+              <Link
+                href={`/admin/users/${user.id}/two-factor` as never}
+                className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-foreground transition"
+              >
+                <KeyRound className="h-4 w-4" aria-hidden="true" />
+                Reset 2FA pengguna
+              </Link>
+            </div>
+          )}
         </aside>
       </div>
 

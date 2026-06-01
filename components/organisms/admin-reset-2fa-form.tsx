@@ -1,0 +1,155 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { ShieldOff } from 'lucide-react'
+import { resetUserTwoFactor } from '@/lib/auth/totp-admin-actions'
+
+const inputClass =
+  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
+
+const btnDestructive =
+  'border-destructive/40 text-destructive hover:bg-destructive/5 inline-flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60'
+
+export function AdminReset2faForm({
+  userId,
+  userEmail,
+  totpEnabled,
+}: {
+  userId: string
+  userEmail: string
+  totpEnabled: boolean
+}) {
+  const router = useRouter()
+  const [reason, setReason] = useState('')
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [done, setDone] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    if (reason.trim().length < 8) {
+      setError('Alasan reset wajib, minimal 8 karakter.')
+      return
+    }
+    setConfirmOpen(true)
+  }
+
+  function onConfirm() {
+    setError(null)
+    setConfirmOpen(false)
+    startTransition(async () => {
+      const r = await resetUserTwoFactor(userId, reason.trim())
+      if (!r.ok) {
+        setError(r.error)
+        return
+      }
+      setDone(true)
+      setReason('')
+      router.refresh()
+    })
+  }
+
+  if (done) {
+    return (
+      <div
+        role="status"
+        className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
+      >
+        2FA pengguna telah di-reset. Pengguna menerima notifikasi email.
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {!totpEnabled && (
+        <p className="rounded-md border border-amber-300/40 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+          Catatan: pengguna ini saat ini belum mengaktifkan 2FA. Reset tetap
+          akan membersihkan secret/recovery code apa pun yang tertinggal dan
+          tercatat di audit log.
+        </p>
+      )}
+
+      <form onSubmit={onSubmit} className="space-y-3">
+        <div className="space-y-1">
+          <label
+            htmlFor="reset-reason"
+            className="block text-sm font-medium text-foreground"
+          >
+            Alasan reset (wajib, min 8 karakter)
+          </label>
+          <textarea
+            id="reset-reason"
+            name="reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            required
+            minLength={8}
+            disabled={pending}
+            rows={3}
+            placeholder="Mis. Pengguna kehilangan ponsel dan recovery code. Identitas diverifikasi via KTP + video call (tiket #1234)."
+            className={inputClass}
+          />
+          <p className="text-muted-foreground text-xs">
+            Alasan akan dicatat di audit log dan dikirim ke pengguna ({userEmail})
+            dalam email notifikasi.
+          </p>
+        </div>
+
+        {error && (
+          <p role="alert" className="text-destructive text-xs">
+            {error}
+          </p>
+        )}
+
+        <div>
+          <button
+            type="submit"
+            disabled={pending || reason.trim().length < 8}
+            className={btnDestructive}
+          >
+            <ShieldOff className="h-4 w-4" aria-hidden="true" />
+            {pending ? 'Mereset…' : 'Reset 2FA pengguna'}
+          </button>
+        </div>
+      </form>
+
+      {confirmOpen && (
+        <div
+          role="alertdialog"
+          aria-labelledby="reset-2fa-confirm-title"
+          className="border-destructive/40 bg-destructive/5 rounded-md border p-4"
+        >
+          <p id="reset-2fa-confirm-title" className="text-sm font-medium text-foreground">
+            Konfirmasi reset 2FA
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Tindakan ini akan menghapus secret 2FA dan seluruh recovery code
+            milik {userEmail}. Pengguna akan diberitahu via email. Lanjutkan?
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={pending}
+              className={btnDestructive}
+            >
+              Ya, reset 2FA
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(false)}
+              disabled={pending}
+              className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-foreground transition"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

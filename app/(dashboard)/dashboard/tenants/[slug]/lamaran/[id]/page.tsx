@@ -12,6 +12,7 @@ import {
   CalendarClock,
   ClipboardList,
   MessageSquare,
+  XCircle,
 } from 'lucide-react'
 import { ApplicationStatus } from '@prisma/client'
 import { requireAuth } from '@/lib/auth/session'
@@ -178,6 +179,9 @@ export default async function TenantApplicationDetailPage({
         updatedAt: true,
         aiScore: true,
         aiTags: true,
+        withdrawnAt: true,
+        withdrawReason: true,
+        withdrawnBy: { select: { id: true, name: true, email: true } },
         user: {
           select: {
             id: true,
@@ -428,6 +432,46 @@ export default async function TenantApplicationDetailPage({
         </span>
       </header>
 
+      {application.withdrawnAt && (
+        <section
+          aria-label="Lamaran ditarik"
+          className="border-destructive/40 bg-destructive/5 rounded-2xl border p-5"
+        >
+          <div className="flex items-start gap-3">
+            <XCircle
+              className="text-destructive mt-0.5 h-5 w-5 shrink-0"
+              aria-hidden="true"
+            />
+            <div className="flex-1">
+              <h2 className="text-destructive font-medium">Lamaran ditarik</h2>
+              <p className="text-foreground/80 mt-1 text-sm">
+                Lamaran ditarik oleh kandidat pada{' '}
+                {dateFmt.format(application.withdrawnAt)}.
+                {application.withdrawnBy &&
+                application.withdrawnBy.id !== application.user.id ? (
+                  <>
+                    {' '}
+                    Diproses oleh{' '}
+                    {application.withdrawnBy.name ??
+                      application.withdrawnBy.email}
+                    .
+                  </>
+                ) : null}
+              </p>
+              {application.withdrawReason && (
+                <p className="text-muted-foreground mt-2 whitespace-pre-line text-sm">
+                  Alasan: {application.withdrawReason}
+                </p>
+              )}
+              <p className="text-muted-foreground mt-3 text-xs">
+                Kontrol perubahan status dinonaktifkan untuk lamaran yang sudah
+                ditarik.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
       <section
         aria-label="AI screening"
         className="border-border bg-card rounded-2xl border p-6 space-y-4"
@@ -644,7 +688,7 @@ export default async function TenantApplicationDetailPage({
         </section>
       )}
 
-      {canManage && (
+      {canManage && !application.withdrawnAt && (
         <section
           aria-label="Ubah status"
           className="border-border bg-card rounded-2xl border p-6 space-y-4"

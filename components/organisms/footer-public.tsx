@@ -49,6 +49,7 @@ const legalLinks = [
   { label: 'Privasi', href: '/privacy' },
   { label: 'Ketentuan', href: '/terms' },
   { label: 'Kebijakan Cookie', href: '/cookies' },
+  { label: 'Status', href: '/status' },
 ]
 
 const socials = [

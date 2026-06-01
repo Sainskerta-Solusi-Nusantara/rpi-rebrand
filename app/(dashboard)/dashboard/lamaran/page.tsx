@@ -35,10 +35,21 @@ const KanbanBoard: any = safeRequire('@/components/organisms/kanban-board', 'Kan
 
 export const metadata = { title: 'Lamaran Saya' }
 
-export default async function ApplicationsKanbanPage() {
+export default async function ApplicationsKanbanPage({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[] | undefined>
+}) {
   const session = await getServerSession(authOptions)
   if (!session?.user) redirect('/login?callbackUrl=/lamaran')
   const userId = session.user.id
+
+  // "Termasuk yang ditarik" toggle. Default OFF so the kanban + active list
+  // don't show abandoned attempts; the candidate can opt back in via the
+  // filter chip below.
+  const includeWithdrawn =
+    typeof searchParams?.includeWithdrawn === 'string' &&
+    searchParams.includeWithdrawn === '1'
 
   const [savedJobs, applications] = await Promise.all([
     prisma.savedJob
@@ -181,15 +192,81 @@ export default async function ApplicationsKanbanPage() {
     HIRED: 'Diterima',
   }
 
+  const withdrawnApplications = applications.filter(
+    (a) => a.status === 'WITHDRAWN',
+  )
+
   return (
     <div className="p-6">
-      <header className="mb-6">
-        <h1 className="font-heading text-2xl md:text-3xl">Lamaran Saya</h1>
-        <p className="text-muted-foreground mt-1">
-          Pantau status setiap lamaran dari disimpan hingga penawaran.
-        </p>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl md:text-3xl">Lamaran Saya</h1>
+          <p className="text-muted-foreground mt-1">
+            Pantau status setiap lamaran dari disimpan hingga penawaran.
+          </p>
+        </div>
+        {/* Filter chip toggle — reload with ?includeWithdrawn=1. We use a plain
+            link so this works without any client state. */}
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={
+            (includeWithdrawn
+              ? '/dashboard/lamaran'
+              : '/dashboard/lamaran?includeWithdrawn=1') as any
+          }
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+            includeWithdrawn
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-border bg-background text-foreground hover:bg-muted'
+          }`}
+        >
+          Termasuk yang ditarik
+          {includeWithdrawn && withdrawnApplications.length > 0 && (
+            <span className="bg-primary-foreground/20 ml-1 inline-flex items-center justify-center rounded-full px-1.5 text-[10px]">
+              {withdrawnApplications.length}
+            </span>
+          )}
+        </Link>
       </header>
       <KanbanBoard columns={columns} />
+
+      {includeWithdrawn && withdrawnApplications.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-heading text-xl">Lamaran ditarik</h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Lamaran yang Anda tarik. Masih dapat dikembalikan dalam 7 hari.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {withdrawnApplications.map((a) => (
+              <li
+                key={a.id}
+                className="border-border bg-muted/30 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
+              >
+                <div className="min-w-0">
+                  <div className="text-foreground truncate text-sm font-medium">
+                    {a.job.title}
+                  </div>
+                  <div className="text-muted-foreground mt-0.5 text-xs">
+                    {a.job.tenant?.name ?? ''}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-800">
+                    Lamaran ditarik
+                  </span>
+                  <Link
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={`/dashboard/lamaran/${a.id}` as any}
+                    className="text-foreground text-xs font-medium hover:underline"
+                  >
+                    Detail
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {withdrawable.length > 0 && (
         <section className="mt-10">

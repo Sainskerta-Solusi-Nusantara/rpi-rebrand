@@ -33,6 +33,10 @@ export async function middleware(req: NextRequest) {
   } else {
     requestHeaders.delete('x-tenant-slug')
   }
+  // Forward the current pathname so server components (e.g. the dashboard
+  // layout's 2FA guard) can detect which route is being rendered and avoid
+  // self-redirecting on the enrollment flow itself.
+  requestHeaders.set('x-pathname', url.pathname)
 
   const path = url.pathname
   const isProtected =

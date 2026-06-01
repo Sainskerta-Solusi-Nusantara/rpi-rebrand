@@ -9,6 +9,7 @@ import {
   getRecentNotifications,
   getUnreadNotificationCount,
 } from '@/lib/notifications/queries'
+import { userMustEnrollTwoFactor } from '@/lib/auth/totp-policy'
 import { SwRegister } from '@/app/sw-register'
 
 // Resilient layout-template + SessionProvider lookup.
@@ -52,6 +53,25 @@ export default async function DashboardGroupLayout({
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     redirect('/login?callbackUrl=/dashboard')
+  }
+
+  // Force-2FA tenant policy: if any tenant the user belongs to requires 2FA
+  // and the user has not enrolled, gate access at the dashboard entry. The
+  // /dashboard/keamanan/2fa enrollment page is itself under this layout, so
+  // we exempt it (and its parent /dashboard/keamanan) from the redirect to
+  // avoid trapping the user away from the very page that fixes the problem.
+  // SUPERADMIN bypass is handled inside userMustEnrollTwoFactor itself.
+  const hForGuard = headers()
+  const pathnameForGuard =
+    hForGuard.get('x-invoke-path') ?? hForGuard.get('x-pathname') ?? ''
+  const isOnEnrollFlow =
+    pathnameForGuard.startsWith('/dashboard/keamanan/2fa') ||
+    pathnameForGuard === '/dashboard/keamanan'
+  if (!isOnEnrollFlow) {
+    const blocker = await userMustEnrollTwoFactor(session.user.id)
+    if (blocker) {
+      redirect(`/two-factor-required?tenant=${encodeURIComponent(blocker.tenantSlug)}`)
+    }
   }
 
   const h = headers()

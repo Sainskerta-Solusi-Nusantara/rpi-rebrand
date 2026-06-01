@@ -163,6 +163,7 @@ model Tenant {
   teamMembers   TeamMember[]
   applications  Application[]
   stripeCustomerId    String?               @unique @map("stripe_customer_id")
+  requireTwoFactor    Boolean               @default(false) @map("require_two_factor")
   webhooks            TenantWebhook[]
   apiKeys             TenantApiKey[]
   emailTemplates      TenantEmailTemplate[]
@@ -280,6 +281,11 @@ model User {
   retentionPoliciesCreated AuditRetentionPolicy[] @relation("RetentionPolicyCreatedBy")
   featureFlagsCreated      FeatureFlag[]          @relation("FeatureFlagCreatedBy")
   featureFlagOverrides     FeatureFlagOverride[]
+  withdrawnApplications    Application[]          @relation("ApplicationWithdrawnBy")
+  incidentsCreated         IncidentReport[]       @relation("IncidentCreatedBy")
+  incidentUpdatesPosted    IncidentUpdate[]       @relation("IncidentUpdatePostedBy")
+  maintenancesCreated      ScheduledMaintenance[] @relation("MaintenanceCreatedBy")
+  cookieConsents           CookieConsent[]
 
   @@index([globalRole])
   @@index([status])
@@ -448,6 +454,80 @@ model ApplicationAnswer {
   @@unique([applicationId, questionId])
   @@index([applicationId])
   @@map("application_answers")
+}
+
+model IncidentReport {
+  id                String   @id @default(cuid())
+  title             String
+  severity          String // minor | major | critical
+  status            String // investigating | identified | monitoring | resolved
+  affectedServices  Json     @map("affected_services") // string[]
+  startedAt         DateTime @default(now()) @map("started_at")
+  resolvedAt        DateTime? @map("resolved_at")
+  createdById       String?  @map("created_by_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  createdBy User?            @relation("IncidentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updates   IncidentUpdate[]
+
+  @@index([status, startedAt])
+  @@index([startedAt])
+  @@map("incident_reports")
+}
+
+model IncidentUpdate {
+  id           String   @id @default(cuid())
+  incidentId   String   @map("incident_id")
+  status       String // investigating | identified | monitoring | resolved
+  message      String
+  postedById   String?  @map("posted_by_id")
+  postedAt     DateTime @default(now()) @map("posted_at")
+
+  incident IncidentReport @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  postedBy User?          @relation("IncidentUpdatePostedBy", fields: [postedById], references: [id], onDelete: SetNull)
+
+  @@index([incidentId, postedAt])
+  @@map("incident_updates")
+}
+
+model ScheduledMaintenance {
+  id                String   @id @default(cuid())
+  title             String
+  description       String?
+  affectedServices  Json     @map("affected_services")
+  scheduledStart    DateTime @map("scheduled_start")
+  scheduledEnd      DateTime @map("scheduled_end")
+  status            String   @default("planned") // planned | in_progress | completed | cancelled
+  createdById       String?  @map("created_by_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  createdBy User? @relation("MaintenanceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([scheduledStart])
+  @@map("scheduled_maintenances")
+}
+
+model CookieConsent {
+  id          String   @id @default(cuid())
+  userId      String?  @map("user_id")
+  sessionId   String   @map("session_id") // cookie ID — anon or per-session
+  necessary   Boolean  @default(true)
+  analytics   Boolean  @default(false)
+  marketing   Boolean  @default(false)
+  functional  Boolean  @default(false)
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  version     Int      @default(1)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@map("cookie_consents")
 }
 
 model FeatureFlag {
@@ -1130,14 +1210,18 @@ model Application {
   appliedAt   DateTime          @default(now()) @map("applied_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
 
-  aiScore       Int?                @map("ai_score")
-  aiTags        String[]            @map("ai_tags")
-  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  job           Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  interviews    InterviewSchedule[]
-  messageThread MessageThread?
-  answers       ApplicationAnswer[]
+  aiScore         Int?                @map("ai_score")
+  aiTags          String[]            @map("ai_tags")
+  withdrawnAt     DateTime?           @map("withdrawn_at")
+  withdrawReason  String?             @map("withdraw_reason")
+  withdrawnById   String?             @map("withdrawn_by_id")
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  job             Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawnBy     User?               @relation("ApplicationWithdrawnBy", fields: [withdrawnById], references: [id], onDelete: SetNull)
+  interviews      InterviewSchedule[]
+  messageThread   MessageThread?
+  answers         ApplicationAnswer[]
 
   @@unique([jobId, userId])
   @@index([tenantId, status])

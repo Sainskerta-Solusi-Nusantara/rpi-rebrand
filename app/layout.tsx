@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { heading, sans, mono } from '@/lib/fonts'
 import { AppProviders } from '@/components/providers/app-providers'
+import { CookieConsentMount } from '@/components/organisms/cookie-consent-mount'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -72,6 +73,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           inside route-group layouts in app/(public), app/(dashboard), app/(auth).
         */}
         <AppProviders>{children}</AppProviders>
+        {/* Cookie consent banner — server-rendered conditionally (renders nothing
+            when a valid consent cookie is already present). */}
+        <CookieConsentMount />
       </body>
     </html>
   )

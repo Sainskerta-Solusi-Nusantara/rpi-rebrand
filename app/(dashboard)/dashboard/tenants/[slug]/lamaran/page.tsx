@@ -5,9 +5,11 @@ import { ApplicationStatus, Prisma } from '@prisma/client'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
-import { ApplicationStatusSelect } from '@/components/organisms/application-status-form'
-import { ApplicationScreeningBadge } from '@/components/organisms/application-screening-badge'
 import { BulkScreeningButton } from '@/components/organisms/bulk-screening-button'
+import {
+  ApplicationsCheckboxList,
+  type ApplicationRow,
+} from '@/components/organisms/applications-checkbox-list'
 
 export const metadata = { title: 'Lamaran Tenant — Dasbor' }
 
@@ -24,17 +26,6 @@ const STATUS_LABELS: Record<ApplicationStatus, string> = {
   WITHDRAWN: 'Dibatalkan',
 }
 
-const STATUS_TONE: Record<ApplicationStatus, string> = {
-  APPLIED: 'bg-slate-100 text-slate-800',
-  REVIEWED: 'bg-sky-100 text-sky-800',
-  SHORTLISTED: 'bg-indigo-100 text-indigo-800',
-  INTERVIEW: 'bg-violet-100 text-violet-800',
-  OFFERED: 'bg-amber-100 text-amber-800',
-  HIRED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  WITHDRAWN: 'bg-zinc-100 text-zinc-800',
-}
-
 // Options surfaced in the inline recruiter dropdown (no WITHDRAWN — that's
 // a candidate-side action and the server action rejects it).
 const SELECT_OPTIONS = (
@@ -48,11 +39,6 @@ const SELECT_OPTIONS = (
     'REJECTED',
   ] as const
 ).map((v) => ({ value: v, label: STATUS_LABELS[v] }))
-
-const dateFmt = new Intl.DateTimeFormat('id-ID', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-})
 
 function buildHref(
   base: string,
@@ -159,7 +145,9 @@ export default async function TenantApplicationsPage({
     WITHDRAWN: 4,
   }
 
-  const [jobs, total, rawItems] = await Promise.all([
+  // Bulk-toolbar feed data — only loaded when the recruiter can act on it.
+  // We keep selects lean; the toolbar only needs id+label per option.
+  const [jobs, total, rawItems, templatesRaw, reviewersRaw] = await Promise.all([
     prisma.job
       .findMany({
         where: { tenantId: tenant.id },
@@ -191,6 +179,42 @@ export default async function TenantApplicationsPage({
         },
       })
       .catch(() => []),
+    canManage
+      ? prisma.tenantEmailTemplate
+          .findMany({
+            where: { tenantId: tenant.id, enabled: true },
+            select: { id: true, status: true, subject: true },
+            orderBy: { status: 'asc' },
+          })
+          .catch(() => [])
+      : Promise.resolve([] as Array<{ id: string; status: string; subject: string }>),
+    canManage
+      ? prisma.userTenant
+          .findMany({
+            where: {
+              tenantId: tenant.id,
+              role: { in: ['OWNER', 'ADMIN', 'RECRUITER'] },
+              status: 'active',
+            },
+            select: {
+              userId: true,
+              user: { select: { id: true, name: true, email: true } },
+            },
+            take: 200,
+          })
+          .catch(
+            () =>
+              [] as Array<{
+                userId: string
+                user: { id: string; name: string | null; email: string }
+              }>,
+          )
+      : Promise.resolve(
+          [] as Array<{
+            userId: string
+            user: { id: string; name: string | null; email: string }
+          }>,
+        ),
   ])
 
   // When a single status filter is active, or the user explicitly asked to
@@ -205,6 +229,39 @@ export default async function TenantApplicationsPage({
           if (pa !== pb) return pa - pb
           return b.appliedAt.getTime() - a.appliedAt.getTime()
         })
+
+  // Shape rows for the client checkbox list. Dates are serialized to ISO so
+  // the client receives plain JSON (Date objects don't survive the server →
+  // client boundary cleanly without conversion).
+  const rows: ApplicationRow[] = items.map((a) => ({
+    id: a.id,
+    status: a.status,
+    appliedAt: a.appliedAt.toISOString(),
+    updatedAt: a.updatedAt.toISOString(),
+    aiScore: a.aiScore,
+    aiTags: a.aiTags,
+    user: {
+      id: a.user.id,
+      name: a.user.name,
+      email: a.user.email,
+      image: a.user.image,
+    },
+    job: { id: a.job.id, title: a.job.title, slug: a.job.slug },
+  }))
+
+  // Bulk-toolbar status options exclude WITHDRAWN (candidate-only).
+  const bulkStatuses = SELECT_OPTIONS.map((o) => ({
+    value: o.value as ApplicationStatus,
+    label: o.label,
+  }))
+  const bulkTemplates = templatesRaw.map((t) => ({
+    id: t.id,
+    label: `${STATUS_LABELS[t.status as ApplicationStatus] ?? t.status}: ${t.subject}`,
+  }))
+  const bulkReviewers = reviewersRaw.map((m) => ({
+    id: m.user.id,
+    label: m.user.name ?? m.user.email,
+  }))
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const sp: Record<string, string | undefined> = {
@@ -394,112 +451,15 @@ export default async function TenantApplicationsPage({
         </div>
       </form>
 
-      <div className="border-border bg-card overflow-x-auto rounded-2xl border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted/50 text-left">
-            <tr>
-              <th className="p-3 font-medium">Pelamar</th>
-              <th className="p-3 font-medium">Lowongan</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Dilamar</th>
-              <th className="p-3 font-medium">AI Score</th>
-              <th className="p-3 font-medium">Diperbarui</th>
-              <th className="p-3 font-medium text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-border divide-y">
-            {items.map((a) => {
-              const tone = STATUS_TONE[a.status]
-              return (
-                <tr key={a.id}>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      {a.user.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={a.user.image}
-                          alt=""
-                          className="size-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="bg-muted size-8 rounded-full" />
-                      )}
-                      <div>
-                        <div className="font-medium">
-                          {a.user.name ?? a.user.email}
-                        </div>
-                        <div className="text-muted-foreground text-xs">
-                          {a.user.email}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-3">
-                    <Link
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      href={
-                        `/dashboard/tenants/${tenant.slug}/jobs/${a.job.id}` as any
-                      }
-                      className="text-foreground hover:underline"
-                    >
-                      {a.job.title}
-                    </Link>
-                  </td>
-                  <td className="p-3">
-                    {canManage ? (
-                      <ApplicationStatusSelect
-                        applicationId={a.id}
-                        current={a.status}
-                        options={SELECT_OPTIONS}
-                      />
-                    ) : (
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${tone}`}
-                      >
-                        {STATUS_LABELS[a.status]}
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3 whitespace-nowrap text-xs">
-                    {dateFmt.format(a.appliedAt)}
-                  </td>
-                  <td className="p-3">
-                    <ApplicationScreeningBadge
-                      score={a.aiScore}
-                      tags={a.aiTags}
-                      compact
-                    />
-                  </td>
-                  <td className="p-3 whitespace-nowrap text-xs">
-                    {dateFmt.format(a.updatedAt)}
-                  </td>
-                  <td className="p-3 text-right">
-                    <Link
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      href={
-                        `/dashboard/tenants/${tenant.slug}/lamaran/${a.id}` as any
-                      }
-                      className="text-foreground text-xs font-medium hover:underline"
-                    >
-                      Tampilkan detail
-                    </Link>
-                  </td>
-                </tr>
-              )
-            })}
-            {items.length === 0 && (
-              <tr>
-                <td
-                  className="text-muted-foreground p-6 text-center"
-                  colSpan={7}
-                >
-                  Belum ada lamaran yang cocok dengan filter.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ApplicationsCheckboxList
+        tenantSlug={tenant.slug}
+        rows={rows}
+        statusOptions={SELECT_OPTIONS}
+        availableStatuses={bulkStatuses}
+        availableTemplates={bulkTemplates}
+        availableReviewers={bulkReviewers}
+        canManage={canManage}
+      />
 
       <nav
         aria-label="Pagination"

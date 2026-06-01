@@ -162,6 +162,14 @@ export default async function AdminOverviewPage() {
           ) : null}
           {isSuperAdmin ? (
             <a
+              href="/admin/status"
+              className="border-border rounded-md border px-3 py-1.5"
+            >
+              Status sistem
+            </a>
+          ) : null}
+          {isSuperAdmin ? (
+            <a
               href="/dashboard/feature-flags"
               className="border-border rounded-md border px-3 py-1.5"
             >
