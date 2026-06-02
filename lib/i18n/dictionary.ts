@@ -17,6 +17,7 @@ import { common } from './dictionaries/common'
 import { auth } from './dictionaries/auth'
 import { dashboard } from './dictionaries/dashboard'
 import { publicpages } from './dictionaries/publicpages'
+import { partner } from './dictionaries/partner'
 
 export type Locale = 'id' | 'en'
 
@@ -30,6 +31,7 @@ export const dictionary = {
     auth: auth.id,
     dashboard: dashboard.id,
     public: publicpages.id,
+    partner: partner.id,
   },
   en: {
     ...home.en,
@@ -37,6 +39,7 @@ export const dictionary = {
     auth: auth.en,
     dashboard: dashboard.en,
     public: publicpages.en,
+    partner: partner.en,
   },
 } as const
 

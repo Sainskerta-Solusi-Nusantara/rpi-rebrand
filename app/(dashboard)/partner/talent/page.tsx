@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { headers } from 'next/headers'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,6 +45,7 @@ async function resolveTenantId(userId: string): Promise<string | null> {
 }
 
 export default async function PartnerTalentPage() {
+  const t = await getServerT()
   const session = await getServerSession(authOptions)
   const tenantId = await resolveTenantId(session!.user.id)
 
@@ -87,9 +89,9 @@ export default async function PartnerTalentPage() {
   return (
     <div className="p-6">
       <header className="mb-6">
-        <h1 className="font-heading text-2xl md:text-3xl">Talent Pool</h1>
+        <h1 className="font-heading text-2xl md:text-3xl">{t.partner.talent.title}</h1>
         <p className="text-muted-foreground mt-1">
-          {talents.length} kandidat berinteraksi dengan lowongan Anda.
+          {t.partner.talent.subtitle.replace('{n}', String(talents.length))}
         </p>
       </header>
 

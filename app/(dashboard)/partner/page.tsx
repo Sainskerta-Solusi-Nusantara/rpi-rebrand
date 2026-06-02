@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { headers } from 'next/headers'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,6 +54,8 @@ async function resolvePartnerTenantId(userId: string): Promise<string | null> {
 }
 
 export default async function PartnerOverviewPage() {
+  const t = await getServerT()
+  const tp = t.partner
   const session = await getServerSession(authOptions)
   const userId = session!.user.id
   const tenantId = await resolvePartnerTenantId(userId)
@@ -91,24 +94,24 @@ export default async function PartnerOverviewPage() {
     ])
 
   const funnelStages = [
-    { label: 'Dilamar', value: applicationsByStatus.find((s) => s.status === 'APPLIED')?._count._all ?? 0 },
+    { label: tp.funnel.applied, value: applicationsByStatus.find((s) => s.status === 'APPLIED')?._count._all ?? 0 },
     {
-      label: 'Ditinjau',
+      label: tp.funnel.reviewed,
       value: applicationsByStatus.find((s) => s.status === 'REVIEWED')?._count._all ?? 0,
     },
     {
-      label: 'Shortlist',
+      label: tp.funnel.shortlist,
       value: applicationsByStatus.find((s) => s.status === 'SHORTLISTED')?._count._all ?? 0,
     },
     {
-      label: 'Wawancara',
+      label: tp.funnel.interview,
       value: applicationsByStatus.find((s) => s.status === 'INTERVIEW')?._count._all ?? 0,
     },
     {
-      label: 'Penawaran',
+      label: tp.funnel.offer,
       value: applicationsByStatus.find((s) => s.status === 'OFFERED')?._count._all ?? 0,
     },
-    { label: 'Diterima', value: applicationsByStatus.find((s) => s.status === 'HIRED')?._count._all ?? 0 },
+    { label: tp.funnel.hired, value: applicationsByStatus.find((s) => s.status === 'HIRED')?._count._all ?? 0 },
   ]
 
   // Hire-rate trendline by month (last 6 months).
@@ -138,44 +141,44 @@ export default async function PartnerOverviewPage() {
   const tabs = [
     {
       id: 'overview',
-      label: 'Ringkasan',
+      label: tp.overview.tabs.overview,
       content: (
         <div className="space-y-8">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <KPICard label="Lowongan Aktif" value={jobsActive} />
-            <KPICard label="Total Lowongan" value={jobsTotal} />
-            <KPICard label="Total Lamaran" value={applicationsTotal} />
-            <KPICard label="Diterima" value={hiredTotal} />
+            <KPICard label={tp.overview.kpis.activeJobs} value={jobsActive} />
+            <KPICard label={tp.overview.kpis.totalJobs} value={jobsTotal} />
+            <KPICard label={tp.overview.kpis.totalApplications} value={applicationsTotal} />
+            <KPICard label={tp.overview.kpis.hired} value={hiredTotal} />
           </div>
           <section>
-            <h2 className="font-heading text-xl mb-4">Corong Rekrutmen</h2>
+            <h2 className="font-heading text-xl mb-4">{tp.overview.funnelHeading}</h2>
             <FunnelChart stages={funnelStages} />
           </section>
           <section>
-            <h2 className="font-heading text-xl mb-4">Lowongan Terbaru</h2>
+            <h2 className="font-heading text-xl mb-4">{tp.overview.recentJobsHeading}</h2>
             <JobsTable jobs={recentJobs} />
           </section>
           <section>
-            <h2 className="font-heading text-xl mb-4">Aktivitas Tim</h2>
-            <p className="text-muted-foreground">{teamSize} anggota tim aktif.</p>
+            <h2 className="font-heading text-xl mb-4">{tp.overview.teamActivityHeading}</h2>
+            <p className="text-muted-foreground">
+              {tp.overview.teamActivity.replace('{n}', String(teamSize))}
+            </p>
           </section>
         </div>
       ),
     },
     {
       id: 'tren',
-      label: 'Tren',
-      content: <LineChartCard title="Lamaran per Bulan" data={trend} />,
+      label: tp.overview.tabs.trend,
+      content: <LineChartCard title={tp.overview.trendChartTitle} data={trend} />,
     },
   ]
 
   return (
     <div className="p-6">
       <header className="mb-6">
-        <h1 className="font-heading text-2xl md:text-3xl">Dasbor Mitra</h1>
-        <p className="text-muted-foreground mt-1">
-          Ringkasan performa rekrutmen perusahaan Anda.
-        </p>
+        <h1 className="font-heading text-2xl md:text-3xl">{tp.overview.title}</h1>
+        <p className="text-muted-foreground mt-1">{tp.overview.subtitle}</p>
       </header>
       <TabbedWorkspace tabs={tabs} defaultTab="overview" />
     </div>

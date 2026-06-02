@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { headers } from 'next/headers'
 import { getTenantBranding } from '@/lib/branding/server'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,6 +46,7 @@ async function resolveTenantSlug(userId: string): Promise<string | null> {
 }
 
 export default async function PartnerBrandingPage() {
+  const t = await getServerT()
   const session = await getServerSession(authOptions)
   const slug = await resolveTenantSlug(session!.user.id)
   const branding = slug ? await getTenantBranding(slug).catch(() => null) : null
@@ -52,10 +54,8 @@ export default async function PartnerBrandingPage() {
   return (
     <div className="p-6 max-w-4xl">
       <header className="mb-6">
-        <h1 className="font-heading text-2xl md:text-3xl">Branding Tenant</h1>
-        <p className="text-muted-foreground mt-1">
-          Sesuaikan warna, logo, dan tipografi untuk mencerminkan brand perusahaan Anda.
-        </p>
+        <h1 className="font-heading text-2xl md:text-3xl">{t.partner.branding.title}</h1>
+        <p className="text-muted-foreground mt-1">{t.partner.branding.subtitle}</p>
       </header>
 
       <BrandingForm initial={branding} action="/api/branding" method="PATCH" />

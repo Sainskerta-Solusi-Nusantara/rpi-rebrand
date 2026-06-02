@@ -2,6 +2,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { headers } from 'next/headers'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatDate } from '@/lib/i18n/format'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,14 +45,10 @@ async function resolveTenantId(userId: string): Promise<string | null> {
   return ut?.tenantId ?? null
 }
 
-const roleLabels: Record<string, string> = {
-  OWNER: 'Pemilik',
-  ADMIN: 'Admin',
-  RECRUITER: 'Perekrut',
-  MEMBER: 'Anggota',
-}
-
 export default async function PartnerTeamPage() {
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const tp = t.partner
+  const roleLabels: Record<string, string> = tp.roles
   const session = await getServerSession(authOptions)
   const tenantId = await resolveTenantId(session!.user.id)
 
@@ -79,18 +77,20 @@ export default async function PartnerTeamPage() {
   return (
     <div className="p-6 space-y-8">
       <header>
-        <h1 className="font-heading text-2xl md:text-3xl">Tim Saya</h1>
+        <h1 className="font-heading text-2xl md:text-3xl">{tp.team.title}</h1>
         <p className="text-muted-foreground mt-1">
-          {members.length} anggota aktif • {invitations.length} undangan tertunda.
+          {tp.team.subtitle
+            .replace('{members}', String(members.length))
+            .replace('{invites}', String(invitations.length))}
         </p>
       </header>
 
       <InviteForm />
 
       <section>
-        <h2 className="font-heading text-xl mb-4">Anggota Tim</h2>
+        <h2 className="font-heading text-xl mb-4">{tp.team.membersHeading}</h2>
         {members.length === 0 ? (
-          <p className="text-muted-foreground">Belum ada anggota tim.</p>
+          <p className="text-muted-foreground">{tp.team.noMembers}</p>
         ) : (
           <ul className="border-border divide-border divide-y rounded-xl border">
             {members.map((m) => (
@@ -120,15 +120,14 @@ export default async function PartnerTeamPage() {
 
       {invitations.length > 0 ? (
         <section>
-          <h2 className="font-heading text-xl mb-4">Undangan Tertunda</h2>
+          <h2 className="font-heading text-xl mb-4">{tp.team.pendingHeading}</h2>
           <ul className="border-border divide-border divide-y rounded-xl border">
             {invitations.map((inv) => (
               <li key={inv.id} className="flex items-center justify-between p-4">
                 <div>
                   <div className="font-medium">{inv.email}</div>
                   <div className="text-muted-foreground text-xs">
-                    Kadaluarsa{' '}
-                    {new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(inv.expiresAt)}
+                    {tp.team.expires.replace('{date}', formatDate(inv.expiresAt, locale))}
                   </div>
                 </div>
                 <div className="text-sm">{roleLabels[inv.role] ?? inv.role}</div>

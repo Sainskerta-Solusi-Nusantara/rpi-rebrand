@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { headers } from 'next/headers'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,6 +45,7 @@ async function resolveTenantId(userId: string): Promise<string | null> {
 }
 
 export default async function PartnerJobsPage() {
+  const t = await getServerT()
   const session = await getServerSession(authOptions)
   const tenantId = await resolveTenantId(session!.user.id)
   const where = tenantId ? { tenantId } : {}
@@ -74,16 +76,14 @@ export default async function PartnerJobsPage() {
     <div className="p-6">
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">Lowongan</h1>
-          <p className="text-muted-foreground mt-1">
-            Kelola seluruh lowongan yang Anda posting.
-          </p>
+          <h1 className="font-heading text-2xl md:text-3xl">{t.partner.jobs.title}</h1>
+          <p className="text-muted-foreground mt-1">{t.partner.jobs.subtitle}</p>
         </div>
         <a
           href="/partner/lowongan/baru"
           className="bg-primary text-primary-foreground rounded-md px-4 py-2 font-medium"
         >
-          Buat Lowongan
+          {t.partner.jobs.createButton}
         </a>
       </header>
 
