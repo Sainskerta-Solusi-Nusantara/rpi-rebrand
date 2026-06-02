@@ -8,6 +8,7 @@ import {
   type ArticleFormInitial,
 } from '@/components/organisms/article-form'
 import type { ArticleStatus } from '@/lib/blog/actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Edit Artikel — Admin' }
 
@@ -17,6 +18,8 @@ export default async function AdminEditArticlePage({
   params: { id: string }
 }) {
   await requireRole('SUPERADMIN', 'ADMIN')
+  const t = await getServerT()
+  const ta = t.admin.articleEdit
 
   const article = await prisma.article.findUnique({
     where: { id: params.id },
@@ -50,14 +53,10 @@ export default async function AdminEditArticlePage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Kembali ke daftar
+          {ta.back}
         </Link>
-        <h1 className="font-heading text-2xl md:text-3xl">Edit Artikel</h1>
-        <p className="text-muted-foreground text-sm">
-          Perubahan akan tersimpan ke artikel yang sudah ada. Jika status
-          diubah menjadi “Dipublikasikan”, tanggal publikasi akan diisi otomatis
-          (jika belum pernah).
-        </p>
+        <h1 className="font-heading text-2xl md:text-3xl">{ta.title}</h1>
+        <p className="text-muted-foreground text-sm">{ta.subtitle}</p>
       </header>
 
       <ArticleForm articleId={article.id} initial={initial} />

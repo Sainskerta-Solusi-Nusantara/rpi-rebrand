@@ -4,25 +4,15 @@ import { ChevronLeft, Building2, Users, Briefcase, FileText } from 'lucide-react
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { AdminTenantActions } from '@/components/organisms/admin-tenant-actions'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatDate, formatNumber } from '@/lib/i18n/format'
 
 export const metadata = { title: 'Detail Tenant — Admin' }
 
-const dateFmt = new Intl.DateTimeFormat('id-ID', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-})
-
-const statusLabels: Record<string, { label: string; tone: string }> = {
-  ACTIVE: { label: 'Aktif', tone: 'bg-green-100 text-green-800' },
-  SUSPENDED: { label: 'Ditangguhkan', tone: 'bg-red-100 text-red-800' },
-  PROVISIONING: { label: 'Provisioning', tone: 'bg-amber-100 text-amber-800' },
-}
-
-const planLabels: Record<string, string> = {
-  FREE: 'Gratis',
-  PRO: 'Pro',
-  BUSINESS: 'Bisnis',
-  ENTERPRISE: 'Enterprise',
+const STATUS_TONES: Record<string, string> = {
+  ACTIVE: 'bg-green-100 text-green-800',
+  SUSPENDED: 'bg-red-100 text-red-800',
+  PROVISIONING: 'bg-amber-100 text-amber-800',
 }
 
 export default async function AdminTenantDetailPage({
@@ -33,6 +23,17 @@ export default async function AdminTenantDetailPage({
   const session = await auth()
   if (!session?.user) notFound()
   if (session.user.globalRole !== 'SUPERADMIN') redirect('/admin')
+
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const td = t.admin.tenantDetail
+  const cols = t.admin.common.auditCols
+  const dateFmt = {
+    format: (d: Date) =>
+      formatDate(d, locale, { dateStyle: 'medium', timeStyle: 'short' }),
+  }
+  const statusLabels = t.admin.tenantStatus
+  const planLabels: Record<string, string> = t.admin.plans
+  const num = (n: number) => formatNumber(n, locale)
 
   const tenant = await prisma.tenant
     .findUnique({
@@ -75,8 +76,10 @@ export default async function AdminTenantDetailPage({
     })
     .catch(() => [])
 
-  const statusInfo =
-    statusLabels[tenant.status] ?? { label: tenant.status, tone: 'bg-muted text-muted-foreground' }
+  const statusInfo = {
+    label: statusLabels[tenant.status as keyof typeof statusLabels] ?? tenant.status,
+    tone: STATUS_TONES[tenant.status] ?? 'bg-muted text-muted-foreground',
+  }
 
   return (
     <div className="p-6 space-y-8 max-w-5xl">
@@ -86,7 +89,7 @@ export default async function AdminTenantDetailPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke daftar tenant
+          {td.back}
         </Link>
       </div>
 
@@ -116,26 +119,26 @@ export default async function AdminTenantDetailPage({
         <div className="border-border bg-card rounded-xl border p-4">
           <div className="text-muted-foreground flex items-center gap-1.5 text-xs uppercase">
             <Users className="h-3.5 w-3.5" aria-hidden="true" />
-            Anggota
+            {td.members}
           </div>
-          <div className="font-heading mt-2 text-2xl">{tenant._count.users.toLocaleString('id-ID')}</div>
+          <div className="font-heading mt-2 text-2xl">{num(tenant._count.users)}</div>
         </div>
         <div className="border-border bg-card rounded-xl border p-4">
           <div className="text-muted-foreground flex items-center gap-1.5 text-xs uppercase">
             <Briefcase className="h-3.5 w-3.5" aria-hidden="true" />
-            Lowongan
+            {td.jobs}
           </div>
-          <div className="font-heading mt-2 text-2xl">{tenant._count.jobs.toLocaleString('id-ID')}</div>
+          <div className="font-heading mt-2 text-2xl">{num(tenant._count.jobs)}</div>
         </div>
         <div className="border-border bg-card rounded-xl border p-4">
           <div className="text-muted-foreground flex items-center gap-1.5 text-xs uppercase">
             <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-            Lamaran
+            {td.applications}
           </div>
-          <div className="font-heading mt-2 text-2xl">{tenant._count.applications.toLocaleString('id-ID')}</div>
+          <div className="font-heading mt-2 text-2xl">{num(tenant._count.applications)}</div>
         </div>
         <div className="border-border bg-card rounded-xl border p-4">
-          <div className="text-muted-foreground text-xs uppercase">Dibuat</div>
+          <div className="text-muted-foreground text-xs uppercase">{td.created}</div>
           <div className="mt-2 text-sm font-medium">{dateFmt.format(tenant.createdAt)}</div>
         </div>
       </div>
@@ -145,26 +148,26 @@ export default async function AdminTenantDetailPage({
           aria-label="Detail tenant"
           className="border-border bg-card rounded-2xl border p-6 lg:col-span-2"
         >
-          <h2 className="font-heading mb-4 text-lg">Detail</h2>
+          <h2 className="font-heading mb-4 text-lg">{td.detailHeading}</h2>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Nama</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{td.name}</dt>
               <dd className="mt-1 text-sm font-medium">{tenant.name}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Slug</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{td.slug}</dt>
               <dd className="mt-1 font-mono text-sm">{tenant.slug}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Custom domain</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{td.customDomain}</dt>
               <dd className="mt-1 text-sm">{tenant.customDomain ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Owner</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{td.owner}</dt>
               <dd className="mt-1 font-mono text-xs">{tenant.ownerUserId ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Diperbarui</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{td.updated}</dt>
               <dd className="mt-1 text-sm">{dateFmt.format(tenant.updatedAt)}</dd>
             </div>
           </dl>
@@ -174,7 +177,7 @@ export default async function AdminTenantDetailPage({
           aria-label="Tindakan admin"
           className="border-border bg-card rounded-2xl border p-6"
         >
-          <h2 className="font-heading mb-4 text-lg">Tindakan</h2>
+          <h2 className="font-heading mb-4 text-lg">{td.actionsHeading}</h2>
           <AdminTenantActions
             tenantId={tenant.id}
             currentStatus={tenant.status}
@@ -184,17 +187,17 @@ export default async function AdminTenantDetailPage({
       </div>
 
       <section aria-label="Anggota terbaru" className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="font-heading mb-4 text-lg">Anggota terbaru</h2>
+        <h2 className="font-heading mb-4 text-lg">{td.recentMembersHeading}</h2>
         {tenant.users.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Belum ada anggota.</p>
+          <p className="text-muted-foreground text-sm">{td.noMembers}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-                  <th className="py-2 pr-3 font-medium">Pengguna</th>
-                  <th className="py-2 pr-3 font-medium">Peran</th>
-                  <th className="py-2 font-medium">Bergabung</th>
+                  <th className="py-2 pr-3 font-medium">{td.colUser}</th>
+                  <th className="py-2 pr-3 font-medium">{td.colRole}</th>
+                  <th className="py-2 font-medium">{td.colJoined}</th>
                 </tr>
               </thead>
               <tbody>
@@ -220,19 +223,19 @@ export default async function AdminTenantDetailPage({
       </section>
 
       <section aria-label="Audit tenant" className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="font-heading mb-4 text-lg">Aktivitas terakhir</h2>
+        <h2 className="font-heading mb-4 text-lg">{t.admin.common.recentActivity}</h2>
         {recentAudit.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Belum ada aktivitas tercatat.</p>
+          <p className="text-muted-foreground text-sm">{t.admin.common.noActivity}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-                  <th className="py-2 pr-3 font-medium">Waktu</th>
-                  <th className="py-2 pr-3 font-medium">Aksi</th>
-                  <th className="py-2 pr-3 font-medium">Sumber</th>
-                  <th className="py-2 pr-3 font-medium">Pengguna</th>
-                  <th className="py-2 font-medium">IP</th>
+                  <th className="py-2 pr-3 font-medium">{cols.time}</th>
+                  <th className="py-2 pr-3 font-medium">{cols.action}</th>
+                  <th className="py-2 pr-3 font-medium">{cols.resource}</th>
+                  <th className="py-2 pr-3 font-medium">{cols.user}</th>
+                  <th className="py-2 font-medium">{cols.ip}</th>
                 </tr>
               </thead>
               <tbody>

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +40,8 @@ async function checkDb(): Promise<{ ok: boolean; latencyMs: number }> {
 }
 
 export default async function AdminSystemPage() {
+  const t = await getServerT()
+  const ts = t.admin.system
   const [db, sessionsActive, recentLogins, totalAuditLast24] = await Promise.all([
     checkDb(),
     prisma.session.count({ where: { expires: { gt: new Date() } } }).catch(() => 0),
@@ -58,45 +61,43 @@ export default async function AdminSystemPage() {
   return (
     <div className="p-6 space-y-8">
       <header>
-        <h1 className="font-heading text-2xl md:text-3xl">Kesehatan Sistem</h1>
-        <p className="text-muted-foreground mt-1">
-          Status layanan, performa basis data, dan aktivitas terkini.
-        </p>
+        <h1 className="font-heading text-2xl md:text-3xl">{ts.title}</h1>
+        <p className="text-muted-foreground mt-1">{ts.subtitle}</p>
       </header>
 
       <section>
-        <h2 className="font-heading text-xl mb-4">Layanan</h2>
+        <h2 className="font-heading text-xl mb-4">{ts.servicesHeading}</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div
             className={`border-border rounded-xl border p-4 ${
               db.ok ? 'bg-card' : 'bg-destructive/10'
             }`}
           >
-            <div className="text-muted-foreground text-xs uppercase">Basis Data</div>
-            <div className="font-heading mt-1 text-2xl">{db.ok ? 'Sehat' : 'Bermasalah'}</div>
-            <div className="text-muted-foreground mt-1 text-xs">Latensi {db.latencyMs} ms</div>
-          </div>
-          <div className="border-border bg-card rounded-xl border p-4">
-            <div className="text-muted-foreground text-xs uppercase">Auth</div>
-            <div className="font-heading mt-1 text-2xl">Aktif</div>
-            <div className="text-muted-foreground mt-1 text-xs">NextAuth JWT</div>
-          </div>
-          <div className="border-border bg-card rounded-xl border p-4">
-            <div className="text-muted-foreground text-xs uppercase">Penyimpanan</div>
-            <div className="font-heading mt-1 text-2xl">—</div>
+            <div className="text-muted-foreground text-xs uppercase">{ts.database}</div>
+            <div className="font-heading mt-1 text-2xl">{db.ok ? ts.healthy : ts.unhealthy}</div>
             <div className="text-muted-foreground mt-1 text-xs">
-              TODO: integrasi monitoring storage
+              {ts.latency.replace('{n}', String(db.latencyMs))}
             </div>
+          </div>
+          <div className="border-border bg-card rounded-xl border p-4">
+            <div className="text-muted-foreground text-xs uppercase">{ts.auth}</div>
+            <div className="font-heading mt-1 text-2xl">{ts.active}</div>
+            <div className="text-muted-foreground mt-1 text-xs">{ts.authProvider}</div>
+          </div>
+          <div className="border-border bg-card rounded-xl border p-4">
+            <div className="text-muted-foreground text-xs uppercase">{ts.storage}</div>
+            <div className="font-heading mt-1 text-2xl">—</div>
+            <div className="text-muted-foreground mt-1 text-xs">{ts.storageTodo}</div>
           </div>
         </div>
       </section>
 
       <section>
-        <h2 className="font-heading text-xl mb-4">Aktivitas 24 Jam</h2>
+        <h2 className="font-heading text-xl mb-4">{ts.activity24h}</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <KPICard label="Sesi Aktif" value={sessionsActive} />
-          <KPICard label="Login (24j)" value={recentLogins} />
-          <KPICard label="Kejadian Audit (24j)" value={totalAuditLast24} />
+          <KPICard label={ts.activeSessions} value={sessionsActive} />
+          <KPICard label={ts.logins24h} value={recentLogins} />
+          <KPICard label={ts.auditEvents24h} value={totalAuditLast24} />
         </div>
       </section>
     </div>

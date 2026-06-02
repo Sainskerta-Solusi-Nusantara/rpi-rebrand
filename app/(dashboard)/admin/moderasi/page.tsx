@@ -1,28 +1,12 @@
 import { requireRole } from '@/lib/auth/session'
 import { listFlags, getFlagCounts } from '@/lib/moderation/queries'
 import { ModerationFlagRow } from '@/components/organisms/moderation-flag-row'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatNumber } from '@/lib/i18n/format'
 
 export const metadata = { title: 'Antrian Moderasi' }
 
 const PAGE_SIZE = 25
-
-const STATUSES = [
-  { value: '', label: 'Semua status' },
-  { value: 'pending', label: 'Menunggu' },
-  { value: 'reviewing', label: 'Ditinjau' },
-  { value: 'resolved', label: 'Selesai' },
-  { value: 'dismissed', label: 'Ditolak' },
-]
-
-const RESOURCE_TYPES = [
-  { value: '', label: 'Semua jenis' },
-  { value: 'job', label: 'Lowongan' },
-  { value: 'course', label: 'Kursus' },
-  { value: 'user', label: 'Pengguna' },
-  { value: 'profile', label: 'Profil' },
-  { value: 'message', label: 'Pesan' },
-  { value: 'application', label: 'Lamaran' },
-]
 
 export default async function AdminModerationPage({
   searchParams,
@@ -30,6 +14,25 @@ export default async function AdminModerationPage({
   searchParams: Record<string, string | string[] | undefined>
 }) {
   await requireRole('SUPERADMIN', 'ADMIN')
+
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const tm = t.admin.moderation
+  const STATUSES = [
+    { value: '', label: tm.allStatuses },
+    { value: 'pending', label: tm.status.pending },
+    { value: 'reviewing', label: tm.status.reviewing },
+    { value: 'resolved', label: tm.status.resolved },
+    { value: 'dismissed', label: tm.status.dismissed },
+  ]
+  const RESOURCE_TYPES = [
+    { value: '', label: tm.allTypes },
+    { value: 'job', label: tm.resourceType.job },
+    { value: 'course', label: tm.resourceType.course },
+    { value: 'user', label: tm.resourceType.user },
+    { value: 'profile', label: tm.resourceType.profile },
+    { value: 'message', label: tm.resourceType.message },
+    { value: 'application', label: tm.resourceType.application },
+  ]
 
   const status =
     typeof searchParams.status === 'string' && searchParams.status.length > 0
@@ -68,16 +71,16 @@ export default async function AdminModerationPage({
     <div className="p-6 space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">Antrian Moderasi</h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{tm.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {total.toLocaleString('id-ID')} laporan sesuai filter saat ini.
+            {tm.subtitle.replace('{n}', formatNumber(total, locale))}
           </p>
         </div>
         <form className="flex flex-wrap gap-2" action="/admin/moderasi">
           <input
             name="q"
             defaultValue={query ?? ''}
-            placeholder="Cari ID atau deskripsi"
+            placeholder={tm.searchPlaceholder}
             className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
           />
           <select
@@ -103,7 +106,7 @@ export default async function AdminModerationPage({
             ))}
           </select>
           <button className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm">
-            Filter
+            {t.admin.common.filter}
           </button>
         </form>
       </header>
@@ -111,10 +114,10 @@ export default async function AdminModerationPage({
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {(
           [
-            ['pending', 'Menunggu'],
-            ['reviewing', 'Ditinjau'],
-            ['resolved', 'Selesai'],
-            ['dismissed', 'Ditolak'],
+            ['pending', tm.status.pending],
+            ['reviewing', tm.status.reviewing],
+            ['resolved', tm.status.resolved],
+            ['dismissed', tm.status.dismissed],
           ] as const
         ).map(([key, label]) => (
           <div
@@ -125,7 +128,7 @@ export default async function AdminModerationPage({
               {label}
             </div>
             <div className="font-heading mt-1 text-2xl font-semibold">
-              {counts[key].toLocaleString('id-ID')}
+              {formatNumber(counts[key], locale)}
             </div>
           </div>
         ))}
@@ -135,7 +138,7 @@ export default async function AdminModerationPage({
         <ul className="border-border overflow-hidden rounded-xl border">
           {items.length === 0 ? (
             <li className="text-muted-foreground p-6 text-center text-sm">
-              Tidak ada laporan yang cocok.
+              {tm.empty}
             </li>
           ) : (
             items.map((flag) => (
@@ -151,7 +154,9 @@ export default async function AdminModerationPage({
           className="flex flex-wrap items-center justify-between gap-3 text-sm"
         >
           <span className="text-muted-foreground">
-            Halaman {page} dari {totalPages}
+            {t.admin.common.pageOf
+              .replace('{page}', String(page))
+              .replace('{total}', String(totalPages))}
           </span>
           <div className="flex gap-2">
             {page > 1 ? (
@@ -159,7 +164,7 @@ export default async function AdminModerationPage({
                 href={pageHref(page - 1)}
                 className="border-border rounded-md border px-3 py-1.5"
               >
-                Sebelumnya
+                {t.admin.common.prev}
               </a>
             ) : null}
             {page < totalPages ? (
@@ -167,7 +172,7 @@ export default async function AdminModerationPage({
                 href={pageHref(page + 1)}
                 className="border-border rounded-md border px-3 py-1.5"
               >
-                Berikutnya
+                {t.admin.common.next}
               </a>
             ) : null}
           </div>

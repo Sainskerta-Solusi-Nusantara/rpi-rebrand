@@ -3,21 +3,10 @@ import { Plus } from 'lucide-react'
 
 import { listAdminAssessments } from '@/lib/assessments/queries'
 import { AdminAssessmentRowActions } from '@/components/organisms/admin-assessment-row-actions'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatNumber, formatDate as formatDateI18n } from '@/lib/i18n/format'
 
 export const metadata = { title: 'Manajemen Asesmen' }
-
-const CATEGORY_LABELS: Record<string, string> = {
-  technical: 'Teknis',
-  soft: 'Soft skill',
-  language: 'Bahasa',
-  cognitive: 'Kognitif',
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Draf',
-  PUBLISHED: 'Terbit',
-  ARCHIVED: 'Arsip',
-}
 
 const STATUS_TONES: Record<string, string> = {
   DRAFT: 'bg-amber-100 text-amber-900',
@@ -27,23 +16,18 @@ const STATUS_TONES: Record<string, string> = {
 
 const PAGE_SIZE = 20
 
-function formatDate(d: Date): string {
-  try {
-    return new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    }).format(d)
-  } catch {
-    return d.toISOString().slice(0, 10)
-  }
-}
-
 export default async function AdminAssessmentsPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const ta = t.admin.assessments
+  const CATEGORY_LABELS: Record<string, string> = ta.category
+  const STATUS_LABELS: Record<string, string> = ta.status
+  const formatDate = (d: Date): string =>
+    formatDateI18n(d, locale, { day: 'numeric', month: 'short', year: 'numeric' })
+
   const status =
     typeof searchParams.status === 'string' &&
     Object.prototype.hasOwnProperty.call(STATUS_LABELS, searchParams.status)
@@ -84,12 +68,9 @@ export default async function AdminAssessmentsPage({
     <div className="space-y-6 p-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">
-            Manajemen Asesmen
-          </h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{ta.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {total.toLocaleString('id-ID')} asesmen di pustaka platform. Hanya
-            SUPERADMIN/ADMIN yang dapat mengelola.
+            {ta.subtitle.replace('{n}', formatNumber(total, locale))}
           </p>
         </div>
         <Link
@@ -98,7 +79,7 @@ export default async function AdminAssessmentsPage({
           className="bg-primary text-primary-foreground inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition hover:opacity-90"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          Buat asesmen
+          {ta.create}
         </Link>
       </header>
 
@@ -106,7 +87,7 @@ export default async function AdminAssessmentsPage({
         <input
           name="q"
           defaultValue={query ?? ''}
-          placeholder="Cari judul atau deskripsi"
+          placeholder={ta.searchPlaceholder}
           className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
         />
         <select
@@ -114,7 +95,7 @@ export default async function AdminAssessmentsPage({
           defaultValue={status ?? ''}
           className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
         >
-          <option value="">Semua status</option>
+          <option value="">{ta.allStatuses}</option>
           {Object.entries(STATUS_LABELS).map(([k, v]) => (
             <option key={k} value={k}>
               {v}
@@ -126,7 +107,7 @@ export default async function AdminAssessmentsPage({
           defaultValue={category ?? ''}
           className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
         >
-          <option value="">Semua kategori</option>
+          <option value="">{ta.allCategories}</option>
           {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
             <option key={k} value={k}>
               {v}
@@ -134,26 +115,26 @@ export default async function AdminAssessmentsPage({
           ))}
         </select>
         <button className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm">
-          Filter
+          {t.admin.common.filter}
         </button>
       </form>
 
       {items.length === 0 ? (
         <div className="border-border bg-card rounded-xl border p-10 text-center text-sm">
-          Belum ada asesmen yang cocok.
+          {ta.empty}
         </div>
       ) : (
         <div className="border-border bg-card overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-foreground/80 text-xs uppercase">
               <tr>
-                <th className="px-4 py-2 text-left">Judul</th>
-                <th className="px-4 py-2 text-left">Kategori</th>
-                <th className="px-4 py-2 text-left">Status</th>
-                <th className="px-4 py-2 text-right">Pertanyaan</th>
-                <th className="px-4 py-2 text-right">Percobaan</th>
-                <th className="px-4 py-2 text-left">Dibuat</th>
-                <th className="px-4 py-2 text-right">Aksi</th>
+                <th className="px-4 py-2 text-left">{ta.colTitle}</th>
+                <th className="px-4 py-2 text-left">{ta.colCategory}</th>
+                <th className="px-4 py-2 text-left">{ta.colStatus}</th>
+                <th className="px-4 py-2 text-right">{ta.colQuestions}</th>
+                <th className="px-4 py-2 text-right">{ta.colAttempts}</th>
+                <th className="px-4 py-2 text-left">{ta.colCreated}</th>
+                <th className="px-4 py-2 text-right">{ta.colActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y">

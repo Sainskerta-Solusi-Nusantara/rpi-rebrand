@@ -3,23 +3,12 @@ import { Plus } from 'lucide-react'
 import { requireRole } from '@/lib/auth/session'
 import { listAdminArticles, type ArticleStatus } from '@/lib/blog/queries'
 import { AdminArticleRowActions } from '@/components/organisms/admin-article-row-actions'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatNumber, formatDate } from '@/lib/i18n/format'
 
 export const metadata = { title: 'Kelola Artikel — Admin' }
 
 const PAGE_SIZE = 25
-
-const STATUS_OPTIONS: { value: ''; label: string }[] | { value: string; label: string }[] = [
-  { value: '', label: 'Semua status' },
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'PUBLISHED', label: 'Dipublikasikan' },
-  { value: 'ARCHIVED', label: 'Diarsipkan' },
-]
-
-const STATUS_LABEL: Record<ArticleStatus, string> = {
-  DRAFT: 'Draft',
-  PUBLISHED: 'Dipublikasikan',
-  ARCHIVED: 'Diarsipkan',
-}
 
 const STATUS_TONE: Record<ArticleStatus, string> = {
   DRAFT: 'border-border bg-muted text-foreground/70',
@@ -27,18 +16,26 @@ const STATUS_TONE: Record<ArticleStatus, string> = {
   ARCHIVED: 'border-border bg-muted/40 text-muted-foreground',
 }
 
-const dateFmt = new Intl.DateTimeFormat('id-ID', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
-
 export default async function AdminArticlesPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
   await requireRole('SUPERADMIN', 'ADMIN')
+
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const ta = t.admin.articles
+  const STATUS_LABEL: Record<ArticleStatus, string> = ta.status
+  const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: '', label: ta.allStatuses },
+    { value: 'DRAFT', label: ta.status.DRAFT },
+    { value: 'PUBLISHED', label: ta.status.PUBLISHED },
+    { value: 'ARCHIVED', label: ta.status.ARCHIVED },
+  ]
+  const dateFmt = {
+    format: (d: Date) =>
+      formatDate(d, locale, { day: 'numeric', month: 'short', year: 'numeric' }),
+  }
 
   const status =
     typeof searchParams.status === 'string' &&
@@ -75,9 +72,9 @@ export default async function AdminArticlesPage({
     <div className="space-y-6 p-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">Kelola Artikel</h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{ta.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {total.toLocaleString('id-ID')} artikel sesuai filter saat ini.
+            {ta.subtitle.replace('{n}', formatNumber(total, locale))}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -87,7 +84,7 @@ export default async function AdminArticlesPage({
             className="inline-flex items-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[hsl(220,50%,18%)]"
           >
             <Plus className="h-4 w-4" aria-hidden />
-            Buat artikel
+            {ta.create}
           </Link>
         </div>
       </header>
@@ -99,7 +96,7 @@ export default async function AdminArticlesPage({
         <input
           name="q"
           defaultValue={query ?? ''}
-          placeholder="Cari judul, ringkasan, atau slug"
+          placeholder={ta.searchPlaceholder}
           className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
         />
         <select
@@ -114,23 +111,23 @@ export default async function AdminArticlesPage({
           ))}
         </select>
         <button className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm">
-          Filter
+          {t.admin.common.filter}
         </button>
       </form>
 
       <section className="border-border overflow-hidden rounded-xl border">
         {items.length === 0 ? (
           <div className="text-muted-foreground p-10 text-center text-sm">
-            Belum ada artikel sesuai filter.
+            {ta.empty}
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wide">
               <tr>
-                <th className="px-4 py-2 text-left">Judul</th>
-                <th className="px-4 py-2 text-left">Status</th>
-                <th className="px-4 py-2 text-left">Diperbarui</th>
-                <th className="px-4 py-2 text-left">Aksi</th>
+                <th className="px-4 py-2 text-left">{ta.colTitle}</th>
+                <th className="px-4 py-2 text-left">{ta.colStatus}</th>
+                <th className="px-4 py-2 text-left">{ta.colUpdated}</th>
+                <th className="px-4 py-2 text-left">{ta.colActions}</th>
               </tr>
             </thead>
             <tbody>
@@ -177,7 +174,9 @@ export default async function AdminArticlesPage({
           className="flex flex-wrap items-center justify-between gap-3 text-sm"
         >
           <span className="text-muted-foreground">
-            Halaman {page} dari {totalPages}
+            {t.admin.common.pageOf
+              .replace('{page}', String(page))
+              .replace('{total}', String(totalPages))}
           </span>
           <div className="flex gap-2">
             {page > 1 ? (
@@ -185,7 +184,7 @@ export default async function AdminArticlesPage({
                 href={pageHref(page - 1)}
                 className="border-border rounded-md border px-3 py-1.5"
               >
-                Sebelumnya
+                {t.admin.common.prev}
               </a>
             ) : null}
             {page < totalPages ? (
@@ -193,7 +192,7 @@ export default async function AdminArticlesPage({
                 href={pageHref(page + 1)}
                 className="border-border rounded-md border px-3 py-1.5"
               >
-                Berikutnya
+                {t.admin.common.next}
               </a>
             ) : null}
           </div>

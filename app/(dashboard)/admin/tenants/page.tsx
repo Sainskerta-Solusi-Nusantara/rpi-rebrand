@@ -3,27 +3,21 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatNumber, formatDate } from '@/lib/i18n/format'
 
 export const metadata = { title: 'Manajemen Tenant' }
-
-const statusLabels: Record<string, string> = {
-  ACTIVE: 'Aktif',
-  SUSPENDED: 'Ditangguhkan',
-  PROVISIONING: 'Provisioning',
-}
-
-const planLabels: Record<string, string> = {
-  FREE: 'Gratis',
-  PRO: 'Pro',
-  BUSINESS: 'Bisnis',
-  ENTERPRISE: 'Enterprise',
-}
 
 export default async function AdminTenantsPage() {
   const session = await getServerSession(authOptions)
   if (session?.user.globalRole !== 'SUPERADMIN') {
     redirect('/admin')
   }
+
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const tt = t.admin.tenants
+  const statusLabels: Record<string, string> = t.admin.tenantStatus
+  const planLabels: Record<string, string> = t.admin.plans
 
   const tenants = await prisma.tenant
     .findMany({
@@ -37,9 +31,9 @@ export default async function AdminTenantsPage() {
   return (
     <div className="p-6 space-y-6">
       <header>
-        <h1 className="font-heading text-2xl md:text-3xl">Manajemen Tenant</h1>
+        <h1 className="font-heading text-2xl md:text-3xl">{tt.title}</h1>
         <p className="text-muted-foreground mt-1">
-          {tenants.length.toLocaleString('id-ID')} tenant terdaftar di platform.
+          {tt.subtitle.replace('{n}', formatNumber(tenants.length, locale))}
         </p>
       </header>
 
@@ -47,14 +41,14 @@ export default async function AdminTenantsPage() {
         <table className="min-w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="p-3">Tenant</th>
-              <th className="p-3">Slug</th>
-              <th className="p-3">Paket</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Pengguna</th>
-              <th className="p-3">Lowongan</th>
-              <th className="p-3">Lamaran</th>
-              <th className="p-3">Dibuat</th>
+              <th className="p-3">{tt.colTenant}</th>
+              <th className="p-3">{tt.colSlug}</th>
+              <th className="p-3">{tt.colPlan}</th>
+              <th className="p-3">{tt.colStatus}</th>
+              <th className="p-3">{tt.colUsers}</th>
+              <th className="p-3">{tt.colJobs}</th>
+              <th className="p-3">{tt.colApplications}</th>
+              <th className="p-3">{tt.colCreated}</th>
               <th className="p-3"></th>
             </tr>
           </thead>
@@ -75,15 +69,13 @@ export default async function AdminTenantsPage() {
                 <td className="p-3">{t._count.users}</td>
                 <td className="p-3">{t._count.jobs}</td>
                 <td className="p-3">{t._count.applications}</td>
-                <td className="p-3">
-                  {new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(t.createdAt)}
-                </td>
+                <td className="p-3">{formatDate(t.createdAt, locale)}</td>
                 <td className="p-3 text-right">
                   <Link
                     href={`/admin/tenants/${t.id}` as never}
                     className="text-primary text-xs font-medium hover:underline"
                   >
-                    Detail →
+                    {tt.detail}
                   </Link>
                 </td>
               </tr>
@@ -91,7 +83,7 @@ export default async function AdminTenantsPage() {
             {tenants.length === 0 ? (
               <tr>
                 <td className="text-muted-foreground p-6 text-center" colSpan={9}>
-                  Belum ada tenant.
+                  {tt.empty}
                 </td>
               </tr>
             ) : null}

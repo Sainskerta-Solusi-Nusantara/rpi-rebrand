@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatNumber, formatDate } from '@/lib/i18n/format'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +38,9 @@ export default async function AdminAuditPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const ta = t.admin.audit
+  const cols = t.admin.common.auditCols
   const action = typeof searchParams.action === 'string' ? searchParams.action : undefined
   const resource = typeof searchParams.resource === 'string' ? searchParams.resource : undefined
   const pageRaw = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1
@@ -69,9 +74,9 @@ export default async function AdminAuditPage({
     <div className="p-6 space-y-6">
       <header className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">Audit Log</h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{ta.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {total.toLocaleString('id-ID')} kejadian tercatat.
+            {ta.subtitle.replace('{n}', formatNumber(total, locale))}
           </p>
         </div>
         <form className="flex gap-2" action="/admin/audit">
@@ -80,7 +85,7 @@ export default async function AdminAuditPage({
             defaultValue={action ?? ''}
             className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
           >
-            <option value="">Semua aksi</option>
+            <option value="">{ta.allActions}</option>
             <option value="CREATE">CREATE</option>
             <option value="UPDATE">UPDATE</option>
             <option value="DELETE">DELETE</option>
@@ -93,11 +98,11 @@ export default async function AdminAuditPage({
           <input
             name="resource"
             defaultValue={resource ?? ''}
-            placeholder="Sumber daya"
+            placeholder={ta.resourcePlaceholder}
             className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
           />
           <button className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm">
-            Filter
+            {t.admin.common.filter}
           </button>
         </form>
       </header>
@@ -106,22 +111,22 @@ export default async function AdminAuditPage({
         <table className="min-w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="p-3">Waktu</th>
-              <th className="p-3">Aksi</th>
-              <th className="p-3">Sumber</th>
-              <th className="p-3">Pengguna</th>
-              <th className="p-3">Tenant</th>
-              <th className="p-3">IP</th>
+              <th className="p-3">{cols.time}</th>
+              <th className="p-3">{cols.action}</th>
+              <th className="p-3">{cols.resource}</th>
+              <th className="p-3">{cols.user}</th>
+              <th className="p-3">{cols.tenant}</th>
+              <th className="p-3">{cols.ip}</th>
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
             {logs.map((l) => (
               <tr key={l.id}>
                 <td className="p-3 whitespace-nowrap">
-                  {new Intl.DateTimeFormat('id-ID', {
+                  {formatDate(l.createdAt, locale, {
                     dateStyle: 'short',
                     timeStyle: 'short',
-                  }).format(l.createdAt)}
+                  })}
                 </td>
                 <td className="p-3 font-mono text-xs">{l.action}</td>
                 <td className="p-3 font-mono text-xs">
@@ -136,7 +141,7 @@ export default async function AdminAuditPage({
             {logs.length === 0 ? (
               <tr>
                 <td className="text-muted-foreground p-6 text-center" colSpan={6}>
-                  Tidak ada kejadian.
+                  {ta.empty}
                 </td>
               </tr>
             ) : null}

@@ -7,27 +7,16 @@ import { getMaintenanceDetail } from '@/lib/status/status-queries'
 import { getComponentName } from '@/lib/status/components'
 import { MaintenanceStatusActions } from '@/components/organisms/status-admin-controls'
 import { StatusBadge, type StatusBadgeVariant } from '@/components/organisms/status-badge'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatDate } from '@/lib/i18n/format'
 
 export const metadata = { title: 'Kelola pemeliharaan — Admin' }
 
-const STATUS_LABELS: Record<string, string> = {
-  planned: 'Direncanakan',
-  in_progress: 'Sedang berjalan',
-  completed: 'Selesai',
-  cancelled: 'Dibatalkan',
-}
 const STATUS_VARIANT: Record<string, StatusBadgeVariant> = {
   planned: 'maintenance',
   in_progress: 'maintenance',
   completed: 'operational',
   cancelled: 'down',
-}
-
-function fmt(d: Date): string {
-  return new Intl.DateTimeFormat('id-ID', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(d)
 }
 
 type MaintenanceStatus = 'planned' | 'in_progress' | 'completed' | 'cancelled'
@@ -40,6 +29,13 @@ export default async function AdminMaintenancePage({
   const session = await requireAuth(`/admin/status/maintenance/${params.id}`)
   if (session.user.globalRole !== 'SUPERADMIN') notFound()
 
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const ts = t.admin.status
+  const tme = ts.maintenanceEdit
+  const STATUS_LABELS: Record<string, string> = ts.maintenanceStatus
+  const fmt = (d: Date): string =>
+    formatDate(d, locale, { dateStyle: 'medium', timeStyle: 'short' })
+
   const m = await getMaintenanceDetail(params.id)
   if (!m) notFound()
 
@@ -51,13 +47,13 @@ export default async function AdminMaintenancePage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden />
-          Kembali ke status
+          {tme.back}
         </Link>
         <Link
           href={`/status/maintenance/${m.id}` as Route}
           className="text-muted-foreground hover:text-foreground text-xs underline"
         >
-          Lihat halaman publik
+          {tme.viewPublic}
         </Link>
       </div>
 
@@ -72,16 +68,16 @@ export default async function AdminMaintenancePage({
         />
         <dl className="text-muted-foreground grid gap-1 text-sm">
           <div>
-            <dt className="inline">Mulai: </dt>
+            <dt className="inline">{tme.startLabel}</dt>
             <dd className="text-foreground inline">{fmt(m.scheduledStart)}</dd>
           </div>
           <div>
-            <dt className="inline">Selesai: </dt>
+            <dt className="inline">{tme.endLabel}</dt>
             <dd className="text-foreground inline">{fmt(m.scheduledEnd)}</dd>
           </div>
           {m.affectedServices.length > 0 ? (
             <div>
-              <dt className="inline">Layanan terdampak: </dt>
+              <dt className="inline">{tme.affectedLabel}</dt>
               <dd className="text-foreground inline">
                 {m.affectedServices.map(getComponentName).join(', ')}
               </dd>
@@ -94,11 +90,8 @@ export default async function AdminMaintenancePage({
       </header>
 
       <section className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="font-heading text-lg">Ubah status</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Alur normal: Direncanakan → Sedang berjalan → Selesai. Pemeliharaan
-          dapat dibatalkan kapan saja.
-        </p>
+        <h2 className="font-heading text-lg">{tme.changeStatusHeading}</h2>
+        <p className="text-muted-foreground mt-1 text-sm">{tme.changeStatusDesc}</p>
         <div className="mt-4">
           <MaintenanceStatusActions
             id={m.id}

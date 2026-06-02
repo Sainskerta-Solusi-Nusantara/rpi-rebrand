@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
 import { AdminUsersTableSelector } from '@/components/organisms/admin-users-table-selector'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatNumber } from '@/lib/i18n/format'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,6 +39,8 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const tu = t.admin.users
   const q = typeof searchParams.q === 'string' ? searchParams.q : undefined
   const role = typeof searchParams.role === 'string' ? searchParams.role : undefined
   const status = typeof searchParams.status === 'string' ? searchParams.status : undefined
@@ -93,16 +97,16 @@ export default async function AdminUsersPage({
     <div className="p-6 space-y-6">
       <header className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">Manajemen Pengguna</h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{tu.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {total.toLocaleString('id-ID')} pengguna terdaftar.
+            {tu.subtitle.replace('{n}', formatNumber(total, locale))}
           </p>
         </div>
         <form className="flex flex-wrap gap-2" action="/admin/users">
           <input
             name="q"
             defaultValue={q ?? ''}
-            placeholder="Cari email atau nama"
+            placeholder={tu.searchPlaceholder}
             className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
           />
           <select
@@ -110,7 +114,7 @@ export default async function AdminUsersPage({
             defaultValue={role ?? ''}
             className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
           >
-            <option value="">Semua peran</option>
+            <option value="">{tu.allRoles}</option>
             <option value="SUPERADMIN">SUPERADMIN</option>
             <option value="ADMIN">ADMIN</option>
             <option value="PARTNER">PARTNER</option>
@@ -121,23 +125,23 @@ export default async function AdminUsersPage({
             defaultValue={status ?? ''}
             className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
           >
-            <option value="">Semua status</option>
-            <option value="ACTIVE">Aktif</option>
-            <option value="PENDING">Menunggu</option>
-            <option value="SUSPENDED">Ditangguhkan</option>
-            <option value="DELETED">Dihapus</option>
+            <option value="">{tu.allStatuses}</option>
+            <option value="ACTIVE">{t.admin.userStatus.ACTIVE}</option>
+            <option value="PENDING">{t.admin.userStatus.PENDING}</option>
+            <option value="SUSPENDED">{t.admin.userStatus.SUSPENDED}</option>
+            <option value="DELETED">{t.admin.userStatus.DELETED}</option>
           </select>
           <select
             name="verified"
             defaultValue={verified ?? ''}
             className="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
           >
-            <option value="">Verifikasi: semua</option>
-            <option value="yes">Terverifikasi</option>
-            <option value="no">Belum</option>
+            <option value="">{tu.verifiedAll}</option>
+            <option value="yes">{tu.verifiedYes}</option>
+            <option value="no">{tu.verifiedNo}</option>
           </select>
           <button className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm">
-            Filter
+            {t.admin.common.filter}
           </button>
         </form>
       </header>

@@ -4,20 +4,10 @@ import { ChevronLeft, Mail, Globe, Clock, ShieldCheck, ShieldX, KeyRound } from 
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { AdminUserActions } from '@/components/organisms/admin-user-actions'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatDate } from '@/lib/i18n/format'
 
 export const metadata = { title: 'Detail Pengguna — Admin' }
-
-const dateFmt = new Intl.DateTimeFormat('id-ID', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-})
-
-const statusLabels: Record<string, string> = {
-  ACTIVE: 'Aktif',
-  PENDING: 'Menunggu',
-  SUSPENDED: 'Ditangguhkan',
-  DELETED: 'Dihapus',
-}
 
 const roleLabels: Record<string, { label: string; tone: string }> = {
   SUPERADMIN: { label: 'SUPERADMIN', tone: 'bg-amber-100 text-amber-800' },
@@ -38,6 +28,13 @@ export default async function AdminUserDetailPage({
 }) {
   const session = await auth()
   if (!session?.user) notFound()
+
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const td = t.admin.userDetail
+  const cols = t.admin.common.auditCols
+  const statusLabels: Record<string, string> = t.admin.userStatus
+  const fmt = (d: Date) =>
+    formatDate(d, locale, { dateStyle: 'medium', timeStyle: 'short' })
 
   const user = await prisma.user
     .findUnique({
@@ -102,7 +99,7 @@ export default async function AdminUserDetailPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke daftar pengguna
+          {td.back}
         </Link>
       </div>
 
@@ -143,12 +140,12 @@ export default async function AdminUserDetailPage({
           {user.emailVerified ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800">
               <ShieldCheck className="h-3 w-3" aria-hidden="true" />
-              Email terverifikasi
+              {td.emailVerified}
             </span>
           ) : (
             <span className="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium">
               <ShieldX className="h-3 w-3" aria-hidden="true" />
-              Belum terverifikasi
+              {td.emailUnverified}
             </span>
           )}
         </div>
@@ -159,52 +156,52 @@ export default async function AdminUserDetailPage({
           aria-label="Profil"
           className="border-border bg-card rounded-2xl border p-6 lg:col-span-2"
         >
-          <h2 className="font-heading mb-4 text-lg">Profil</h2>
+          <h2 className="font-heading mb-4 text-lg">{td.profileHeading}</h2>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground flex items-center gap-1.5 text-xs uppercase">
                 <Mail className="h-3.5 w-3.5" aria-hidden="true" />
-                Email
+                {td.email}
               </dt>
               <dd className="mt-1 text-sm font-medium">{user.email}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Telepon</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{td.phone}</dt>
               <dd className="mt-1 text-sm font-medium">{user.phone ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Headline</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{td.headline}</dt>
               <dd className="mt-1 text-sm font-medium">{user.headline ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Lokasi</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{td.location}</dt>
               <dd className="mt-1 text-sm font-medium">{user.location ?? '—'}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground flex items-center gap-1.5 text-xs uppercase">
                 <Globe className="h-3.5 w-3.5" aria-hidden="true" />
-                Google
+                {td.google}
               </dt>
               <dd className="mt-1 text-sm font-medium">
-                {googleLinked ? 'Terhubung' : 'Tidak terhubung'}
+                {googleLinked ? td.googleLinked : td.googleUnlinked}
               </dd>
             </div>
             <div>
               <dt className="text-muted-foreground flex items-center gap-1.5 text-xs uppercase">
                 <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                Login terakhir
+                {td.lastLogin}
               </dt>
               <dd className="mt-1 text-sm font-medium">
-                {user.lastLoginAt ? dateFmt.format(user.lastLoginAt) : '—'}
+                {user.lastLoginAt ? fmt(user.lastLoginAt) : '—'}
               </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Terdaftar</dt>
-              <dd className="mt-1 text-sm font-medium">{dateFmt.format(user.createdAt)}</dd>
+              <dt className="text-muted-foreground text-xs uppercase">{td.registered}</dt>
+              <dd className="mt-1 text-sm font-medium">{fmt(user.createdAt)}</dd>
             </div>
             {user.bio && (
               <div className="sm:col-span-2">
-                <dt className="text-muted-foreground text-xs uppercase">Bio</dt>
+                <dt className="text-muted-foreground text-xs uppercase">{td.bio}</dt>
                 <dd className="mt-1 text-sm">{user.bio}</dd>
               </div>
             )}
@@ -215,7 +212,7 @@ export default async function AdminUserDetailPage({
           aria-label="Tindakan admin"
           className="border-border bg-card rounded-2xl border p-6"
         >
-          <h2 className="font-heading mb-4 text-lg">Tindakan</h2>
+          <h2 className="font-heading mb-4 text-lg">{td.actionsHeading}</h2>
           <AdminUserActions
             userId={user.id}
             currentRole={user.globalRole}
@@ -231,7 +228,7 @@ export default async function AdminUserDetailPage({
                 className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-foreground transition"
               >
                 <KeyRound className="h-4 w-4" aria-hidden="true" />
-                Reset 2FA pengguna
+                {td.resetTwoFactor}
               </Link>
             </div>
           )}
@@ -239,18 +236,18 @@ export default async function AdminUserDetailPage({
       </div>
 
       <section aria-label="Keanggotaan tenant" className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="font-heading mb-4 text-lg">Keanggotaan Tenant</h2>
+        <h2 className="font-heading mb-4 text-lg">{td.tenantMembershipHeading}</h2>
         {user.tenants.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Belum tergabung di tenant manapun.</p>
+          <p className="text-muted-foreground text-sm">{td.noMembership}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-                  <th className="py-2 pr-3 font-medium">Tenant</th>
-                  <th className="py-2 pr-3 font-medium">Slug</th>
-                  <th className="py-2 pr-3 font-medium">Peran</th>
-                  <th className="py-2 font-medium">Bergabung</th>
+                  <th className="py-2 pr-3 font-medium">{td.colTenant}</th>
+                  <th className="py-2 pr-3 font-medium">{td.colSlug}</th>
+                  <th className="py-2 pr-3 font-medium">{td.colRole}</th>
+                  <th className="py-2 font-medium">{td.colJoined}</th>
                 </tr>
               </thead>
               <tbody>
@@ -266,7 +263,7 @@ export default async function AdminUserDetailPage({
                       </Link>
                     </td>
                     <td className="py-2 pr-3">{m.role}</td>
-                    <td className="py-2 whitespace-nowrap">{dateFmt.format(m.joinedAt)}</td>
+                    <td className="py-2 whitespace-nowrap">{fmt(m.joinedAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -276,25 +273,25 @@ export default async function AdminUserDetailPage({
       </section>
 
       <section aria-label="Aktivitas audit" className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="font-heading mb-4 text-lg">Aktivitas terakhir</h2>
+        <h2 className="font-heading mb-4 text-lg">{t.admin.common.recentActivity}</h2>
         {user.auditLogs.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Belum ada aktivitas tercatat.</p>
+          <p className="text-muted-foreground text-sm">{t.admin.common.noActivity}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-                  <th className="py-2 pr-3 font-medium">Waktu</th>
-                  <th className="py-2 pr-3 font-medium">Aksi</th>
-                  <th className="py-2 pr-3 font-medium">Sumber</th>
-                  <th className="py-2 pr-3 font-medium">Metadata</th>
-                  <th className="py-2 font-medium">IP</th>
+                  <th className="py-2 pr-3 font-medium">{cols.time}</th>
+                  <th className="py-2 pr-3 font-medium">{cols.action}</th>
+                  <th className="py-2 pr-3 font-medium">{cols.resource}</th>
+                  <th className="py-2 pr-3 font-medium">{cols.metadata}</th>
+                  <th className="py-2 font-medium">{cols.ip}</th>
                 </tr>
               </thead>
               <tbody>
                 {user.auditLogs.map((l) => (
                   <tr key={l.id} className="border-border/60 border-b last:border-b-0">
-                    <td className="py-2 pr-3 whitespace-nowrap">{dateFmt.format(l.createdAt)}</td>
+                    <td className="py-2 pr-3 whitespace-nowrap">{fmt(l.createdAt)}</td>
                     <td className="py-2 pr-3 font-mono text-xs">{l.action}</td>
                     <td className="py-2 pr-3 font-mono text-xs">
                       {l.resource}

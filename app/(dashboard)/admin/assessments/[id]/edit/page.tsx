@@ -4,6 +4,7 @@ import { ChevronLeft, ExternalLink } from 'lucide-react'
 
 import { prisma } from '@/lib/db'
 import { AssessmentEditor } from '@/components/organisms/assessment-editor'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Ubah Asesmen' }
@@ -13,6 +14,8 @@ export default async function EditAssessmentPage({
 }: {
   params: { id: string }
 }) {
+  const t = await getServerT()
+  const ta = t.admin.assessmentEdit
   const assessment = await prisma.assessment.findUnique({
     where: { id: params.id },
     select: { id: true, slug: true, title: true, status: true },
@@ -27,16 +30,16 @@ export default async function EditAssessmentPage({
         className="text-muted-foreground inline-flex items-center gap-1 text-xs hover:underline"
       >
         <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
-        Kembali ke daftar asesmen
+        {ta.back}
       </Link>
 
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-heading text-2xl md:text-3xl">
-            Editor: {assessment.title}
+            {ta.editorPrefix.replace('{title}', assessment.title)}
           </h1>
           <p className="text-muted-foreground mt-1 text-xs">
-            Slug: <code>/{assessment.slug}</code>
+            {ta.slugLabel} <code>/{assessment.slug}</code>
           </p>
         </div>
         <Link
@@ -47,7 +50,7 @@ export default async function EditAssessmentPage({
           className="border-border bg-background hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs"
         >
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-          Pratinjau halaman kandidat
+          {ta.previewCandidate}
         </Link>
       </header>
 

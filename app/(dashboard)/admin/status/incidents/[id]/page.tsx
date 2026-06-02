@@ -8,37 +8,21 @@ import { getComponentName } from '@/lib/status/components'
 import { IncidentUpdateForm } from '@/components/organisms/incident-update-form'
 import { IncidentDeleteButton } from '@/components/organisms/status-admin-controls'
 import { StatusBadge, type StatusBadgeVariant } from '@/components/organisms/status-badge'
+import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
+import { formatDate } from '@/lib/i18n/format'
 
 export const metadata = { title: 'Kelola insiden — Admin' }
 
-const SEVERITY_LABELS: Record<string, string> = {
-  minor: 'Ringan',
-  major: 'Berat',
-  critical: 'Kritis',
-}
 const SEVERITY_VARIANT: Record<string, StatusBadgeVariant> = {
   minor: 'degraded',
   major: 'degraded',
   critical: 'major_outage',
-}
-const STATUS_LABELS: Record<string, string> = {
-  investigating: 'Investigasi',
-  identified: 'Teridentifikasi',
-  monitoring: 'Pemantauan',
-  resolved: 'Selesai',
 }
 const STATUS_VARIANT: Record<string, StatusBadgeVariant> = {
   investigating: 'down',
   identified: 'degraded',
   monitoring: 'degraded',
   resolved: 'operational',
-}
-
-function fmt(d: Date): string {
-  return new Intl.DateTimeFormat('id-ID', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(d)
 }
 
 export default async function AdminIncidentEditPage({
@@ -48,6 +32,14 @@ export default async function AdminIncidentEditPage({
 }) {
   const session = await requireAuth(`/admin/status/incidents/${params.id}`)
   if (session.user.globalRole !== 'SUPERADMIN') notFound()
+
+  const [t, locale] = await Promise.all([getServerT(), getServerLocale()])
+  const ts = t.admin.status
+  const te = ts.incidentEdit
+  const SEVERITY_LABELS: Record<string, string> = ts.severity
+  const STATUS_LABELS: Record<string, string> = ts.incidentStatus
+  const fmt = (d: Date): string =>
+    formatDate(d, locale, { dateStyle: 'medium', timeStyle: 'short' })
 
   const incident = await getIncidentDetail(params.id)
   if (!incident) notFound()
@@ -60,14 +52,14 @@ export default async function AdminIncidentEditPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden />
-          Kembali ke status
+          {te.back}
         </Link>
         <div className="flex items-center gap-2">
           <Link
             href={`/status/incidents/${incident.id}` as Route}
             className="text-muted-foreground hover:text-foreground text-xs underline"
           >
-            Lihat halaman publik
+            {te.viewPublic}
           </Link>
           <IncidentDeleteButton id={incident.id} />
         </div>
@@ -92,18 +84,18 @@ export default async function AdminIncidentEditPage({
         </div>
         <dl className="text-muted-foreground grid gap-1 text-sm">
           <div>
-            <dt className="inline">Dimulai: </dt>
+            <dt className="inline">{te.startedLabel}</dt>
             <dd className="text-foreground inline">{fmt(incident.startedAt)}</dd>
           </div>
           {incident.resolvedAt ? (
             <div>
-              <dt className="inline">Diselesaikan: </dt>
+              <dt className="inline">{te.resolvedLabel}</dt>
               <dd className="text-foreground inline">{fmt(incident.resolvedAt)}</dd>
             </div>
           ) : null}
           {incident.affectedServices.length > 0 ? (
             <div>
-              <dt className="inline">Layanan terdampak: </dt>
+              <dt className="inline">{te.affectedLabel}</dt>
               <dd className="text-foreground inline">
                 {incident.affectedServices.map(getComponentName).join(', ')}
               </dd>
@@ -113,10 +105,8 @@ export default async function AdminIncidentEditPage({
       </header>
 
       <section className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="font-heading text-lg">Kirim pembaruan</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Pembaruan ini akan ditambahkan ke linimasa publik insiden.
-        </p>
+        <h2 className="font-heading text-lg">{te.postUpdateHeading}</h2>
+        <p className="text-muted-foreground mt-1 text-sm">{te.postUpdateDesc}</p>
         <div className="mt-4">
           <IncidentUpdateForm incidentId={incident.id} currentStatus={incident.status} />
         </div>
@@ -124,11 +114,11 @@ export default async function AdminIncidentEditPage({
 
       <section className="border-border bg-card rounded-2xl border">
         <header className="border-border border-b p-4">
-          <h2 className="font-medium">Linimasa</h2>
+          <h2 className="font-medium">{te.timelineHeading}</h2>
         </header>
         {incident.updates.length === 0 ? (
           <div className="p-4">
-            <p className="text-muted-foreground text-sm">Belum ada pembaruan.</p>
+            <p className="text-muted-foreground text-sm">{te.noUpdates}</p>
           </div>
         ) : (
           <ol className="divide-border divide-y">
