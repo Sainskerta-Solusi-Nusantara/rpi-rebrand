@@ -9,6 +9,7 @@ import {
   type QuestionCategory,
 } from '@/lib/interview-questions/constants'
 import { SkillAutocomplete } from '@/components/organisms/skill-autocomplete'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type QuestionFormInitial = {
   id: string
@@ -16,14 +17,6 @@ export type QuestionFormInitial = {
   category: string
   difficulty: number
   tags: string[]
-}
-
-const CATEGORY_LABELS: Record<QuestionCategory, string> = {
-  technical: 'Teknis',
-  behavioral: 'Perilaku',
-  situational: 'Situasional',
-  culture: 'Budaya',
-  other: 'Lainnya',
 }
 
 const inputClass =
@@ -45,6 +38,8 @@ export function QuestionForm({
   onCancel?: () => void
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tq = t.formsInterviewPipe.questionForm
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<
     { kind: 'error' | 'success'; message: string } | null
@@ -60,6 +55,14 @@ export function QuestionForm({
   const [difficulty, setDifficulty] = useState<number>(initial?.difficulty ?? 3)
   const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
 
+  const CATEGORY_LABELS: Record<QuestionCategory, string> = {
+    technical: tq.categoryTechnical,
+    behavioral: tq.categoryBehavioral,
+    situational: tq.categorySituational,
+    culture: tq.categoryCulture,
+    other: tq.categoryOther,
+  }
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setBanner(null)
@@ -67,15 +70,15 @@ export function QuestionForm({
 
     const trimmed = text.trim()
     if (trimmed.length < 10 || trimmed.length > 1000) {
-      setFieldErrors({ text: 'Pertanyaan harus 10-1000 karakter.' })
+      setFieldErrors({ text: tq.errorTextLength })
       return
     }
     if (difficulty < 1 || difficulty > 5) {
-      setFieldErrors({ difficulty: 'Tingkat kesulitan harus 1-5.' })
+      setFieldErrors({ difficulty: tq.errorDifficultyRange })
       return
     }
     if (tags.length > 10) {
-      setFieldErrors({ tags: 'Maksimal 10 tag.' })
+      setFieldErrors({ tags: tq.errorTagsMax })
       return
     }
 
@@ -107,7 +110,7 @@ export function QuestionForm({
       }
       setBanner({
         kind: 'success',
-        message: isEdit ? 'Pertanyaan diperbarui.' : 'Pertanyaan dibuat.',
+        message: isEdit ? tq.bannerUpdated : tq.bannerCreated,
       })
       if (!isEdit) {
         // Reset for next entry
@@ -125,7 +128,7 @@ export function QuestionForm({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1">
         <label htmlFor="question-text" className="block text-sm font-medium">
-          Pertanyaan
+          {tq.labelQuestion}
         </label>
         <textarea
           id="question-text"
@@ -136,7 +139,7 @@ export function QuestionForm({
           maxLength={1000}
           required
           disabled={pending}
-          placeholder="Tulis pertanyaan wawancara yang jelas dan terbuka…"
+          placeholder={tq.placeholderQuestion}
           aria-invalid={Boolean(fieldErrors.text)}
           className={inputClass}
         />
@@ -144,7 +147,7 @@ export function QuestionForm({
           {fieldErrors.text ? (
             <p className="text-destructive">{fieldErrors.text}</p>
           ) : (
-            <span className="text-muted-foreground">10-1000 karakter</span>
+            <span className="text-muted-foreground">{tq.hintCharCount}</span>
           )}
           <span className="text-muted-foreground">{text.trim().length}</span>
         </div>
@@ -153,7 +156,7 @@ export function QuestionForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <label htmlFor="question-category" className="block text-sm font-medium">
-            Kategori
+            {tq.labelCategory}
           </label>
           <select
             id="question-category"
@@ -178,10 +181,10 @@ export function QuestionForm({
         </div>
 
         <div className="space-y-1">
-          <span className="block text-sm font-medium">Tingkat kesulitan</span>
+          <span className="block text-sm font-medium">{tq.labelDifficulty}</span>
           <div
             role="radiogroup"
-            aria-label="Tingkat kesulitan 1-5"
+            aria-label={tq.ariaDifficultyGroup}
             className="flex items-center gap-1"
           >
             {[1, 2, 3, 4, 5].map((n) => {
@@ -192,7 +195,7 @@ export function QuestionForm({
                   type="button"
                   role="radio"
                   aria-checked={difficulty === n}
-                  aria-label={`Tingkat kesulitan ${n}`}
+                  aria-label={tq.ariaDifficultyN.replace('{n}', String(n))}
                   onClick={() => setDifficulty(n)}
                   disabled={pending}
                   className="rounded-md p-1 transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
@@ -219,18 +222,18 @@ export function QuestionForm({
       </div>
 
       <div className="space-y-1">
-        <label className="block text-sm font-medium">Tag (opsional)</label>
+        <label className="block text-sm font-medium">{tq.labelTags}</label>
         <SkillAutocomplete
           value={tags}
           onChange={setTags}
           disabled={pending}
-          placeholder="Ketik untuk mencari skill/topik, Enter untuk menambah"
+          placeholder={tq.placeholderTags}
         />
         {fieldErrors.tags ? (
           <p className="text-destructive text-xs">{fieldErrors.tags}</p>
         ) : (
           <p className="text-muted-foreground text-xs">
-            Maksimal 10 tag, otomatis dinormalisasi ke slug.
+            {tq.hintTags}
           </p>
         )}
       </div>
@@ -255,10 +258,10 @@ export function QuestionForm({
           className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending
-            ? 'Menyimpan…'
+            ? tq.btnSaving
             : isEdit
-              ? 'Simpan perubahan'
-              : 'Tambah pertanyaan'}
+              ? tq.btnSaveEdit
+              : tq.btnSaveNew}
         </button>
         {onCancel && (
           <button
@@ -267,7 +270,7 @@ export function QuestionForm({
             disabled={pending}
             className="border-input text-foreground inline-flex items-center justify-center rounded-md border bg-transparent px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Batal
+            {tq.btnCancel}
           </button>
         )}
       </div>

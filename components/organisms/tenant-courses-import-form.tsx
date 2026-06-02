@@ -10,6 +10,7 @@ import {
   type PreviewResult,
   type ImportResult,
 } from '@/lib/tenants/course-import-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -35,6 +36,8 @@ export function TenantCoursesImportForm({
   tenantSlug: string
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsTenantImport.coursesImport
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [pending, startTransition] = useTransition()
   const [csvText, setCsvText] = useState('')
@@ -58,7 +61,7 @@ export function TenantCoursesImportForm({
     reader.onerror = () => {
       setStage({
         kind: 'upload',
-        error: 'Gagal membaca file. Coba lagi.',
+        error: tl.fileReadError,
       })
     }
     reader.readAsText(file, 'utf-8')
@@ -68,7 +71,7 @@ export function TenantCoursesImportForm({
     if (!csvText.trim()) {
       setStage({
         kind: 'upload',
-        error: 'Tempel atau unggah CSV terlebih dahulu.',
+        error: tl.csvEmptyError,
       })
       return
     }
@@ -106,7 +109,7 @@ export function TenantCoursesImportForm({
       <div className="space-y-5">
         <div className="space-y-2">
           <label htmlFor="csv-file" className={labelClass}>
-            Unggah file CSV
+            {tl.uploadFileLabel}
           </label>
           <input
             ref={fileInputRef}
@@ -118,13 +121,13 @@ export function TenantCoursesImportForm({
             className={inputClass}
           />
           <p className="text-muted-foreground text-xs">
-            Atau tempel langsung isi CSV di bawah ini.
+            {tl.uploadOrPaste}
           </p>
         </div>
 
         <div className="space-y-2">
           <label htmlFor="csv-text" className={labelClass}>
-            Tempel isi CSV
+            {tl.pasteLabel}
           </label>
           <textarea
             id="csv-text"
@@ -153,7 +156,7 @@ export function TenantCoursesImportForm({
             className={btnPrimary}
           >
             <Upload className="h-4 w-4" aria-hidden="true" />
-            {pending ? 'Memproses…' : 'Parse & preview'}
+            {pending ? tl.btnParsePending : tl.btnParse}
           </button>
           {csvText && (
             <button
@@ -165,7 +168,7 @@ export function TenantCoursesImportForm({
               disabled={pending}
               className={btnSecondary}
             >
-              Bersihkan
+              {tl.btnClear}
             </button>
           )}
         </div>
@@ -180,17 +183,17 @@ export function TenantCoursesImportForm({
         <div className="border-border flex flex-wrap items-center gap-4 rounded-2xl border bg-card p-4 text-sm">
           <div>
             <p className="text-muted-foreground text-xs uppercase">
-              Total baris
+              {tl.statTotalRows}
             </p>
             <p className="text-foreground font-semibold">{preview.totalRows}</p>
           </div>
           <div>
-            <p className="text-muted-foreground text-xs uppercase">Valid</p>
+            <p className="text-muted-foreground text-xs uppercase">{tl.statValid}</p>
             <p className="text-success font-semibold">{preview.validCount}</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase">
-              Bermasalah
+              {tl.statInvalid}
             </p>
             <p className="text-destructive font-semibold">
               {preview.invalidCount}
@@ -199,7 +202,7 @@ export function TenantCoursesImportForm({
         </div>
 
         <div className="space-y-2">
-          <p className={labelClass}>Header terdeteksi</p>
+          <p className={labelClass}>{tl.detectedHeaders}</p>
           <div className="flex flex-wrap gap-2">
             {preview.headers.map((h, idx) => (
               <code
@@ -216,11 +219,11 @@ export function TenantCoursesImportForm({
           <table className="min-w-full text-sm">
             <thead className="bg-muted/50 text-left">
               <tr>
-                <th className="p-3 font-medium">Baris</th>
-                <th className="p-3 font-medium">Status</th>
-                <th className="p-3 font-medium">Judul</th>
-                <th className="p-3 font-medium">Level</th>
-                <th className="p-3 font-medium">Catatan</th>
+                <th className="p-3 font-medium">{tl.colRow}</th>
+                <th className="p-3 font-medium">{tl.colStatus}</th>
+                <th className="p-3 font-medium">{tl.colTitle}</th>
+                <th className="p-3 font-medium">{tl.colLevel}</th>
+                <th className="p-3 font-medium">{tl.colNotes}</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -233,12 +236,12 @@ export function TenantCoursesImportForm({
                       {isValid ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
                           <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
-                          Valid
+                          {tl.badgeValid}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
                           <XCircle className="h-3 w-3" aria-hidden="true" />
-                          Error
+                          {tl.badgeError}
                         </span>
                       )}
                     </td>
@@ -283,8 +286,8 @@ export function TenantCoursesImportForm({
             className={btnPrimary}
           >
             {pending
-              ? 'Mengimpor…'
-              : `Impor ${preview.validCount} baris valid`}
+              ? tl.btnImportPending
+              : tl.btnImport.replace('{count}', String(preview.validCount))}
           </button>
           <button
             type="button"
@@ -292,7 +295,7 @@ export function TenantCoursesImportForm({
             disabled={pending}
             className={btnSecondary}
           >
-            Batal
+            {tl.btnCancel}
           </button>
         </div>
       </div>
@@ -325,20 +328,20 @@ export function TenantCoursesImportForm({
           )}
           <div className="space-y-2 text-sm">
             <p className="font-heading text-lg">
-              {allOk ? 'Impor selesai' : 'Impor selesai sebagian'}
+              {allOk ? tl.resultDoneTitle : tl.resultPartialTitle}
             </p>
             <ul className="space-y-1">
               <li>
-                Total baris: <span className="font-mono">{result.total}</span>
+                {tl.resultTotalRows}: <span className="font-mono">{result.total}</span>
               </li>
               <li>
-                Berhasil dibuat:{' '}
+                {tl.resultCreated}:{' '}
                 <span className="text-success font-mono font-semibold">
                   {result.created}
                 </span>
               </li>
               <li>
-                Dilewati:{' '}
+                {tl.resultSkipped}:{' '}
                 <span className="text-destructive font-mono font-semibold">
                   {result.skipped}
                 </span>
@@ -353,8 +356,8 @@ export function TenantCoursesImportForm({
           <table className="min-w-full text-sm">
             <thead className="bg-muted/50 text-left">
               <tr>
-                <th className="p-3 font-medium">Baris</th>
-                <th className="p-3 font-medium">Pesan</th>
+                <th className="p-3 font-medium">{tl.colRow}</th>
+                <th className="p-3 font-medium">{tl.colMessage}</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -375,10 +378,10 @@ export function TenantCoursesImportForm({
           href={`/dashboard/tenants/${tenantSlug}/kursus` as any}
           className={btnPrimary}
         >
-          Lihat daftar kursus
+          {tl.btnViewCourses}
         </Link>
         <button type="button" onClick={resetToUpload} className={btnSecondary}>
-          Impor lagi
+          {tl.btnImportAgain}
         </button>
       </div>
     </div>

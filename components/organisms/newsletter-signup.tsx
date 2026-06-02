@@ -14,19 +14,13 @@ import {
 import { Button } from '@/components/atoms/button'
 import { Input } from '@/components/atoms/input'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface NewsletterSignupProps {
   className?: string
 }
 
 type SubmissionStatus = 'idle' | 'submitting' | 'success'
-
-const BENEFITS = [
-  'Lowongan eksklusif sebelum dipublikasikan',
-  'Tips karier dari para ahli',
-  'Insight gaji industri terkini',
-  'Berhenti berlangganan kapan saja',
-] as const
 
 const FLOATING_SHAPES = [
   {
@@ -61,6 +55,9 @@ const FLOATING_SHAPES = [
 
 export function NewsletterSignup(props: NewsletterSignupProps): JSX.Element {
   const { className } = props
+  const { t } = useI18n()
+  const tn = t.formsMarketing.newsletter
+
   const [email, setEmail] = React.useState('')
   const [name, setName] = React.useState('')
   const [status, setStatus] = React.useState<SubmissionStatus>('idle')
@@ -141,23 +138,22 @@ export function NewsletterSignup(props: NewsletterSignupProps): JSX.Element {
             <div className="relative">
               <div className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/15 px-3 py-1.5 text-xs font-medium text-secondary">
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Newsletter Mingguan</span>
+                <span>{tn.badge}</span>
               </div>
 
               <h2
                 id="newsletter-signup-heading"
                 className="mt-5 font-heading text-3xl text-primary-foreground md:text-4xl"
               >
-                Dapatkan 5 Lowongan Premium Setiap Senin
+                {tn.heading}
               </h2>
 
               <p className="mt-4 max-w-lg text-base text-primary-foreground/80">
-                Kurasi pilihan dari editor RPI berdasarkan minat dan keahlianmu.
-                Eksklusif untuk pelanggan email.
+                {tn.body}
               </p>
 
               <ul className="mt-6 space-y-3" role="list">
-                {BENEFITS.map((benefit) => (
+                {tn.benefits.map((benefit) => (
                   <li
                     key={benefit}
                     className="flex items-start gap-3 text-sm text-primary-foreground/90"
@@ -189,10 +185,10 @@ export function NewsletterSignup(props: NewsletterSignupProps): JSX.Element {
                   />
                   <div>
                     <p className="font-semibold">
-                      Berhasil! Cek email-mu untuk konfirmasi.
+                      {tn.successTitle}
                     </p>
                     <p className="mt-1 text-sm text-secondary/90">
-                      Terima kasih telah bergabung dengan newsletter RPI.
+                      {tn.successBody}
                     </p>
                   </div>
                 </motion.div>
@@ -208,14 +204,14 @@ export function NewsletterSignup(props: NewsletterSignupProps): JSX.Element {
                         htmlFor="newsletter-email"
                         className="text-sm text-primary-foreground/80"
                       >
-                        Email
+                        {tn.emailLabel}
                       </label>
                       <Input
                         id="newsletter-email"
                         type="email"
                         required
                         autoComplete="email"
-                        placeholder="kamu@email.com"
+                        placeholder={tn.emailPlaceholder}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         disabled={isSubmitting}
@@ -229,13 +225,13 @@ export function NewsletterSignup(props: NewsletterSignupProps): JSX.Element {
                         htmlFor="newsletter-name"
                         className="text-sm text-primary-foreground/80"
                       >
-                        Nama (opsional)
+                        {tn.nameLabel}
                       </label>
                       <Input
                         id="newsletter-name"
                         type="text"
                         autoComplete="name"
-                        placeholder="Nama lengkap"
+                        placeholder={tn.namePlaceholder}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         disabled={isSubmitting}
@@ -250,7 +246,7 @@ export function NewsletterSignup(props: NewsletterSignupProps): JSX.Element {
                       size="lg"
                       disabled={isSubmitting}
                       className="w-full"
-                      aria-label="Berlangganan newsletter"
+                      aria-label={tn.ariaSubmit}
                     >
                       {isSubmitting ? (
                         <>
@@ -258,11 +254,11 @@ export function NewsletterSignup(props: NewsletterSignupProps): JSX.Element {
                             className="h-4 w-4 animate-spin"
                             aria-hidden="true"
                           />
-                          <span>Mengirim...</span>
+                          <span>{tn.submitBusy}</span>
                         </>
                       ) : (
                         <>
-                          <span>Berlangganan Gratis</span>
+                          <span>{tn.submitIdle}</span>
                           <ArrowRight
                             className="h-4 w-4"
                             aria-hidden="true"
@@ -273,7 +269,7 @@ export function NewsletterSignup(props: NewsletterSignupProps): JSX.Element {
 
                     <p className="flex items-center justify-center gap-2 text-xs text-primary-foreground/70">
                       <BellRing className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>Tanpa spam. Kami hargai privasimu.</span>
+                      <span>{tn.antiSpam}</span>
                     </p>
                   </div>
                 </form>

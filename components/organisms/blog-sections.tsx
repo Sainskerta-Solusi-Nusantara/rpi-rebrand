@@ -24,6 +24,7 @@ import {
   FEATURED_ARTICLE,
   REGULAR_ARTICLES,
 } from '@/lib/blog-data'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -83,6 +84,9 @@ export type BlogHeroProps = {
 }
 
 export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHeroProps) {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.blog
+
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -114,7 +118,7 @@ export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHer
         >
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Blog & Insight
+            {tc.hero.eyebrow}
           </span>
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
         </motion.div>
@@ -126,7 +130,7 @@ export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHer
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
           Cerita, riset, dan{' '}
-          <span className="text-[color:var(--ring)]">panduan praktis</span>
+          <span className="text-[color:var(--ring)]">{tc.hero.headingHighlight}</span>
           {' '}dari dunia kerja Indonesia.
         </motion.h1>
 
@@ -135,8 +139,7 @@ export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHer
           transition={{ duration: 0.55, delay: 0.15 }}
           className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg"
         >
-          Untuk pencari kerja, perekrut, dan pemimpin SDM. Ditulis tim editorial
-          RPI bersama praktisi industri — bukan konten generik AI.
+          {tc.hero.body}
         </motion.p>
 
         <motion.div
@@ -154,9 +157,9 @@ export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHer
               type="search"
               name="q"
               defaultValue={activeQuery}
-              placeholder="Cari artikel, topik, atau penulis…"
+              placeholder={tc.hero.searchPlaceholder}
               className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
-              aria-label="Cari artikel"
+              aria-label={tc.hero.searchLabel}
             />
             {activeQuery && (
               <Link
@@ -165,14 +168,14 @@ export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHer
                 className="text-muted-foreground hover:text-foreground text-xs font-medium"
                 aria-label="Hapus pencarian"
               >
-                Bersihkan
+                {tc.hero.clearSearch}
               </Link>
             )}
             <button
               type="submit"
               className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
             >
-              Cari
+              {tc.hero.searchBtn}
             </button>
             {/* Preserve category when submitting a search */}
             {activeCategory !== 'all' && (
@@ -218,6 +221,9 @@ export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHer
 // ---------------------------------------------------------------------------
 
 export function BlogFeatured() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.blog
+
   return (
     <section
       className="bg-background pb-12"
@@ -230,7 +236,7 @@ export function BlogFeatured() {
           id="blog-featured-heading"
           className="sr-only"
         >
-          Artikel Unggulan
+          {tc.featured.srHeading}
         </motion.h2>
         <motion.article
           {...fadeUp}
@@ -252,7 +258,7 @@ export function BlogFeatured() {
             <div className="absolute left-5 top-5">
               <span className="bg-background/90 text-foreground inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
                 <Sparkles className="h-3 w-3" aria-hidden />
-                Unggulan
+                {tc.featured.badge}
               </span>
             </div>
           </Link>
@@ -278,14 +284,14 @@ export function BlogFeatured() {
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" aria-hidden />
-                {FEATURED.readMin} menit baca
+                {tc.featured.readMin.replace('{n}', String(FEATURED.readMin))}
               </span>
             </div>
 
             <div>
               <Button asChild variant="default" className="mt-2">
                 <Link href={`/blog/${FEATURED.slug}`}>
-                  Baca artikel
+                  {tc.featured.readCta}
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                 </Link>
               </Button>
@@ -344,6 +350,9 @@ export function BlogGrid({
   activeSort,
   paginationLinks,
 }: BlogGridProps) {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.blog
+
   const activeCategoryLabel =
     activeCategory !== 'all'
       ? CATEGORIES.find((c) => c.slug === activeCategory)?.label
@@ -361,11 +370,12 @@ export function BlogGrid({
               id="blog-grid-heading"
               className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl"
             >
-              Artikel Terbaru
+              {tc.grid.heading}
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              {totalCount} artikel
-              {activeCategoryLabel && ` di kategori ${activeCategoryLabel}`}
+              {tc.grid.countBase.replace('{total}', String(totalCount))}
+              {activeCategoryLabel &&
+                tc.grid.countCategory.replace('{category}', activeCategoryLabel)}
               {activeQuery && (
                 <>
                   {' '}untuk &ldquo;
@@ -377,9 +387,9 @@ export function BlogGrid({
               )}
               {totalPages > 1 && (
                 <>
-                  {' '}· halaman{' '}
-                  <strong className="text-foreground font-medium">{page}</strong>{' '}
-                  dari {totalPages}
+                  {' '}{tc.grid.pageOf
+                    .replace('{page}', String(page))
+                    .replace('{total}', String(totalPages))}
                 </>
               )}
             </p>
@@ -393,7 +403,7 @@ export function BlogGrid({
               className="border-border bg-card flex items-center gap-1 rounded-full border p-1"
             >
               <span className="text-muted-foreground px-2 text-[10px] font-medium uppercase tracking-wider">
-                Urut
+                {tc.grid.sortLabel}
               </span>
               {sortOptions.map((opt) => {
                 const active = activeSort === opt.value
@@ -420,7 +430,7 @@ export function BlogGrid({
                 href={clearAllHref as any}
                 className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
               >
-                ✕ Bersihkan filter
+                {tc.grid.clearFilter}
               </Link>
             )}
           </div>
@@ -430,10 +440,10 @@ export function BlogGrid({
           <div className="border-border bg-card rounded-2xl border p-12 text-center">
             <Search className="text-muted-foreground mx-auto h-8 w-8" aria-hidden />
             <h3 className="font-heading text-foreground mt-4 text-lg font-semibold">
-              Tidak ada artikel yang cocok
+              {tc.grid.emptyHeading}
             </h3>
             <p className="text-muted-foreground mt-2 text-sm">
-              Coba ubah kata kunci atau pilih kategori lain.
+              {tc.grid.emptyBody}
             </p>
             {hasAnyFilter && (
               <Link
@@ -441,7 +451,7 @@ export function BlogGrid({
                 href={clearAllHref as any}
                 className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
               >
-                Bersihkan filter
+                {tc.grid.clearFilterLink}
               </Link>
             )}
           </div>
@@ -473,7 +483,7 @@ export function BlogGrid({
                     )
                   }
                   if (link.kind === 'prev' || link.kind === 'next') {
-                    const label = link.kind === 'prev' ? 'Sebelumnya' : 'Berikutnya'
+                    const label = link.kind === 'prev' ? tc.grid.prevPage : tc.grid.nextPage
                     const cls = link.disabled
                       ? 'border-border text-muted-foreground/40 inline-flex min-w-[36px] cursor-not-allowed items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm'
                       : 'border-border text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex min-w-[36px] items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-sm transition'
@@ -506,7 +516,7 @@ export function BlogGrid({
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         href={link.href as any}
                         className={cls}
-                        aria-label={`Halaman ${link.page}`}
+                        aria-label={tc.grid.pageLabel.replace('{page}', String(link.page))}
                         aria-current={link.active ? 'page' : undefined}
                       >
                         {link.page}
@@ -608,6 +618,9 @@ const TOPIC_TILES = [
 ]
 
 export function BlogTopics() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.blog
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -625,44 +638,44 @@ export function BlogTopics() {
               <div className="mb-4 flex items-center gap-3">
                 <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
                 <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Jelajahi Topik
+                  {tc.topics.eyebrow}
                 </span>
               </div>
               <h2
                 id="blog-topics-heading"
                 className="font-heading text-2xl font-semibold tracking-tight md:text-3xl"
               >
-                Cari berdasarkan topik
+                {tc.topics.heading}
               </h2>
             </motion.div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {TOPIC_TILES.map((t, i) => {
-                const Icon = t.icon
+              {TOPIC_TILES.map((tile, i) => {
+                const Icon = tile.icon
                 return (
                   <motion.a
-                    key={t.label}
+                    key={tile.label}
                     {...fadeUp}
                     transition={{ duration: 0.4, delay: 0.03 * i }}
-                    href={`/blog/topic/${t.slug}`}
+                    href={`/blog/topic/${tile.slug}`}
                     className="border-border bg-card hover:border-[color:var(--ring)] group flex flex-col gap-3 rounded-xl border p-4 transition"
                   >
                     <span
                       aria-hidden
                       className="grid size-9 place-items-center rounded-lg"
                       style={{
-                        background: `color-mix(in oklab, ${t.color} 12%, transparent)`,
-                        color: t.color,
+                        background: `color-mix(in oklab, ${tile.color} 12%, transparent)`,
+                        color: tile.color,
                       }}
                     >
                       <Icon className="h-4 w-4" />
                     </span>
                     <div>
                       <div className="font-heading text-foreground text-sm font-semibold">
-                        {t.label}
+                        {tile.label}
                       </div>
                       <div className="text-muted-foreground text-xs">
-                        {t.count} artikel
+                        {tc.topics.articleCount.replace('{count}', String(tile.count))}
                       </div>
                     </div>
                   </motion.a>
@@ -679,7 +692,7 @@ export function BlogTopics() {
             <div className="mb-6 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Terpopuler 30 Hari
+                {tc.topics.popularEyebrow}
               </span>
             </div>
             <ol className="border-border bg-card divide-border divide-y overflow-hidden rounded-2xl border">
@@ -698,7 +711,7 @@ export function BlogTopics() {
                       </h3>
                       <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
                         <BookOpen className="h-3 w-3" aria-hidden />
-                        {p.reads} dibaca
+                        {tc.topics.reads.replace('{reads}', p.reads)}
                       </div>
                     </div>
                   </a>

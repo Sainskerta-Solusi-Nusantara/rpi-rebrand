@@ -13,6 +13,7 @@ import {
   type KanbanData,
 } from '@/lib/applications/kanban-queries'
 import { KanbanCard } from './kanban-card'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Props = {
   tenantSlug: string
@@ -52,6 +53,8 @@ export function ApplicationKanbanBoard({
   filters,
 }: Props) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsApplications.kanban
   const [state, setState] = useState<BoardState>(() => buildInitialState(initial))
   const [showArchived, setShowArchived] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -155,7 +158,7 @@ export function ApplicationKanbanBoard({
     if (fromStatus === toStatus) return
     // WITHDRAWN is candidate-only; the server rejects it. Block in UI too.
     if (toStatus === ('WITHDRAWN' as ApplicationStatus)) {
-      setError('Status "Dibatalkan" hanya bisa diatur oleh pelamar.')
+      setError(tl.withdrawnOnlyCandidate)
       return
     }
 
@@ -247,7 +250,7 @@ export function ApplicationKanbanBoard({
                 ))}
                 {list.length === 0 ? (
                   <li className="text-muted-foreground rounded-md border border-dashed py-6 text-center text-xs">
-                    Tarik kartu ke sini
+                    {tl.columnEmptyDrop}
                   </li>
                 ) : null}
               </ul>
@@ -278,6 +281,8 @@ function FilterBar({
   jobs: { id: string; title: string }[]
   filters: { jobId?: string; q?: string }
 }) {
+  const { t } = useI18n()
+  const tl = t.formsApplications.kanban
   const baseHref = `/dashboard/tenants/${tenantSlug}/lamaran/kanban`
   return (
     <form
@@ -287,7 +292,7 @@ function FilterBar({
     >
       <div className="space-y-1 sm:col-span-1">
         <label htmlFor="k-job" className="text-muted-foreground text-xs uppercase">
-          Lowongan
+          {tl.filterJobLabel}
         </label>
         <select
           id="k-job"
@@ -295,7 +300,7 @@ function FilterBar({
           defaultValue={filters.jobId ?? ''}
           className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm"
         >
-          <option value="">Semua lowongan</option>
+          <option value="">{tl.filterJobAll}</option>
           {jobs.map((j) => (
             <option key={j.id} value={j.id}>
               {j.title}
@@ -305,7 +310,7 @@ function FilterBar({
       </div>
       <div className="space-y-1 sm:col-span-2">
         <label htmlFor="k-q" className="text-muted-foreground text-xs uppercase">
-          Cari pelamar
+          {tl.filterCandidateLabel}
         </label>
         <div className="relative">
           <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
@@ -314,7 +319,7 @@ function FilterBar({
             name="q"
             type="text"
             defaultValue={filters.q ?? ''}
-            placeholder="Nama atau email pelamar"
+            placeholder={tl.filterCandidatePlaceholder}
             className="border-border bg-background block w-full rounded-md border py-2 pl-9 pr-3 text-sm"
           />
         </div>
@@ -324,7 +329,7 @@ function FilterBar({
           type="submit"
           className="bg-primary text-primary-foreground inline-flex h-10 w-full items-center justify-center rounded-md px-4 text-sm font-medium"
         >
-          Terapkan
+          {tl.filterApplyBtn}
         </button>
       </div>
     </form>
@@ -352,6 +357,8 @@ function ArchivedFooter({
   ) => void
   onDragEnd: (e: React.DragEvent<HTMLLIElement>) => void
 }) {
+  const { t } = useI18n()
+  const tl = t.formsApplications.kanban
   return (
     <div className="border-border bg-muted/20 rounded-xl border">
       <button
@@ -361,7 +368,7 @@ function ArchivedFooter({
         className="hover:bg-muted/40 flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
       >
         <span className="flex items-center gap-2">
-          Arsip (Ditolak / Dibatalkan)
+          {tl.archivedToggle}
           <span className="text-muted-foreground bg-background rounded-full px-2 py-0.5 text-xs">
             {cards.length}
           </span>
@@ -389,7 +396,7 @@ function ArchivedFooter({
           ))}
           {cards.length === 0 ? (
             <li className="text-muted-foreground col-span-full rounded-md border border-dashed py-6 text-center text-xs">
-              Belum ada lamaran terarsip.
+              {tl.archivedEmpty}
             </li>
           ) : null}
         </ul>

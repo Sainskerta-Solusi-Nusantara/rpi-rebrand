@@ -11,19 +11,13 @@ import {
   RECOMMENDATION_VALUES,
   type RecommendationValue,
 } from '@/lib/interviews/scorecard-defaults'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Recommendation =
   | 'strong_hire'
   | 'hire'
   | 'no_hire'
   | 'strong_no_hire'
-
-const RECOMMENDATION_OPTIONS: { value: Recommendation; label: string }[] = [
-  { value: 'strong_hire', label: 'Sangat direkomendasikan' },
-  { value: 'hire', label: 'Direkomendasikan' },
-  { value: 'no_hire', label: 'Tidak direkomendasikan' },
-  { value: 'strong_no_hire', label: 'Sangat tidak direkomendasikan' },
-]
 
 export type ScorecardFormInitial = {
   ratings: Array<{ criterion: string; score: number }>
@@ -65,7 +59,7 @@ function buildInitialRows(
 }
 
 function isRecommendation(value: string): value is Recommendation {
-  return RECOMMENDATION_OPTIONS.some((o) => o.value === value)
+  return ['strong_hire', 'hire', 'no_hire', 'strong_no_hire'].includes(value)
 }
 
 /**
@@ -83,6 +77,8 @@ export function ScorecardForm({
   defaultCriteria: string[]
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tf = t.formsInterviewSched.scorecardForm
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<
     { kind: 'error' | 'success'; message: string } | null
@@ -99,6 +95,13 @@ export function ScorecardForm({
   const [recommendation, setRecommendation] =
     useState<Recommendation>(initialRec)
   const [notes, setNotes] = useState<string>(initial?.notes ?? '')
+
+  const RECOMMENDATION_OPTIONS: { value: Recommendation; labelKey: keyof typeof tf }[] = [
+    { value: 'strong_hire', labelKey: 'recStrongHire' },
+    { value: 'hire', labelKey: 'recHire' },
+    { value: 'no_hire', labelKey: 'recNoHire' },
+    { value: 'strong_no_hire', labelKey: 'recStrongNoHire' },
+  ]
 
   function updateCriterion(key: string, value: string) {
     setRows((cur) =>
@@ -130,11 +133,11 @@ export function ScorecardForm({
       .filter((r) => r.criterion.length > 0)
 
     if (cleanRows.length === 0) {
-      setFieldErrors({ ratings: 'Minimal satu kriteria penilaian' })
+      setFieldErrors({ ratings: tf.errMinOneCriterion })
       return
     }
     if (cleanRows.length > 10) {
-      setFieldErrors({ ratings: 'Maksimal 10 kriteria penilaian' })
+      setFieldErrors({ ratings: tf.errMaxTenCriteria })
       return
     }
 
@@ -156,8 +159,8 @@ export function ScorecardForm({
       setBanner({
         kind: 'success',
         message: res.data?.created
-          ? 'Scorecard disimpan.'
-          : 'Scorecard diperbarui.',
+          ? tf.successCreated
+          : tf.successUpdated,
       })
       router.refresh()
     })
@@ -167,7 +170,7 @@ export function ScorecardForm({
     <form onSubmit={onSubmit} className="space-y-6">
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold">Kriteria penilaian</h3>
+          <h3 className="text-sm font-semibold">{tf.headingCriteria}</h3>
           <span className="text-muted-foreground text-xs">
             {rows.length}/10
           </span>
@@ -189,13 +192,13 @@ export function ScorecardForm({
                     htmlFor={`criterion-${row.key}`}
                     className="text-muted-foreground text-xs uppercase"
                   >
-                    Kriteria {idx + 1}
+                    {tf.labelCriterion.replace('{n}', String(idx + 1))}
                   </label>
                   <input
                     id={`criterion-${row.key}`}
                     type="text"
                     maxLength={100}
-                    placeholder="Contoh: Pengetahuan teknis"
+                    placeholder={tf.criterionPlaceholderLegacy}
                     value={row.criterion}
                     onChange={(e) => updateCriterion(row.key, e.target.value)}
                     disabled={pending}
@@ -207,7 +210,7 @@ export function ScorecardForm({
                   onClick={() => removeRow(row.key)}
                   disabled={pending || rows.length <= 1}
                   className="border-input text-muted-foreground hover:text-destructive hover:border-destructive/30 mt-5 inline-flex items-center justify-center rounded-md border bg-transparent p-2 text-xs disabled:cursor-not-allowed disabled:opacity-40"
-                  aria-label="Hapus kriteria"
+                  aria-label={tf.btnRemoveCriterion}
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -215,7 +218,7 @@ export function ScorecardForm({
 
               <fieldset className="space-y-1">
                 <legend className="text-muted-foreground text-xs uppercase">
-                  Skor
+                  {tf.legendScore}
                 </legend>
                 <div className="flex flex-wrap gap-2">
                   {[1, 2, 3, 4, 5].map((n) => {
@@ -255,12 +258,12 @@ export function ScorecardForm({
           className="border-input text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-transparent px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          Tambah kriteria
+          {tf.btnAddCriterion}
         </button>
       </section>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-semibold">Rekomendasi</legend>
+        <legend className="text-sm font-semibold">{tf.legendRecommendation}</legend>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {RECOMMENDATION_OPTIONS.map((opt) => {
             const active = recommendation === opt.value
@@ -279,7 +282,7 @@ export function ScorecardForm({
                   onChange={() => setRecommendation(opt.value)}
                   disabled={pending}
                 />
-                <span>{opt.label}</span>
+                <span>{tf[opt.labelKey]}</span>
               </label>
             )
           })}
@@ -288,7 +291,7 @@ export function ScorecardForm({
 
       <div className="space-y-1">
         <label htmlFor="notes" className="block text-sm font-medium">
-          Catatan (opsional)
+          {tf.labelNotesLegacy}
         </label>
         <textarea
           id="notes"
@@ -297,11 +300,11 @@ export function ScorecardForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           disabled={pending}
-          placeholder="Kekuatan, area pengembangan, kekhawatiran, langkah berikutnya…"
+          placeholder={tf.notesPlaceholder}
           className={inputClass}
         />
         <p className="text-muted-foreground text-xs">
-          {notes.length}/5000 karakter
+          {tf.notesCharCount.replace('{count}', String(notes.length))}
         </p>
         {fieldErrors.notes && (
           <p className="text-destructive text-xs">{fieldErrors.notes}</p>
@@ -327,7 +330,7 @@ export function ScorecardForm({
           disabled={pending}
           className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? 'Menyimpan…' : 'Simpan scorecard'}
+          {pending ? tf.btnSaving : tf.btnSaveScorecard}
         </button>
       </div>
     </form>
@@ -366,6 +369,8 @@ export function InterviewScorecardForm({
   allowDelete?: boolean
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tf = t.formsInterviewSched.scorecardForm
   const [pending, startTransition] = useTransition()
   const [deleting, startDelete] = useTransition()
   const [banner, setBanner] = useState<
@@ -416,7 +421,7 @@ export function InterviewScorecardForm({
       .filter((r) => r.criterion.length > 0)
 
     if (cleanRows.length === 0) {
-      setFieldErrors({ ratings: 'Minimal satu kriteria penilaian' })
+      setFieldErrors({ ratings: tf.errMinOneCriterion })
       return
     }
 
@@ -438,8 +443,8 @@ export function InterviewScorecardForm({
       setBanner({
         kind: 'success',
         message: res.data?.created
-          ? 'Scorecard disimpan.'
-          : 'Scorecard diperbarui.',
+          ? tf.successCreated
+          : tf.successUpdated,
       })
       router.refresh()
     })
@@ -447,7 +452,7 @@ export function InterviewScorecardForm({
 
   function onDelete() {
     if (!allowDelete) return
-    if (!confirm('Hapus scorecard ini? Tindakan ini tidak bisa dibatalkan.'))
+    if (!confirm(tf.confirmDelete))
       return
     setBanner(null)
     setFieldErrors({})
@@ -457,7 +462,7 @@ export function InterviewScorecardForm({
         setBanner({ kind: 'error', message: res.error })
         return
       }
-      setBanner({ kind: 'success', message: 'Scorecard dihapus.' })
+      setBanner({ kind: 'success', message: tf.successDeleted })
       router.refresh()
     })
   }
@@ -465,10 +470,10 @@ export function InterviewScorecardForm({
   const busy = pending || deleting
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6" aria-label="Scorecard Wawancara">
+    <form onSubmit={onSubmit} className="space-y-6" aria-label={tf.formAriaLabel}>
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold">Kriteria penilaian</h3>
+          <h3 className="text-sm font-semibold">{tf.headingCriteria}</h3>
           <span className="text-muted-foreground text-xs">{rows.length}/15</span>
         </div>
 
@@ -488,13 +493,13 @@ export function InterviewScorecardForm({
                     htmlFor={`ifc-criterion-${row.key}`}
                     className="text-muted-foreground text-xs uppercase"
                   >
-                    Kriteria {idx + 1}
+                    {tf.labelCriterion.replace('{n}', String(idx + 1))}
                   </label>
                   <input
                     id={`ifc-criterion-${row.key}`}
                     type="text"
                     maxLength={100}
-                    placeholder="Contoh: Komunikasi"
+                    placeholder={tf.criterionPlaceholder}
                     value={row.criterion}
                     onChange={(e) => updateCriterion(row.key, e.target.value)}
                     disabled={busy}
@@ -506,7 +511,7 @@ export function InterviewScorecardForm({
                   onClick={() => removeRow(row.key)}
                   disabled={busy || rows.length <= 1}
                   className="border-input text-muted-foreground hover:text-destructive hover:border-destructive/30 mt-5 inline-flex items-center justify-center rounded-md border bg-transparent p-2 text-xs disabled:cursor-not-allowed disabled:opacity-40"
-                  aria-label="Hapus kriteria"
+                  aria-label={tf.btnRemoveCriterion}
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -514,7 +519,7 @@ export function InterviewScorecardForm({
 
               <fieldset className="space-y-1">
                 <legend className="text-muted-foreground text-xs uppercase">
-                  Skor (1–5)
+                  {tf.legendScoreRange}
                 </legend>
                 <div className="flex flex-wrap gap-2">
                   {[1, 2, 3, 4, 5].map((n) => {
@@ -538,7 +543,7 @@ export function InterviewScorecardForm({
                           className="sr-only"
                         />
                         <span aria-hidden="true">{'★'.repeat(n)}</span>
-                        <span className="sr-only">{n} bintang</span>
+                        <span className="sr-only">{tf.starsSrOnly.replace('{n}', String(n))}</span>
                       </label>
                     )
                   })}
@@ -555,12 +560,12 @@ export function InterviewScorecardForm({
           className="border-input text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-transparent px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          Tambah kriteria
+          {tf.btnAddCriterion}
         </button>
       </section>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-semibold">Rekomendasi</legend>
+        <legend className="text-sm font-semibold">{tf.legendRecommendation}</legend>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {RECOMMENDATION_VALUES.map((value) => {
             const meta = RECOMMENDATION_LABELS[value]
@@ -594,7 +599,7 @@ export function InterviewScorecardForm({
 
       <div className="space-y-1">
         <label htmlFor="ifc-notes" className="block text-sm font-medium">
-          Catatan tambahan
+          {tf.labelNotes}
         </label>
         <textarea
           id="ifc-notes"
@@ -603,11 +608,11 @@ export function InterviewScorecardForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           disabled={busy}
-          placeholder="Kekuatan, area pengembangan, kekhawatiran, langkah berikutnya…"
+          placeholder={tf.notesPlaceholder}
           className={inputClass}
         />
         <p className="text-muted-foreground text-xs">
-          {notes.length}/5000 karakter
+          {tf.notesCharCount.replace('{count}', String(notes.length))}
         </p>
         {fieldErrors.notes && (
           <p className="text-destructive text-xs">{fieldErrors.notes}</p>
@@ -633,7 +638,7 @@ export function InterviewScorecardForm({
           disabled={busy}
           className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? 'Menyimpan…' : 'Simpan scorecard'}
+          {pending ? tf.btnSaving : tf.btnSaveScorecard}
         </button>
         {allowDelete && initial && (
           <button
@@ -642,7 +647,7 @@ export function InterviewScorecardForm({
             disabled={busy}
             className="border-destructive/40 text-destructive hover:bg-destructive/10 inline-flex items-center justify-center rounded-md border bg-transparent px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {deleting ? 'Menghapus…' : 'Hapus scorecard'}
+            {deleting ? tf.btnDeleting : tf.btnDeleteScorecard}
           </button>
         )}
       </div>

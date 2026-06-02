@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { X, Send, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { sendOutreach } from '@/lib/talent-pool/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export function TalentPoolOutreachModal({
   tenantSlug,
@@ -17,6 +18,8 @@ export function TalentPoolOutreachModal({
   candidateHeadline: string | null
   triggerLabel?: string
 }) {
+  const { t } = useI18n()
+  const tl = t.formsApplications.talentOutreach
   const [open, setOpen] = useState(false)
   const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -58,11 +61,11 @@ export function TalentPoolOutreachModal({
     setSuccess(false)
     const trimmed = body.trim()
     if (trimmed.length < 10) {
-      setError('Pesan minimal 10 karakter.')
+      setError(tl.errorMinLength)
       return
     }
     if (trimmed.length > 2000) {
-      setError('Pesan maksimal 2000 karakter.')
+      setError(tl.errorMaxLength)
       return
     }
     startTransition(async () => {
@@ -107,7 +110,7 @@ export function TalentPoolOutreachModal({
                   id="outreach-title"
                   className="font-heading text-lg text-foreground"
                 >
-                  Kirim pesan ke {candidateName}
+                  {tl.heading.replace('{name}', candidateName)}
                 </h2>
                 {candidateHeadline && (
                   <p className="text-muted-foreground mt-0.5 text-sm">
@@ -132,8 +135,7 @@ export function TalentPoolOutreachModal({
                 aria-hidden="true"
               />
               <p className="text-muted-foreground">
-                Pesan dikirim sebagai tawaran satu arah. Kandidat dapat
-                membalas hanya setelah melamar lowongan Anda.
+                {tl.disclaimer}
               </p>
             </div>
 
@@ -141,7 +143,7 @@ export function TalentPoolOutreachModal({
               htmlFor="outreach-body"
               className="text-muted-foreground mb-1 block text-xs uppercase"
             >
-              Pesan ({body.trim().length}/2000)
+              {tl.bodyLabel.replace('{count}', String(body.trim().length))}
             </label>
             <textarea
               ref={textareaRef}
@@ -151,7 +153,7 @@ export function TalentPoolOutreachModal({
               disabled={pending || success}
               rows={6}
               maxLength={2000}
-              placeholder="Halo, saya tertarik dengan profil Anda untuk posisi…"
+              placeholder={tl.bodyPlaceholder}
               className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm disabled:opacity-60"
             />
 
@@ -170,7 +172,7 @@ export function TalentPoolOutreachModal({
                 className="mt-3 flex items-center gap-1.5 text-xs text-green-700"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                Pesan terkirim. Kandidat akan menerima notifikasi.
+                {tl.successMsg}
               </div>
             )}
 
@@ -181,7 +183,7 @@ export function TalentPoolOutreachModal({
                 disabled={pending}
                 className="border-border bg-background hover:bg-muted rounded-md border px-3 py-1.5 text-sm disabled:opacity-50"
               >
-                {success ? 'Tutup' : 'Batal'}
+                {success ? tl.closeBtn : tl.cancelBtn}
               </button>
               {!success && (
                 <button
@@ -191,7 +193,7 @@ export function TalentPoolOutreachModal({
                   className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Send className="h-3.5 w-3.5" aria-hidden="true" />
-                  {pending ? 'Mengirim…' : 'Kirim pesan'}
+                  {pending ? tl.sendPending : tl.sendBtn}
                 </button>
               )}
             </div>

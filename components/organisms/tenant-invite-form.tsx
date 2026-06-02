@@ -7,18 +7,22 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import type { TenantRole } from '@prisma/client'
 import { createTenantInvite, revokeTenantInvite } from '@/lib/tenants/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const INVITABLE_ROLES = ['ADMIN', 'RECRUITER', 'MEMBER'] as const
 
-const schema = z.object({
-  email: z.string().email('Email tidak valid'),
-  role: z.enum(INVITABLE_ROLES),
-})
-
-type FormValues = z.infer<typeof schema>
-
 export function TenantInviteForm({ tenantSlug }: { tenantSlug: string }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsTenantMisc.inviteForm
+
+  const schema = z.object({
+    email: z.string().email(tl.errors.emailInvalid),
+    role: z.enum(INVITABLE_ROLES),
+  })
+
+  type FormValues = z.infer<typeof schema>
+
   const [isPending, startTransition] = useTransition()
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -50,7 +54,7 @@ export function TenantInviteForm({ tenantSlug }: { tenantSlug: string }) {
         }
         return
       }
-      setSuccess(`Undangan dikirim ke ${values.email}.`)
+      setSuccess(tl.successMsg.replace('{email}', values.email))
       reset({ email: '', role: values.role })
       router.refresh()
     })
@@ -64,12 +68,12 @@ export function TenantInviteForm({ tenantSlug }: { tenantSlug: string }) {
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="flex-1 space-y-1">
           <label htmlFor="invite-email" className="block text-sm font-medium text-foreground">
-            Email
+            {tl.emailLabel}
           </label>
           <input
             id="invite-email"
             type="email"
-            placeholder="nama@email.com"
+            placeholder={tl.emailPlaceholder}
             aria-invalid={Boolean(errors.email)}
             className={inputClass}
             {...register('email')}
@@ -78,12 +82,12 @@ export function TenantInviteForm({ tenantSlug }: { tenantSlug: string }) {
         </div>
         <div className="space-y-1 sm:w-44">
           <label htmlFor="invite-role" className="block text-sm font-medium text-foreground">
-            Peran
+            {tl.roleLabel}
           </label>
           <select id="invite-role" className={inputClass} {...register('role')}>
-            <option value="ADMIN">Admin</option>
-            <option value="RECRUITER">Recruiter</option>
-            <option value="MEMBER">Member</option>
+            <option value="ADMIN">{tl.optionAdmin}</option>
+            <option value="RECRUITER">{tl.optionRecruiter}</option>
+            <option value="MEMBER">{tl.optionMember}</option>
           </select>
         </div>
       </div>
@@ -110,7 +114,7 @@ export function TenantInviteForm({ tenantSlug }: { tenantSlug: string }) {
         disabled={isPending}
         className="inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? 'Mengirim…' : 'Kirim undangan'}
+        {isPending ? tl.btnPending : tl.btnSubmit}
       </button>
     </form>
   )
@@ -118,6 +122,8 @@ export function TenantInviteForm({ tenantSlug }: { tenantSlug: string }) {
 
 export function RevokeInviteButton({ invitationId }: { invitationId: string }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsTenantMisc.inviteForm
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -141,7 +147,7 @@ export function RevokeInviteButton({ invitationId }: { invitationId: string }) {
         disabled={pending}
         className="text-destructive text-xs font-medium hover:underline disabled:opacity-60"
       >
-        {pending ? 'Mencabut…' : 'Cabut'}
+        {pending ? tl.revokePending : tl.revokeBtn}
       </button>
       {error && <span className="text-destructive text-xs">{error}</span>}
     </div>

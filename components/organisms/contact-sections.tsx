@@ -27,6 +27,7 @@ import { Input } from '@/components/atoms/input'
 import { Textarea } from '@/components/atoms/textarea'
 import { Label } from '@/components/atoms/label'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -39,6 +40,9 @@ const fadeUp = {
 // ---------------------------------------------------------------------------
 
 export function ContactHero() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.contact
+
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -70,7 +74,7 @@ export function ContactHero() {
         >
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Hubungi Kami
+            {tc.hero.eyebrow}
           </span>
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
         </motion.div>
@@ -82,7 +86,7 @@ export function ContactHero() {
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
           Mari bicara{' '}
-          <span className="text-[color:var(--ring)]">soal karier Anda</span>.
+          <span className="text-[color:var(--ring)]">{tc.hero.headingHighlight}</span>.
         </motion.h1>
 
         <motion.p
@@ -90,8 +94,7 @@ export function ContactHero() {
           transition={{ duration: 0.55, delay: 0.15 }}
           className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg md:text-xl"
         >
-          Pertanyaan teknis, kerja sama mitra, kolaborasi pelatihan, atau sekadar
-          ingin berbagi cerita — tim kami biasanya membalas dalam 1×24 jam kerja.
+          {tc.hero.body}
         </motion.p>
 
         <motion.div
@@ -101,7 +104,7 @@ export function ContactHero() {
         >
           <Button asChild size="lg">
             <Link href="#contact-form">
-              Kirim Pesan
+              {tc.hero.ctaPrimary}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
@@ -112,7 +115,7 @@ export function ContactHero() {
               rel="noopener noreferrer"
             >
               <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
-              WhatsApp Tim Kami
+              {tc.hero.ctaWhatsapp}
             </a>
           </Button>
         </motion.div>
@@ -124,15 +127,15 @@ export function ContactHero() {
         >
           <span className="inline-flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" aria-hidden />
-            Senin–Jumat · 09.00–18.00 WIB
+            {tc.hero.badgeHours}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-            Data Anda terlindungi
+            {tc.hero.badgePrivacy}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            Respons rata-rata 4 jam
+            {tc.hero.badgeResponse}
           </span>
         </motion.div>
       </div>
@@ -144,51 +147,54 @@ export function ContactHero() {
 // Channels
 // ---------------------------------------------------------------------------
 
-type Channel = {
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  primary: string
-  secondary: string
-  href: string
-  cta: string
-}
-
-const CHANNELS: Channel[] = [
-  {
-    icon: Mail,
-    label: 'Email',
-    primary: 'halo@rumahpekerja.id',
-    secondary: 'Untuk pertanyaan umum & dukungan',
-    href: 'mailto:halo@rumahpekerja.id',
-    cta: 'Kirim email',
-  },
-  {
-    icon: Phone,
-    label: 'Telepon',
-    primary: '+62 21 5000 1000',
-    secondary: 'Senin–Jumat, 09.00–18.00 WIB',
-    href: 'tel:+622150001000',
-    cta: 'Telepon kami',
-  },
-  {
-    icon: MessageCircle,
-    label: 'WhatsApp',
-    primary: '+62 811 0000 1000',
-    secondary: 'Chat tim hubungan mitra & pengguna',
-    href: 'https://wa.me/6281100001000',
-    cta: 'Buka WhatsApp',
-  },
-  {
-    icon: Building2,
-    label: 'Kantor Pusat',
-    primary: 'Jakarta Selatan',
-    secondary: 'Menara Standard Chartered, Lantai 21',
-    href: '#office',
-    cta: 'Lihat alamat',
-  },
-]
-
 export function ContactChannels() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.contact
+
+  type Channel = {
+    icon: React.ComponentType<{ className?: string }>
+    label: string
+    primary: string
+    secondary: string
+    href: string
+    cta: string
+  }
+
+  const CHANNELS: Channel[] = [
+    {
+      icon: Mail,
+      label: 'Email',
+      primary: 'halo@rumahpekerja.id',
+      secondary: tc.channels.emailSecondary,
+      href: 'mailto:halo@rumahpekerja.id',
+      cta: tc.channels.emailCta,
+    },
+    {
+      icon: Phone,
+      label: tc.channels.phoneLabel,
+      primary: '+62 21 5000 1000',
+      secondary: tc.channels.phoneSecondary,
+      href: 'tel:+622150001000',
+      cta: tc.channels.phoneCta,
+    },
+    {
+      icon: MessageCircle,
+      label: tc.channels.waLabel,
+      primary: '+62 811 0000 1000',
+      secondary: tc.channels.waSecondary,
+      href: 'https://wa.me/6281100001000',
+      cta: tc.channels.waCta,
+    },
+    {
+      icon: Building2,
+      label: tc.channels.officeLabel,
+      primary: 'Jakarta Selatan',
+      secondary: tc.channels.officeSecondary,
+      href: '#office',
+      cta: tc.channels.officeCta,
+    },
+  ]
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -204,11 +210,10 @@ export function ContactChannels() {
             id="contact-channels-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Pilih cara yang paling nyaman
+            {tc.channels.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Kami siap dihubungi melalui beberapa kanal. Pilih yang paling sesuai
-            dengan kebutuhan Anda.
+            {tc.channels.body}
           </p>
         </motion.div>
 
@@ -259,17 +264,20 @@ export function ContactChannels() {
 // Form + Office
 // ---------------------------------------------------------------------------
 
-const TOPICS = [
-  'Pertanyaan Umum',
-  'Saya Pencari Kerja',
-  'Saya Mitra Perekrut',
-  'Pelatihan & Sertifikasi',
-  'Media / Press',
-  'Karier di RPI',
-  'Lainnya',
-]
-
 export function ContactFormSection() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.contact
+
+  const TOPICS = [
+    tc.form.topicGeneral,
+    tc.form.topicJobseeker,
+    tc.form.topicRecruiter,
+    tc.form.topicTraining,
+    tc.form.topicMedia,
+    tc.form.topicCareers,
+    tc.form.topicOther,
+  ]
+
   return (
     <section
       id="contact-form"
@@ -283,18 +291,17 @@ export function ContactFormSection() {
             <div className="mb-6 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Kirim Pesan
+                {tc.form.eyebrow}
               </span>
             </div>
             <h2
               id="contact-form-heading"
               className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
             >
-              Tulis pesan Anda
+              {tc.form.heading}
             </h2>
             <p className="text-muted-foreground mt-3">
-              Lengkapi formulir di bawah. Tim kami akan menghubungi Anda kembali
-              dalam 1×24 jam kerja.
+              {tc.form.body}
             </p>
 
             <form
@@ -305,16 +312,16 @@ export function ContactFormSection() {
               }}
             >
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field label="Nama lengkap" htmlFor="contact-name" required>
+                <Field label={tc.form.fieldName} htmlFor="contact-name" required>
                   <Input
                     id="contact-name"
                     name="name"
-                    placeholder="Nama Anda"
+                    placeholder={tc.form.placeholderName}
                     autoComplete="name"
                     required
                   />
                 </Field>
-                <Field label="Email" htmlFor="contact-email" required>
+                <Field label={tc.form.fieldEmail} htmlFor="contact-email" required>
                   <Input
                     id="contact-email"
                     name="email"
@@ -327,7 +334,7 @@ export function ContactFormSection() {
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field label="Nomor telepon" htmlFor="contact-phone">
+                <Field label={tc.form.fieldPhone} htmlFor="contact-phone">
                   <Input
                     id="contact-phone"
                     name="phone"
@@ -336,16 +343,16 @@ export function ContactFormSection() {
                     autoComplete="tel"
                   />
                 </Field>
-                <Field label="Perusahaan / Instansi" htmlFor="contact-company">
+                <Field label={tc.form.fieldCompany} htmlFor="contact-company">
                   <Input
                     id="contact-company"
                     name="company"
-                    placeholder="Opsional"
+                    placeholder={tc.form.placeholderCompany}
                   />
                 </Field>
               </div>
 
-              <Field label="Topik" htmlFor="contact-topic" required>
+              <Field label={tc.form.fieldTopic} htmlFor="contact-topic" required>
                 <select
                   id="contact-topic"
                   name="topic"
@@ -354,21 +361,21 @@ export function ContactFormSection() {
                   className="border-border bg-background text-foreground focus-visible:ring-ring/40 placeholder:text-muted-foreground flex h-10 w-full rounded-md border px-3 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2"
                 >
                   <option value="" disabled>
-                    Pilih topik pertanyaan
+                    {tc.form.placeholderTopic}
                   </option>
-                  {TOPICS.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
+                  {TOPICS.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
                     </option>
                   ))}
                 </select>
               </Field>
 
-              <Field label="Pesan" htmlFor="contact-message" required>
+              <Field label={tc.form.fieldMessage} htmlFor="contact-message" required>
                 <Textarea
                   id="contact-message"
                   name="message"
-                  placeholder="Ceritakan apa yang bisa kami bantu…"
+                  placeholder={tc.form.placeholderMessage}
                   rows={6}
                   required
                 />
@@ -382,22 +389,21 @@ export function ContactFormSection() {
                   className="border-border text-[color:var(--ring)] mt-0.5 h-4 w-4 rounded border"
                 />
                 <span>
-                  Saya menyetujui{' '}
+                  {tc.form.consentPrefix}{' '}
                   <a href="/privacy" className="text-foreground underline underline-offset-2">
-                    Kebijakan Privasi
+                    {tc.form.consentLinkLabel}
                   </a>{' '}
-                  dan pemrosesan data oleh Rumah Pekerja Indonesia untuk tujuan
-                  korespondensi.
+                  {tc.form.consentSuffix}
                 </span>
               </label>
 
               <div className="flex flex-col-reverse items-center gap-3 pt-2 sm:flex-row sm:justify-between">
                 <p className="text-muted-foreground text-xs">
-                  Kami tidak pernah membagikan informasi Anda ke pihak ketiga.
+                  {tc.form.privacy}
                 </p>
                 <Button type="submit" size="lg" className="w-full sm:w-auto">
                   <Send className="mr-2 h-4 w-4" aria-hidden />
-                  Kirim Pesan
+                  {tc.form.submit}
                 </Button>
               </div>
             </form>
@@ -423,15 +429,15 @@ export function ContactFormSection() {
                   <div className="text-primary-foreground/90 flex flex-col items-center text-center">
                     <MapPin className="mb-2 h-8 w-8" aria-hidden />
                     <div className="font-heading text-lg font-semibold">
-                      Kantor Pusat RPI
+                      {tc.office.mapLabel}
                     </div>
-                    <div className="mt-1 text-xs opacity-80">Jakarta Selatan, Indonesia</div>
+                    <div className="mt-1 text-xs opacity-80">{tc.office.mapSub}</div>
                   </div>
                 </div>
               </div>
               <div className="p-6">
                 <h3 className="font-heading text-foreground text-lg font-semibold">
-                  Datang berkunjung
+                  {tc.office.visitHeading}
                 </h3>
                 <address className="text-muted-foreground mt-3 not-italic text-sm leading-relaxed">
                   Menara Standard Chartered, Lantai 21
@@ -446,7 +452,7 @@ export function ContactFormSection() {
                 <div className="border-border mt-5 grid grid-cols-2 gap-3 border-t pt-5 text-sm">
                   <InfoLine icon={Phone} label="+62 21 5000 1000" />
                   <InfoLine icon={Mail} label="halo@rumahpekerja.id" />
-                  <InfoLine icon={Clock} label="Sen–Jum, 09–18 WIB" />
+                  <InfoLine icon={Clock} label={tc.office.officeHours} />
                   <InfoLine icon={Globe} label="rumahpekerja.id" />
                 </div>
               </div>
@@ -454,7 +460,7 @@ export function ContactFormSection() {
 
             <div className="border-border bg-card rounded-2xl border p-6">
               <h3 className="font-heading text-foreground text-base font-semibold">
-                Kantor Regional
+                {tc.office.regionalHeading}
               </h3>
               <ul className="text-muted-foreground mt-3 space-y-2 text-sm">
                 {[
@@ -475,7 +481,7 @@ export function ContactFormSection() {
 
             <div className="border-border bg-card rounded-2xl border p-6">
               <h3 className="font-heading text-foreground text-base font-semibold">
-                Ikuti kami
+                {tc.office.followHeading}
               </h3>
               <div className="mt-4 flex gap-2">
                 <SocialIcon href="https://linkedin.com" label="LinkedIn">
@@ -562,46 +568,49 @@ function SocialIcon({
 // Audience Routing
 // ---------------------------------------------------------------------------
 
-type Audience = {
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  desc: string
-  href: string
-  cta: string
-}
-
-const AUDIENCES: Audience[] = [
-  {
-    icon: Users,
-    title: 'Saya Pencari Kerja',
-    desc: 'Pertanyaan seputar profil, melamar pekerjaan, kursus, atau sertifikat. Tim Support siap bantu.',
-    href: 'mailto:support@rumahpekerja.id',
-    cta: 'support@rumahpekerja.id',
-  },
-  {
-    icon: Briefcase,
-    title: 'Saya Mitra Perekrut',
-    desc: 'Konsultasi paket layanan, onboarding tenant, branding, atau integrasi API untuk perusahaan Anda.',
-    href: 'mailto:partner@rumahpekerja.id',
-    cta: 'partner@rumahpekerja.id',
-  },
-  {
-    icon: Newspaper,
-    title: 'Media & Press',
-    desc: 'Permintaan wawancara, siaran pers, atau penggunaan logo dan brand assets resmi RPI.',
-    href: 'mailto:press@rumahpekerja.id',
-    cta: 'press@rumahpekerja.id',
-  },
-  {
-    icon: Heart,
-    title: 'Karier di RPI',
-    desc: 'Tertarik bergabung membangun masa depan pekerja Indonesia? Lihat lowongan internal kami.',
-    href: '/careers',
-    cta: 'Lihat lowongan',
-  },
-]
-
 export function ContactAudience() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.contact
+
+  type Audience = {
+    icon: React.ComponentType<{ className?: string }>
+    title: string
+    desc: string
+    href: string
+    cta: string
+  }
+
+  const AUDIENCES: Audience[] = [
+    {
+      icon: Users,
+      title: tc.audience.jobseekerTitle,
+      desc: tc.audience.jobseekerDesc,
+      href: 'mailto:support@rumahpekerja.id',
+      cta: tc.audience.jobseekerCta,
+    },
+    {
+      icon: Briefcase,
+      title: tc.audience.recruiterTitle,
+      desc: tc.audience.recruiterDesc,
+      href: 'mailto:partner@rumahpekerja.id',
+      cta: tc.audience.recruiterCta,
+    },
+    {
+      icon: Newspaper,
+      title: tc.audience.mediaTitle,
+      desc: tc.audience.mediaDesc,
+      href: 'mailto:press@rumahpekerja.id',
+      cta: tc.audience.mediaCta,
+    },
+    {
+      icon: Heart,
+      title: tc.audience.careersTitle,
+      desc: tc.audience.careersDesc,
+      href: '/careers',
+      cta: tc.audience.careersCta,
+    },
+  ]
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -616,7 +625,7 @@ export function ContactAudience() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Hubungi tim yang tepat
+              {tc.audience.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -624,10 +633,10 @@ export function ContactAudience() {
             id="contact-audience-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Diarahkan ke orang yang tepat
+            {tc.audience.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Setiap kebutuhan ditangani tim khusus agar respons lebih cepat dan relevan.
+            {tc.audience.body}
           </p>
         </motion.div>
 

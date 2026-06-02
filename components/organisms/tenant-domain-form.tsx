@@ -8,6 +8,7 @@ import {
   setCustomDomain,
   verifyCustomDomain,
 } from '@/lib/tenants/domain-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -42,6 +43,8 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
 })
 
 function CopyButton({ value, label }: { value: string; label?: string }) {
+  const { t } = useI18n()
+  const td = t.formsTenantIntegration.domain
   const [copied, setCopied] = useState(false)
   return (
     <button
@@ -56,10 +59,10 @@ function CopyButton({ value, label }: { value: string; label?: string }) {
           .catch(() => {})
       }}
       className="text-primary inline-flex items-center gap-1 text-xs hover:underline"
-      aria-label={label ? `Salin ${label}` : 'Salin'}
+      aria-label={label ? td.copyAriaLabel.replace('{label}', label) : td.copyAriaLabelDefault}
     >
       <Copy className="h-3 w-3" aria-hidden="true" />
-      {copied ? 'Tersalin' : 'Salin'}
+      {copied ? td.copied : td.copy}
     </button>
   )
 }
@@ -72,6 +75,8 @@ export function CustomDomainSetupForm({
   initial: Initial
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const td = t.formsTenantIntegration.domain
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<Banner>({ kind: 'idle' })
   const [domain, setDomain] = useState(initial.customDomain ?? '')
@@ -87,7 +92,7 @@ export function CustomDomainSetupForm({
     setBanner({ kind: 'idle' })
     const value = domain.trim()
     if (!value) {
-      setBanner({ kind: 'error', message: 'Domain wajib diisi.' })
+      setBanner({ kind: 'error', message: td.errorDomainRequired })
       return
     }
     startTransition(async () => {
@@ -98,8 +103,7 @@ export function CustomDomainSetupForm({
       }
       setBanner({
         kind: 'success',
-        message:
-          'Domain tersimpan. Tambahkan TXT record di DNS untuk memverifikasi.',
+        message: td.successDomainSaved,
       })
       router.refresh()
     })
@@ -115,21 +119,14 @@ export function CustomDomainSetupForm({
       }
       setBanner({
         kind: 'success',
-        message: r.data?.bypass
-          ? 'Verifikasi dilewati (bypass SUPERADMIN).'
-          : 'Domain berhasil diverifikasi.',
+        message: r.data?.bypass ? td.successBypass : td.successVerified,
       })
       router.refresh()
     })
   }
 
   function onRemove() {
-    if (
-      !window.confirm(
-        'Lepas domain kustom? Pengunjung akan kembali ke domain default platform.',
-      )
-    )
-      return
+    if (!window.confirm(td.confirmRemove)) return
     setBanner({ kind: 'idle' })
     startTransition(async () => {
       const r = await removeCustomDomain(tenantSlug)
@@ -138,7 +135,7 @@ export function CustomDomainSetupForm({
         return
       }
       setDomain('')
-      setBanner({ kind: 'success', message: 'Domain kustom dilepas.' })
+      setBanner({ kind: 'success', message: td.successRemoved })
       router.refresh()
     })
   }
@@ -151,7 +148,7 @@ export function CustomDomainSetupForm({
             htmlFor="td-domain"
             className="block text-sm font-medium text-foreground"
           >
-            Domain kustom
+            {td.domainLabel}
           </label>
           <input
             id="td-domain"
@@ -160,14 +157,14 @@ export function CustomDomainSetupForm({
             inputMode="url"
             autoComplete="off"
             spellCheck={false}
-            placeholder="app.contoh.com"
+            placeholder={td.domainPlaceholder}
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
             disabled={pending}
             className={`${inputClass} font-mono`}
           />
           <p className="text-muted-foreground text-xs">
-            Tanpa <code>http://</code> atau path. Contoh: <code>karir.contoh.com</code>.
+            {td.domainHint}
           </p>
         </div>
 
@@ -190,7 +187,7 @@ export function CustomDomainSetupForm({
 
         <div className="flex flex-wrap items-center gap-2">
           <button type="submit" disabled={pending} className={btnPrimary}>
-            {pending ? 'Menyimpan…' : 'Simpan'}
+            {pending ? td.savePending : td.save}
           </button>
         </div>
       </form>
@@ -204,14 +201,14 @@ export function CustomDomainSetupForm({
             />
             <div className="flex-1">
               <p className="text-foreground text-sm font-medium">
-                Domain terverifikasi
+                {td.verifiedLabel}
               </p>
               <p className="text-muted-foreground text-xs">
-                Diverifikasi pada {dateFmt.format(new Date(initial.verifiedAt))}.
+                {td.verifiedAt.replace('{date}', dateFmt.format(new Date(initial.verifiedAt)))}
               </p>
             </div>
             <span className="bg-success/20 text-success rounded-full px-2 py-0.5 text-xs font-medium">
-              Aktif
+              {td.activeTag}
             </span>
           </div>
           <div>
@@ -222,7 +219,7 @@ export function CustomDomainSetupForm({
               className={btnDanger}
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-              {pending ? 'Memproses…' : 'Lepas domain'}
+              {pending ? td.removePending : td.removeButton}
             </button>
           </div>
         </div>
@@ -232,20 +229,19 @@ export function CustomDomainSetupForm({
         <div className="border-border bg-card space-y-4 rounded-md border p-4">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-            <h3 className="font-heading text-sm">Verifikasi DNS</h3>
+            <h3 className="font-heading text-sm">{td.dnsVerifyHeading}</h3>
           </div>
           <p className="text-muted-foreground text-xs">
-            Tambahkan TXT record berikut di pengelola DNS domain Anda. Setelah
-            propagasi (biasanya 1-30 menit), klik <strong>Cek verifikasi</strong>.
+            {td.dnsVerifyHint}
           </p>
 
           <div className="border-border overflow-hidden rounded-md border">
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/40 text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2 font-medium">Tipe</th>
-                  <th className="px-3 py-2 font-medium">Nama / Host</th>
-                  <th className="px-3 py-2 font-medium">Nilai</th>
+                  <th className="px-3 py-2 font-medium">{td.tableType}</th>
+                  <th className="px-3 py-2 font-medium">{td.tableNameHost}</th>
+                  <th className="px-3 py-2 font-medium">{td.tableValue}</th>
                 </tr>
               </thead>
               <tbody>
@@ -276,7 +272,7 @@ export function CustomDomainSetupForm({
               className={btnSecondary}
             >
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-              {pending ? 'Memeriksa…' : 'Cek verifikasi'}
+              {pending ? td.checkVerifyPending : td.checkVerify}
             </button>
             <button
               type="button"
@@ -284,7 +280,7 @@ export function CustomDomainSetupForm({
               disabled={pending}
               className="text-muted-foreground hover:text-foreground text-xs font-medium disabled:opacity-60"
             >
-              Batalkan & lepas
+              {td.cancelAndRemove}
             </button>
           </div>
         </div>

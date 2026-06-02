@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createFlag, updateFlag } from '@/lib/feature-flags/flag-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type SegmentRuleDraft = {
   attr: string
@@ -29,12 +30,6 @@ export type FeatureFlagFormDefaults = {
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
 
-const TYPE_OPTIONS: { value: 'boolean' | 'percentage' | 'segment'; label: string }[] = [
-  { value: 'boolean', label: 'Boolean (semua-atau-tidak)' },
-  { value: 'percentage', label: 'Persentase (rollout bertahap)' },
-  { value: 'segment', label: 'Segment (target spesifik)' },
-]
-
 const OP_OPTIONS: { value: 'in' | 'equals' | 'starts_with'; label: string }[] = [
   { value: 'in', label: 'in' },
   { value: 'equals', label: 'equals' },
@@ -51,6 +46,9 @@ export function FeatureFlagForm({
   defaults?: FeatureFlagFormDefaults
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsFeatureFlag.flagForm
+
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
@@ -67,6 +65,12 @@ export function FeatureFlagForm({
   const [environments, setEnvironments] = useState<EnvironmentsDraft>(
     defaults?.environments ?? { dev: true, staging: true, prod: true },
   )
+
+  const TYPE_OPTIONS: { value: 'boolean' | 'percentage' | 'segment'; label: string }[] = [
+    { value: 'boolean', label: tl.typeBoolean },
+    { value: 'percentage', label: tl.typePercentage },
+    { value: 'segment', label: tl.typeSegment },
+  ]
 
   function addRule() {
     setRules((prev) => [...prev, { attr: '', op: 'in', values: '' }])
@@ -128,7 +132,7 @@ export function FeatureFlagForm({
     <form action={onSubmit} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <label htmlFor="key" className="block text-sm font-medium">Key</label>
+          <label htmlFor="key" className="block text-sm font-medium">{tl.keyLabel}</label>
           <input
             id="key"
             name="key"
@@ -141,11 +145,11 @@ export function FeatureFlagForm({
             aria-invalid={fieldError === 'key'}
           />
           <p className="text-muted-foreground text-xs">
-            Huruf kecil, angka, tanda - atau _. Mulai dengan huruf. Maks 60 karakter.
+            {tl.keyHelperText}
           </p>
         </div>
         <div className="space-y-2">
-          <label htmlFor="name" className="block text-sm font-medium">Nama</label>
+          <label htmlFor="name" className="block text-sm font-medium">{tl.nameLabel}</label>
           <input
             id="name"
             name="name"
@@ -161,7 +165,7 @@ export function FeatureFlagForm({
 
       <div className="space-y-2">
         <label htmlFor="description" className="block text-sm font-medium">
-          Deskripsi
+          {tl.descriptionLabel}
         </label>
         <textarea
           id="description"
@@ -174,7 +178,7 @@ export function FeatureFlagForm({
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="block text-sm font-medium">Tipe</legend>
+        <legend className="block text-sm font-medium">{tl.typeLabel}</legend>
         <div className="grid gap-2 md:grid-cols-3">
           {TYPE_OPTIONS.map((o) => (
             <label
@@ -197,7 +201,7 @@ export function FeatureFlagForm({
       {type === 'percentage' && (
         <div className="space-y-2">
           <label htmlFor="percentage" className="block text-sm font-medium">
-            Persentase rollout: {percentage}%
+            {tl.percentageLabel.replace('{pct}', String(percentage))}
           </label>
           <input
             id="percentage"
@@ -210,14 +214,14 @@ export function FeatureFlagForm({
             className="w-full"
           />
           <p className="text-muted-foreground text-xs">
-            0% berarti tidak ada yang mendapat; 100% berarti semua mendapat.
+            {tl.percentageHelperText}
           </p>
         </div>
       )}
 
       {type === 'segment' && (
         <fieldset className="space-y-3">
-          <legend className="block text-sm font-medium">Aturan segment (AND)</legend>
+          <legend className="block text-sm font-medium">{tl.segmentRulesLabel}</legend>
           {rules.map((r, idx) => (
             <div
               key={idx}
@@ -225,7 +229,7 @@ export function FeatureFlagForm({
             >
               <input
                 type="text"
-                placeholder="atribut (mis. tenantId)"
+                placeholder={tl.attrPlaceholder}
                 value={r.attr}
                 onChange={(e) => updateRule(idx, { attr: e.target.value })}
                 className={inputClass}
@@ -245,7 +249,7 @@ export function FeatureFlagForm({
               </select>
               <input
                 type="text"
-                placeholder="nilai (pisahkan dengan koma)"
+                placeholder={tl.valuesPlaceholder}
                 value={r.values}
                 onChange={(e) => updateRule(idx, { values: e.target.value })}
                 className={inputClass}
@@ -256,7 +260,7 @@ export function FeatureFlagForm({
                 className="border-destructive/40 text-destructive hover:bg-destructive/10 inline-flex h-9 items-center rounded-md border px-3 text-xs font-medium"
                 disabled={rules.length <= 1}
               >
-                Hapus
+                {tl.btnRemoveRule}
               </button>
             </div>
           ))}
@@ -265,13 +269,13 @@ export function FeatureFlagForm({
             onClick={addRule}
             className="border-border bg-background hover:bg-muted inline-flex h-9 items-center rounded-md border px-3 text-sm"
           >
-            Tambah aturan
+            {tl.btnAddRule}
           </button>
         </fieldset>
       )}
 
       <fieldset className="space-y-2">
-        <legend className="block text-sm font-medium">Lingkungan</legend>
+        <legend className="block text-sm font-medium">{tl.environmentsLabel}</legend>
         <div className="flex flex-wrap gap-4">
           {(['dev', 'staging', 'prod'] as const).map((env) => (
             <label key={env} className="inline-flex items-center gap-2 text-sm">
@@ -288,7 +292,7 @@ export function FeatureFlagForm({
           ))}
         </div>
         <p className="text-muted-foreground text-xs">
-          Lingkungan yang tidak dicentang akan dikembalikan false oleh evaluator.
+          {tl.environmentsHelperText}
         </p>
       </fieldset>
 
@@ -307,14 +311,14 @@ export function FeatureFlagForm({
           disabled={isPending}
           className="bg-primary text-primary-foreground inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium disabled:opacity-60"
         >
-          {isPending ? 'Menyimpan…' : mode === 'create' ? 'Buat flag' : 'Simpan perubahan'}
+          {isPending ? tl.btnSubmitPending : mode === 'create' ? tl.btnCreate : tl.btnSave}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
           className="border-border bg-background hover:bg-muted inline-flex h-10 items-center rounded-md border px-4 text-sm"
         >
-          Batal
+          {tl.btnCancel}
         </button>
       </div>
     </form>

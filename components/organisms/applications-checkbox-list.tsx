@@ -11,6 +11,7 @@ import {
 import { ApplicationStatusSelect } from './application-status-form'
 import { ApplicationScreeningBadge } from './application-screening-badge'
 import { MatchScoreBadge } from './match-score-badge'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type ApplicationRow = {
   id: string
@@ -79,6 +80,8 @@ export function ApplicationsCheckboxList({
   availableReviewers: BulkMemberOption[]
   canManage: boolean
 }) {
+  const { t } = useI18n()
+  const tl = t.formsBulk.checkboxList
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const visibleIds = useMemo(() => rows.map((r) => r.id), [rows])
@@ -128,7 +131,7 @@ export function ApplicationsCheckboxList({
                 <th className="p-3 w-10">
                   <input
                     type="checkbox"
-                    aria-label="Pilih semua di halaman ini"
+                    aria-label={tl.ariaSelectAll}
                     checked={allSelected}
                     ref={(el) => {
                       if (el) el.indeterminate = someSelected
@@ -138,14 +141,14 @@ export function ApplicationsCheckboxList({
                   />
                 </th>
               )}
-              <th className="p-3 font-medium">Pelamar</th>
-              <th className="p-3 font-medium">Lowongan</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Dilamar</th>
-              <th className="p-3 font-medium">Skor cocok</th>
-              <th className="p-3 font-medium">AI Score</th>
-              <th className="p-3 font-medium">Diperbarui</th>
-              <th className="p-3 font-medium text-right">Aksi</th>
+              <th className="p-3 font-medium">{tl.colApplicant}</th>
+              <th className="p-3 font-medium">{tl.colJob}</th>
+              <th className="p-3 font-medium">{tl.colStatus}</th>
+              <th className="p-3 font-medium">{tl.colApplied}</th>
+              <th className="p-3 font-medium">{tl.colMatchScore}</th>
+              <th className="p-3 font-medium">{tl.colAiScore}</th>
+              <th className="p-3 font-medium">{tl.colUpdated}</th>
+              <th className="p-3 font-medium text-right">{tl.colActions}</th>
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
@@ -161,7 +164,7 @@ export function ApplicationsCheckboxList({
                     <td className="p-3 align-top">
                       <input
                         type="checkbox"
-                        aria-label="Pilih lamaran"
+                        aria-label={tl.ariaSelectRow}
                         checked={checked}
                         onChange={(e) => toggleOne(row.id, e.target.checked)}
                         className="text-primary focus:ring-ring/30 rounded border-input"
@@ -240,7 +243,7 @@ export function ApplicationsCheckboxList({
                       }
                       className="text-foreground text-xs font-medium hover:underline"
                     >
-                      Tampilkan detail
+                      {tl.viewDetail}
                     </Link>
                   </td>
                 </tr>
@@ -252,7 +255,7 @@ export function ApplicationsCheckboxList({
                   className="text-muted-foreground p-6 text-center"
                   colSpan={canManage ? 9 : 8}
                 >
-                  Belum ada lamaran yang cocok dengan filter.
+                  {tl.emptyState}
                 </td>
               </tr>
             )}

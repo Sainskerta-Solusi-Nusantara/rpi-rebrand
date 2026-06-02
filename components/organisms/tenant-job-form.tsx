@@ -11,6 +11,7 @@ import {
 import { createJob, updateJob } from '@/lib/tenants/job-actions'
 import { generateJdAction } from '@/lib/jd-generator/actions'
 import { SkillAutocomplete } from '@/components/organisms/skill-autocomplete'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -24,37 +25,6 @@ const btnPrimary =
 
 const btnSecondary =
   'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
-
-const EMPLOYMENT_LABELS: Record<EmploymentType, string> = {
-  FULL_TIME: 'Penuh waktu',
-  PART_TIME: 'Paruh waktu',
-  CONTRACT: 'Kontrak',
-  INTERNSHIP: 'Magang',
-  FREELANCE: 'Freelance',
-}
-
-const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
-  ENTRY: 'Entry-level',
-  JUNIOR: 'Junior',
-  MID: 'Mid-level',
-  SENIOR: 'Senior',
-  LEAD: 'Lead',
-  EXECUTIVE: 'Executive',
-}
-
-const STATUS_LABELS: Record<JobStatus, string> = {
-  DRAFT: 'Draft',
-  PUBLISHED: 'Dipublikasikan',
-  PAUSED: 'Dijeda',
-  CLOSED: 'Ditutup',
-  ARCHIVED: 'Diarsipkan',
-}
-
-const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
-  ONSITE: 'On-site',
-  HYBRID: 'Hybrid',
-  REMOTE: 'Remote',
-}
 
 export type JobFormInitial = {
   title: string
@@ -104,6 +74,9 @@ export function JobForm({
   categories: { id: string; name: string }[]
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsTenantJob.jobForm
+
   const seed: JobFormInitial = initial ?? EMPTY_INITIAL
   const isEdit = Boolean(jobId)
 
@@ -143,11 +116,42 @@ export function JobForm({
   } | null>(null)
   const [jdError, setJdError] = useState<string | null>(null)
 
+  const EMPLOYMENT_LABELS: Record<EmploymentType, string> = {
+    FULL_TIME: tl.employmentFull,
+    PART_TIME: tl.employmentPart,
+    CONTRACT: tl.employmentContract,
+    INTERNSHIP: tl.employmentInternship,
+    FREELANCE: tl.employmentFreelance,
+  }
+
+  const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
+    ENTRY: tl.experienceEntry,
+    JUNIOR: tl.experienceJunior,
+    MID: tl.experienceMid,
+    SENIOR: tl.experienceSenior,
+    LEAD: tl.experienceLead,
+    EXECUTIVE: tl.experienceExecutive,
+  }
+
+  const STATUS_LABELS: Record<JobStatus, string> = {
+    DRAFT: tl.statusDraft,
+    PUBLISHED: tl.statusPublished,
+    PAUSED: tl.statusPaused,
+    CLOSED: tl.statusClosed,
+    ARCHIVED: tl.statusArchived,
+  }
+
+  const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
+    ONSITE: tl.locationOnsite,
+    HYBRID: tl.locationHybrid,
+    REMOTE: tl.locationRemote,
+  }
+
   async function onGenerateJd() {
     setJdError(null)
     setJdPreview(null)
     if (!title.trim() || title.trim().length < 3) {
-      setJdError('Isi judul terlebih dahulu (minimal 3 karakter).')
+      setJdError(tl.jdTitleRequired)
       return
     }
     setJdPending(true)
@@ -204,10 +208,10 @@ export function JobForm({
   return (
     <form onSubmit={onSubmit} className="space-y-8">
       <fieldset className="space-y-4">
-        <legend className="text-sm font-medium text-foreground">Identitas lowongan</legend>
+        <legend className="text-sm font-medium text-foreground">{tl.legendIdentity}</legend>
         <div className="space-y-1">
           <label htmlFor="f-title" className={labelClass}>
-            Judul
+            {tl.titleLabel}
           </label>
           <input
             id="f-title"
@@ -219,7 +223,7 @@ export function JobForm({
             required
             minLength={5}
             maxLength={200}
-            placeholder="Senior Backend Engineer"
+            placeholder={tl.titlePlaceholder}
             className={inputClass}
           />
         </div>
@@ -227,7 +231,7 @@ export function JobForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label htmlFor="f-location" className={labelClass}>
-              Lokasi
+              {tl.locationLabel}
             </label>
             <input
               id="f-location"
@@ -239,12 +243,12 @@ export function JobForm({
               required
               minLength={2}
               maxLength={120}
-              placeholder="Jakarta, Indonesia"
+              placeholder={tl.locationPlaceholder}
               className={inputClass}
             />
           </div>
           <div className="space-y-2">
-            <span className={labelClass}>Tipe lokasi</span>
+            <span className={labelClass}>{tl.locationTypeLabel}</span>
             <div className="flex flex-wrap gap-3">
               {(Object.keys(LOCATION_TYPE_LABELS) as LocationType[]).map((lt) => (
                 <label
@@ -269,7 +273,7 @@ export function JobForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label htmlFor="f-employmentType" className={labelClass}>
-              Tipe pekerjaan
+              {tl.employmentTypeLabel}
             </label>
             <select
               id="f-employmentType"
@@ -288,7 +292,7 @@ export function JobForm({
           </div>
           <div className="space-y-1">
             <label htmlFor="f-experienceLevel" className={labelClass}>
-              Level pengalaman
+              {tl.experienceLevelLabel}
             </label>
             <select
               id="f-experienceLevel"
@@ -312,7 +316,7 @@ export function JobForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label htmlFor="f-salaryMin" className={labelClass}>
-              Gaji minimum (IDR / bulan)
+              {tl.salaryMinLabel}
             </label>
             <input
               id="f-salaryMin"
@@ -323,13 +327,13 @@ export function JobForm({
               value={salaryMin}
               onChange={(e) => setSalaryMin(e.target.value)}
               disabled={pending}
-              placeholder="Opsional"
+              placeholder={tl.salaryPlaceholder}
               className={inputClass}
             />
           </div>
           <div className="space-y-1">
             <label htmlFor="f-salaryMax" className={labelClass}>
-              Gaji maksimum (IDR / bulan)
+              {tl.salaryMaxLabel}
             </label>
             <input
               id="f-salaryMax"
@@ -340,7 +344,7 @@ export function JobForm({
               value={salaryMax}
               onChange={(e) => setSalaryMax(e.target.value)}
               disabled={pending}
-              placeholder="Opsional"
+              placeholder={tl.salaryPlaceholder}
               className={inputClass}
             />
           </div>
@@ -349,7 +353,7 @@ export function JobForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label htmlFor="f-categoryId" className={labelClass}>
-              Kategori
+              {tl.categoryLabel}
             </label>
             <select
               id="f-categoryId"
@@ -359,7 +363,7 @@ export function JobForm({
               disabled={pending}
               className={inputClass}
             >
-              <option value="">— Tidak ada kategori —</option>
+              <option value="">{tl.categoryNone}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -369,37 +373,38 @@ export function JobForm({
           </div>
           <div className="space-y-1">
             <label htmlFor="f-tags" className={labelClass}>
-              Skill / tag
+              {tl.tagsLabel}
             </label>
             <SkillAutocomplete
               name="tags"
               value={tags}
               onChange={setTags}
               disabled={pending}
-              placeholder="Ketik skill (mis. react), Enter untuk menambah"
+              placeholder={tl.tagsPlaceholder}
             />
             <p className="text-muted-foreground text-xs">
-              Pilih dari saran atau ketik skill baru. Tekan Enter atau koma untuk menambahkan.
+              {tl.tagsHint}
             </p>
           </div>
         </div>
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="text-sm font-medium text-foreground">Detail konten</legend>
+        <legend className="text-sm font-medium text-foreground">{tl.legendContent}</legend>
         <div className="space-y-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label htmlFor="f-description" className={labelClass}>
-              Deskripsi <span className="text-muted-foreground">(min 50 karakter)</span>
+              {tl.descriptionLabel}{' '}
+              <span className="text-muted-foreground">{tl.descriptionMinHint}</span>
             </label>
             <button
               type="button"
               onClick={onGenerateJd}
               disabled={pending || jdPending}
               className="border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60"
-              title="Buat draft JD berdasarkan judul, level, dan skill"
+              title={tl.jdGenerateTitle}
             >
-              {jdPending ? 'Membuat draft…' : 'Generate dari role'}
+              {jdPending ? tl.jdGeneratePending : tl.jdGenerateButton}
             </button>
           </div>
           {jdError && (
@@ -413,12 +418,11 @@ export function JobForm({
           {jdPreview && (
             <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-xs">
               <p className="text-muted-foreground">
-                Draft berhasil dibuat. Tinjau ringkasan di bawah lalu konfirmasi untuk menerapkan
-                (akan menimpa deskripsi, tanggung jawab, kualifikasi, dan benefit).
+                {tl.jdPreviewInfo}
               </p>
               <details className="rounded border border-border bg-background/60 p-2">
                 <summary className="cursor-pointer font-medium text-foreground">
-                  Pratinjau deskripsi
+                  {tl.jdPreviewDescription}
                 </summary>
                 <pre className="mt-2 whitespace-pre-wrap text-foreground">
                   {jdPreview.description}
@@ -426,7 +430,7 @@ export function JobForm({
               </details>
               <details className="rounded border border-border bg-background/60 p-2">
                 <summary className="cursor-pointer font-medium text-foreground">
-                  Pratinjau tanggung jawab
+                  {tl.jdPreviewResponsibilities}
                 </summary>
                 <pre className="mt-2 whitespace-pre-wrap text-foreground">
                   {jdPreview.responsibilities}
@@ -438,14 +442,14 @@ export function JobForm({
                   onClick={applyJdPreview}
                   className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[hsl(220,50%,14%)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[hsl(220,50%,18%)]"
                 >
-                  Terapkan draft
+                  {tl.jdApply}
                 </button>
                 <button
                   type="button"
                   onClick={() => setJdPreview(null)}
                   className="border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-foreground"
                 >
-                  Batal
+                  {tl.jdDiscard}
                 </button>
               </div>
             </div>
@@ -458,13 +462,13 @@ export function JobForm({
             disabled={pending}
             required
             minLength={50}
-            placeholder="Ringkasan posisi, peran, dan dampaknya."
+            placeholder={tl.descriptionPlaceholder}
             className={textareaClass}
           />
         </div>
         <div className="space-y-1">
           <label htmlFor="f-responsibilities" className={labelClass}>
-            Tanggung jawab (opsional)
+            {tl.responsibilitiesLabel}
           </label>
           <textarea
             id="f-responsibilities"
@@ -472,13 +476,13 @@ export function JobForm({
             value={responsibilities}
             onChange={(e) => setResponsibilities(e.target.value)}
             disabled={pending}
-            placeholder="• Memimpin pengembangan layanan inti…"
+            placeholder={tl.responsibilitiesPlaceholder}
             className={textareaClass}
           />
         </div>
         <div className="space-y-1">
           <label htmlFor="f-requirements" className={labelClass}>
-            Kualifikasi (opsional)
+            {tl.requirementsLabel}
           </label>
           <textarea
             id="f-requirements"
@@ -486,13 +490,13 @@ export function JobForm({
             value={requirements}
             onChange={(e) => setRequirements(e.target.value)}
             disabled={pending}
-            placeholder="• 5+ tahun pengalaman backend…"
+            placeholder={tl.requirementsPlaceholder}
             className={textareaClass}
           />
         </div>
         <div className="space-y-1">
           <label htmlFor="f-benefits" className={labelClass}>
-            Benefit (opsional)
+            {tl.benefitsLabel}
           </label>
           <textarea
             id="f-benefits"
@@ -500,17 +504,17 @@ export function JobForm({
             value={benefits}
             onChange={(e) => setBenefits(e.target.value)}
             disabled={pending}
-            placeholder="• Asuransi kesehatan, stock options…"
+            placeholder={tl.benefitsPlaceholder}
             className={textareaClass}
           />
         </div>
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="text-sm font-medium text-foreground">Status publikasi</legend>
+        <legend className="text-sm font-medium text-foreground">{tl.legendStatus}</legend>
         <div className="space-y-1 sm:max-w-xs">
           <label htmlFor="f-status" className={labelClass}>
-            Status
+            {tl.statusLabel}
           </label>
           <select
             id="f-status"
@@ -527,7 +531,7 @@ export function JobForm({
             ))}
           </select>
           <p className="text-muted-foreground text-xs">
-            Mengubah status menjadi “Dipublikasikan” membutuhkan izin{' '}
+            {tl.statusHint}{' '}
             <code className="bg-muted rounded px-1">job.publish</code>.
           </p>
         </div>
@@ -538,7 +542,7 @@ export function JobForm({
           role="status"
           className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
         >
-          {isEdit ? 'Perubahan berhasil disimpan.' : 'Lowongan berhasil dibuat.'}
+          {isEdit ? tl.bannerSaved : tl.bannerCreated}
         </p>
       )}
       {banner.kind === 'error' && (
@@ -553,10 +557,10 @@ export function JobForm({
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className={btnPrimary}>
           {pending
-            ? 'Menyimpan…'
+            ? tl.submitPending
             : isEdit
-              ? 'Simpan perubahan'
-              : 'Buat lowongan'}
+              ? tl.submitEdit
+              : tl.submitCreate}
         </button>
         <button
           type="button"
@@ -567,7 +571,7 @@ export function JobForm({
           disabled={pending}
           className={btnSecondary}
         >
-          Batal
+          {tl.cancel}
         </button>
       </div>
     </form>

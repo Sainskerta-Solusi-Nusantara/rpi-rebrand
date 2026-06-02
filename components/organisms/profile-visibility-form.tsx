@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check, Copy, ExternalLink, Eye, EyeOff } from 'lucide-react'
 import { setUsername, setProfileVisibility } from '@/lib/profile/public-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Initial = {
   userId: string
@@ -16,6 +17,9 @@ const usernameClientRe = /^[a-z][a-z0-9_-]{2,19}$/
 
 export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tv = t.formsProfile.visibilityForm
+
   const [isPending, startTransition] = useTransition()
   const [username, setUsernameState] = useState(initial.username ?? '')
   const [savedUsername, setSavedUsername] = useState(initial.username)
@@ -37,9 +41,7 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
     setSuccess(null)
     const next = username.trim().toLowerCase()
     if (!usernameClientRe.test(next)) {
-      setError(
-        'Username 3-20 karakter, hanya huruf kecil/angka/-/_ dan diawali huruf.',
-      )
+      setError(tv.usernameError)
       return
     }
     startTransition(async () => {
@@ -47,7 +49,7 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
       if (res.ok) {
         setSavedUsername(next)
         setUsernameState(next)
-        setSuccess('Username tersimpan')
+        setSuccess(tv.successUsername)
         router.refresh()
       } else {
         setError(res.error)
@@ -64,7 +66,7 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
     startTransition(async () => {
       const res = await setProfileVisibility({ profilePublic: next })
       if (res.ok) {
-        setSuccess(next ? 'Profil sekarang publik' : 'Profil disetel privat')
+        setSuccess(next ? tv.successPublic : tv.successPrivate)
         router.refresh()
       } else {
         // Revert on failure
@@ -112,7 +114,7 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
           htmlFor="username"
           className="block text-sm font-medium text-foreground"
         >
-          Username
+          {tv.usernameLabel}
         </label>
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="flex flex-1 items-center gap-1">
@@ -126,7 +128,7 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="nama-anda"
+              placeholder={tv.usernamePlaceholder}
               value={username}
               onChange={(e) =>
                 setUsernameState(e.target.value.toLowerCase())
@@ -139,12 +141,11 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
             disabled={isPending || username.trim() === (savedUsername ?? '')}
             className="inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPending ? 'Menyimpan…' : 'Simpan'}
+            {isPending ? tv.btnPending : tv.btnSave}
           </button>
         </div>
         <p className="text-muted-foreground text-xs">
-          3-20 karakter. Huruf kecil, angka, tanda hubung, dan garis bawah.
-          Diawali huruf.
+          {tv.usernameHint}
         </p>
       </form>
 
@@ -152,12 +153,12 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
       <div className="border-border bg-card flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
         <div className="space-y-0.5">
           <p className="text-sm font-medium text-foreground">
-            Visibilitas profil
+            {tv.visibilityLabel}
           </p>
           <p className="text-muted-foreground text-xs">
             {profilePublic
-              ? 'Profil Anda dapat diakses publik di /profil.'
-              : 'Profil Anda saat ini tersembunyi.'}
+              ? tv.visibilityPublicHint
+              : tv.visibilityPrivateHint}
           </p>
         </div>
         <button
@@ -174,11 +175,11 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
         >
           {profilePublic ? (
             <>
-              <Eye className="h-3.5 w-3.5" aria-hidden /> Publik
+              <Eye className="h-3.5 w-3.5" aria-hidden /> {tv.togglePublic}
             </>
           ) : (
             <>
-              <EyeOff className="h-3.5 w-3.5" aria-hidden /> Privat
+              <EyeOff className="h-3.5 w-3.5" aria-hidden /> {tv.togglePrivate}
             </>
           )}
         </button>
@@ -187,7 +188,7 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
       {/* Share URL — visible when public */}
       {profilePublic && (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Tautan profil</p>
+          <p className="text-sm font-medium text-foreground">{tv.profileLinkLabel}</p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="text"
@@ -205,11 +206,11 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
               >
                 {copied ? (
                   <>
-                    <Check className="h-4 w-4" aria-hidden /> Tersalin
+                    <Check className="h-4 w-4" aria-hidden /> {tv.btnCopied}
                   </>
                 ) : (
                   <>
-                    <Copy className="h-4 w-4" aria-hidden /> Salin
+                    <Copy className="h-4 w-4" aria-hidden /> {tv.btnCopy}
                   </>
                 )}
               </button>
@@ -221,14 +222,13 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
                 className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[hsl(220,50%,14%)] px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
               >
                 <ExternalLink className="h-4 w-4" aria-hidden />
-                Lihat profil publik
+                {tv.btnViewPublic}
               </Link>
             </div>
           </div>
           {!savedUsername && (
             <p className="text-muted-foreground text-xs">
-              Belum menyetel username — tautan menggunakan ID. Setel username di
-              atas untuk URL yang lebih bersih.
+              {tv.noUsernameHint}
             </p>
           )}
         </div>

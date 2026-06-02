@@ -8,6 +8,7 @@ import {
   quickAddStage,
 } from '@/lib/tenants/interview-stage-actions'
 import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-constants'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -67,6 +68,8 @@ export function PipelineEditor({
   allowReorder?: boolean
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tp = t.formsInterviewPipe.pipelineEditor
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<
     { kind: 'error' | 'success'; message: string } | null
@@ -144,7 +147,7 @@ export function PipelineEditor({
         setBanner({ kind: 'error', message: res.error })
         return
       }
-      setBanner({ kind: 'success', message: 'Pipeline tersimpan.' })
+      setBanner({ kind: 'success', message: tp.bannerSaved })
       router.refresh()
     })
   }
@@ -153,12 +156,12 @@ export function PipelineEditor({
     e.preventDefault()
     setBanner(null)
     if (!quickScheduledAt) {
-      setBanner({ kind: 'error', message: 'Tanggal & jam wajib diisi.' })
+      setBanner({ kind: 'error', message: tp.quickAdd.errorDateRequired })
       return
     }
     const localDate = new Date(quickScheduledAt)
     if (Number.isNaN(localDate.getTime())) {
-      setBanner({ kind: 'error', message: 'Format tanggal tidak valid.' })
+      setBanner({ kind: 'error', message: tp.quickAdd.errorDateInvalid })
       return
     }
     startTransition(async () => {
@@ -177,7 +180,7 @@ export function PipelineEditor({
         setBanner({ kind: 'error', message: res.error })
         return
       }
-      setBanner({ kind: 'success', message: 'Tahap baru ditambahkan.' })
+      setBanner({ kind: 'success', message: tp.quickAdd.bannerAdded })
       setQuickScheduledAt('')
       setQuickMeetingUrl('')
       setQuickLocation('')
@@ -191,7 +194,7 @@ export function PipelineEditor({
   return (
     <div className="border-border bg-card rounded-2xl border p-6 space-y-4">
       <header className="flex items-center justify-between gap-2">
-        <h3 className="font-heading text-base">Atur tahap wawancara</h3>
+        <h3 className="font-heading text-base">{tp.heading}</h3>
         {rows.length > 0 && (
           <button
             type="button"
@@ -199,7 +202,7 @@ export function PipelineEditor({
             disabled={pending}
             className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {pending ? 'Menyimpan…' : 'Simpan urutan'}
+            {pending ? tp.btnSaving : tp.btnSave}
           </button>
         )}
       </header>
@@ -212,7 +215,7 @@ export function PipelineEditor({
 
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-sm">
-          Belum ada wawancara. Tambahkan tahap pertama di bawah.
+          {tp.emptyState}
         </p>
       ) : (
         <ul className="divide-border divide-y text-sm">
@@ -229,11 +232,11 @@ export function PipelineEditor({
                 value={row.stageName}
                 onChange={(e) => updateName(row.id, e.target.value)}
                 list={stageDatalistId}
-                placeholder={`Tahap ${row.stageOrder}`}
+                placeholder={tp.stageNamePlaceholder.replace('{order}', String(row.stageOrder))}
                 disabled={pending}
                 maxLength={80}
                 className={`${inputClass} max-w-[180px]`}
-                aria-label={`Nama tahap untuk wawancara ${index + 1}`}
+                aria-label={tp.ariaStageNameInput.replace('{n}', String(index + 1))}
               />
               <span className="text-muted-foreground text-xs">
                 {dateFmt.format(new Date(row.scheduledAt))}
@@ -245,7 +248,7 @@ export function PipelineEditor({
                     onClick={() => moveUp(index)}
                     disabled={pending || index === 0}
                     className="border-input text-foreground hover:bg-muted inline-flex h-7 w-7 items-center justify-center rounded-md border bg-transparent disabled:cursor-not-allowed disabled:opacity-40"
-                    aria-label={`Pindahkan tahap ${row.stageOrder} ke atas`}
+                    aria-label={tp.ariaMoveUp.replace('{order}', String(row.stageOrder))}
                   >
                     <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
@@ -254,7 +257,7 @@ export function PipelineEditor({
                     onClick={() => moveDown(index)}
                     disabled={pending || index === rows.length - 1}
                     className="border-input text-foreground hover:bg-muted inline-flex h-7 w-7 items-center justify-center rounded-md border bg-transparent disabled:cursor-not-allowed disabled:opacity-40"
-                    aria-label={`Pindahkan tahap ${row.stageOrder} ke bawah`}
+                    aria-label={tp.ariaMoveDown.replace('{order}', String(row.stageOrder))}
                   >
                     <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
@@ -287,7 +290,7 @@ export function PipelineEditor({
                   htmlFor="quick-stage-name"
                   className="block text-xs font-medium"
                 >
-                  Nama tahap
+                  {tp.quickAdd.labelStageName}
                 </label>
                 <input
                   id="quick-stage-name"
@@ -295,7 +298,7 @@ export function PipelineEditor({
                   value={quickStageName}
                   onChange={(e) => setQuickStageName(e.target.value)}
                   list={stageDatalistId}
-                  placeholder="Misal: Technical"
+                  placeholder={tp.quickAdd.placeholderStageName}
                   disabled={pending}
                   required
                   maxLength={80}
@@ -307,7 +310,7 @@ export function PipelineEditor({
                   htmlFor="quick-scheduled-at"
                   className="block text-xs font-medium"
                 >
-                  Tanggal & jam
+                  {tp.quickAdd.labelScheduledAt}
                 </label>
                 <input
                   id="quick-scheduled-at"
@@ -324,7 +327,7 @@ export function PipelineEditor({
                   htmlFor="quick-duration"
                   className="block text-xs font-medium"
                 >
-                  Durasi (menit)
+                  {tp.quickAdd.labelDuration}
                 </label>
                 <input
                   id="quick-duration"
@@ -345,7 +348,7 @@ export function PipelineEditor({
                   htmlFor="quick-type"
                   className="block text-xs font-medium"
                 >
-                  Jenis
+                  {tp.quickAdd.labelType}
                 </label>
                 <select
                   id="quick-type"
@@ -356,9 +359,9 @@ export function PipelineEditor({
                   disabled={pending}
                   className={inputClass}
                 >
-                  <option value="video">Video call</option>
-                  <option value="onsite">Onsite</option>
-                  <option value="phone">Telepon</option>
+                  <option value="video">{tp.quickAdd.optionVideo}</option>
+                  <option value="onsite">{tp.quickAdd.optionOnsite}</option>
+                  <option value="phone">{tp.quickAdd.optionPhone}</option>
                 </select>
               </div>
             </div>
@@ -368,7 +371,7 @@ export function PipelineEditor({
                   htmlFor="quick-meeting-url"
                   className="block text-xs font-medium"
                 >
-                  Tautan meeting
+                  {tp.quickAdd.labelMeetingUrl}
                 </label>
                 <input
                   id="quick-meeting-url"
@@ -387,14 +390,14 @@ export function PipelineEditor({
                   htmlFor="quick-location"
                   className="block text-xs font-medium"
                 >
-                  Lokasi
+                  {tp.quickAdd.labelLocation}
                 </label>
                 <input
                   id="quick-location"
                   type="text"
                   value={quickLocation}
                   onChange={(e) => setQuickLocation(e.target.value)}
-                  placeholder="Alamat lengkap kantor"
+                  placeholder={tp.quickAdd.placeholderLocation}
                   disabled={pending}
                   minLength={2}
                   maxLength={200}
@@ -408,7 +411,7 @@ export function PipelineEditor({
                 disabled={pending}
                 className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {pending ? 'Menambahkan…' : 'Tambahkan tahap'}
+                {pending ? tp.quickAdd.btnAdding : tp.quickAdd.btnAdd}
               </button>
               <button
                 type="button"
@@ -416,7 +419,7 @@ export function PipelineEditor({
                 disabled={pending}
                 className="border-input text-foreground hover:bg-muted inline-flex items-center justify-center rounded-md border bg-transparent px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Batal
+                {tp.quickAdd.btnCancel}
               </button>
             </div>
           </form>
@@ -428,7 +431,7 @@ export function PipelineEditor({
             className="border-input text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-transparent px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-            Tambah tahap
+            {tp.quickAdd.btnOpenForm}
           </button>
         )}
       </div>

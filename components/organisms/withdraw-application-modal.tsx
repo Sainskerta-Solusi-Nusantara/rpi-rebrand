@@ -7,6 +7,7 @@ import {
   withdrawApplication,
   reopenApplication,
 } from '@/lib/applications/withdraw-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 /**
  * Two-step withdraw modal:
@@ -24,6 +25,9 @@ export function WithdrawApplicationModal({
   size?: 'sm' | 'md'
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsMisc1.withdrawModal
+
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
   const [pending, startTransition] = useTransition()
@@ -62,7 +66,7 @@ export function WithdrawApplicationModal({
         className={triggerClass}
       >
         <XCircle className="h-4 w-4" aria-hidden="true" />
-        Tarik lamaran
+        {tl.triggerLabel}
       </button>
 
       {open && (
@@ -73,17 +77,16 @@ export function WithdrawApplicationModal({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
         >
           <div className="bg-card text-foreground border-border w-full max-w-md rounded-2xl border p-6 shadow-xl">
-            <h2 className="font-heading text-lg">Konfirmasi penarikan</h2>
+            <h2 className="font-heading text-lg">{tl.heading}</h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              Lamaran Anda akan ditandai sebagai ditarik. Anda masih dapat
-              membatalkan penarikan dalam 7 hari.
+              {tl.body}
             </p>
 
             <label
               htmlFor={`withdraw-reason-${applicationId}`}
               className="text-foreground mt-4 block text-sm font-medium"
             >
-              Alasan (opsional)
+              {tl.reasonLabel}
             </label>
             <textarea
               id={`withdraw-reason-${applicationId}`}
@@ -92,7 +95,7 @@ export function WithdrawApplicationModal({
               rows={4}
               maxLength={2000}
               disabled={pending}
-              placeholder="Misalnya: sudah menerima penawaran lain."
+              placeholder={tl.reasonPlaceholder}
               className="border-input bg-background focus:border-ring focus:ring-ring/30 mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
             />
             <p className="text-muted-foreground mt-1 text-xs">
@@ -116,7 +119,7 @@ export function WithdrawApplicationModal({
                 disabled={pending}
                 className="text-muted-foreground hover:text-foreground rounded-md px-3 py-1.5 text-sm font-medium disabled:opacity-60"
               >
-                Batal
+                {tl.cancelBtn}
               </button>
               <button
                 type="button"
@@ -124,7 +127,7 @@ export function WithdrawApplicationModal({
                 disabled={pending}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {pending ? 'Memproses…' : 'Konfirmasi penarikan'}
+                {pending ? tl.confirmPending : tl.confirmBtn}
               </button>
             </div>
           </div>
@@ -144,6 +147,9 @@ export function ReopenApplicationButton({
   applicationId: string
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsMisc1.withdrawModal
+
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -167,7 +173,7 @@ export function ReopenApplicationButton({
         disabled={pending}
         className="border-input bg-background text-foreground hover:bg-muted inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? 'Memproses…' : 'Kembalikan lamaran'}
+        {pending ? tl.reopenPending : tl.reopenBtn}
       </button>
       {error && (
         <span role="alert" className="text-destructive text-xs">

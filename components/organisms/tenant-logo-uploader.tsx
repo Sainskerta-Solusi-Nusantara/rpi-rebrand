@@ -7,6 +7,7 @@ import {
   removeTenantLogo,
   uploadTenantLogo,
 } from '@/lib/tenants/branding-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml'
 const MAX_BYTES = 2 * 1024 * 1024
@@ -29,6 +30,8 @@ export function TenantLogoUploader({
   previewBg?: string
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsTenantMisc.logoUploader
   const inputRef = useRef<HTMLInputElement>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialUrl)
   const [pending, startTransition] = useTransition()
@@ -44,11 +47,11 @@ export function TenantLogoUploader({
     e.target.value = ''
     if (!file) return
     if (file.size > MAX_BYTES) {
-      setError('Ukuran gambar melebihi 2 MB.')
+      setError(tl.errorSize)
       return
     }
     if (!ACCEPT.split(',').includes(file.type)) {
-      setError('Format harus PNG, JPEG, WEBP, atau SVG.')
+      setError(tl.errorFormat)
       return
     }
     setError(null)
@@ -76,7 +79,7 @@ export function TenantLogoUploader({
 
   function onRemove() {
     if (!previewUrl) return
-    if (!window.confirm(`Hapus ${label}?`)) return
+    if (!window.confirm(tl.confirmRemove.replace('{label}', label))) return
     setError(null)
     startTransition(async () => {
       const r = await removeTenantLogo({ tenantSlug, slot })
@@ -101,7 +104,7 @@ export function TenantLogoUploader({
             className="max-h-full max-w-[80%] object-contain"
           />
         ) : (
-          <span className="text-muted-foreground text-xs">Belum ada gambar</span>
+          <span className="text-muted-foreground text-xs">{tl.emptyState}</span>
         )}
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -112,7 +115,7 @@ export function TenantLogoUploader({
           className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Upload className="h-3.5 w-3.5" aria-hidden="true" />
-          {pending ? 'Mengunggah…' : previewUrl ? 'Ganti' : 'Unggah'}
+          {pending ? tl.btnPending : previewUrl ? tl.btnReplace : tl.btnUpload}
         </button>
         {previewUrl && (
           <button
@@ -122,7 +125,7 @@ export function TenantLogoUploader({
             className="text-destructive inline-flex items-center gap-1 text-xs font-medium hover:underline disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Trash2 className="h-3 w-3" aria-hidden="true" />
-            Hapus
+            {tl.btnRemove}
           </button>
         )}
       </div>

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Reply } from 'lucide-react'
 import { NotesComposer, type TenantMember } from './notes-composer'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface NoteReplyToggleProps {
   applicationId: string
@@ -20,6 +21,9 @@ export function NoteReplyToggle({
   parentNoteId,
   tenantMembers,
 }: NoteReplyToggleProps) {
+  const { t } = useI18n()
+  const tl = t.formsMisc1.noteReply
+
   const [open, setOpen] = React.useState(false)
 
   if (!open) {
@@ -30,7 +34,7 @@ export function NoteReplyToggle({
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs"
       >
         <Reply className="h-3.5 w-3.5" />
-        Balas
+        {tl.replyBtn}
       </button>
     )
   }
@@ -42,8 +46,8 @@ export function NoteReplyToggle({
         parentNoteId={parentNoteId}
         tenantMembers={tenantMembers}
         compact
-        placeholder="Tulis balasan..."
-        submitLabel="Kirim balasan"
+        placeholder={tl.replyPlaceholder}
+        submitLabel={tl.replySubmitLabel}
         onSuccess={() => setOpen(false)}
         onCancel={() => setOpen(false)}
       />

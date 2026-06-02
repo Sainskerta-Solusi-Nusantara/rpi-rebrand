@@ -5,13 +5,7 @@ import Link from 'next/link'
 import { ShieldCheck, ShieldX } from 'lucide-react'
 import type { GlobalRole, UserStatus } from '@prisma/client'
 import { AdminBulkToolbar } from '@/components/organisms/admin-bulk-toolbar'
-
-const statusLabels: Record<string, string> = {
-  ACTIVE: 'Aktif',
-  PENDING: 'Menunggu',
-  SUSPENDED: 'Ditangguhkan',
-  DELETED: 'Dihapus',
-}
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type AdminUserRow = {
   id: string
@@ -28,6 +22,16 @@ export type AdminUserRow = {
 const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
 
 export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
+  const { t } = useI18n()
+  const tc = t.formsMisc2.adminUsersTable
+
+  const statusLabels: Record<string, string> = {
+    ACTIVE: tc.statusActive,
+    PENDING: tc.statusPending,
+    SUSPENDED: tc.statusSuspended,
+    DELETED: tc.statusDeleted,
+  }
+
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const pageIds = useMemo(() => users.map((u) => u.id), [users])
@@ -68,7 +72,7 @@ export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
               <th className="w-10 p-3">
                 <input
                   type="checkbox"
-                  aria-label="Pilih semua di halaman ini"
+                  aria-label={tc.ariaSelectAll}
                   checked={allSelected}
                   ref={(el) => {
                     if (el) el.indeterminate = someSelected
@@ -77,12 +81,12 @@ export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
                   className="size-4 cursor-pointer rounded border-input"
                 />
               </th>
-              <th className="p-3">Pengguna</th>
-              <th className="p-3">Peran</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Verifikasi</th>
-              <th className="p-3">Terdaftar</th>
-              <th className="p-3">Login Terakhir</th>
+              <th className="p-3">{tc.colUser}</th>
+              <th className="p-3">{tc.colRole}</th>
+              <th className="p-3">{tc.colStatus}</th>
+              <th className="p-3">{tc.colVerified}</th>
+              <th className="p-3">{tc.colRegistered}</th>
+              <th className="p-3">{tc.colLastLogin}</th>
               <th className="p-3"></th>
             </tr>
           </thead>
@@ -94,7 +98,7 @@ export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
                   <td className="p-3">
                     <input
                       type="checkbox"
-                      aria-label={`Pilih ${u.name ?? u.email}`}
+                      aria-label={tc.ariaSelectUser.replace('{name}', u.name ?? u.email)}
                       checked={isChecked}
                       onChange={() => toggleOne(u.id)}
                       className="size-4 cursor-pointer rounded border-input"
@@ -127,12 +131,12 @@ export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
                     {u.emailVerified ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
                         <ShieldCheck className="h-3 w-3" aria-hidden="true" />
-                        Ya
+                        {tc.verifiedYes}
                       </span>
                     ) : (
                       <span className="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium">
                         <ShieldX className="h-3 w-3" aria-hidden="true" />
-                        Belum
+                        {tc.verifiedNo}
                       </span>
                     )}
                   </td>
@@ -145,7 +149,7 @@ export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
                       href={`/admin/users/${u.id}` as never}
                       className="text-primary text-xs font-medium hover:underline"
                     >
-                      Detail →
+                      {tc.detailLink}
                     </Link>
                   </td>
                 </tr>
@@ -154,7 +158,7 @@ export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
             {users.length === 0 ? (
               <tr>
                 <td className="text-muted-foreground p-6 text-center" colSpan={8}>
-                  Tidak ada pengguna yang cocok.
+                  {tc.noUsers}
                 </td>
               </tr>
             ) : null}

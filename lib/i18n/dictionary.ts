@@ -1,4 +1,4 @@
-// Aggregated translation dictionary.
+﻿// Aggregated translation dictionary.
 //
 // Namespaces are split into separate files under ./dictionaries so multiple
 // authors can edit in parallel without merge conflicts:
@@ -23,6 +23,30 @@ import { formsStatus } from './dictionaries/forms-status'
 import { formsContent } from './dictionaries/forms-content'
 import { formsEditor } from './dictionaries/forms-editor'
 import { formsActions } from './dictionaries/forms-actions'
+import { formsResume } from './dictionaries/forms-resume'
+import { formsTenantImport } from './dictionaries/forms-tenantimport'
+import { formsProfile } from './dictionaries/forms-profile'
+import { formsInterviewSched } from './dictionaries/forms-interviewsched'
+import { formsTenantJob } from './dictionaries/forms-tenantjob'
+import { formsFeatureFlag } from './dictionaries/forms-featureflag'
+import { formsAccount } from './dictionaries/forms-account'
+
+import { formsMarketing } from './dictionaries/forms-marketing'
+import { formsBulk } from './dictionaries/forms-bulk'
+import { formsQuizEditors } from './dictionaries/forms-quizeditors'
+import { formsTenantMisc } from './dictionaries/forms-tenantmisc'
+import { formsTenantIntegration } from './dictionaries/forms-tenantintegration'
+
+
+import { formsTenantCourse } from './dictionaries/forms-tenantcourse'
+
+import { formsEnterprise } from './dictionaries/forms-enterprise'
+import { formsPublicSections } from './dictionaries/forms-publicsections'
+import { formsApplications } from './dictionaries/forms-applications'
+import { formsMisc1 } from './dictionaries/forms-misc1'
+import { formsSavedSearch } from './dictionaries/forms-savedsearch'
+import { formsMisc2 } from './dictionaries/forms-misc2'
+import { formsInterviewPipe } from './dictionaries/forms-interviewpipe'
 
 export type Locale = 'id' | 'en'
 
@@ -42,6 +66,27 @@ export const dictionary = {
     formsContent: formsContent.id,
     formsEditor: formsEditor.id,
     formsActions: formsActions.id,
+    formsResume: formsResume.id,
+    formsTenantImport: formsTenantImport.id,
+    formsProfile: formsProfile.id,
+    formsTenantJob: formsTenantJob.id,
+    formsFeatureFlag: formsFeatureFlag.id,
+    formsAccount: formsAccount.id,
+    
+    formsMarketing: formsMarketing.id,
+    formsBulk: formsBulk.id,
+    formsQuizEditors: formsQuizEditors.id,
+    formsEnterprise: formsEnterprise.id,
+    formsTenantMisc: formsTenantMisc.id,
+    formsTenantIntegration: formsTenantIntegration.id,
+    formsPublicSections: formsPublicSections.id,
+    formsTenantCourse: formsTenantCourse.id,
+    formsMisc1: formsMisc1.id,
+    formsSavedSearch: formsSavedSearch.id,
+    formsInterviewSched: formsInterviewSched.id,
+    formsMisc2: formsMisc2.id,
+    formsApplications: formsApplications.id,
+    formsInterviewPipe: formsInterviewPipe.id,
   },
   en: {
     ...home.en,
@@ -55,6 +100,27 @@ export const dictionary = {
     formsContent: formsContent.en,
     formsEditor: formsEditor.en,
     formsActions: formsActions.en,
+    formsResume: formsResume.en,
+    formsTenantImport: formsTenantImport.en,
+    formsProfile: formsProfile.en,
+    formsTenantJob: formsTenantJob.en,
+    formsFeatureFlag: formsFeatureFlag.en,
+    formsAccount: formsAccount.en,
+    
+    formsMarketing: formsMarketing.en,
+    formsBulk: formsBulk.en,
+    formsQuizEditors: formsQuizEditors.en,
+    formsEnterprise: formsEnterprise.en,
+    formsTenantMisc: formsTenantMisc.en,
+    formsTenantIntegration: formsTenantIntegration.en,
+    formsPublicSections: formsPublicSections.en,
+    formsTenantCourse: formsTenantCourse.en,
+    formsMisc1: formsMisc1.en,
+    formsSavedSearch: formsSavedSearch.en,
+    formsInterviewSched: formsInterviewSched.en,
+    formsMisc2: formsMisc2.en,
+    formsApplications: formsApplications.en,
+    formsInterviewPipe: formsInterviewPipe.en,
   },
 } as const
 

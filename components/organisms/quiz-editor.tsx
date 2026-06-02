@@ -11,6 +11,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 import {
   addQuestion,
@@ -37,12 +38,6 @@ const btnSecondarySm =
 const btnGhostSm =
   'text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs disabled:cursor-not-allowed disabled:opacity-60'
 
-const QUESTION_TYPE_LABELS: Record<QuizQuestionType, string> = {
-  multiple_choice: 'Pilihan ganda',
-  true_false: 'Benar/Salah',
-  multi_select: 'Pilihan jamak',
-}
-
 export type QuizEditorQuestion = {
   id: string
   text: string
@@ -60,6 +55,8 @@ export type QuizEditorQuiz = {
 
 export function QuizEditor({ lessonId }: { lessonId: string }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tq = t.formsQuizEditors.quizEditor
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -101,7 +98,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
     setError(null)
     const score = Number(passingScore)
     if (!Number.isFinite(score) || score < 0 || score > 100) {
-      setError('Skor lulus harus antara 0–100.')
+      setError(tq.errorPassingScore)
       return
     }
     startTransition(async () => {
@@ -119,11 +116,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
   }
 
   function handleDeleteQuiz() {
-    if (
-      !window.confirm(
-        'Hapus kuis ini? Semua pertanyaan dan riwayat percobaan akan terhapus.',
-      )
-    ) {
+    if (!window.confirm(tq.confirmDeleteQuiz)) {
       return
     }
     setError(null)
@@ -138,7 +131,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
   }
 
   function handleDeleteQuestion(qid: string) {
-    if (!window.confirm('Hapus pertanyaan ini?')) return
+    if (!window.confirm(tq.confirmDeleteQuestion)) return
     setError(null)
     startTransition(async () => {
       const r = await deleteQuestion(qid)
@@ -166,7 +159,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
 
   if (!loaded) {
     return (
-      <div className="text-muted-foreground text-xs">Memuat kuis…</div>
+      <div className="text-muted-foreground text-xs">{tq.loading}</div>
     )
   }
 
@@ -174,9 +167,9 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="font-heading text-base font-semibold">Kuis pelajaran</h3>
+          <h3 className="font-heading text-base font-semibold">{tq.heading}</h3>
           <p className="text-muted-foreground text-xs">
-            Atur skor lulus, pengacakan, dan daftar pertanyaan.
+            {tq.subheading}
           </p>
         </div>
         {hasQuiz && (
@@ -187,7 +180,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
             className="text-destructive hover:text-destructive/80 inline-flex items-center gap-1 text-xs disabled:opacity-60"
           >
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-            Hapus kuis
+            {tq.deleteQuiz}
           </button>
         )}
       </div>
@@ -204,7 +197,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
       <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
         <div className="space-y-1">
           <label htmlFor={`pscore-${lessonId}`} className={labelClass}>
-            Skor lulus (0–100)
+            {tq.passingScoreLabel}
           </label>
           <input
             id={`pscore-${lessonId}`}
@@ -227,7 +220,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
               disabled={pending}
               className="h-4 w-4 rounded border-border"
             />
-            Acak urutan
+            {tq.shuffleLabel}
           </label>
         </div>
         <div className="flex items-end">
@@ -238,7 +231,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
             className={btnPrimarySm}
           >
             <Save className="h-3.5 w-3.5" aria-hidden="true" />
-            {hasQuiz ? 'Simpan' : 'Aktifkan kuis'}
+            {hasQuiz ? tq.saveSettings : tq.activateQuiz}
           </button>
         </div>
       </div>
@@ -248,7 +241,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
           <div className="border-border border-t pt-4">
             <div className="flex items-center justify-between gap-2">
               <h4 className="text-sm font-semibold">
-                Pertanyaan ({quiz!.questions.length})
+                {tq.questionsHeading.replace('{count}', String(quiz!.questions.length))}
               </h4>
               {!creating && (
                 <button
@@ -258,7 +251,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
                   className={btnSecondarySm}
                 >
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                  Tambah pertanyaan
+                  {tq.addQuestion}
                 </button>
               )}
             </div>
@@ -300,7 +293,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
                             #{idx + 1}
                           </span>
                           <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
-                            {QUESTION_TYPE_LABELS[q.type as QuizQuestionType] ??
+                            {tq.questionTypeLabels[q.type as QuizQuestionType] ??
                               q.type}
                           </span>
                         </div>
@@ -355,7 +348,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
                             className="h-3.5 w-3.5"
                             aria-hidden="true"
                           />
-                          Ubah
+                          {tq.editButton}
                         </button>
                         <button
                           type="button"
@@ -367,7 +360,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
                             className="h-3.5 w-3.5"
                             aria-hidden="true"
                           />
-                          Hapus
+                          {tq.deleteButton}
                         </button>
                       </div>
                     </div>
@@ -376,7 +369,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
               ))}
               {quiz!.questions.length === 0 && !creating && (
                 <li className="text-muted-foreground border-border bg-card rounded-lg border p-4 text-center text-xs">
-                  Belum ada pertanyaan. Tambahkan satu untuk memulai.
+                  {tq.emptyQuestions}
                 </li>
               )}
             </ul>
@@ -389,11 +382,11 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
 
 type ChoiceDraft = { text: string; isCorrect: boolean }
 
-function defaultChoicesForType(type: QuizQuestionType): ChoiceDraft[] {
+function defaultChoicesForType(type: QuizQuestionType, trueFalseTrue: string, trueFalseFalse: string): ChoiceDraft[] {
   if (type === 'true_false') {
     return [
-      { text: 'Benar', isCorrect: true },
-      { text: 'Salah', isCorrect: false },
+      { text: trueFalseTrue, isCorrect: true },
+      { text: trueFalseFalse, isCorrect: false },
     ]
   }
   return [
@@ -413,6 +406,9 @@ function QuestionForm({
   onCancel: () => void
   onDone: () => void
 }) {
+  const { t } = useI18n()
+  const tqf = t.formsQuizEditors.quizEditor.questionForm
+  const tqTypes = t.formsQuizEditors.quizEditor.questionTypeLabels
   const isEdit = Boolean(question)
   const [text, setText] = useState(question?.text ?? '')
   const initialType: QuizQuestionType = (question?.type as QuizQuestionType) ??
@@ -421,7 +417,7 @@ function QuestionForm({
   const [choices, setChoices] = useState<ChoiceDraft[]>(
     question
       ? question.choices.map((c) => ({ text: c.text, isCorrect: c.isCorrect }))
-      : defaultChoicesForType(initialType),
+      : defaultChoicesForType(initialType, tqf.trueFalseTrue, tqf.trueFalseFalse),
   )
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -430,13 +426,13 @@ function QuestionForm({
     setType(next)
     if (next === 'true_false') {
       setChoices([
-        { text: 'Benar', isCorrect: true },
-        { text: 'Salah', isCorrect: false },
+        { text: tqf.trueFalseTrue, isCorrect: true },
+        { text: tqf.trueFalseFalse, isCorrect: false },
       ])
     } else if (next === 'multiple_choice') {
       // Enforce exactly one correct on switch — keep first existing correct.
       setChoices((prev) => {
-        const cleaned = prev.length >= 2 ? prev : defaultChoicesForType(next)
+        const cleaned = prev.length >= 2 ? prev : defaultChoicesForType(next, tqf.trueFalseTrue, tqf.trueFalseFalse)
         let foundCorrect = false
         return cleaned.map((c) => {
           if (c.isCorrect && !foundCorrect) {
@@ -448,7 +444,7 @@ function QuestionForm({
       })
     } else {
       setChoices((prev) =>
-        prev.length >= 2 ? prev : defaultChoicesForType(next),
+        prev.length >= 2 ? prev : defaultChoicesForType(next, tqf.trueFalseTrue, tqf.trueFalseFalse),
       )
     }
   }
@@ -492,7 +488,7 @@ function QuestionForm({
     setError(null)
     const trimmedText = text.trim()
     if (trimmedText.length < 3) {
-      setError('Teks pertanyaan minimal 3 karakter.')
+      setError(tqf.errorQuestionMinLength)
       return
     }
     const trimmedChoices = choices.map((c) => ({
@@ -500,7 +496,7 @@ function QuestionForm({
       isCorrect: c.isCorrect,
     }))
     if (trimmedChoices.some((c) => !c.text)) {
-      setError('Setiap pilihan harus memiliki teks.')
+      setError(tqf.errorChoiceEmpty)
       return
     }
     startTransition(async () => {
@@ -526,16 +522,16 @@ function QuestionForm({
 
   const hint =
     type === 'multiple_choice'
-      ? 'Tepat 1 jawaban benar.'
+      ? tqf.hintMultipleChoice
       : type === 'true_false'
-        ? 'Tepat 2 pilihan dengan 1 jawaban benar.'
-        : 'Minimal 1 jawaban benar; pengguna harus memilih semua jawaban benar.'
+        ? tqf.hintTrueFalse
+        : tqf.hintMultiSelect
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h4 className="text-sm font-medium">
-          {isEdit ? 'Ubah pertanyaan' : 'Pertanyaan baru'}
+          {isEdit ? tqf.titleEdit : tqf.titleNew}
         </h4>
         <button
           type="button"
@@ -550,17 +546,17 @@ function QuestionForm({
 
       {!isEdit && (
         <div className="space-y-1">
-          <label className={labelClass}>Tipe pertanyaan</label>
+          <label className={labelClass}>{tqf.typeLabel}</label>
           <select
             value={type}
             onChange={(e) => handleTypeChange(e.target.value as QuizQuestionType)}
             disabled={pending}
             className={inputClass}
           >
-            {(Object.keys(QUESTION_TYPE_LABELS) as QuizQuestionType[]).map(
-              (t) => (
-                <option key={t} value={t}>
-                  {QUESTION_TYPE_LABELS[t]}
+            {(Object.keys(tqTypes) as QuizQuestionType[]).map(
+              (k) => (
+                <option key={k} value={k}>
+                  {tqTypes[k]}
                 </option>
               ),
             )}
@@ -569,19 +565,19 @@ function QuestionForm({
       )}
 
       <div className="space-y-1">
-        <label className={labelClass}>Pertanyaan</label>
+        <label className={labelClass}>{tqf.textLabel}</label>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={pending}
-          placeholder="Tulis pertanyaan Anda…"
+          placeholder={tqf.textPlaceholder}
           className={`${inputClass} min-h-[5rem] resize-y`}
         />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className={labelClass}>Pilihan</label>
+          <label className={labelClass}>{tqf.choicesLabel}</label>
           <span className="text-muted-foreground text-[11px]">{hint}</span>
         </div>
         <ul className="space-y-2">
@@ -595,7 +591,7 @@ function QuestionForm({
                   updateChoice(idx, { isCorrect: e.target.checked })
                 }
                 disabled={pending}
-                aria-label="Tandai sebagai jawaban benar"
+                aria-label={tqf.ariaMarkCorrect}
                 className="h-4 w-4"
               />
               <input
@@ -603,7 +599,7 @@ function QuestionForm({
                 value={c.text}
                 onChange={(e) => updateChoice(idx, { text: e.target.value })}
                 disabled={pending || type === 'true_false'}
-                placeholder={`Pilihan ${idx + 1}`}
+                placeholder={tqf.choicePlaceholder.replace('{n}', String(idx + 1))}
                 className={inputClass}
               />
               {type !== 'true_false' && choices.length > 2 && (
@@ -611,7 +607,7 @@ function QuestionForm({
                   type="button"
                   onClick={() => removeChoice(idx)}
                   disabled={pending}
-                  aria-label="Hapus pilihan"
+                  aria-label={tqf.ariaRemoveChoice}
                   className={btnGhostSm}
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -628,7 +624,7 @@ function QuestionForm({
             className={btnSecondarySm}
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-            Tambah pilihan
+            {tqf.addChoice}
           </button>
         )}
       </div>
@@ -646,7 +642,7 @@ function QuestionForm({
           disabled={pending}
           className={btnPrimarySm}
         >
-          {pending ? 'Menyimpan…' : isEdit ? 'Simpan perubahan' : 'Tambah pertanyaan'}
+          {pending ? tqf.saving : isEdit ? tqf.saveEdit : tqf.saveNew}
         </button>
         <button
           type="button"
@@ -654,7 +650,7 @@ function QuestionForm({
           disabled={pending}
           className={btnSecondarySm}
         >
-          Batal
+          {tqf.cancel}
         </button>
       </div>
     </div>

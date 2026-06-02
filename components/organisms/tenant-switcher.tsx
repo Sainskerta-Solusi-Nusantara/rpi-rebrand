@@ -6,6 +6,7 @@ import { Check, ChevronsUpDown, Plus, Building2 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { Avatar } from '@/components/atoms/avatar'
 import { cn, getInitials } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface TenantSwitcherProps {
   activeTenantSlug?: string
@@ -15,6 +16,8 @@ export interface TenantSwitcherProps {
 
 export function TenantSwitcher({ activeTenantSlug, onSelect, className }: TenantSwitcherProps) {
   const { data: session } = useSession()
+  const { t } = useI18n()
+  const tl = t.formsTenantMisc.switcher
   const [open, setOpen] = React.useState(false)
   const ref = React.useRef<HTMLDivElement | null>(null)
   const tenants = session?.user?.tenants ?? []
@@ -38,7 +41,7 @@ export function TenantSwitcher({ activeTenantSlug, onSelect, className }: Tenant
           className,
         )}
       >
-        <Plus className="h-4 w-4" /> Buat tenant
+        <Plus className="h-4 w-4" /> {tl.createTenant}
       </Link>
     )
   }
@@ -63,18 +66,18 @@ export function TenantSwitcher({ activeTenantSlug, onSelect, className }: Tenant
           className="absolute right-0 mt-2 w-64 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
         >
           <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Tenant
+            {tl.sectionLabel}
           </div>
-          {tenants.map((t) => {
-            const isActive = t.slug === active?.slug
+          {tenants.map((tenant) => {
+            const isActive = tenant.slug === active?.slug
             return (
               <button
                 type="button"
-                key={t.tenantId}
+                key={tenant.tenantId}
                 role="option"
                 aria-selected={isActive}
                 onClick={() => {
-                  onSelect?.(t.slug)
+                  onSelect?.(tenant.slug)
                   setOpen(false)
                 }}
                 className={cn(
@@ -82,9 +85,9 @@ export function TenantSwitcher({ activeTenantSlug, onSelect, className }: Tenant
                   isActive && 'bg-muted',
                 )}
               >
-                <Avatar size="xs" alt={t.slug} fallback={getInitials(t.slug)} />
-                <span className="flex-1 truncate">{t.slug}</span>
-                <span className="text-xs text-muted-foreground">{t.role}</span>
+                <Avatar size="xs" alt={tenant.slug} fallback={getInitials(tenant.slug)} />
+                <span className="flex-1 truncate">{tenant.slug}</span>
+                <span className="text-xs text-muted-foreground">{tenant.role}</span>
                 {isActive ? <Check className="h-4 w-4 text-secondary" /> : null}
               </button>
             )
@@ -96,7 +99,7 @@ export function TenantSwitcher({ activeTenantSlug, onSelect, className }: Tenant
             onClick={() => setOpen(false)}
           >
             <Plus className="h-4 w-4 text-secondary" />
-            <span>Buat tenant baru</span>
+            <span>{tl.createTenantNew}</span>
           </Link>
           <Link
             href="/dashboard/tenants"
@@ -104,7 +107,7 @@ export function TenantSwitcher({ activeTenantSlug, onSelect, className }: Tenant
             onClick={() => setOpen(false)}
           >
             <Building2 className="h-4 w-4 text-muted-foreground" />
-            <span>Kelola tenant</span>
+            <span>{tl.manageTenants}</span>
           </Link>
         </div>
       ) : null}

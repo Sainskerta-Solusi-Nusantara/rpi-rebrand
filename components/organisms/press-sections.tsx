@@ -29,6 +29,7 @@ import {
   PRESS_CATEGORY_COLOR,
   type PressCategory,
 } from '@/lib/press-data'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -41,6 +42,9 @@ const fadeUp = {
 // ---------------------------------------------------------------------------
 
 export function PressHero() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.press
+
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -72,7 +76,7 @@ export function PressHero() {
         >
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Press & Media
+            {tc.hero.eyebrow}
           </span>
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
         </motion.div>
@@ -84,7 +88,7 @@ export function PressHero() {
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
           Cerita kami,{' '}
-          <span className="text-[color:var(--ring)]">untuk Anda</span>{' '}
+          <span className="text-[color:var(--ring)]">{tc.hero.headingHighlight}</span>{' '}
           ceritakan.
         </motion.h1>
 
@@ -93,9 +97,7 @@ export function PressHero() {
           transition={{ duration: 0.55, delay: 0.15 }}
           className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg md:text-xl"
         >
-          Siaran pers resmi, peliputan media, dan materi yang siap-pakai untuk
-          jurnalis, peneliti, dan mitra. Untuk pertanyaan langsung, hubungi tim
-          komunikasi kami.
+          {tc.hero.body}
         </motion.p>
 
         <motion.div
@@ -105,13 +107,13 @@ export function PressHero() {
         >
           <Button asChild size="lg">
             <a href="#press-kit">
-              Unduh Press Kit
+              {tc.hero.ctaPressKit}
               <Download className="ml-2 h-4 w-4" aria-hidden />
             </a>
           </Button>
           <Button asChild size="lg" variant="outline">
             <a href="#press-contact">
-              Hubungi Tim Media
+              {tc.hero.ctaContact}
             </a>
           </Button>
         </motion.div>
@@ -122,10 +124,10 @@ export function PressHero() {
           className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-8 sm:grid-cols-4"
         >
           {[
-            { v: '2.4M+', l: 'Pekerja terdaftar' },
-            { v: '12K+',  l: 'Mitra perekrut' },
-            { v: '34',    l: 'Provinsi terjangkau' },
-            { v: '2021',  l: 'Tahun berdiri' },
+            { v: '2.4M+', l: tc.hero.statWorkers },
+            { v: '12K+',  l: tc.hero.statPartners },
+            { v: '34',    l: tc.hero.statProvinces },
+            { v: '2021',  l: tc.hero.statFounded },
           ].map((s) => (
             <div key={s.l} className="text-center">
               <dt className="font-heading text-foreground text-3xl font-semibold tracking-tight md:text-4xl">
@@ -180,6 +182,9 @@ export function PressReleases({
   clearAllHref,
   hasAnyFilter,
 }: PressReleasesProps) {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.press
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -194,7 +199,7 @@ export function PressReleases({
           <div className="mb-4 flex items-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Siaran Pers
+              {tc.releases.eyebrow}
             </span>
           </div>
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -203,12 +208,14 @@ export function PressReleases({
                 id="press-releases-heading"
                 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
               >
-                Pengumuman & rilis resmi
+                {tc.releases.heading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
                 {hasAnyFilter
-                  ? `${releases.length} dari ${totalCount} siaran pers`
-                  : `${totalCount} siaran pers`}
+                  ? tc.releases.countFiltered
+                      .replace('{count}', String(releases.length))
+                      .replace('{total}', String(totalCount))
+                  : tc.releases.countAll.replace('{total}', String(totalCount))}
                 {activeQuery && (
                   <>
                     {' '}untuk &ldquo;
@@ -250,9 +257,9 @@ export function PressReleases({
                 type="search"
                 name="q"
                 defaultValue={activeQuery}
-                placeholder="Cari judul, topik, atau lokasi rilis…"
+                placeholder={tc.releases.searchPlaceholder}
                 className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
-                aria-label="Cari siaran pers"
+                aria-label={tc.releases.searchLabel}
               />
               {activeQuery && (
                 <Link
@@ -261,14 +268,14 @@ export function PressReleases({
                   className="text-muted-foreground hover:text-foreground text-xs font-medium"
                   aria-label="Hapus pencarian"
                 >
-                  Bersihkan
+                  {tc.releases.clearSearch}
                 </Link>
               )}
               <button
                 type="submit"
                 className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
               >
-                Cari
+                {tc.releases.searchBtn}
               </button>
               {activeCategory !== 'Semua' && (
                 <input type="hidden" name="category" value={activeCategory} />
@@ -280,10 +287,10 @@ export function PressReleases({
         {releases.length === 0 ? (
           <div className="border-border bg-card rounded-2xl border p-12 text-center">
             <h3 className="font-heading text-foreground text-lg font-semibold">
-              Tidak ada siaran pers
+              {tc.releases.emptyHeading}
             </h3>
             <p className="text-muted-foreground mt-2 text-sm">
-              Coba ubah kata kunci atau pilih kategori lain.
+              {tc.releases.emptyBody}
             </p>
             {hasAnyFilter && (
               <Link
@@ -291,7 +298,7 @@ export function PressReleases({
                 href={clearAllHref as any}
                 className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
               >
-                Bersihkan filter
+                {tc.releases.clearFilter}
               </Link>
             )}
           </div>
@@ -339,7 +346,7 @@ export function PressReleases({
                     </p>
                   </div>
                   <span className="text-foreground/80 group-hover:text-[color:var(--ring)] hidden shrink-0 items-center gap-1 self-start pt-1 text-sm font-medium transition sm:inline-flex">
-                    Baca
+                    {tc.releases.readCta}
                     <ArrowRight className="h-4 w-4" aria-hidden />
                   </span>
                 </a>
@@ -352,7 +359,7 @@ export function PressReleases({
         <div className="mt-6 text-center">
           <Button variant="outline" asChild>
             <a href="/press/archive">
-              Lihat arsip lengkap
+              {tc.releases.archiveCta}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </a>
           </Button>
@@ -385,7 +392,7 @@ const OUTLETS: Outlet[] = [
   { name: 'CNBC Indonesia', initial: 'C',  color: '#005AAB' },
 ]
 
-type Quote = {
+type QuoteItem = {
   outlet: string
   date: string
   headline: string
@@ -393,11 +400,11 @@ type Quote = {
   href: string
 }
 
-const QUOTES: Quote[] = [
+const QUOTES: QuoteItem[] = [
   {
     outlet: 'Bloomberg',
     date: 'Mei 2026',
-    headline: 'Indonesia\'s Next Talent Powerhouse',
+    headline: "Indonesia's Next Talent Powerhouse",
     quote:
       '"RPI mengubah cara perusahaan Indonesia berburu talenta — dari hubungan personal yang lambat menjadi proses berbasis data yang transparan."',
     href: 'https://example.com/bloomberg',
@@ -421,6 +428,9 @@ const QUOTES: Quote[] = [
 ]
 
 export function PressCoverage() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.press
+
   return (
     <section
       className="bg-background py-20 md:py-24"
@@ -435,7 +445,7 @@ export function PressCoverage() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Peliputan Media
+              {tc.coverage.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -443,11 +453,10 @@ export function PressCoverage() {
             id="press-coverage-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Diliput oleh media terdepan
+            {tc.coverage.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Lebih dari 180 artikel di 40+ media nasional dan internasional sejak
-            kami didirikan.
+            {tc.coverage.body}
           </p>
         </motion.div>
 
@@ -529,6 +538,9 @@ const AWARDS: AwardItem[] = [
 ]
 
 export function PressAwards() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.press
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -543,7 +555,7 @@ export function PressAwards() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Penghargaan
+              {tc.awards.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -551,11 +563,10 @@ export function PressAwards() {
             id="press-awards-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Pengakuan industri
+            {tc.awards.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Kami bangga, tapi kami sadar — penghargaan paling berarti adalah
-            kepercayaan pengguna kami setiap hari.
+            {tc.awards.body}
           </p>
         </motion.div>
 
@@ -602,38 +613,41 @@ type Leader = {
   color: string
 }
 
-const LEADERS: Leader[] = [
-  {
-    name: 'Arif Wibowo',
-    role: 'Co-Founder & CEO',
-    bio: 'Mantan VP Product di Tokopedia. Memimpin RPI sejak 2021 dengan misi membangun infrastruktur kerja yang adil untuk Indonesia.',
-    initial: 'AW',
-    color: '#0A2540',
-  },
-  {
-    name: 'Siti Nurhasanah',
-    role: 'Co-Founder & CTO',
-    bio: 'Sebelumnya Staff Engineer di Stripe. Memimpin tim teknologi 38 engineer yang menjalankan platform multi-tenant skala besar.',
-    initial: 'SN',
-    color: '#635BFF',
-  },
-  {
-    name: 'Daniel Setiawan',
-    role: 'Chief Operating Officer',
-    bio: 'Eks-Director Operations di Gojek. Mengelola pertumbuhan operasi RPI di 6 kota dan kemitraan strategis nasional.',
-    initial: 'DS',
-    color: '#10B981',
-  },
-  {
-    name: 'Maya Pratiwi',
-    role: 'VP Communications',
-    bio: 'Mantan jurnalis Kompas dan Head of Comms di Gojek. Memimpin hubungan media dan riset publik RPI.',
-    initial: 'MP',
-    color: '#EC4899',
-  },
-]
-
 export function PressLeadership() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.press
+
+  const LEADERS: Leader[] = [
+    {
+      name: 'Arif Wibowo',
+      role: 'Co-Founder & CEO',
+      bio: tc.leadership.leaderArif.bio,
+      initial: 'AW',
+      color: '#0A2540',
+    },
+    {
+      name: 'Siti Nurhasanah',
+      role: 'Co-Founder & CTO',
+      bio: tc.leadership.leaderSiti.bio,
+      initial: 'SN',
+      color: '#635BFF',
+    },
+    {
+      name: 'Daniel Setiawan',
+      role: 'Chief Operating Officer',
+      bio: tc.leadership.leaderDaniel.bio,
+      initial: 'DS',
+      color: '#10B981',
+    },
+    {
+      name: 'Maya Pratiwi',
+      role: 'VP Communications',
+      bio: tc.leadership.leaderMaya.bio,
+      initial: 'MP',
+      color: '#EC4899',
+    },
+  ]
+
   return (
     <section
       className="bg-background py-20 md:py-24"
@@ -648,7 +662,7 @@ export function PressLeadership() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Tim Eksekutif
+              {tc.leadership.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -656,11 +670,10 @@ export function PressLeadership() {
             id="press-leadership-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Tersedia untuk wawancara
+            {tc.leadership.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Foto resolusi tinggi dan bio resmi tersedia di press kit. Untuk
-            permintaan wawancara, hubungi tim komunikasi kami.
+            {tc.leadership.body}
           </p>
         </motion.div>
 
@@ -719,52 +732,55 @@ type KitItem = {
   href: string
 }
 
-const KIT_ITEMS: KitItem[] = [
-  {
-    icon: Sparkles,
-    title: 'Logo Pack',
-    desc: 'Logo resmi RPI dalam variasi monogram, horizontal, dan dark/light mode.',
-    format: 'SVG · PNG · 2.4 MB',
-    href: '/press-kit/RPI-Logo-Pack.zip',
-  },
-  {
-    icon: Palette,
-    title: 'Brand Guidelines',
-    desc: 'Panduan warna, tipografi, tone of voice, dan penggunaan logo yang benar.',
-    format: 'PDF · 6.8 MB',
-    href: '/press-kit/RPI-Brand-Guidelines.pdf',
-  },
-  {
-    icon: Camera,
-    title: 'Foto & Headshot',
-    desc: 'Foto kantor, tim eksekutif, dan stok visual untuk peliputan.',
-    format: 'JPG · 48 MB',
-    href: '/press-kit/RPI-Photos.zip',
-  },
-  {
-    icon: FileText,
-    title: 'Fact Sheet',
-    desc: 'Ringkasan satu halaman: profil perusahaan, statistik kunci, dan milestone.',
-    format: 'PDF · 320 KB',
-    href: '/press-kit/RPI-Fact-Sheet.pdf',
-  },
-  {
-    icon: Type,
-    title: 'Boilerplate Text',
-    desc: 'Deskripsi resmi perusahaan dalam Bahasa Indonesia dan Inggris.',
-    format: 'DOCX · 24 KB',
-    href: '/press-kit/RPI-Boilerplate.docx',
-  },
-  {
-    icon: Award,
-    title: 'Media Coverage Archive',
-    desc: 'Arsip lengkap peliputan media — terorganisir per tahun dan outlet.',
-    format: 'Online',
-    href: '/press/archive',
-  },
-]
-
 export function PressKit() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.press
+
+  const KIT_ITEMS: KitItem[] = [
+    {
+      icon: Sparkles,
+      title: 'Logo Pack',
+      desc: tc.kit.logoDesc,
+      format: 'SVG · PNG · 2.4 MB',
+      href: '/press-kit/RPI-Logo-Pack.zip',
+    },
+    {
+      icon: Palette,
+      title: 'Brand Guidelines',
+      desc: tc.kit.brandDesc,
+      format: 'PDF · 6.8 MB',
+      href: '/press-kit/RPI-Brand-Guidelines.pdf',
+    },
+    {
+      icon: Camera,
+      title: 'Foto & Headshot',
+      desc: tc.kit.photoDesc,
+      format: 'JPG · 48 MB',
+      href: '/press-kit/RPI-Photos.zip',
+    },
+    {
+      icon: FileText,
+      title: 'Fact Sheet',
+      desc: tc.kit.factDesc,
+      format: 'PDF · 320 KB',
+      href: '/press-kit/RPI-Fact-Sheet.pdf',
+    },
+    {
+      icon: Type,
+      title: 'Boilerplate Text',
+      desc: tc.kit.boilerplateDesc,
+      format: 'DOCX · 24 KB',
+      href: '/press-kit/RPI-Boilerplate.docx',
+    },
+    {
+      icon: Award,
+      title: 'Media Coverage Archive',
+      desc: tc.kit.archiveDesc,
+      format: 'Online',
+      href: '/press/archive',
+    },
+  ]
+
   return (
     <section
       id="press-kit"
@@ -780,7 +796,7 @@ export function PressKit() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Press Kit
+              {tc.kit.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -788,23 +804,22 @@ export function PressKit() {
             id="press-kit-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Materi siap-pakai
+            {tc.kit.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Aset resmi yang bisa Anda gunakan langsung. Untuk permintaan kustom
-            atau format lain, kirim email ke tim komunikasi kami.
+            {tc.kit.body}
           </p>
         </motion.div>
 
         <div className="mb-8 text-center">
           <Button asChild size="lg">
             <a href="/press-kit/RPI-Press-Kit-Full.zip">
-              Unduh Press Kit Lengkap
+              {tc.kit.downloadAll}
               <Download className="ml-2 h-4 w-4" aria-hidden />
             </a>
           </Button>
           <p className="text-muted-foreground mt-3 text-xs">
-            Berisi semua file di bawah · ZIP · 58 MB
+            {tc.kit.downloadAllSub}
           </p>
         </div>
 
@@ -851,6 +866,9 @@ export function PressKit() {
 // ---------------------------------------------------------------------------
 
 export function PressContact() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.press
+
   return (
     <section
       id="press-contact"
@@ -877,18 +895,17 @@ export function PressContact() {
               <div className="mb-4 flex items-center gap-3">
                 <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
                 <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Hubungi Tim Media
+                  {tc.contact.eyebrow}
                 </span>
               </div>
               <h2
                 id="press-contact-heading"
                 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
               >
-                Untuk jurnalis, peneliti & mitra media
+                {tc.contact.heading}
               </h2>
               <p className="text-muted-foreground mt-3 max-w-xl text-base">
-                Tim komunikasi kami biasanya membalas dalam 4 jam kerja. Untuk
-                deadline yang ketat, sertakan urgensi di subjek email.
+                {tc.contact.body}
               </p>
 
               <ul className="text-muted-foreground mt-8 space-y-3 text-sm">
@@ -910,11 +927,11 @@ export function PressContact() {
                 </li>
                 <li className="flex items-center gap-3">
                   <Send className="text-[color:var(--ring)] h-4 w-4 shrink-0" aria-hidden />
-                  <span>+62 21 5000 1020 (langsung VP Comms)</span>
+                  <span>{tc.contact.directLine}</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Globe className="text-[color:var(--ring)] h-4 w-4 shrink-0" aria-hidden />
-                  <span>Tersedia wawancara dalam Bahasa Indonesia & Inggris</span>
+                  <span>{tc.contact.languages}</span>
                 </li>
               </ul>
             </div>
@@ -923,13 +940,13 @@ export function PressContact() {
               <Button asChild size="lg">
                 <a href="mailto:press@rumahpekerja.id?subject=Permintaan Wawancara">
                   <Mail className="mr-2 h-4 w-4" aria-hidden />
-                  Email Tim Media
+                  {tc.contact.emailBtn}
                 </a>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <a href="/press-kit/RPI-Press-Kit-Full.zip">
                   <Download className="mr-2 h-4 w-4" aria-hidden />
-                  Press Kit Lengkap
+                  {tc.contact.kitBtn}
                 </a>
               </Button>
             </div>

@@ -17,6 +17,7 @@ import {
   type ImportResult,
   type PreviewRowStatus,
 } from '@/lib/tenants/member-import-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -36,12 +37,12 @@ type Stage =
   | { kind: 'preview'; preview: PreviewResult; csvText: string; error?: string }
   | { kind: 'result'; result: ImportResult }
 
-function statusBadge(status: PreviewRowStatus) {
+function StatusBadge({ status, tl }: { status: PreviewRowStatus; tl: { badgeValid: string; badgeError: string; badgeSkipped: string } }) {
   if (status === 'valid') {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
         <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
-        Valid
+        {tl.badgeValid}
       </span>
     )
   }
@@ -49,7 +50,7 @@ function statusBadge(status: PreviewRowStatus) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
         <XCircle className="h-3 w-3" aria-hidden="true" />
-        Error
+        {tl.badgeError}
       </span>
     )
   }
@@ -57,7 +58,7 @@ function statusBadge(status: PreviewRowStatus) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
       <Info className="h-3 w-3" aria-hidden="true" />
-      Dilewati
+      {tl.badgeSkipped}
     </span>
   )
 }
@@ -68,6 +69,8 @@ export function TenantMembersImportForm({
   tenantSlug: string
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsTenantImport.membersImport
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [pending, startTransition] = useTransition()
   const [csvText, setCsvText] = useState('')
@@ -91,7 +94,7 @@ export function TenantMembersImportForm({
     reader.onerror = () => {
       setStage({
         kind: 'upload',
-        error: 'Gagal membaca file. Coba lagi.',
+        error: tl.fileReadError,
       })
     }
     reader.readAsText(file, 'utf-8')
@@ -101,7 +104,7 @@ export function TenantMembersImportForm({
     if (!csvText.trim()) {
       setStage({
         kind: 'upload',
-        error: 'Tempel atau unggah CSV terlebih dahulu.',
+        error: tl.csvEmptyError,
       })
       return
     }
@@ -139,7 +142,7 @@ export function TenantMembersImportForm({
       <div className="space-y-5">
         <div className="space-y-2">
           <label htmlFor="csv-file" className={labelClass}>
-            Unggah file CSV
+            {tl.uploadFileLabel}
           </label>
           <input
             ref={fileInputRef}
@@ -151,13 +154,13 @@ export function TenantMembersImportForm({
             className={inputClass}
           />
           <p className="text-muted-foreground text-xs">
-            Atau tempel langsung isi CSV di bawah ini.
+            {tl.uploadOrPaste}
           </p>
         </div>
 
         <div className="space-y-2">
           <label htmlFor="csv-text" className={labelClass}>
-            Tempel isi CSV
+            {tl.pasteLabel}
           </label>
           <textarea
             id="csv-text"
@@ -186,7 +189,7 @@ export function TenantMembersImportForm({
             className={btnPrimary}
           >
             <Upload className="h-4 w-4" aria-hidden="true" />
-            {pending ? 'Memproses…' : 'Parse & preview'}
+            {pending ? tl.btnParsePending : tl.btnParse}
           </button>
           {csvText && (
             <button
@@ -198,7 +201,7 @@ export function TenantMembersImportForm({
               disabled={pending}
               className={btnSecondary}
             >
-              Bersihkan
+              {tl.btnClear}
             </button>
           )}
         </div>
@@ -213,20 +216,20 @@ export function TenantMembersImportForm({
         <div className="border-border flex flex-wrap items-center gap-4 rounded-2xl border bg-card p-4 text-sm">
           <div>
             <p className="text-muted-foreground text-xs uppercase">
-              Total baris
+              {tl.statTotalRows}
             </p>
             <p className="text-foreground font-semibold">{preview.totalRows}</p>
           </div>
           <div>
-            <p className="text-muted-foreground text-xs uppercase">Valid</p>
+            <p className="text-muted-foreground text-xs uppercase">{tl.statValid}</p>
             <p className="text-success font-semibold">{preview.validCount}</p>
           </div>
           <div>
-            <p className="text-muted-foreground text-xs uppercase">Dilewati</p>
+            <p className="text-muted-foreground text-xs uppercase">{tl.statSkipped}</p>
             <p className="font-semibold text-amber-700">{preview.skipCount}</p>
           </div>
           <div>
-            <p className="text-muted-foreground text-xs uppercase">Error</p>
+            <p className="text-muted-foreground text-xs uppercase">{tl.statError}</p>
             <p className="text-destructive font-semibold">
               {preview.errorCount}
             </p>
@@ -234,7 +237,7 @@ export function TenantMembersImportForm({
         </div>
 
         <div className="space-y-2">
-          <p className={labelClass}>Header terdeteksi</p>
+          <p className={labelClass}>{tl.detectedHeaders}</p>
           <div className="flex flex-wrap gap-2">
             {preview.headers.map((h, idx) => (
               <code
@@ -251,12 +254,12 @@ export function TenantMembersImportForm({
           <table className="min-w-full text-sm">
             <thead className="bg-muted/50 text-left">
               <tr>
-                <th className="p-3 font-medium">Baris</th>
-                <th className="p-3 font-medium">Status</th>
-                <th className="p-3 font-medium">Email</th>
-                <th className="p-3 font-medium">Peran</th>
-                <th className="p-3 font-medium">Nama</th>
-                <th className="p-3 font-medium">Catatan</th>
+                <th className="p-3 font-medium">{tl.colRow}</th>
+                <th className="p-3 font-medium">{tl.colStatus}</th>
+                <th className="p-3 font-medium">{tl.colEmail}</th>
+                <th className="p-3 font-medium">{tl.colRole}</th>
+                <th className="p-3 font-medium">{tl.colName}</th>
+                <th className="p-3 font-medium">{tl.colNotes}</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -265,7 +268,7 @@ export function TenantMembersImportForm({
                 return (
                   <tr key={r.lineNum}>
                     <td className="p-3 font-mono text-xs">{r.lineNum}</td>
-                    <td className="p-3">{statusBadge(r.status)}</td>
+                    <td className="p-3"><StatusBadge status={r.status} tl={tl} /></td>
                     <td className="p-3 text-xs">
                       {(r.parsed?.email ?? r.raw.email ?? '').slice(0, 80)}
                     </td>
@@ -312,8 +315,8 @@ export function TenantMembersImportForm({
             className={btnPrimary}
           >
             {pending
-              ? 'Mengirim undangan…'
-              : `Kirim ${preview.validCount} undangan valid`}
+              ? tl.btnImportPending
+              : tl.btnImport.replace('{count}', String(preview.validCount))}
           </button>
           <button
             type="button"
@@ -321,7 +324,7 @@ export function TenantMembersImportForm({
             disabled={pending}
             className={btnSecondary}
           >
-            Batal
+            {tl.btnCancel}
           </button>
         </div>
       </div>
@@ -354,20 +357,20 @@ export function TenantMembersImportForm({
           )}
           <div className="space-y-2 text-sm">
             <p className="font-heading text-lg">
-              {allOk ? 'Impor selesai' : 'Impor selesai sebagian'}
+              {allOk ? tl.resultDoneTitle : tl.resultPartialTitle}
             </p>
             <ul className="space-y-1">
               <li>
-                Total baris: <span className="font-mono">{result.total}</span>
+                {tl.resultTotalRows}: <span className="font-mono">{result.total}</span>
               </li>
               <li>
-                Undangan terkirim:{' '}
+                {tl.resultInvited}:{' '}
                 <span className="text-success font-mono font-semibold">
                   {result.invited}
                 </span>
               </li>
               <li>
-                Dilewati:{' '}
+                {tl.resultSkipped}:{' '}
                 <span className="font-mono font-semibold text-amber-700">
                   {result.skipped}
                 </span>
@@ -382,8 +385,8 @@ export function TenantMembersImportForm({
           <table className="min-w-full text-sm">
             <thead className="bg-muted/50 text-left">
               <tr>
-                <th className="p-3 font-medium">Baris</th>
-                <th className="p-3 font-medium">Pesan</th>
+                <th className="p-3 font-medium">{tl.colRow}</th>
+                <th className="p-3 font-medium">{tl.colMessage}</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -404,10 +407,10 @@ export function TenantMembersImportForm({
           href={`/dashboard/tenants/${tenantSlug}` as any}
           className={btnPrimary}
         >
-          Kembali ke tenant
+          {tl.btnBackToTenant}
         </Link>
         <button type="button" onClick={resetToUpload} className={btnSecondary}>
-          Impor lagi
+          {tl.btnImportAgain}
         </button>
       </div>
     </div>

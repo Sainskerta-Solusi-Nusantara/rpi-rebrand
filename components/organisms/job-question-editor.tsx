@@ -11,6 +11,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 import {
   addJobQuestion,
   deleteJobQuestion,
@@ -21,15 +22,6 @@ import {
   JOB_QUESTION_TYPES,
   type JobQuestionType,
 } from '@/lib/jobs/question-constants'
-
-const TYPE_LABELS: Record<JobQuestionType, string> = {
-  short_text: 'Teks pendek',
-  long_text: 'Teks panjang',
-  single_choice: 'Pilihan tunggal',
-  multi_choice: 'Pilihan jamak',
-  file_url: 'Unggah berkas',
-  yes_no: 'Ya / Tidak',
-}
 
 const CHOICE_TYPES: ReadonlyArray<JobQuestionType> = [
   'single_choice',
@@ -70,6 +62,9 @@ export function JobQuestionEditor({
   initialQuestions: JobQuestionEditorItem[]
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tj = t.formsQuizEditors.jobQuestionEditor
+  const tjAdd = tj.addForm
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<
     { kind: 'error' | 'success'; message: string } | null
@@ -110,7 +105,7 @@ export function JobQuestionEditor({
         setBanner({ kind: 'error', message: res.error })
         return
       }
-      setBanner({ kind: 'success', message: 'Pertanyaan ditambahkan.' })
+      setBanner({ kind: 'success', message: tj.successAdded })
       resetAdd()
       router.refresh()
     })
@@ -131,7 +126,7 @@ export function JobQuestionEditor({
   function handleDelete(id: string, label: string) {
     if (
       !window.confirm(
-        `Hapus pertanyaan "${label}"? Jawaban yang sudah masuk juga akan terhapus.`,
+        tj.confirmDeleteQuestion.replace('{label}', label),
       )
     ) {
       return
@@ -143,7 +138,7 @@ export function JobQuestionEditor({
         setBanner({ kind: 'error', message: res.error })
         return
       }
-      setBanner({ kind: 'success', message: 'Pertanyaan dihapus.' })
+      setBanner({ kind: 'success', message: tj.successDeleted })
       router.refresh()
     })
   }
@@ -165,8 +160,7 @@ export function JobQuestionEditor({
 
       {initialQuestions.length === 0 ? (
         <p className="text-muted-foreground text-sm">
-          Belum ada pertanyaan kustom. Tambahkan pertanyaan untuk memperketat
-          kualifikasi awal kandidat.
+          {tj.emptyState}
         </p>
       ) : (
         <ul className="space-y-3">
@@ -197,11 +191,11 @@ export function JobQuestionEditor({
                         </span>
                         {q.required && (
                           <span className="rounded-full bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
-                            Wajib
+                            {tj.requiredBadge}
                           </span>
                         )}
                         <span className="bg-muted text-foreground rounded-full px-2 py-0.5 text-[10px] font-medium">
-                          {TYPE_LABELS[q.type as JobQuestionType] ?? q.type}
+                          {tj.typeLabels[q.type as JobQuestionType] ?? q.type}
                         </span>
                       </div>
                       {q.helpText && (
@@ -243,7 +237,7 @@ export function JobQuestionEditor({
                         className={btnGhost}
                       >
                         <Pencil className="h-3.5 w-3.5" aria-hidden />
-                        Ubah
+                        {tj.editButton}
                       </button>
                       <button
                         type="button"
@@ -252,7 +246,7 @@ export function JobQuestionEditor({
                         className="text-destructive hover:text-destructive/80 inline-flex items-center gap-1 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Trash2 className="h-3.5 w-3.5" aria-hidden />
-                        Hapus
+                        {tj.deleteButton}
                       </button>
                     </div>
                   </div>
@@ -270,7 +264,7 @@ export function JobQuestionEditor({
         >
           <div className="flex items-center justify-between">
             <h3 className="text-foreground text-sm font-semibold">
-              Tambah pertanyaan
+              {tjAdd.heading}
             </h3>
             <button
               type="button"
@@ -280,7 +274,7 @@ export function JobQuestionEditor({
               }}
               disabled={pending}
               className={btnGhost}
-              aria-label="Tutup formulir"
+              aria-label={tjAdd.ariaCloseForm}
             >
               <X className="h-4 w-4" aria-hidden />
             </button>
@@ -288,7 +282,7 @@ export function JobQuestionEditor({
 
           <div className="space-y-1">
             <label htmlFor="q-label" className="block text-sm font-medium">
-              Label pertanyaan <span className="text-destructive">*</span>
+              {tjAdd.labelFieldLabel} <span className="text-destructive">*</span>
             </label>
             <textarea
               id="q-label"
@@ -299,18 +293,18 @@ export function JobQuestionEditor({
               maxLength={300}
               required
               disabled={pending}
-              placeholder="Mis. Berapa tahun pengalaman Anda dengan React?"
+              placeholder={tjAdd.labelPlaceholder}
               className={inputClass}
             />
             <p className="text-muted-foreground text-xs">
-              5-300 karakter ({newLabel.trim().length}/300)
+              {tjAdd.labelHint.replace('{count}', String(newLabel.trim().length))}
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <label htmlFor="q-type" className="block text-sm font-medium">
-                Tipe
+                {tjAdd.typeFieldLabel}
               </label>
               <select
                 id="q-type"
@@ -322,9 +316,9 @@ export function JobQuestionEditor({
                 disabled={pending}
                 className={inputClass}
               >
-                {JOB_QUESTION_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {TYPE_LABELS[t]}
+                {JOB_QUESTION_TYPES.map((tp) => (
+                  <option key={tp} value={tp}>
+                    {tj.typeLabels[tp]}
                   </option>
                 ))}
               </select>
@@ -339,7 +333,7 @@ export function JobQuestionEditor({
                   disabled={pending}
                   className="border-input bg-background h-4 w-4 rounded border"
                 />
-                Pertanyaan ini wajib dijawab
+                {tjAdd.requiredCheckbox}
               </label>
             </div>
           </div>
@@ -347,7 +341,7 @@ export function JobQuestionEditor({
           {CHOICE_TYPES.includes(newType) && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="block text-sm font-medium">Pilihan</span>
+                <span className="block text-sm font-medium">{tjAdd.choicesHeading}</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -358,7 +352,7 @@ export function JobQuestionEditor({
                   className={btnGhost}
                 >
                   <Plus className="h-3.5 w-3.5" aria-hidden />
-                  Tambah opsi
+                  {tjAdd.addOption}
                 </button>
               </div>
               <ul className="space-y-1.5">
@@ -372,7 +366,7 @@ export function JobQuestionEditor({
                         next[idx] = e.target.value.slice(0, 200)
                         setNewOptions(next)
                       }}
-                      placeholder={`Opsi ${idx + 1}`}
+                      placeholder={tjAdd.optionPlaceholder.replace('{n}', String(idx + 1))}
                       disabled={pending}
                       maxLength={200}
                       className={inputClass}
@@ -386,7 +380,7 @@ export function JobQuestionEditor({
                         )
                       }}
                       disabled={pending || newOptions.length <= 1}
-                      aria-label={`Hapus opsi ${idx + 1}`}
+                      aria-label={tjAdd.ariaRemoveOption.replace('{n}', String(idx + 1))}
                       className={btnGhost}
                     >
                       <X className="h-3.5 w-3.5" aria-hidden />
@@ -395,15 +389,15 @@ export function JobQuestionEditor({
                 ))}
               </ul>
               <p className="text-muted-foreground text-xs">
-                Minimal 2 opsi, maksimal 20. Setiap opsi 1-200 karakter.
+                {tjAdd.optionHint}
               </p>
             </div>
           )}
 
           <div className="space-y-1">
             <label htmlFor="q-help" className="block text-sm font-medium">
-              Teks bantuan{' '}
-              <span className="text-muted-foreground font-normal">(opsional)</span>
+              {tjAdd.helpTextLabel}{' '}
+              <span className="text-muted-foreground font-normal">{tjAdd.helpTextOptional}</span>
             </label>
             <input
               id="q-help"
@@ -412,7 +406,7 @@ export function JobQuestionEditor({
               onChange={(e) => setNewHelpText(e.target.value.slice(0, 500))}
               maxLength={500}
               disabled={pending}
-              placeholder="Petunjuk singkat untuk kandidat"
+              placeholder={tjAdd.helpTextPlaceholder}
               className={inputClass}
             />
           </div>
@@ -420,7 +414,7 @@ export function JobQuestionEditor({
           <div className="flex flex-wrap items-center gap-2">
             <button type="submit" disabled={pending} className={btnPrimary}>
               <Save className="h-4 w-4" aria-hidden />
-              {pending ? 'Menyimpan…' : 'Simpan pertanyaan'}
+              {pending ? tjAdd.saving : tjAdd.submitButton}
             </button>
             <button
               type="button"
@@ -431,7 +425,7 @@ export function JobQuestionEditor({
               disabled={pending}
               className={btnSecondary}
             >
-              Batal
+              {tjAdd.cancelButton}
             </button>
           </div>
         </form>
@@ -443,7 +437,7 @@ export function JobQuestionEditor({
           className={btnSecondary}
         >
           <Plus className="h-4 w-4" aria-hidden />
-          Tambah pertanyaan
+          {tj.addQuestionButton}
         </button>
       )}
     </div>
@@ -467,6 +461,9 @@ function EditRow({
   onSaved: (message: string) => void
   onError: (message: string) => void
 }) {
+  const { t } = useI18n()
+  const tj = t.formsQuizEditors.jobQuestionEditor
+  const tje = tj.editRow
   const [, startTransition] = useTransition()
   const [label, setLabel] = useState(question.label)
   const [type, setType] = useState<JobQuestionType>(
@@ -497,14 +494,14 @@ function EditRow({
         onError(res.error)
         return
       }
-      onSaved('Pertanyaan diperbarui.')
+      onSaved(tj.successUpdated)
     })
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-3">
       <div className="space-y-1">
-        <label className="block text-sm font-medium">Label pertanyaan</label>
+        <label className="block text-sm font-medium">{tje.labelFieldLabel}</label>
         <textarea
           value={label}
           onChange={(e) => setLabel(e.target.value)}
@@ -519,7 +516,7 @@ function EditRow({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <label className="block text-sm font-medium">Tipe</label>
+          <label className="block text-sm font-medium">{tje.typeFieldLabel}</label>
           <select
             value={type}
             onChange={(e) => {
@@ -529,9 +526,9 @@ function EditRow({
             disabled={pending}
             className={inputClass}
           >
-            {JOB_QUESTION_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {TYPE_LABELS[t]}
+            {JOB_QUESTION_TYPES.map((tp) => (
+              <option key={tp} value={tp}>
+                {tj.typeLabels[tp]}
               </option>
             ))}
           </select>
@@ -545,7 +542,7 @@ function EditRow({
               disabled={pending}
               className="border-input bg-background h-4 w-4 rounded border"
             />
-            Wajib dijawab
+            {tje.requiredCheckbox}
           </label>
         </div>
       </div>
@@ -553,7 +550,7 @@ function EditRow({
       {CHOICE_TYPES.includes(type) && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="block text-sm font-medium">Pilihan</span>
+            <span className="block text-sm font-medium">{tje.choicesHeading}</span>
             <button
               type="button"
               onClick={() => {
@@ -564,7 +561,7 @@ function EditRow({
               className={btnGhost}
             >
               <Plus className="h-3.5 w-3.5" aria-hidden />
-              Tambah opsi
+              {tje.addOption}
             </button>
           </div>
           <ul className="space-y-1.5">
@@ -578,7 +575,7 @@ function EditRow({
                     next[idx] = e.target.value.slice(0, 200)
                     setOptions(next)
                   }}
-                  placeholder={`Opsi ${idx + 1}`}
+                  placeholder={tje.optionPlaceholder.replace('{n}', String(idx + 1))}
                   disabled={pending}
                   maxLength={200}
                   className={inputClass}
@@ -590,7 +587,7 @@ function EditRow({
                     setOptions(next.length === 0 ? [''] : next)
                   }}
                   disabled={pending || options.length <= 1}
-                  aria-label={`Hapus opsi ${idx + 1}`}
+                  aria-label={tje.ariaRemoveOption.replace('{n}', String(idx + 1))}
                   className={btnGhost}
                 >
                   <X className="h-3.5 w-3.5" aria-hidden />
@@ -603,8 +600,8 @@ function EditRow({
 
       <div className="space-y-1">
         <label className="block text-sm font-medium">
-          Teks bantuan{' '}
-          <span className="text-muted-foreground font-normal">(opsional)</span>
+          {tje.helpTextLabel}{' '}
+          <span className="text-muted-foreground font-normal">{tje.helpTextOptional}</span>
         </label>
         <input
           type="text"
@@ -619,7 +616,7 @@ function EditRow({
       <div className="flex items-center gap-2">
         <button type="submit" disabled={pending} className={btnPrimary}>
           <Save className="h-4 w-4" aria-hidden />
-          Simpan perubahan
+          {tje.saveButton}
         </button>
         <button
           type="button"
@@ -627,7 +624,7 @@ function EditRow({
           disabled={pending}
           className={btnSecondary}
         >
-          Batal
+          {tje.cancelButton}
         </button>
       </div>
     </form>

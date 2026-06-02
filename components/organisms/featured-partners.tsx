@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Building2, Users, BadgeCheck, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface FeaturedPartnersProps {
   className?: string
@@ -98,6 +99,8 @@ function LogoChip({ company }: { company: CompanyLogo }): JSX.Element {
 
 export function FeaturedPartners(props: FeaturedPartnersProps): JSX.Element {
   const { className } = props
+  const { t } = useI18n()
+  const tf = t.formsMarketing.featuredPartners
 
   // Duplicate the arrays so the marquee can loop seamlessly.
   const row1 = React.useMemo(
@@ -130,19 +133,18 @@ export function FeaturedPartners(props: FeaturedPartnersProps): JSX.Element {
         <div className="max-w-3xl mx-auto text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-xs font-medium mb-4">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-            <span>Mitra Resmi</span>
+            <span>{tf.badge}</span>
           </div>
 
           <h2
             id="featured-partners-heading"
             className="font-heading text-3xl md:text-5xl font-bold text-foreground tracking-tight"
           >
-            Dipercaya 850+ Perusahaan Top Indonesia
+            {tf.heading}
           </h2>
 
           <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
-            Dari startup unicorn hingga BUMN, perusahaan terkemuka memilih RPI
-            untuk merekrut talenta terbaik.
+            {tf.body}
           </p>
         </div>
 
@@ -225,7 +227,7 @@ export function FeaturedPartners(props: FeaturedPartnersProps): JSX.Element {
 
               <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary/10 text-secondary px-2.5 py-1 text-xs font-medium">
                 <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
-                <span>{partner.openPositions} posisi terbuka</span>
+                <span>{tf.openPositions.replace('{count}', String(partner.openPositions))}</span>
               </div>
             </div>
           ))}
@@ -237,7 +239,7 @@ export function FeaturedPartners(props: FeaturedPartnersProps): JSX.Element {
             href="/mitra"
             className="inline-flex items-center gap-2 text-base md:text-lg font-medium text-primary hover:text-secondary transition group"
           >
-            <span>Lihat 850+ Mitra Lainnya</span>
+            <span>{tf.ctaLabel}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden />
           </Link>
         </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,6 +10,7 @@ import {
   updateSavedSearch,
   type SavedSearchInput,
 } from '@/lib/saved-searches/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const EMPLOYMENT_TYPES = [
   'FULL_TIME',
@@ -20,41 +21,14 @@ const EMPLOYMENT_TYPES = [
   '',
 ] as const
 
-const EMPLOYMENT_LABELS: Record<(typeof EMPLOYMENT_TYPES)[number], string> = {
-  FULL_TIME: 'Penuh waktu',
-  PART_TIME: 'Paruh waktu',
-  CONTRACT: 'Kontrak',
-  INTERNSHIP: 'Magang',
-  FREELANCE: 'Lepas',
-  '': 'Semua tipe',
+type FormValues = {
+  name: string
+  query?: string | ''
+  categorySlug?: string | ''
+  location?: string | ''
+  employmentType: (typeof EMPLOYMENT_TYPES)[number]
+  emailAlerts: boolean
 }
-
-const schema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, 'Nama minimal 2 karakter')
-    .max(80, 'Nama maksimal 80 karakter'),
-  query: z
-    .string()
-    .max(120, 'Kata kunci maksimal 120 karakter')
-    .optional()
-    .or(z.literal('')),
-  categorySlug: z
-    .string()
-    .max(120, 'Slug kategori maksimal 120 karakter')
-    .optional()
-    .or(z.literal('')),
-  location: z
-    .string()
-    .max(120, 'Lokasi maksimal 120 karakter')
-    .optional()
-    .or(z.literal('')),
-  employmentType: z.enum(EMPLOYMENT_TYPES),
-  emailAlerts: z.boolean(),
-})
-
-type FormValues = z.infer<typeof schema>
 
 export type SavedSearchInitial = {
   id?: string
@@ -85,9 +59,40 @@ export function SavedSearchForm({
   onCancel?: () => void
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsSavedSearch.savedSearchForm
   const [isPending, startTransition] = useTransition()
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z
+          .string()
+          .trim()
+          .min(2, tl.errors.nameMin.replace('{n}', '2'))
+          .max(80, tl.errors.nameMax.replace('{n}', '80')),
+        query: z
+          .string()
+          .max(120, tl.errors.queryMax.replace('{n}', '120'))
+          .optional()
+          .or(z.literal('')),
+        categorySlug: z
+          .string()
+          .max(120, tl.errors.categorySlugMax.replace('{n}', '120'))
+          .optional()
+          .or(z.literal('')),
+        location: z
+          .string()
+          .max(120, tl.errors.locationMax.replace('{n}', '120'))
+          .optional()
+          .or(z.literal('')),
+        employmentType: z.enum(EMPLOYMENT_TYPES),
+        emailAlerts: z.boolean(),
+      }),
+    [tl.errors],
+  )
 
   const initialEmploymentType: (typeof EMPLOYMENT_TYPES)[number] = isEmploymentType(
     initial?.employmentType,
@@ -132,9 +137,7 @@ export function SavedSearchForm({
           : await updateSavedSearch({ id: initial?.id ?? '', ...payload })
 
       if (result.ok) {
-        setSubmitSuccess(
-          mode === 'create' ? 'Pencarian disimpan' : 'Pencarian diperbarui',
-        )
+        setSubmitSuccess(mode === 'create' ? tl.successCreate : tl.successUpdate)
         router.refresh()
         onSuccess?.()
         return
@@ -160,6 +163,15 @@ export function SavedSearchForm({
     })
   }
 
+  const employmentLabels: Record<(typeof EMPLOYMENT_TYPES)[number], string> = {
+    FULL_TIME: tl.employmentLabels.FULL_TIME,
+    PART_TIME: tl.employmentLabels.PART_TIME,
+    CONTRACT: tl.employmentLabels.CONTRACT,
+    INTERNSHIP: tl.employmentLabels.INTERNSHIP,
+    FREELANCE: tl.employmentLabels.FREELANCE,
+    '': tl.employmentLabels.ALL,
+  }
+
   return (
     <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       {submitSuccess && (
@@ -181,12 +193,12 @@ export function SavedSearchForm({
 
       <div className="space-y-2">
         <label htmlFor="ss-name" className="block text-sm font-medium text-foreground">
-          Nama pencarian <span className="text-destructive">*</span>
+          {tl.nameLabel} <span className="text-destructive">{tl.nameRequired}</span>
         </label>
         <input
           id="ss-name"
           type="text"
-          placeholder="Backend dev di Jakarta"
+          placeholder={tl.namePlaceholder}
           aria-invalid={Boolean(errors.name)}
           className={inputClass}
           {...register('name')}
@@ -198,17 +210,17 @@ export function SavedSearchForm({
 
       <div className="space-y-2">
         <label htmlFor="ss-query" className="block text-sm font-medium text-foreground">
-          Kata kunci
+          {tl.queryLabel}
         </label>
         <input
           id="ss-query"
           type="text"
-          placeholder="contoh: backend node"
+          placeholder={tl.queryPlaceholder}
           aria-invalid={Boolean(errors.query)}
           className={inputClass}
           {...register('query')}
         />
-        <p className="text-xs text-muted-foreground">Dicocokkan ke judul & deskripsi lowongan.</p>
+        <p className="text-xs text-muted-foreground">{tl.queryHint}</p>
         {errors.query && (
           <p className="text-xs text-destructive">{errors.query.message}</p>
         )}
@@ -216,18 +228,19 @@ export function SavedSearchForm({
 
       <div className="space-y-2">
         <label htmlFor="ss-category" className="block text-sm font-medium text-foreground">
-          Slug kategori
+          {tl.categorySlugLabel}
         </label>
         <input
           id="ss-category"
           type="text"
-          placeholder="teknologi-it"
+          placeholder={tl.categorySlugPlaceholder}
           aria-invalid={Boolean(errors.categorySlug)}
           className={inputClass}
           {...register('categorySlug')}
         />
         <p className="text-xs text-muted-foreground">
-          Slug kategori (contoh: <code>teknologi-it</code>). Kosongkan untuk semua kategori.
+          {tl.categorySlugHint.replace('{example}', tl.categorySlugPlaceholder)}{' '}
+          <code>{tl.categorySlugPlaceholder}</code>
         </p>
         {errors.categorySlug && (
           <p className="text-xs text-destructive">{errors.categorySlug.message}</p>
@@ -236,12 +249,12 @@ export function SavedSearchForm({
 
       <div className="space-y-2">
         <label htmlFor="ss-location" className="block text-sm font-medium text-foreground">
-          Lokasi
+          {tl.locationLabel}
         </label>
         <input
           id="ss-location"
           type="text"
-          placeholder="Jakarta"
+          placeholder={tl.locationPlaceholder}
           aria-invalid={Boolean(errors.location)}
           className={inputClass}
           {...register('location')}
@@ -253,7 +266,7 @@ export function SavedSearchForm({
 
       <div className="space-y-2">
         <label htmlFor="ss-emp-type" className="block text-sm font-medium text-foreground">
-          Tipe pekerjaan
+          {tl.employmentTypeLabel}
         </label>
         <select
           id="ss-emp-type"
@@ -261,9 +274,9 @@ export function SavedSearchForm({
           className={inputClass}
           {...register('employmentType')}
         >
-          {EMPLOYMENT_TYPES.map((t) => (
-            <option key={t || 'any'} value={t}>
-              {EMPLOYMENT_LABELS[t]}
+          {EMPLOYMENT_TYPES.map((et) => (
+            <option key={et || 'any'} value={et}>
+              {employmentLabels[et]}
             </option>
           ))}
         </select>
@@ -280,7 +293,7 @@ export function SavedSearchForm({
           {...register('emailAlerts')}
         />
         <label htmlFor="ss-alerts" className="text-sm text-foreground">
-          Kirim alert email saat ada lowongan baru cocok
+          {tl.emailAlertsLabel}
         </label>
       </div>
 
@@ -291,7 +304,7 @@ export function SavedSearchForm({
             onClick={onCancel}
             className="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            Batal
+            {tl.btnCancel}
           </button>
         )}
         <button
@@ -300,10 +313,10 @@ export function SavedSearchForm({
           className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           {isPending
-            ? 'Menyimpan…'
+            ? tl.btnPending
             : mode === 'create'
-              ? 'Simpan pencarian'
-              : 'Perbarui pencarian'}
+              ? tl.btnCreate
+              : tl.btnUpdate}
         </button>
       </div>
     </form>

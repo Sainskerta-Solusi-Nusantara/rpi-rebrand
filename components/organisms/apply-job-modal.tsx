@@ -9,6 +9,7 @@ import {
   type AnswerMap,
   type JobQuestionForRenderer,
 } from '@/components/organisms/job-question-renderer'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type ApplyJobResume = {
   id: string
@@ -31,6 +32,8 @@ export function ApplyJobModal({
   questions?: JobQuestionForRenderer[]
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsApplications.applyModal
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -63,12 +66,12 @@ export function ApplyJobModal({
     e.preventDefault()
     setError(null)
 
-    // Client-side required-question guard — server re-validates.
+    // Client-side required-question guard -- server re-validates.
     for (const q of questions) {
       if (!q.required) continue
       const v = answers[q.id]
       if (!v || v.trim().length === 0) {
-        setError(`Pertanyaan "${q.label}" wajib dijawab.`)
+        setError(tl.errorRequired.replace('{label}', q.label))
         return
       }
     }
@@ -104,7 +107,7 @@ export function ApplyJobModal({
         className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold shadow-sm transition"
       >
         <Send className="h-4 w-4" aria-hidden />
-        Lamar Sekarang
+        {tl.applyNow}
       </button>
     )
   }
@@ -114,7 +117,7 @@ export function ApplyJobModal({
       <button
         type="button"
         onClick={() => setOpen(false)}
-        aria-label="Tutup formulir lamaran"
+        aria-label={tl.closeAriaLabel}
         className="text-muted-foreground hover:text-foreground absolute right-3 top-3 rounded p-1 transition"
       >
         <X className="h-4 w-4" aria-hidden />
@@ -122,7 +125,7 @@ export function ApplyJobModal({
 
       <div className="pr-6">
         <div className="font-heading text-foreground text-base font-semibold">
-          Lamar posisi ini
+          {tl.heading}
         </div>
         <p className="text-muted-foreground mt-1 text-xs">
           {jobTitle} · {tenantName}
@@ -137,10 +140,9 @@ export function ApplyJobModal({
           <div className="flex items-start gap-2">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <div>
-              <p className="font-medium">Lamaran terkirim.</p>
+              <p className="font-medium">{tl.successTitle}</p>
               <p className="mt-1 text-xs opacity-90">
-                Kami sudah mengirim konfirmasi ke email Anda. Pantau status di
-                halaman Lamaran Saya.
+                {tl.successBody}
               </p>
             </div>
           </div>
@@ -148,7 +150,7 @@ export function ApplyJobModal({
             href="/dashboard/lamaran"
             className="text-foreground hover:text-primary inline-flex items-center gap-1 text-xs font-medium underline"
           >
-            Buka Lamaran Saya
+            {tl.successLink}
           </a>
         </div>
       ) : (
@@ -158,14 +160,13 @@ export function ApplyJobModal({
               htmlFor="apply-resume"
               className="text-foreground block text-sm font-medium"
             >
-              Pilih CV
+              {tl.cvLabel}
             </label>
             {sortedResumes.length === 0 ? (
               <p className="text-muted-foreground rounded-md border border-dashed px-3 py-2 text-xs">
-                Anda belum memiliki CV. Anda tetap dapat melamar tanpa lampiran
-                — atau{' '}
+                {tl.cvEmpty}{' '}
                 <a href="/dashboard/cv" className="text-primary underline">
-                  unggah CV dulu
+                  {tl.cvEmptyUploadLink}
                 </a>
                 .
               </p>
@@ -177,11 +178,11 @@ export function ApplyJobModal({
                 disabled={pending}
                 className="border-input bg-background text-foreground focus:border-ring focus:ring-ring/30 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <option value="">Tanpa lampiran</option>
+                <option value="">{tl.cvNoAttachment}</option>
                 {sortedResumes.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.name}
-                    {r.isPrimary ? ' (Utama)' : ''}
+                    {r.isPrimary ? tl.cvPrimaryBadge : ''}
                   </option>
                 ))}
               </select>
@@ -189,7 +190,7 @@ export function ApplyJobModal({
             {resumeId && sortedResumes.find((r) => r.id === resumeId) && (
               <p className="text-muted-foreground inline-flex items-center gap-1 text-xs">
                 <FileText className="h-3 w-3" aria-hidden />
-                CV akan dikirim ke perekrut sebagai lampiran.
+                {tl.cvAttachmentHint}
               </p>
             )}
           </div>
@@ -208,9 +209,9 @@ export function ApplyJobModal({
               htmlFor="apply-cover"
               className="text-foreground block text-sm font-medium"
             >
-              Cover letter{' '}
+              {tl.coverLabel}{' '}
               <span className="text-muted-foreground font-normal">
-                (opsional)
+                {tl.coverOptional}
               </span>
             </label>
             <textarea
@@ -220,7 +221,7 @@ export function ApplyJobModal({
               rows={5}
               maxLength={5000}
               disabled={pending}
-              placeholder="Ceritakan secara singkat kenapa Anda cocok untuk posisi ini…"
+              placeholder={tl.coverPlaceholder}
               className="border-input bg-background text-foreground focus:border-ring focus:ring-ring/30 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
             />
             <div className="text-muted-foreground text-right text-[10px]">
@@ -244,7 +245,7 @@ export function ApplyJobModal({
               className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Send className="h-4 w-4" aria-hidden />
-              {pending ? 'Mengirim…' : 'Kirim Lamaran'}
+              {pending ? tl.submitPending : tl.submitBtn}
             </button>
             <button
               type="button"
@@ -252,7 +253,7 @@ export function ApplyJobModal({
               disabled={pending}
               className="text-muted-foreground hover:text-foreground text-sm font-medium disabled:opacity-60"
             >
-              Batal
+              {tl.cancelBtn}
             </button>
           </div>
         </form>

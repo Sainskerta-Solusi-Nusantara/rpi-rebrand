@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { bulkSendEmail } from '@/lib/applications/bulk-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const MAX_BODY = 5000
 
@@ -43,6 +44,8 @@ export function BulkEmailCustomModal({
   onSent?: () => void
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsBulk.emailModal
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [pending, startTransition] = useTransition()
@@ -54,11 +57,11 @@ export function BulkEmailCustomModal({
   function submit() {
     setError(null)
     if (!subject.trim() || !body.trim()) {
-      setError('Subjek dan isi email wajib diisi.')
+      setError(tl.errorRequired)
       return
     }
     if (tooLong) {
-      setError('Pesan terlalu panjang (maks 5000 karakter).')
+      setError(tl.errorTooLong)
       return
     }
     startTransition(async () => {
@@ -85,16 +88,15 @@ export function BulkEmailCustomModal({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Email kustom"
+      aria-label={tl.ariaLabel}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
       <div className="bg-card text-foreground border-border w-full max-w-2xl rounded-2xl border p-6 shadow-xl">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="font-heading text-lg">Email kustom</h2>
+            <h2 className="font-heading text-lg">{tl.heading}</h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              Akan dikirim ke {selectedIds.length} kandidat. Anda dapat memakai
-              placeholder{' '}
+              {tl.descRecipients.replace('{count}', String(selectedIds.length))}{' '}
               <code className="bg-muted rounded px-1 text-xs">
                 {'{{candidateName}}'}
               </code>
@@ -115,7 +117,7 @@ export function BulkEmailCustomModal({
           htmlFor="bulk-email-subject"
           className="text-foreground mt-4 block text-sm font-medium"
         >
-          Subjek
+          {tl.subjectLabel}
         </label>
         <input
           id="bulk-email-subject"
@@ -123,7 +125,7 @@ export function BulkEmailCustomModal({
           onChange={(e) => setSubject(e.target.value)}
           disabled={pending}
           maxLength={300}
-          placeholder="Mis. Pembaruan tahap seleksi {{jobTitle}}"
+          placeholder={tl.subjectPlaceholder}
           className="border-input bg-background focus:border-ring focus:ring-ring/30 mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
         />
 
@@ -131,7 +133,7 @@ export function BulkEmailCustomModal({
           htmlFor="bulk-email-body"
           className="text-foreground mt-4 block text-sm font-medium"
         >
-          Isi pesan
+          {tl.bodyLabel}
         </label>
         <textarea
           id="bulk-email-body"
@@ -140,7 +142,7 @@ export function BulkEmailCustomModal({
           disabled={pending}
           rows={8}
           maxLength={MAX_BODY + 100}
-          placeholder={'Halo {{candidateName}},\n\nTerima kasih atas lamaran Anda untuk {{jobTitle}}.'}
+          placeholder={tl.bodyPlaceholder}
           className="border-input bg-background focus:border-ring focus:ring-ring/30 mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
         />
         <div className="flex items-center justify-between text-xs">
@@ -156,20 +158,20 @@ export function BulkEmailCustomModal({
             onClick={() => setShowPreview((v) => !v)}
             className="text-muted-foreground hover:text-foreground"
           >
-            {showPreview ? 'Sembunyikan pratinjau' : 'Pratinjau'}
+            {showPreview ? tl.hidePreview : tl.togglePreview}
           </button>
         </div>
 
         {showPreview && (
           <div className="border-border bg-muted/40 mt-3 rounded-md border p-3 text-sm">
             <div className="text-muted-foreground text-xs uppercase">
-              Pratinjau (contoh kandidat)
+              {tl.previewHeading}
             </div>
             <div className="mt-2 font-medium">
-              {renderPreview(subject || '(tanpa subjek)', PREVIEW_VARS)}
+              {renderPreview(subject || tl.noSubject, PREVIEW_VARS)}
             </div>
             <pre className="text-foreground mt-2 whitespace-pre-wrap font-sans text-sm">
-              {renderPreview(body || '(tanpa isi)', PREVIEW_VARS)}
+              {renderPreview(body || tl.noBody, PREVIEW_VARS)}
             </pre>
           </div>
         )}
@@ -190,7 +192,7 @@ export function BulkEmailCustomModal({
             disabled={pending}
             className="text-muted-foreground hover:text-foreground rounded-md px-3 py-1.5 text-sm font-medium disabled:opacity-60"
           >
-            Batal
+            {tl.cancelButton}
           </button>
           <button
             type="button"
@@ -199,8 +201,8 @@ export function BulkEmailCustomModal({
             className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending
-              ? 'Mengirim…'
-              : `Kirim ke ${selectedIds.length.toLocaleString('id-ID')} kandidat`}
+              ? tl.sendingButton
+              : tl.sendButton.replace('{count}', selectedIds.length.toLocaleString('id-ID'))}
           </button>
         </div>
       </div>

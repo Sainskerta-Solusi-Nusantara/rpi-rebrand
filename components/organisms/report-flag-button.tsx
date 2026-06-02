@@ -3,17 +3,10 @@
 import { useState, useTransition } from 'react'
 import { Flag } from 'lucide-react'
 import { submitFlag } from '@/lib/moderation/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Reason = 'spam' | 'inappropriate' | 'misleading' | 'copyright' | 'other'
 type ResourceType = 'job' | 'course' | 'user' | 'profile' | 'message' | 'application'
-
-const REASONS: { value: Reason; label: string }[] = [
-  { value: 'spam', label: 'Spam atau iklan menipu' },
-  { value: 'inappropriate', label: 'Konten tidak pantas' },
-  { value: 'misleading', label: 'Informasi menyesatkan' },
-  { value: 'copyright', label: 'Pelanggaran hak cipta' },
-  { value: 'other', label: 'Lainnya' },
-]
 
 export function ReportFlagButton({
   resourceType,
@@ -22,6 +15,17 @@ export function ReportFlagButton({
   resourceType: ResourceType
   resourceId: string
 }) {
+  const { t } = useI18n()
+  const tl = t.formsMisc1.reportFlag
+
+  const REASONS: { value: Reason; label: string }[] = [
+    { value: 'spam', label: tl.reasonSpam },
+    { value: 'inappropriate', label: tl.reasonInappropriate },
+    { value: 'misleading', label: tl.reasonMisleading },
+    { value: 'copyright', label: tl.reasonCopyright },
+    { value: 'other', label: tl.reasonOther },
+  ]
+
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState<Reason>('spam')
   const [description, setDescription] = useState('')
@@ -40,7 +44,7 @@ export function ReportFlagButton({
         role="status"
       >
         <Flag className="h-3.5 w-3.5" aria-hidden />
-        Laporan dikirim. Terima kasih.
+        {tl.submitted}
       </p>
     )
   }
@@ -49,7 +53,7 @@ export function ReportFlagButton({
     return (
       <p className="text-muted-foreground inline-flex items-center gap-1 text-xs">
         <Flag className="h-3.5 w-3.5" aria-hidden />
-        Sudah dilaporkan
+        {tl.alreadyReported}
       </p>
     )
   }
@@ -62,7 +66,7 @@ export function ReportFlagButton({
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium transition"
       >
         <Flag className="h-3.5 w-3.5" aria-hidden />
-        Laporkan
+        {tl.triggerLabel}
       </button>
     )
   }
@@ -97,7 +101,7 @@ export function ReportFlagButton({
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-foreground inline-flex items-center gap-1.5 text-sm font-semibold">
           <Flag className="h-3.5 w-3.5" aria-hidden />
-          Laporkan konten
+          {tl.formHeading}
         </h3>
         <button
           type="button"
@@ -105,11 +109,11 @@ export function ReportFlagButton({
           className="text-muted-foreground hover:text-foreground text-xs"
           disabled={pending}
         >
-          Batal
+          {tl.cancelBtn}
         </button>
       </div>
       <div className="space-y-1.5">
-        <label className="text-foreground block text-xs font-medium">Alasan</label>
+        <label className="text-foreground block text-xs font-medium">{tl.reasonLabel}</label>
         <select
           className={inputClass}
           value={reason}
@@ -125,7 +129,7 @@ export function ReportFlagButton({
       </div>
       <div className="space-y-1.5">
         <label className="text-foreground block text-xs font-medium">
-          Deskripsi (opsional)
+          {tl.descriptionLabel}
         </label>
         <textarea
           className={inputClass}
@@ -134,7 +138,7 @@ export function ReportFlagButton({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           disabled={pending}
-          placeholder="Jelaskan singkat apa yang bermasalah."
+          placeholder={tl.descriptionPlaceholder}
         />
       </div>
       {state.kind === 'error' && (
@@ -150,7 +154,7 @@ export function ReportFlagButton({
         disabled={pending}
         className="inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? 'Mengirim…' : 'Kirim laporan'}
+        {pending ? tl.submitPending : tl.submitBtn}
       </button>
     </form>
   )

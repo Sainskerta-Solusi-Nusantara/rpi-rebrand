@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateTenantBranding } from '@/lib/tenants/branding-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type BrandingFields = {
   primaryColor: string
@@ -39,6 +40,8 @@ export function TenantBrandingForm({
   initial: BrandingFields
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsTenantMisc.brandingForm
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<Banner>({ kind: 'idle' })
   const [state, setState] = useState<BrandingFields>(initial)
@@ -65,7 +68,7 @@ export function TenantBrandingForm({
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <fieldset className="space-y-4">
-        <legend className="text-sm font-medium text-foreground">Warna brand</legend>
+        <legend className="text-sm font-medium text-foreground">{tl.legendColors}</legend>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {COLOR_FIELDS.map((f) => (
             <div key={f.key} className="space-y-1">
@@ -99,11 +102,11 @@ export function TenantBrandingForm({
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="text-sm font-medium text-foreground">Tipografi & layout</legend>
+        <legend className="text-sm font-medium text-foreground">{tl.legendTypo}</legend>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label htmlFor="f-fontHeading" className="text-muted-foreground text-xs uppercase">
-              Font heading
+              {tl.labelFontHeading}
             </label>
             <input
               id="f-fontHeading"
@@ -118,7 +121,7 @@ export function TenantBrandingForm({
           </div>
           <div className="space-y-1">
             <label htmlFor="f-fontBody" className="text-muted-foreground text-xs uppercase">
-              Font body
+              {tl.labelFontBody}
             </label>
             <input
               id="f-fontBody"
@@ -133,7 +136,7 @@ export function TenantBrandingForm({
           </div>
           <div className="space-y-1">
             <label htmlFor="f-radius" className="text-muted-foreground text-xs uppercase">
-              Radius (px)
+              {tl.labelRadius}
             </label>
             <input
               id="f-radius"
@@ -149,7 +152,7 @@ export function TenantBrandingForm({
           </div>
           <div className="space-y-1">
             <label htmlFor="f-density" className="text-muted-foreground text-xs uppercase">
-              Kepadatan
+              {tl.labelDensity}
             </label>
             <select
               id="f-density"
@@ -159,16 +162,16 @@ export function TenantBrandingForm({
               disabled={pending}
               className={inputClass}
             >
-              <option value="compact">Compact</option>
-              <option value="normal">Normal</option>
-              <option value="comfortable">Comfortable</option>
+              <option value="compact">{tl.optionCompact}</option>
+              <option value="normal">{tl.optionNormal}</option>
+              <option value="comfortable">{tl.optionComfortable}</option>
             </select>
           </div>
         </div>
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-sm font-medium text-foreground">Pratinjau warna</legend>
+        <legend className="text-sm font-medium text-foreground">{tl.legendPreview}</legend>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {COLOR_FIELDS.map((f) => (
             <div
@@ -196,7 +199,7 @@ export function TenantBrandingForm({
           role="status"
           className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
         >
-          Branding berhasil disimpan.
+          {tl.successMsg}
         </p>
       )}
       {banner.kind === 'error' && (
@@ -213,7 +216,7 @@ export function TenantBrandingForm({
         disabled={pending}
         className="inline-flex items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? 'Menyimpan…' : 'Simpan branding'}
+        {pending ? tl.btnPending : tl.btnSave}
       </button>
     </form>
   )

@@ -12,17 +12,11 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface AppPromoProps {
   className?: string
 }
-
-const features: string[] = [
-  'Apply 1-klik dimana saja',
-  'Notifikasi real-time untuk lowongan baru',
-  'Pelajari kursus offline',
-  'Sinkron otomatis dengan web',
-]
 
 const miniJobs: Array<{ title: string; company: string; tag: string }> = [
   { title: 'Frontend Engineer', company: 'PT Maju Digital', tag: 'Remote' },
@@ -32,6 +26,8 @@ const miniJobs: Array<{ title: string; company: string; tag: string }> = [
 
 export function AppPromo(props: AppPromoProps): JSX.Element {
   const { className } = props
+  const { t } = useI18n()
+  const ta = t.formsMarketing.appPromo
 
   return (
     <section
@@ -56,23 +52,22 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur">
             <Smartphone className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
-            Aplikasi Mobile
+            {ta.badge}
           </span>
 
           <h2
             id="app-promo-heading"
             className="mt-4 font-heading text-3xl font-bold tracking-tight text-primary-foreground md:text-5xl"
           >
-            Karier di Genggamanmu
+            {ta.heading}
           </h2>
 
           <p className="mt-4 max-w-xl text-base leading-relaxed text-primary-foreground/80 md:text-lg">
-            Lamar pekerjaan, terima notifikasi tawaran, dan ikuti kursus — semua
-            dari smartphone-mu. Tersedia di Android & iOS.
+            {ta.body}
           </p>
 
           <ul className="mt-8 space-y-3">
-            {features.map((feature) => (
+            {ta.features.map((feature) => (
               <li
                 key={feature}
                 className="flex items-start gap-3 text-sm md:text-base"
@@ -90,13 +85,13 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
           <div className="mt-8 flex flex-wrap gap-3">
             <a
               href="#"
-              aria-label="Unduh di App Store"
+              aria-label={ta.ariaAppStore}
               className="inline-flex items-center gap-3 rounded-xl border border-border bg-background px-5 py-3 text-foreground shadow-lg transition-transform hover:-translate-y-0.5 hover:shadow-xl"
             >
               <Apple className="h-7 w-7" aria-hidden="true" />
               <span className="flex flex-col items-start leading-tight">
                 <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Unduh di
+                  {ta.downloadAppStore}
                 </span>
                 <span className="text-base font-semibold">App Store</span>
               </span>
@@ -104,13 +99,13 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
 
             <a
               href="#"
-              aria-label="Tersedia di Google Play"
+              aria-label={ta.ariaGooglePlay}
               className="inline-flex items-center gap-3 rounded-xl border border-border bg-background px-5 py-3 text-foreground shadow-lg transition-transform hover:-translate-y-0.5 hover:shadow-xl"
             >
               <Play className="h-7 w-7" aria-hidden="true" />
               <span className="flex flex-col items-start leading-tight">
                 <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Tersedia di
+                  {ta.downloadGooglePlay}
                 </span>
                 <span className="text-base font-semibold">Google Play</span>
               </span>
@@ -120,12 +115,12 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
           {/* Stats row */}
           <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-primary-foreground/70">
             <span className="font-semibold text-secondary">
-              <span aria-hidden="true">★</span> 4.9 di App Store
+              <span aria-hidden="true">★</span> {ta.rating}
             </span>
             <span aria-hidden="true">•</span>
-            <span>5K+ ulasan</span>
+            <span>{ta.reviews}</span>
             <span aria-hidden="true">•</span>
-            <span>100K+ unduhan</span>
+            <span>{ta.downloads}</span>
           </div>
         </div>
 
@@ -144,7 +139,7 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
             className="absolute right-1/2 top-4 translate-x-[10%] scale-90 opacity-90"
             aria-hidden="true"
           >
-            <PhoneMockup variant="back" />
+            <PhoneMockup variant="back" ta={ta} />
           </motion.div>
 
           {/* Front phone */}
@@ -160,20 +155,20 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
             style={{ rotate: '4deg' }}
             className="relative z-10"
           >
-            <PhoneMockup variant="front" />
+            <PhoneMockup variant="front" ta={ta} />
           </motion.div>
 
-          {/* Floating chip: Wawancara berhasil */}
+          {/* Floating chip: interview */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="absolute top-8 -left-2 z-20 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground shadow-xl md:-left-4"
           >
-            Wawancara berhasil! 🎉
+            {ta.chipInterview}
           </motion.div>
 
-          {/* Floating chip: Lamaran terkirim */}
+          {/* Floating chip: applied */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -181,7 +176,7 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
             className="absolute bottom-12 -right-2 z-20 inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground shadow-xl md:-right-4"
           >
             <Send className="h-3 w-3" aria-hidden="true" />
-            Lamaran terkirim
+            {ta.chipApplied}
           </motion.div>
         </div>
       </div>
@@ -189,11 +184,26 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
   )
 }
 
-interface PhoneMockupProps {
-  variant: 'front' | 'back'
+interface AppPromoStrings {
+  mockupGreeting: string
+  mockupUser: string
+  mockupNotifTitle: string
+  mockupNotifBody: string
+  mockupSearch: string
+  mockupSection: string
+  mockupSeeAll: string
+  mockupNavHome: string
+  mockupNavSearch: string
+  mockupNavCourse: string
+  mockupNavProfile: string
 }
 
-function PhoneMockup({ variant }: PhoneMockupProps): JSX.Element {
+interface PhoneMockupProps {
+  variant: 'front' | 'back'
+  ta: AppPromoStrings
+}
+
+function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
   const isFront = variant === 'front'
   return (
     <div
@@ -213,9 +223,9 @@ function PhoneMockup({ variant }: PhoneMockupProps): JSX.Element {
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-2 pb-3">
           <div className="flex flex-col leading-tight">
-            <span className="text-[10px] text-muted-foreground">Selamat pagi</span>
+            <span className="text-[10px] text-muted-foreground">{ta.mockupGreeting}</span>
             <span className="text-sm font-semibold text-foreground">
-              Hai, Sinta!
+              {ta.mockupUser}
             </span>
           </div>
           <div className="relative">
@@ -234,10 +244,10 @@ function PhoneMockup({ variant }: PhoneMockupProps): JSX.Element {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-semibold text-foreground">
-                Lowongan baru
+                {ta.mockupNotifTitle}
               </span>
               <span className="text-[9px] text-muted-foreground">
-                Cocok dengan profilmu
+                {ta.mockupNotifBody}
               </span>
             </div>
           </div>
@@ -246,15 +256,15 @@ function PhoneMockup({ variant }: PhoneMockupProps): JSX.Element {
         {/* Search bar */}
         <div className="mx-3 mb-3 flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
           <div className="h-3 w-3 rounded-full border-2 border-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground">Cari pekerjaan...</span>
+          <span className="text-[10px] text-muted-foreground">{ta.mockupSearch}</span>
         </div>
 
         {/* Section title */}
         <div className="flex items-center justify-between px-3 pb-2">
           <span className="text-[10px] font-semibold text-foreground">
-            Rekomendasi
+            {ta.mockupSection}
           </span>
-          <span className="text-[9px] text-primary">Lihat semua</span>
+          <span className="text-[9px] text-primary">{ta.mockupSeeAll}</span>
         </div>
 
         {/* Mini job cards */}
@@ -289,19 +299,19 @@ function PhoneMockup({ variant }: PhoneMockupProps): JSX.Element {
         <div className="flex h-12 items-center justify-around border-t border-border bg-card px-2">
           <div className="flex flex-col items-center gap-0.5">
             <div className="h-3 w-3 rounded-sm bg-primary" />
-            <span className="text-[8px] text-primary">Home</span>
+            <span className="text-[8px] text-primary">{ta.mockupNavHome}</span>
           </div>
           <div className="flex flex-col items-center gap-0.5">
             <div className="h-3 w-3 rounded-sm bg-muted-foreground/40" />
-            <span className="text-[8px] text-muted-foreground">Cari</span>
+            <span className="text-[8px] text-muted-foreground">{ta.mockupNavSearch}</span>
           </div>
           <div className="flex flex-col items-center gap-0.5">
             <div className="h-3 w-3 rounded-sm bg-muted-foreground/40" />
-            <span className="text-[8px] text-muted-foreground">Kursus</span>
+            <span className="text-[8px] text-muted-foreground">{ta.mockupNavCourse}</span>
           </div>
           <div className="flex flex-col items-center gap-0.5">
             <div className="h-3 w-3 rounded-full bg-muted-foreground/40" />
-            <span className="text-[8px] text-muted-foreground">Profil</span>
+            <span className="text-[8px] text-muted-foreground">{ta.mockupNavProfile}</span>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Clock, FileText, Search, Settings, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface CmdKItem {
   id: string
@@ -22,16 +23,27 @@ export interface CmdKPaletteProps {
   items?: CmdKItem[]
 }
 
-const DEFAULT_ITEMS: CmdKItem[] = [
-  { id: 'page-dashboard', group: 'Halaman', label: 'Dashboard', href: '/dashboard', icon: <Sparkles className="h-4 w-4" /> },
-  { id: 'page-jobs', group: 'Halaman', label: 'Lowongan', href: '/dashboard/jobs', icon: <FileText className="h-4 w-4" /> },
-  { id: 'page-settings', group: 'Halaman', label: 'Pengaturan', href: '/dashboard/settings', icon: <Settings className="h-4 w-4" /> },
-  { id: 'action-new-job', group: 'Aksi', label: 'Buat lowongan baru', href: '/dashboard/jobs/new', hint: 'Baru' },
-  { id: 'action-invite', group: 'Aksi', label: 'Undang anggota', href: '/dashboard/team/invite' },
-]
-
-export function CmdKPalette({ open, onOpenChange, items = DEFAULT_ITEMS }: CmdKPaletteProps) {
+export function CmdKPalette({ open, onOpenChange, items }: CmdKPaletteProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tc = t.formsMisc2.cmdK
+
+  const DEFAULT_ITEMS: CmdKItem[] = [
+    { id: 'page-dashboard', group: 'Halaman', label: tc.itemDashboard, href: '/dashboard', icon: <Sparkles className="h-4 w-4" /> },
+    { id: 'page-jobs', group: 'Halaman', label: tc.itemJobs, href: '/dashboard/jobs', icon: <FileText className="h-4 w-4" /> },
+    { id: 'page-settings', group: 'Halaman', label: tc.itemSettings, href: '/dashboard/settings', icon: <Settings className="h-4 w-4" /> },
+    { id: 'action-new-job', group: 'Aksi', label: tc.itemNewJob, href: '/dashboard/jobs/new', hint: tc.itemNewJobHint },
+    { id: 'action-invite', group: 'Aksi', label: tc.itemInvite, href: '/dashboard/team/invite' },
+  ]
+
+  const resolvedItems = items ?? DEFAULT_ITEMS
+
+  const groupLabel: Record<CmdKItem['group'], string> = {
+    Halaman: tc.groupPage,
+    Aksi: tc.groupAction,
+    Terakhir: tc.groupRecent,
+  }
+
   const [query, setQuery] = React.useState('')
   const [activeIndex, setActiveIndex] = React.useState(0)
 
@@ -44,8 +56,8 @@ export function CmdKPalette({ open, onOpenChange, items = DEFAULT_ITEMS }: CmdKP
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return items
-    return items.filter((i) => {
+    if (!q) return resolvedItems
+    return resolvedItems.filter((i) => {
       const hay = `${i.label} ${i.hint ?? ''} ${i.group}`.toLowerCase()
       // Cheap fuzzy: every char in q appears in order in hay
       let idx = 0
@@ -56,7 +68,7 @@ export function CmdKPalette({ open, onOpenChange, items = DEFAULT_ITEMS }: CmdKP
       }
       return true
     })
-  }, [query, items])
+  }, [query, resolvedItems])
 
   const grouped = React.useMemo(() => {
     const map = new Map<CmdKItem['group'], CmdKItem[]>()
@@ -116,20 +128,20 @@ export function CmdKPalette({ open, onOpenChange, items = DEFAULT_ITEMS }: CmdKP
                 setActiveIndex(0)
               }}
               onKeyDown={onKeyDown}
-              placeholder="Ketik perintah atau cari..."
+              placeholder={tc.searchPlaceholder}
               className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
             <kbd className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">ESC</kbd>
           </div>
           <div className="max-h-80 overflow-y-auto p-2" role="listbox">
             {grouped.length === 0 ? (
-              <p className="px-3 py-6 text-center text-sm text-muted-foreground">Tidak ada hasil.</p>
+              <p className="px-3 py-6 text-center text-sm text-muted-foreground">{tc.noResults}</p>
             ) : (
               grouped.map(([group, list]) => (
                 <div key={group} className="mb-2">
                   <div className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     {group === 'Terakhir' ? <Clock className="h-3 w-3" /> : null}
-                    {group}
+                    {groupLabel[group]}
                   </div>
                   {list.map((item) => {
                     runningIndex += 1

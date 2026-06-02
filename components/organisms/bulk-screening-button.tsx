@@ -7,6 +7,7 @@ import {
   runScreeningForJob,
   type BulkScreeningSummary,
 } from '@/lib/applications/screening-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Props = {
   tenantSlug: string
@@ -20,6 +21,8 @@ type Props = {
  */
 export function BulkScreeningButton({ tenantSlug, jobId, jobTitle }: Props) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsBulk.screeningButton
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<BulkScreeningSummary | null>(null)
@@ -55,7 +58,7 @@ export function BulkScreeningButton({ tenantSlug, jobId, jobTitle }: Props) {
           ) : (
             <Sparkles className="size-3.5" aria-hidden="true" />
           )}
-          Screening semua lamaran untuk lowongan ini
+          {tl.buttonLabel}
         </button>
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
       </div>
@@ -73,25 +76,25 @@ export function BulkScreeningButton({ tenantSlug, jobId, jobTitle }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="bulk-screening-title" className="font-heading text-base">
-              Hasil screening
+              {tl.dialogTitle}
             </h3>
             <p className="text-muted-foreground text-xs">
-              Lowongan:{' '}
+              {tl.labelJob}{' '}
               <span className="text-foreground font-medium">{jobTitle}</span>
             </p>
             <dl className="grid grid-cols-3 gap-2 text-center text-sm">
               <div className="bg-muted rounded-md p-2">
                 <dt className="text-muted-foreground text-[10px] uppercase">
-                  Total
+                  {tl.statTotal}
                 </dt>
                 <dd className="font-semibold">{summary.total}</dd>
               </div>
               <div className="rounded-md bg-green-50 p-2 text-green-800">
-                <dt className="text-[10px] uppercase">Berhasil</dt>
+                <dt className="text-[10px] uppercase">{tl.statSucceeded}</dt>
                 <dd className="font-semibold">{summary.succeeded}</dd>
               </div>
               <div className="rounded-md bg-red-50 p-2 text-red-800">
-                <dt className="text-[10px] uppercase">Gagal</dt>
+                <dt className="text-[10px] uppercase">{tl.statFailed}</dt>
                 <dd className="font-semibold">{summary.errors}</dd>
               </div>
             </dl>
@@ -101,7 +104,7 @@ export function BulkScreeningButton({ tenantSlug, jobId, jobTitle }: Props) {
                 onClick={onClose}
                 className="bg-primary text-primary-foreground inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium"
               >
-                Tutup
+                {tl.closeButton}
               </button>
             </div>
           </div>

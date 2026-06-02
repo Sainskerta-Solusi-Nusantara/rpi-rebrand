@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import { Bookmark, X } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createSavedSearch } from '@/lib/saved-search/saved-search-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 /**
  * "Simpan pencarian ini" CTA used at the top of public job search results.
@@ -18,6 +19,8 @@ import { createSavedSearch } from '@/lib/saved-search/saved-search-actions'
  */
 export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsSavedSearch.saveSearchCta
   const params = useSearchParams()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
@@ -53,7 +56,7 @@ export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean })
       const parts: string[] = []
       if (initial.query) parts.push(initial.query)
       if (initial.categorySlug) parts.push(initial.categorySlug)
-      setName(parts.join(' · ').slice(0, 80) || 'Pencarian saya')
+      setName(parts.join(' · ').slice(0, 80) || tl.defaultName)
     }
     setOpen(true)
   }
@@ -77,7 +80,7 @@ export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean })
         setError(result.error)
         return
       }
-      setSuccess('Pencarian disimpan. Kelola di dasbor.')
+      setSuccess(tl.successMsg)
       setOpen(false)
     })
   }
@@ -90,7 +93,7 @@ export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean })
         className="inline-flex items-center gap-2 rounded-full border border-[color:var(--ring)] bg-[color:var(--ring)]/5 px-3 py-1.5 text-xs font-medium text-[color:var(--ring)] transition hover:bg-[color:var(--ring)]/15"
       >
         <Bookmark className="h-3.5 w-3.5" aria-hidden="true" />
-        Simpan pencarian ini
+        {tl.btnSaveSearch}
       </button>
 
       {success && (
@@ -112,7 +115,7 @@ export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean })
           <div className="bg-card text-foreground w-full max-w-md rounded-2xl border border-border p-6 shadow-xl">
             <div className="mb-3 flex items-start justify-between">
               <h2 id="save-search-title" className="font-heading text-lg">
-                Simpan pencarian ini
+                {tl.dialogTitle}
               </h2>
               <button
                 type="button"
@@ -125,13 +128,13 @@ export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean })
             </div>
 
             <p className="text-muted-foreground mb-4 text-xs">
-              Pencarian disimpan ke akun Anda dan dapat dibuka cepat dari dasbor.
+              {tl.dialogDesc}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <div>
                 <label htmlFor="ss-cta-name" className="mb-1 block text-xs font-medium">
-                  Beri nama pencarian <span className="text-destructive">*</span>
+                  {tl.nameLabel} <span className="text-destructive">{tl.nameRequired}</span>
                 </label>
                 <input
                   id="ss-cta-name"
@@ -141,19 +144,19 @@ export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean })
                   maxLength={80}
                   required
                   className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-[color:var(--ring)] focus:outline-none focus:ring-2 focus:ring-[color:var(--ring)]/30"
-                  placeholder="contoh: Backend dev di Jakarta"
+                  placeholder={tl.namePlaceholder}
                 />
               </div>
 
               <div className="bg-muted/40 rounded-md border border-border p-3 text-xs">
                 <p className="text-muted-foreground mb-1 font-medium uppercase tracking-wider">
-                  Kriteria
+                  {tl.criteriaHeading}
                 </p>
                 <ul className="text-foreground/80 space-y-0.5">
-                  <li>Kata kunci: {initial.query || <em>kosong</em>}</li>
-                  <li>Slug kategori: {initial.categorySlug || <em>semua</em>}</li>
+                  <li>{tl.criteriaKeyword} {initial.query || <em>{tl.criteriaEmpty}</em>}</li>
+                  <li>{tl.criteriaCategory} {initial.categorySlug || <em>{tl.criteriaAll}</em>}</li>
                   <li>
-                    Tipe pekerjaan: {initial.employmentType || <em>semua</em>}
+                    {tl.criteriaType} {initial.employmentType || <em>{tl.criteriaAll}</em>}
                   </li>
                 </ul>
               </div>
@@ -165,7 +168,7 @@ export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean })
                   checked={emailAlerts}
                   onChange={(e) => setEmailAlerts(e.target.checked)}
                 />
-                Terima alert email mingguan
+                {tl.emailAlertsLabel}
               </label>
 
               {error && (
@@ -180,14 +183,14 @@ export function SaveSearchCta({ isAuthenticated }: { isAuthenticated: boolean })
                   onClick={() => setOpen(false)}
                   className="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 text-xs"
                 >
-                  Batal
+                  {tl.btnCancel}
                 </button>
                 <button
                   type="submit"
                   disabled={pending}
                   className="inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {pending ? 'Menyimpan…' : 'Simpan pencarian'}
+                  {pending ? tl.btnPending : tl.btnSave}
                 </button>
               </div>
             </form>

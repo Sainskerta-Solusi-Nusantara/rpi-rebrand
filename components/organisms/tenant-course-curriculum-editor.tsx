@@ -20,6 +20,7 @@ import {
   updateModule,
 } from '@/lib/tenants/course-actions'
 import { QuizEditor } from '@/components/organisms/quiz-editor'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -36,14 +37,6 @@ const btnSecondarySm =
 
 const btnGhostSm =
   'text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs disabled:cursor-not-allowed disabled:opacity-60'
-
-const CONTENT_TYPE_LABELS: Record<LessonContentType, string> = {
-  VIDEO: 'Video',
-  ARTICLE: 'Artikel',
-  QUIZ: 'Kuis',
-  ASSIGNMENT: 'Tugas',
-  DOWNLOAD: 'Unduhan',
-}
 
 const CONTENT_TYPE_TONES: Record<LessonContentType, string> = {
   VIDEO: 'bg-blue-100 text-blue-800',
@@ -80,6 +73,9 @@ export function CurriculumEditor({
   canEdit: boolean
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tc = t.formsTenantCourse.curriculumEditor
+
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
@@ -102,7 +98,7 @@ export function CurriculumEditor({
 
   function handleCreateModule() {
     if (!newModuleTitle.trim()) {
-      setError('Judul modul tidak boleh kosong.')
+      setError(tc.errorModuleTitleEmpty)
       return
     }
     setError(null)
@@ -126,7 +122,7 @@ export function CurriculumEditor({
   function handleDeleteModule(moduleId: string, title: string) {
     if (
       !window.confirm(
-        `Hapus modul "${title}"? Semua pelajaran di dalamnya akan ikut terhapus.`,
+        tc.confirmDeleteModule.replace('{title}', title),
       )
     ) {
       return
@@ -175,7 +171,7 @@ export function CurriculumEditor({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-heading text-xl">Kurikulum</h2>
+        <h2 className="font-heading text-xl">{tc.heading}</h2>
         {canEdit && !creatingModule && (
           <button
             type="button"
@@ -184,7 +180,7 @@ export function CurriculumEditor({
             className={btnPrimarySm}
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-            Tambah modul
+            {tc.btnAddModule}
           </button>
         )}
       </div>
@@ -202,7 +198,7 @@ export function CurriculumEditor({
         <div className="border-border bg-card space-y-3 rounded-2xl border p-4">
           <div className="space-y-1">
             <label htmlFor="new-module-title" className={labelClass}>
-              Judul modul
+              {tc.moduleTitleLabel}
             </label>
             <input
               id="new-module-title"
@@ -210,7 +206,7 @@ export function CurriculumEditor({
               value={newModuleTitle}
               onChange={(e) => setNewModuleTitle(e.target.value)}
               disabled={pending}
-              placeholder="Pengantar Next.js"
+              placeholder={tc.moduleTitlePlaceholder}
               className={inputClass}
               autoFocus
             />
@@ -222,7 +218,7 @@ export function CurriculumEditor({
               disabled={pending}
               className={btnPrimarySm}
             >
-              {pending ? 'Menyimpan…' : 'Simpan modul'}
+              {pending ? tc.btnSaving : tc.btnSaveModule}
             </button>
             <button
               type="button"
@@ -233,7 +229,7 @@ export function CurriculumEditor({
               disabled={pending}
               className={btnSecondarySm}
             >
-              Batal
+              {tc.btnCancel}
             </button>
           </div>
         </div>
@@ -241,7 +237,7 @@ export function CurriculumEditor({
 
       {modules.length === 0 && !creatingModule && (
         <p className="text-muted-foreground border-border bg-card rounded-2xl border p-6 text-center text-sm">
-          Belum ada modul. Tambahkan modul pertama untuk memulai.
+          {tc.emptyModules}
         </p>
       )}
 
@@ -270,11 +266,11 @@ export function CurriculumEditor({
                 )}
                 <div className="space-y-0.5">
                   <p className="text-muted-foreground text-xs font-medium uppercase">
-                    Modul {idx + 1}
+                    {tc.moduleCounter.replace('{n}', String(idx + 1))}
                   </p>
                   <p className="text-foreground font-medium">{m.title}</p>
                   <p className="text-muted-foreground text-xs">
-                    {m.lessons.length} pelajaran
+                    {tc.lessonCount.replace('{count}', String(m.lessons.length))}
                   </p>
                 </div>
               </button>
@@ -284,7 +280,7 @@ export function CurriculumEditor({
                     type="button"
                     onClick={() => handleMoveModule(m.id, -1)}
                     disabled={pending || idx === 0}
-                    aria-label="Pindahkan ke atas"
+                    aria-label={tc.ariaLabelMoveUp}
                     className={btnGhostSm}
                   >
                     <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
@@ -293,7 +289,7 @@ export function CurriculumEditor({
                     type="button"
                     onClick={() => handleMoveModule(m.id, 1)}
                     disabled={pending || idx === modules.length - 1}
-                    aria-label="Pindahkan ke bawah"
+                    aria-label={tc.ariaLabelMoveDown}
                     className={btnGhostSm}
                   >
                     <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
@@ -309,7 +305,7 @@ export function CurriculumEditor({
                     className={btnGhostSm}
                   >
                     <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                    Ubah
+                    {tc.btnEdit}
                   </button>
                   <button
                     type="button"
@@ -318,7 +314,7 @@ export function CurriculumEditor({
                     className="text-destructive hover:text-destructive/80 inline-flex items-center gap-1 text-xs disabled:opacity-60"
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    Hapus
+                    {tc.btnDelete}
                   </button>
                 </div>
               )}
@@ -358,6 +354,9 @@ function ModuleEditInline({
   onCancel: () => void
   onDone: () => void
 }) {
+  const { t } = useI18n()
+  const tc = t.formsTenantCourse.curriculumEditor
+
   const [title, setTitle] = useState(m.title)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -378,7 +377,7 @@ function ModuleEditInline({
     <div className="border-border border-t bg-muted/30 space-y-3 p-4">
       <div className="space-y-1">
         <label htmlFor={`edit-mod-${m.id}`} className={labelClass}>
-          Judul modul
+          {tc.moduleTitleLabel}
         </label>
         <input
           id={`edit-mod-${m.id}`}
@@ -401,7 +400,7 @@ function ModuleEditInline({
           disabled={pending}
           className={btnPrimarySm}
         >
-          {pending ? 'Menyimpan…' : 'Simpan'}
+          {pending ? tc.btnSaving : tc.btnSave}
         </button>
         <button
           type="button"
@@ -409,7 +408,7 @@ function ModuleEditInline({
           disabled={pending}
           className={btnSecondarySm}
         >
-          Batal
+          {tc.btnCancel}
         </button>
       </div>
     </div>
@@ -425,13 +424,24 @@ function ModuleLessonsSection({
   canEdit: boolean
   onChanged: () => void
 }) {
+  const { t } = useI18n()
+  const tc = t.formsTenantCourse.curriculumEditor
+
+  const CONTENT_TYPE_LABELS: Record<LessonContentType, string> = {
+    VIDEO: tc.contentTypeVideo,
+    ARTICLE: tc.contentTypeArticle,
+    QUIZ: tc.contentTypeQuiz,
+    ASSIGNMENT: tc.contentTypeAssignment,
+    DOWNLOAD: tc.contentTypeDownload,
+  }
+
   const [creating, setCreating] = useState(false)
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
   function handleDeleteLesson(lessonId: string, title: string) {
-    if (!window.confirm(`Hapus pelajaran "${title}"?`)) return
+    if (!window.confirm(tc.confirmDeleteLesson.replace('{title}', title))) return
     setError(null)
     startTransition(async () => {
       const r = await deleteLesson(lessonId)
@@ -480,7 +490,9 @@ function ModuleLessonsSection({
                     </p>
                   </div>
                   <p className="text-muted-foreground text-xs">
-                    {l.durationMin} menit · urutan #{l.order}
+                    {tc.lessonMeta
+                      .replace('{dur}', String(l.durationMin))
+                      .replace('{ord}', String(l.order))}
                   </p>
                 </div>
                 {canEdit && (
@@ -492,7 +504,7 @@ function ModuleLessonsSection({
                       className={btnGhostSm}
                     >
                       <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                      Edit
+                      {tc.btnEdit}
                     </button>
                     <button
                       type="button"
@@ -501,7 +513,7 @@ function ModuleLessonsSection({
                       className="text-destructive hover:text-destructive/80 inline-flex items-center gap-1 text-xs disabled:opacity-60"
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      Hapus
+                      {tc.btnDelete}
                     </button>
                   </div>
                 )}
@@ -511,7 +523,7 @@ function ModuleLessonsSection({
         ))}
         {m.lessons.length === 0 && !creating && (
           <li className="text-muted-foreground p-4 text-center text-xs">
-            Belum ada pelajaran di modul ini.
+            {tc.emptyLessons}
           </li>
         )}
       </ul>
@@ -536,7 +548,7 @@ function ModuleLessonsSection({
               className={btnSecondarySm}
             >
               <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-              Tambah pelajaran
+              {tc.btnAddLesson}
             </button>
           )}
         </div>
@@ -558,6 +570,17 @@ function LessonForm({
   onCancel: () => void
   onDone: () => void
 }) {
+  const { t } = useI18n()
+  const tc = t.formsTenantCourse.curriculumEditor
+
+  const CONTENT_TYPE_LABELS: Record<LessonContentType, string> = {
+    VIDEO: tc.contentTypeVideo,
+    ARTICLE: tc.contentTypeArticle,
+    QUIZ: tc.contentTypeQuiz,
+    ASSIGNMENT: tc.contentTypeAssignment,
+    DOWNLOAD: tc.contentTypeDownload,
+  }
+
   const isEdit = Boolean(lesson)
   const [title, setTitle] = useState(lesson?.title ?? '')
   const [contentType, setContentType] = useState<LessonContentType>(
@@ -579,11 +602,11 @@ function LessonForm({
     const orderNum = Number(order)
     const durationNum = Number(durationMin)
     if (!Number.isFinite(orderNum)) {
-      setError('Urutan harus berupa angka.')
+      setError(tc.errorOrderNotNumber)
       return
     }
     if (!Number.isFinite(durationNum)) {
-      setError('Durasi harus berupa angka.')
+      setError(tc.errorDurationNotNumber)
       return
     }
 
@@ -619,7 +642,7 @@ function LessonForm({
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-medium">
-          {isEdit ? 'Ubah pelajaran' : 'Pelajaran baru'}
+          {isEdit ? tc.lessonFormTitleEdit : tc.lessonFormTitleNew}
         </h3>
         <button
           type="button"
@@ -635,7 +658,7 @@ function LessonForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1 sm:col-span-2">
           <label htmlFor={`l-title-${moduleId}`} className={labelClass}>
-            Judul
+            {tc.lessonTitleLabel}
           </label>
           <input
             id={`l-title-${moduleId}`}
@@ -643,14 +666,14 @@ function LessonForm({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             disabled={pending}
-            placeholder="Pengenalan App Router"
+            placeholder={tc.lessonTitlePlaceholder}
             className={inputClass}
           />
         </div>
 
         <div className="space-y-1">
           <label htmlFor={`l-type-${moduleId}`} className={labelClass}>
-            Tipe konten
+            {tc.lessonContentTypeLabel}
           </label>
           <select
             id={`l-type-${moduleId}`}
@@ -662,9 +685,9 @@ function LessonForm({
             className={inputClass}
           >
             {(Object.keys(CONTENT_TYPE_LABELS) as LessonContentType[]).map(
-              (t) => (
-                <option key={t} value={t}>
-                  {CONTENT_TYPE_LABELS[t]}
+              (ct) => (
+                <option key={ct} value={ct}>
+                  {CONTENT_TYPE_LABELS[ct]}
                 </option>
               ),
             )}
@@ -674,7 +697,7 @@ function LessonForm({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <label htmlFor={`l-order-${moduleId}`} className={labelClass}>
-              Urutan
+              {tc.lessonOrderLabel}
             </label>
             <input
               id={`l-order-${moduleId}`}
@@ -689,7 +712,7 @@ function LessonForm({
           </div>
           <div className="space-y-1">
             <label htmlFor={`l-dur-${moduleId}`} className={labelClass}>
-              Durasi (menit)
+              {tc.lessonDurationLabel}
             </label>
             <input
               id={`l-dur-${moduleId}`}
@@ -706,7 +729,7 @@ function LessonForm({
 
         <div className="space-y-1 sm:col-span-2">
           <label htmlFor={`l-url-${moduleId}`} className={labelClass}>
-            URL konten (opsional)
+            {tc.lessonUrlLabel}
           </label>
           <input
             id={`l-url-${moduleId}`}
@@ -721,14 +744,14 @@ function LessonForm({
 
         <div className="space-y-1 sm:col-span-2">
           <label htmlFor={`l-body-${moduleId}`} className={labelClass}>
-            Isi konten (opsional)
+            {tc.lessonBodyLabel}
           </label>
           <textarea
             id={`l-body-${moduleId}`}
             value={contentBody}
             onChange={(e) => setContentBody(e.target.value)}
             disabled={pending}
-            placeholder="Catatan, transkrip, atau ringkasan…"
+            placeholder={tc.lessonBodyPlaceholder}
             className={textareaClass}
           />
         </div>
@@ -748,10 +771,10 @@ function LessonForm({
           className={btnPrimarySm}
         >
           {pending
-            ? 'Menyimpan…'
+            ? tc.btnSaving
             : isEdit
-              ? 'Simpan perubahan'
-              : 'Tambah pelajaran'}
+              ? tc.btnSaveLessonChanges
+              : tc.btnSaveLesson}
         </button>
         <button
           type="button"
@@ -759,7 +782,7 @@ function LessonForm({
           disabled={pending}
           className={btnSecondarySm}
         >
-          Batal
+          {tc.btnCancel}
         </button>
       </div>
 

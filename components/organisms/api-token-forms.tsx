@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Copy, Plus, Trash2 } from 'lucide-react'
 import { createApiToken, revokeApiToken } from '@/lib/auth/api-token-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -15,6 +16,8 @@ type CreateResult = { plain: string; prefix: string; expiresAt: string | null } 
 
 export function CreateApiTokenForm() {
   const router = useRouter()
+  const { t } = useI18n()
+  const ta = t.formsTenantIntegration.apiTokens
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -47,10 +50,9 @@ export function CreateApiTokenForm() {
   if (result) {
     return (
       <div className="space-y-4 rounded-md border border-success/30 bg-success/10 p-4">
-        <p className="text-sm font-medium text-foreground">Token berhasil dibuat</p>
+        <p className="text-sm font-medium text-foreground">{ta.createSuccessTitle}</p>
         <p className="text-muted-foreground text-xs">
-          Ini satu-satunya kesempatan menampilkan token ini. Salin dan simpan di
-          tempat aman sekarang — token tidak dapat dilihat lagi.
+          {ta.createSuccessHint}
         </p>
         <div className="bg-background border-border rounded-md border p-3">
           <code className="block break-all font-mono text-xs">{result.plain}</code>
@@ -67,7 +69,7 @@ export function CreateApiTokenForm() {
             className="text-primary inline-flex items-center gap-1 text-xs hover:underline"
           >
             <Copy className="h-3 w-3" aria-hidden="true" />
-            {copied ? 'Tersalin' : 'Salin ke clipboard'}
+            {copied ? ta.copied : ta.copyToClipboard}
           </button>
           <button
             type="button"
@@ -78,12 +80,12 @@ export function CreateApiTokenForm() {
             }}
             className="text-muted-foreground hover:text-foreground ml-auto text-xs"
           >
-            Selesai
+            {ta.done}
           </button>
         </div>
         {result.expiresAt && (
           <p className="text-muted-foreground text-xs">
-            Berlaku hingga: {new Date(result.expiresAt).toLocaleString('id-ID')}
+            {ta.expiresAt.replace('{date}', new Date(result.expiresAt).toLocaleString('id-ID'))}
           </p>
         )}
       </div>
@@ -94,7 +96,7 @@ export function CreateApiTokenForm() {
     return (
       <button type="button" onClick={() => setOpen(true)} className={btnPrimary}>
         <Plus className="h-4 w-4" aria-hidden="true" />
-        Buat token baru
+        {ta.createButton}
       </button>
     )
   }
@@ -103,25 +105,25 @@ export function CreateApiTokenForm() {
     <form onSubmit={onSubmit} className="border-border space-y-4 rounded-md border bg-muted/30 p-4">
       <div className="space-y-1">
         <label htmlFor="tok-name" className="block text-sm font-medium text-foreground">
-          Nama / label
+          {ta.nameLabel}
         </label>
         <input
           id="tok-name"
           name="name"
           type="text"
-          placeholder="CI bot, My script, dst."
+          placeholder={ta.namePlaceholder}
           required
           disabled={pending}
           maxLength={80}
           className={inputClass}
         />
         <p className="text-muted-foreground text-xs">
-          Hanya untuk mengingat token ini di daftar.
+          {ta.nameHint}
         </p>
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="block text-sm font-medium text-foreground">Scopes</legend>
+        <legend className="block text-sm font-medium text-foreground">{ta.scopesLegend}</legend>
         <label className="flex items-start gap-2 text-sm">
           <input
             type="checkbox"
@@ -133,7 +135,7 @@ export function CreateApiTokenForm() {
           />
           <span>
             <span className="font-medium">read</span>
-            <span className="text-muted-foreground"> — akses baca data Anda</span>
+            <span className="text-muted-foreground"> {ta.scopeReadDesc}</span>
           </span>
         </label>
         <label className="flex items-start gap-2 text-sm">
@@ -146,21 +148,21 @@ export function CreateApiTokenForm() {
           />
           <span>
             <span className="font-medium">write</span>
-            <span className="text-muted-foreground"> — akses ubah data Anda</span>
+            <span className="text-muted-foreground"> {ta.scopeWriteDesc}</span>
           </span>
         </label>
       </fieldset>
 
       <div className="space-y-1">
         <label htmlFor="tok-expiry" className="block text-sm font-medium text-foreground">
-          Masa berlaku
+          {ta.expiryLabel}
         </label>
         <select id="tok-expiry" name="expiry" defaultValue="90d" disabled={pending} className={inputClass}>
-          <option value="30d">30 hari</option>
-          <option value="90d">90 hari</option>
-          <option value="180d">180 hari</option>
-          <option value="365d">1 tahun</option>
-          <option value="none">Tidak ada (selamanya)</option>
+          <option value="30d">{ta.expiry30d}</option>
+          <option value="90d">{ta.expiry90d}</option>
+          <option value="180d">{ta.expiry180d}</option>
+          <option value="365d">{ta.expiry365d}</option>
+          <option value="none">{ta.expiryNone}</option>
         </select>
       </div>
 
@@ -175,7 +177,7 @@ export function CreateApiTokenForm() {
 
       <div className="flex flex-wrap items-center gap-2">
         <button type="submit" disabled={pending} className={btnPrimary}>
-          {pending ? 'Membuat…' : 'Buat token'}
+          {pending ? ta.submitPending : ta.submit}
         </button>
         <button
           type="button"
@@ -186,7 +188,7 @@ export function CreateApiTokenForm() {
           disabled={pending}
           className="text-muted-foreground hover:text-foreground text-sm font-medium disabled:opacity-60"
         >
-          Batal
+          {ta.cancel}
         </button>
       </div>
     </form>
@@ -195,11 +197,13 @@ export function CreateApiTokenForm() {
 
 export function RevokeApiTokenButton({ tokenId, tokenName }: { tokenId: string; tokenName: string }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const ta = t.formsTenantIntegration.apiTokens
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
   function onClick() {
-    if (!window.confirm(`Cabut token "${tokenName}"? Aksi ini tidak dapat dibatalkan.`)) return
+    if (!window.confirm(ta.confirmRevoke.replace('{name}', tokenName))) return
     setError(null)
     startTransition(async () => {
       const r = await revokeApiToken(tokenId)
@@ -220,7 +224,7 @@ export function RevokeApiTokenButton({ tokenId, tokenName }: { tokenId: string; 
         className="text-destructive inline-flex items-center gap-1 text-xs font-medium hover:underline disabled:cursor-not-allowed disabled:opacity-60"
       >
         <Trash2 className="h-3 w-3" aria-hidden="true" />
-        {pending ? 'Mencabut…' : 'Cabut'}
+        {pending ? ta.revokePending : ta.revoke}
       </button>
       {error && <span className="text-destructive text-xs">{error}</span>}
     </div>

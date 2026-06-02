@@ -8,6 +8,7 @@ import {
   toggleSavedSearchAlerts,
 } from '@/lib/saved-searches/actions'
 import { SavedSearchForm } from '@/components/organisms/saved-search-form'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type SavedSearchRowData = {
   id: string
@@ -22,40 +23,38 @@ export type SavedSearchRowData = {
   createdAt: Date | string
 }
 
-const EMPLOYMENT_LABELS: Record<string, string> = {
-  FULL_TIME: 'Penuh waktu',
-  PART_TIME: 'Paruh waktu',
-  CONTRACT: 'Kontrak',
-  INTERNSHIP: 'Magang',
-  FREELANCE: 'Lepas',
-}
-
-function criteriaSummary(s: SavedSearchRowData): string {
-  const parts: string[] = []
-  if (s.query) parts.push(`Kata kunci: ${s.query}`)
-  if (s.categorySlug) parts.push(`Kategori: ${s.categorySlug}`)
-  if (s.location) parts.push(`Lokasi: ${s.location}`)
-  if (s.employmentType) {
-    parts.push(`Tipe: ${EMPLOYMENT_LABELS[s.employmentType] ?? s.employmentType}`)
-  }
-  return parts.length === 0 ? 'Semua lowongan' : parts.join(' · ')
-}
-
-function formatLastAlert(at: Date | string | null, count: number): string | null {
-  if (!at) return null
-  const dt = typeof at === 'string' ? new Date(at) : at
-  const formatted = new Intl.DateTimeFormat('id-ID', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(dt)
-  return `Terakhir kirim alert: ${formatted} · ${count} lowongan baru`
-}
-
 export function SavedSearchRow({ search }: { search: SavedSearchRowData }) {
   const router = useRouter()
+  const { t, locale } = useI18n()
+  const tl = t.formsSavedSearch.savedSearchRow
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
+
+  function criteriaSummary(s: SavedSearchRowData): string {
+    const parts: string[] = []
+    if (s.query) parts.push(tl.criteriaKeyword.replace('{value}', s.query))
+    if (s.categorySlug) parts.push(tl.criteriaCategory.replace('{value}', s.categorySlug))
+    if (s.location) parts.push(tl.criteriaLocation.replace('{value}', s.location))
+    if (s.employmentType) {
+      const label =
+        (tl.employmentLabels as Record<string, string>)[s.employmentType] ?? s.employmentType
+      parts.push(tl.criteriaType.replace('{value}', label))
+    }
+    return parts.length === 0 ? tl.allJobs : parts.join(' · ')
+  }
+
+  function formatLastAlert(at: Date | string | null, count: number): string | null {
+    if (!at) return null
+    const dt = typeof at === 'string' ? new Date(at) : at
+    const formatted = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'id-ID', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(dt)
+    return tl.lastAlertMsg
+      .replace('{date}', formatted)
+      .replace('{count}', String(count))
+  }
 
   function onToggleAlerts() {
     setError(null)
@@ -70,7 +69,7 @@ export function SavedSearchRow({ search }: { search: SavedSearchRowData }) {
   }
 
   function onDelete() {
-    if (!window.confirm(`Hapus pencarian tersimpan "${search.name}"?`)) return
+    if (!window.confirm(tl.confirmDelete.replace('{name}', search.name))) return
     setError(null)
     startTransition(async () => {
       const r = await deleteSavedSearch(search.id)
@@ -88,7 +87,7 @@ export function SavedSearchRow({ search }: { search: SavedSearchRowData }) {
     <li className="border-border bg-card rounded-xl border p-4">
       {editing ? (
         <div className="space-y-3">
-          <h3 className="font-medium text-foreground">Ubah pencarian</h3>
+          <h3 className="font-medium text-foreground">{tl.editHeading}</h3>
           <SavedSearchForm
             mode="edit"
             initial={{
@@ -111,19 +110,19 @@ export function SavedSearchRow({ search }: { search: SavedSearchRowData }) {
               <h3 className="truncate font-medium text-foreground">{search.name}</h3>
               {search.emailAlerts ? (
                 <span
-                  title="Alert aktif"
+                  title={tl.alertActiveBadge}
                   className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-300"
                 >
                   <Bell className="h-3 w-3" aria-hidden="true" />
-                  Alert aktif
+                  {tl.alertActiveBadge}
                 </span>
               ) : (
                 <span
-                  title="Alert nonaktif"
+                  title={tl.alertOffBadge}
                   className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
                 >
                   <BellOff className="h-3 w-3" aria-hidden="true" />
-                  Alert mati
+                  {tl.alertOffBadge}
                 </span>
               )}
             </div>
@@ -149,12 +148,12 @@ export function SavedSearchRow({ search }: { search: SavedSearchRowData }) {
               {search.emailAlerts ? (
                 <>
                   <BellOff className="h-3.5 w-3.5" aria-hidden="true" />
-                  Matikan alert
+                  {tl.btnDisableAlert}
                 </>
               ) : (
                 <>
                   <Bell className="h-3.5 w-3.5" aria-hidden="true" />
-                  Aktifkan alert
+                  {tl.btnEnableAlert}
                 </>
               )}
             </button>
@@ -165,7 +164,7 @@ export function SavedSearchRow({ search }: { search: SavedSearchRowData }) {
               className="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-60"
             >
               <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-              Ubah
+              {tl.btnEdit}
             </button>
             <button
               type="button"
@@ -174,7 +173,7 @@ export function SavedSearchRow({ search }: { search: SavedSearchRowData }) {
               className="inline-flex items-center gap-1 rounded-md border border-destructive/30 px-2.5 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-60"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Hapus
+              {tl.btnDelete}
             </button>
           </div>
         </div>

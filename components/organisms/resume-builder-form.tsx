@@ -16,6 +16,7 @@ import {
   uploadResumeFile,
   type ResumeContent,
 } from '@/lib/resumes/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Experience = NonNullable<ResumeContent['experiences']>[number]
 type Education = NonNullable<ResumeContent['educations']>[number]
@@ -64,6 +65,8 @@ function fileNameFromUrl(url: string): string {
 
 export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tr = t.formsResume
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
   const [savingFile, startFileTransition] = useTransition()
@@ -109,11 +112,11 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
     e.target.value = ''
     if (!file) return
     if (file.size > MAX_FILE_BYTES) {
-      setSubmitError('Ukuran dokumen melebihi 10 MB.')
+      setSubmitError(tr.file.errorSize)
       return
     }
     if (!ACCEPT_FILE.split(',').includes(file.type)) {
-      setSubmitError('Format dokumen harus PDF, DOC, atau DOCX.')
+      setSubmitError(tr.file.errorFormat)
       return
     }
     clearBanners()
@@ -127,14 +130,14 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
         return
       }
       if (r.data?.url) setFileUrl(r.data.url)
-      setSubmitSuccess('Dokumen berhasil diunggah.')
+      setSubmitSuccess(tr.file.successUpload)
       router.refresh()
     })
   }
 
   function onRemoveFile() {
     if (!fileUrl) return
-    if (!window.confirm('Hapus dokumen yang diunggah?')) return
+    if (!window.confirm(tr.file.confirmRemove)) return
     clearBanners()
     startFileTransition(async () => {
       const r = await removeResumeFile(resume.id)
@@ -143,7 +146,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
         return
       }
       setFileUrl(null)
-      setSubmitSuccess('Dokumen dihapus.')
+      setSubmitSuccess(tr.file.successRemove)
       router.refresh()
     })
   }
@@ -226,11 +229,11 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
 
     const trimmedName = name.trim()
     if (trimmedName.length === 0) {
-      setSubmitError('Nama CV wajib diisi.')
+      setSubmitError(tr.name.errorRequired)
       return
     }
     if (trimmedName.length > 80) {
-      setSubmitError('Nama CV maksimal 80 karakter.')
+      setSubmitError(tr.name.errorMaxLength)
       return
     }
 
@@ -276,7 +279,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
         setSubmitError(r.error)
         return
       }
-      setSubmitSuccess('CV tersimpan.')
+      setSubmitSuccess(tr.submit.successSave)
       router.refresh()
     })
   }
@@ -306,7 +309,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
           htmlFor="resume-name"
           className="block text-sm font-medium text-foreground"
         >
-          Nama CV <span className="text-destructive">*</span>
+          {tr.name.label} <span className="text-destructive">*</span>
         </label>
         <input
           id="resume-name"
@@ -315,17 +318,15 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
           onChange={(e) => setName(e.target.value)}
           maxLength={80}
           className={inputClass}
-          placeholder="Misal: CV Backend Engineer"
+          placeholder={tr.name.placeholder}
         />
-        <p className="text-muted-foreground text-xs">Maksimal 80 karakter.</p>
+        <p className="text-muted-foreground text-xs">{tr.name.helperMax}</p>
       </section>
 
       {/* File upload */}
       <section className="border-border bg-card space-y-3 rounded-2xl border p-6">
-        <h2 className="font-heading text-lg">Dokumen terlampir</h2>
-        <p className="text-muted-foreground text-sm">
-          Unggah versi PDF/DOC/DOCX dari CV ini (opsional, maks 10 MB).
-        </p>
+        <h2 className="font-heading text-lg">{tr.file.heading}</h2>
+        <p className="text-muted-foreground text-sm">{tr.file.hint}</p>
 
         {fileUrl ? (
           <div className="border-border flex items-center justify-between gap-3 rounded-lg border p-3">
@@ -351,7 +352,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 className="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Upload className="h-3.5 w-3.5" aria-hidden="true" />
-                Ganti
+                {tr.file.replaceButton}
               </button>
               <button
                 type="button"
@@ -360,7 +361,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 className="border-destructive/40 text-destructive hover:bg-destructive/5 inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                Hapus
+                {tr.file.removeButton}
               </button>
             </div>
           </div>
@@ -372,7 +373,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
             className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Upload className="h-4 w-4" aria-hidden="true" />
-            {savingFile ? 'Mengunggah…' : 'Unggah dokumen'}
+            {savingFile ? tr.file.uploadButtonPending : tr.file.uploadButtonIdle}
           </button>
         )}
 
@@ -392,7 +393,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
           htmlFor="resume-summary"
           className="block text-sm font-medium text-foreground"
         >
-          Ringkasan
+          {tr.summary.label}
         </label>
         <textarea
           id="resume-summary"
@@ -400,18 +401,18 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
           maxLength={2000}
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
-          placeholder="Ceritakan singkat profil profesional Anda…"
+          placeholder={tr.summary.placeholder}
           className={inputClass}
         />
         <p className="text-muted-foreground text-xs">
-          {summary.length}/2000 karakter
+          {tr.summary.charCount.replace('{count}', String(summary.length))}
         </p>
       </section>
 
       {/* Experiences */}
       <section className="border-border bg-card space-y-4 rounded-2xl border p-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg">Pengalaman kerja</h2>
+          <h2 className="font-heading text-lg">{tr.experience.heading}</h2>
           <button
             type="button"
             onClick={addExperience}
@@ -419,12 +420,12 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
             className="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-            Tambah
+            {tr.experience.addButton}
           </button>
         </div>
         {experiences.length === 0 && (
           <p className="text-muted-foreground text-sm">
-            Belum ada pengalaman ditambahkan.
+            {tr.experience.emptyState}
           </p>
         )}
         <div className="space-y-4">
@@ -435,7 +436,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
             >
               <div className="flex items-center justify-between">
                 <p className="text-muted-foreground text-xs font-medium uppercase">
-                  Pengalaman #{idx + 1}
+                  {tr.experience.itemLabel.replace('{n}', String(idx + 1))}
                 </p>
                 <button
                   type="button"
@@ -443,13 +444,13 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                   className="text-destructive hover:bg-destructive/5 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  Hapus
+                  {tr.experience.removeButton}
                 </button>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="text-foreground mb-1 block text-xs font-medium">
-                    Posisi
+                    {tr.experience.positionLabel}
                   </label>
                   <input
                     type="text"
@@ -463,7 +464,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 </div>
                 <div>
                   <label className="text-foreground mb-1 block text-xs font-medium">
-                    Perusahaan
+                    {tr.experience.companyLabel}
                   </label>
                   <input
                     type="text"
@@ -477,7 +478,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 </div>
                 <div>
                   <label className="text-foreground mb-1 block text-xs font-medium">
-                    Lokasi
+                    {tr.experience.locationLabel}
                   </label>
                   <input
                     type="text"
@@ -492,7 +493,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-foreground mb-1 block text-xs font-medium">
-                      Mulai
+                      {tr.experience.startDateLabel}
                     </label>
                     <input
                       type="text"
@@ -507,7 +508,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                   </div>
                   <div>
                     <label className="text-foreground mb-1 block text-xs font-medium">
-                      Selesai
+                      {tr.experience.endDateLabel}
                     </label>
                     <input
                       type="text"
@@ -531,11 +532,11 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                     updateExperience(idx, { current: e.target.checked })
                   }
                 />
-                Masih bekerja di sini
+                {tr.experience.currentLabel}
               </label>
               <div>
                 <label className="text-foreground mb-1 block text-xs font-medium">
-                  Deskripsi
+                  {tr.experience.descriptionLabel}
                 </label>
                 <textarea
                   rows={3}
@@ -545,7 +546,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                   }
                   maxLength={3000}
                   className={inputClass}
-                  placeholder="Capaian dan tanggung jawab utama…"
+                  placeholder={tr.experience.descriptionPlaceholder}
                 />
               </div>
             </div>
@@ -556,7 +557,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
       {/* Educations */}
       <section className="border-border bg-card space-y-4 rounded-2xl border p-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg">Pendidikan</h2>
+          <h2 className="font-heading text-lg">{tr.education.heading}</h2>
           <button
             type="button"
             onClick={addEducation}
@@ -564,12 +565,12 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
             className="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-            Tambah
+            {tr.education.addButton}
           </button>
         </div>
         {educations.length === 0 && (
           <p className="text-muted-foreground text-sm">
-            Belum ada pendidikan ditambahkan.
+            {tr.education.emptyState}
           </p>
         )}
         <div className="space-y-4">
@@ -580,7 +581,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
             >
               <div className="flex items-center justify-between">
                 <p className="text-muted-foreground text-xs font-medium uppercase">
-                  Pendidikan #{idx + 1}
+                  {tr.education.itemLabel.replace('{n}', String(idx + 1))}
                 </p>
                 <button
                   type="button"
@@ -588,13 +589,13 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                   className="text-destructive hover:bg-destructive/5 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  Hapus
+                  {tr.education.removeButton}
                 </button>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="text-foreground mb-1 block text-xs font-medium">
-                    Institusi
+                    {tr.education.institutionLabel}
                   </label>
                   <input
                     type="text"
@@ -608,7 +609,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 </div>
                 <div>
                   <label className="text-foreground mb-1 block text-xs font-medium">
-                    Gelar
+                    {tr.education.degreeLabel}
                   </label>
                   <input
                     type="text"
@@ -622,7 +623,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 </div>
                 <div>
                   <label className="text-foreground mb-1 block text-xs font-medium">
-                    Bidang
+                    {tr.education.fieldLabel}
                   </label>
                   <input
                     type="text"
@@ -637,7 +638,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-foreground mb-1 block text-xs font-medium">
-                      Mulai
+                      {tr.education.startDateLabel}
                     </label>
                     <input
                       type="text"
@@ -652,7 +653,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                   </div>
                   <div>
                     <label className="text-foreground mb-1 block text-xs font-medium">
-                      Selesai
+                      {tr.education.endDateLabel}
                     </label>
                     <input
                       type="text"
@@ -669,7 +670,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
               </div>
               <div>
                 <label className="text-foreground mb-1 block text-xs font-medium">
-                  Deskripsi
+                  {tr.education.descriptionLabel}
                 </label>
                 <textarea
                   rows={2}
@@ -679,7 +680,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                   }
                   maxLength={1000}
                   className={inputClass}
-                  placeholder="Aktivitas atau capaian…"
+                  placeholder={tr.education.descriptionPlaceholder}
                 />
               </div>
             </div>
@@ -689,10 +690,8 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
 
       {/* Skills */}
       <section className="border-border bg-card space-y-3 rounded-2xl border p-6">
-        <h2 className="font-heading text-lg">Skill</h2>
-        <p className="text-muted-foreground text-sm">
-          Tekan Enter untuk menambahkan skill. Maks 30.
-        </p>
+        <h2 className="font-heading text-lg">{tr.skills.heading}</h2>
+        <p className="text-muted-foreground text-sm">{tr.skills.hint}</p>
         <div className="flex flex-wrap gap-2">
           {skills.map((s) => (
             <span
@@ -704,7 +703,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 type="button"
                 onClick={() => removeSkill(s)}
                 className="hover:text-destructive"
-                aria-label={`Hapus ${s}`}
+                aria-label={tr.skills.removeAriaLabel.replace('{item}', s)}
               >
                 <X className="h-3 w-3" aria-hidden="true" />
               </button>
@@ -723,7 +722,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
               }
             }}
             maxLength={60}
-            placeholder="Misal: TypeScript"
+            placeholder={tr.skills.inputPlaceholder}
             className={inputClass}
             disabled={skills.length >= 30}
           />
@@ -734,17 +733,15 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
             className="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Tambah
+            {tr.skills.addButton}
           </button>
         </div>
       </section>
 
       {/* Languages */}
       <section className="border-border bg-card space-y-3 rounded-2xl border p-6">
-        <h2 className="font-heading text-lg">Bahasa</h2>
-        <p className="text-muted-foreground text-sm">
-          Tekan Enter untuk menambahkan bahasa. Maks 10.
-        </p>
+        <h2 className="font-heading text-lg">{tr.languages.heading}</h2>
+        <p className="text-muted-foreground text-sm">{tr.languages.hint}</p>
         <div className="flex flex-wrap gap-2">
           {languages.map((l) => (
             <span
@@ -756,7 +753,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
                 type="button"
                 onClick={() => removeLanguage(l)}
                 className="hover:text-destructive"
-                aria-label={`Hapus ${l}`}
+                aria-label={tr.languages.removeAriaLabel.replace('{item}', l)}
               >
                 <X className="h-3 w-3" aria-hidden="true" />
               </button>
@@ -775,7 +772,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
               }
             }}
             maxLength={60}
-            placeholder="Misal: Bahasa Indonesia"
+            placeholder={tr.languages.inputPlaceholder}
             className={inputClass}
             disabled={languages.length >= 10}
           />
@@ -786,7 +783,7 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
             className="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Tambah
+            {tr.languages.addButton}
           </button>
         </div>
       </section>
@@ -797,14 +794,14 @@ export function ResumeBuilderForm({ resume }: { resume: ResumeBuilderInitial }) 
           href="/dashboard/cv"
           className="text-muted-foreground hover:text-foreground inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium"
         >
-          Kembali
+          {tr.submit.backButton}
         </Link>
         <button
           type="submit"
           disabled={isPending}
           className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
-          {isPending ? 'Menyimpan…' : 'Simpan CV'}
+          {isPending ? tr.submit.saveButtonPending : tr.submit.saveButtonIdle}
         </button>
       </div>
     </form>

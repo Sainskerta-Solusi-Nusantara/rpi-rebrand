@@ -7,6 +7,7 @@ import {
   updateInterview,
 } from '@/lib/tenants/interview-actions'
 import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-constants'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type InterviewType = 'video' | 'onsite' | 'phone'
 
@@ -23,7 +24,7 @@ export type InterviewInitial = {
 }
 
 /**
- * Server-supplied suggestions for the "Pertanyaan yang disarankan" block.
+ * Server-supplied suggestions for the suggested questions block.
  * The parent component pre-fetches these via
  * `lib/interview-questions/queries.ts#getQuestionSetForTenant` based on the
  * initial stage name (or a mixed pick when starting a fresh interview).
@@ -35,17 +36,17 @@ export type SuggestedQuestion = {
   difficulty: number
 }
 
-const SUGGESTED_CATEGORY_LABELS: Record<string, string> = {
-  technical: 'Teknis',
-  behavioral: 'Perilaku',
-  situational: 'Situasional',
-  culture: 'Budaya',
-  other: 'Lainnya',
+const CATEGORY_KEY_MAP: Record<string, 'categoryTechnical' | 'categoryBehavioral' | 'categorySituational' | 'categoryCulture' | 'categoryOther'> = {
+  technical: 'categoryTechnical',
+  behavioral: 'categoryBehavioral',
+  situational: 'categorySituational',
+  culture: 'categoryCulture',
+  other: 'categoryOther',
 }
 
-function buildNotesAppendix(questions: SuggestedQuestion[]): string {
+function buildNotesAppendix(questions: SuggestedQuestion[], header: string): string {
   if (questions.length === 0) return ''
-  const lines = ['Pertanyaan yang disarankan:']
+  const lines = [header]
   questions.forEach((q, i) => {
     lines.push(`${i + 1}. ${q.text}`)
   })
@@ -93,6 +94,8 @@ export function InterviewScheduleForm({
   onCancel?: () => void
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tf = t.formsInterviewSched.scheduleForm
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<
     { kind: 'error' | 'success'; message: string } | null
@@ -141,11 +144,11 @@ export function InterviewScheduleForm({
     setFieldErrors({})
 
     if (!scheduledAt) {
-      setFieldErrors({ scheduledAt: 'Tanggal & jam wajib diisi' })
+      setFieldErrors({ scheduledAt: tf.errScheduledAtRequired })
       return
     }
     if (!Number.isFinite(durationMin) || durationMin < 15 || durationMin > 480) {
-      setFieldErrors({ durationMin: 'Durasi harus antara 15-480 menit' })
+      setFieldErrors({ durationMin: tf.errDurationRange })
       return
     }
 
@@ -153,7 +156,7 @@ export function InterviewScheduleForm({
     // to a real ISO string so the server can parse it unambiguously.
     const localDate = new Date(scheduledAt)
     if (Number.isNaN(localDate.getTime())) {
-      setFieldErrors({ scheduledAt: 'Format tanggal tidak valid' })
+      setFieldErrors({ scheduledAt: tf.errDateInvalid })
       return
     }
 
@@ -167,7 +170,7 @@ export function InterviewScheduleForm({
         parsedStageOrder < 1 ||
         parsedStageOrder > 50)
     ) {
-      setFieldErrors({ stageOrder: 'Urutan tahap harus 1-50' })
+      setFieldErrors({ stageOrder: tf.errStageOrderRange })
       return
     }
 
@@ -197,7 +200,7 @@ export function InterviewScheduleForm({
       }
       setBanner({
         kind: 'success',
-        message: isEdit ? 'Wawancara diperbarui.' : 'Wawancara dijadwalkan.',
+        message: isEdit ? tf.successUpdated : tf.successCreated,
       })
       if (!isEdit) {
         // Reset for next entry
@@ -217,7 +220,7 @@ export function InterviewScheduleForm({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1">
         <label htmlFor="scheduledAt" className="block text-sm font-medium">
-          Tanggal & jam
+          {tf.labelScheduledAt}
         </label>
         <input
           id="scheduledAt"
@@ -235,7 +238,7 @@ export function InterviewScheduleForm({
       </div>
 
       <div className="space-y-1">
-        <span className="block text-sm font-medium">Durasi</span>
+        <span className="block text-sm font-medium">{tf.labelDuration}</span>
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={durationMode === 'preset' ? String(durationPreset) : 'custom'}
@@ -250,14 +253,14 @@ export function InterviewScheduleForm({
             }}
             disabled={pending}
             className={`${inputClass} max-w-[180px]`}
-            aria-label="Durasi"
+            aria-label={tf.durationAriaLabel}
           >
             {PRESET_DURATIONS.map((d) => (
               <option key={d} value={d}>
-                {d} menit
+                {tf.durationMinutes.replace('{d}', String(d))}
               </option>
             ))}
-            <option value="custom">Kustom…</option>
+            <option value="custom">{tf.durationCustom}</option>
           </select>
           {durationMode === 'custom' && (
             <input
@@ -265,12 +268,12 @@ export function InterviewScheduleForm({
               min={15}
               max={480}
               step={5}
-              placeholder="Menit"
+              placeholder={tf.durationPlaceholder}
               value={durationCustom}
               onChange={(e) => setDurationCustom(e.target.value)}
               disabled={pending}
               className={`${inputClass} max-w-[120px]`}
-              aria-label="Durasi kustom (menit)"
+              aria-label={tf.durationCustomAriaLabel}
             />
           )}
         </div>
@@ -280,13 +283,13 @@ export function InterviewScheduleForm({
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="block text-sm font-medium">Jenis wawancara</legend>
+        <legend className="block text-sm font-medium">{tf.labelInterviewType}</legend>
         <div className="flex flex-wrap gap-3 text-sm">
           {(
             [
-              { v: 'video' as const, label: 'Video call' },
-              { v: 'onsite' as const, label: 'Onsite' },
-              { v: 'phone' as const, label: 'Telepon' },
+              { v: 'video' as const, label: tf.typeVideo },
+              { v: 'onsite' as const, label: tf.typeOnsite },
+              { v: 'phone' as const, label: tf.typePhone },
             ]
           ).map((opt) => (
             <label
@@ -313,12 +316,12 @@ export function InterviewScheduleForm({
       {type === 'video' && (
         <div className="space-y-1">
           <label htmlFor="meetingUrl" className="block text-sm font-medium">
-            Tautan meeting
+            {tf.labelMeetingUrl}
           </label>
           <input
             id="meetingUrl"
             type="url"
-            placeholder="https://meet.example.com/abc"
+            placeholder={tf.meetingUrlPlaceholder}
             value={meetingUrl}
             onChange={(e) => setMeetingUrl(e.target.value)}
             disabled={pending}
@@ -334,12 +337,12 @@ export function InterviewScheduleForm({
       {type === 'onsite' && (
         <div className="space-y-1">
           <label htmlFor="location" className="block text-sm font-medium">
-            Lokasi
+            {tf.labelLocation}
           </label>
           <input
             id="location"
             type="text"
-            placeholder="Alamat lengkap kantor"
+            placeholder={tf.locationPlaceholder}
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             disabled={pending}
@@ -363,7 +366,7 @@ export function InterviewScheduleForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <label htmlFor="stageName" className="block text-sm font-medium">
-            Nama tahap (opsional)
+            {tf.labelStageName}
           </label>
           <input
             id="stageName"
@@ -371,7 +374,7 @@ export function InterviewScheduleForm({
             list={STAGE_DATALIST_ID}
             value={stageName}
             onChange={(e) => setStageName(e.target.value)}
-            placeholder="Misal: Technical"
+            placeholder={tf.stageNamePlaceholder}
             disabled={pending}
             maxLength={80}
             aria-invalid={Boolean(fieldErrors.stageName)}
@@ -383,7 +386,7 @@ export function InterviewScheduleForm({
         </div>
         <div className="space-y-1">
           <label htmlFor="stageOrder" className="block text-sm font-medium">
-            Urutan tahap (opsional)
+            {tf.labelStageOrder}
           </label>
           <input
             id="stageOrder"
@@ -393,7 +396,7 @@ export function InterviewScheduleForm({
             step={1}
             value={stageOrder}
             onChange={(e) => setStageOrder(e.target.value)}
-            placeholder="Otomatis tahap berikutnya"
+            placeholder={tf.stageOrderPlaceholder}
             disabled={pending}
             aria-invalid={Boolean(fieldErrors.stageOrder)}
             className={inputClass}
@@ -406,7 +409,7 @@ export function InterviewScheduleForm({
 
       <div className="space-y-1">
         <label htmlFor="notes" className="block text-sm font-medium">
-          Catatan (opsional)
+          {tf.labelNotes}
         </label>
         <textarea
           id="notes"
@@ -415,7 +418,7 @@ export function InterviewScheduleForm({
           rows={3}
           maxLength={5000}
           disabled={pending}
-          placeholder="Persiapan, tautan kelas, dokumen yang perlu disiapkan…"
+          placeholder={tf.notesPlaceholder}
           className={inputClass}
         />
         {fieldErrors.notes && (
@@ -426,32 +429,35 @@ export function InterviewScheduleForm({
       {suggestedQuestions && suggestedQuestions.length > 0 && (
         <details className="border-border bg-muted/30 rounded-md border p-3">
           <summary className="cursor-pointer text-sm font-medium">
-            Pertanyaan yang disarankan ({suggestedQuestions.length})
+            {tf.suggestedQuestionsLabel.replace('{count}', String(suggestedQuestions.length))}
           </summary>
           <div className="mt-3 space-y-3">
             <ul className="space-y-2 text-sm">
-              {suggestedQuestions.map((q, i) => (
-                <li
-                  key={q.id}
-                  className="border-border bg-background rounded-md border p-3"
-                >
-                  <div className="text-muted-foreground mb-1 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="font-mono">{i + 1}.</span>
-                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium">
-                      {SUGGESTED_CATEGORY_LABELS[q.category] ?? q.category}
-                    </span>
-                    <span aria-label={`Tingkat kesulitan ${q.difficulty}`}>
-                      {'★'.repeat(Math.max(1, Math.min(5, q.difficulty)))}
-                    </span>
-                  </div>
-                  <p className="whitespace-pre-wrap">{q.text}</p>
-                </li>
-              ))}
+              {suggestedQuestions.map((q, i) => {
+                const catKey = CATEGORY_KEY_MAP[q.category]
+                return (
+                  <li
+                    key={q.id}
+                    className="border-border bg-background rounded-md border p-3"
+                  >
+                    <div className="text-muted-foreground mb-1 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="font-mono">{i + 1}.</span>
+                      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium">
+                        {catKey ? tf[catKey] : q.category}
+                      </span>
+                      <span aria-label={`Tingkat kesulitan ${q.difficulty}`}>
+                        {'★'.repeat(Math.max(1, Math.min(5, q.difficulty)))}
+                      </span>
+                    </div>
+                    <p className="whitespace-pre-wrap">{q.text}</p>
+                  </li>
+                )
+              })}
             </ul>
             <button
               type="button"
               onClick={() => {
-                const appendix = buildNotesAppendix(suggestedQuestions)
+                const appendix = buildNotesAppendix(suggestedQuestions, tf.suggestedQuestionsAppendixHeader)
                 if (!appendix) return
                 setNotes((prev) => {
                   const trimmed = prev.trim()
@@ -461,7 +467,7 @@ export function InterviewScheduleForm({
               disabled={pending}
               className="border-input text-foreground inline-flex items-center justify-center rounded-md border bg-transparent px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Tambahkan ke catatan
+              {tf.addToNotesBtn}
             </button>
           </div>
         </details>
@@ -487,10 +493,10 @@ export function InterviewScheduleForm({
           className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending
-            ? 'Menyimpan…'
+            ? tf.btnSaving
             : isEdit
-              ? 'Simpan perubahan'
-              : 'Jadwalkan wawancara'}
+              ? tf.btnSaveChanges
+              : tf.btnSchedule}
         </button>
         {onCancel && (
           <button
@@ -499,7 +505,7 @@ export function InterviewScheduleForm({
             disabled={pending}
             className="border-input text-foreground inline-flex items-center justify-center rounded-md border bg-transparent px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Batal
+            {tf.btnCancel}
           </button>
         )}
       </div>

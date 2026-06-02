@@ -40,6 +40,7 @@ import CareersHeaderChips from '@/components/molecules/careers-header-chips'
 import CareersSortPills from '@/components/molecules/careers-sort-pills'
 import { cn } from '@/lib/utils'
 import { CAREER_OPENINGS as OPENINGS } from '@/lib/careers-data'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -57,6 +58,9 @@ export type CareersHeroProps = {
 }
 
 export function CareersHero({ openingCount }: CareersHeroProps) {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.careers
+
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -88,7 +92,7 @@ export function CareersHero({ openingCount }: CareersHeroProps) {
         >
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Karier di RPI
+            {tc.hero.eyebrow}
           </span>
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
         </motion.div>
@@ -100,7 +104,7 @@ export function CareersHero({ openingCount }: CareersHeroProps) {
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
           Bangun masa depan{' '}
-          <span className="text-[color:var(--ring)]">cara kerja</span>{' '}
+          <span className="text-[color:var(--ring)]">{tc.hero.headingHighlight}</span>{' '}
           di Indonesia.
         </motion.h1>
 
@@ -109,8 +113,7 @@ export function CareersHero({ openingCount }: CareersHeroProps) {
           transition={{ duration: 0.55, delay: 0.15 }}
           className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg md:text-xl"
         >
-          Kami mempertemukan jutaan pencari kerja dengan ribuan perusahaan
-          terverifikasi. Bergabunglah dengan tim yang membangun infrastrukturnya.
+          {tc.hero.body}
         </motion.p>
 
         <motion.div
@@ -120,13 +123,13 @@ export function CareersHero({ openingCount }: CareersHeroProps) {
         >
           <Button asChild size="lg">
             <Link href="#openings">
-              Lihat Posisi Terbuka
+              {tc.hero.ctaOpenings}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link href="#life">
-              Hidup di RPI
+              {tc.hero.ctaLife}
             </Link>
           </Button>
         </motion.div>
@@ -137,10 +140,10 @@ export function CareersHero({ openingCount }: CareersHeroProps) {
           className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-8 sm:grid-cols-4"
         >
           {[
-            { v: '120+', l: 'Anggota tim' },
-            { v: '6', l: 'Kota di Indonesia' },
-            { v: String(openingCount), l: 'Posisi terbuka' },
-            { v: '4.8/5', l: 'Skor karyawan' },
+            { v: '120+', l: tc.hero.statTeam },
+            { v: '6', l: tc.hero.statCities },
+            { v: String(openingCount), l: tc.hero.statOpenings },
+            { v: '4.8/5', l: tc.hero.statScore },
           ].map((s) => (
             <div key={s.l} className="text-center">
               <dt className="font-heading text-foreground text-3xl font-semibold tracking-tight md:text-4xl">
@@ -161,30 +164,33 @@ export function CareersHero({ openingCount }: CareersHeroProps) {
 // Why RPI
 // ---------------------------------------------------------------------------
 
-const WHY = [
-  {
-    icon: Target,
-    title: 'Pekerjaan dengan dampak',
-    desc: 'Setiap fitur yang Anda kirim menyentuh kehidupan ribuan pencari kerja — dari pelamar pertama kali hingga eksekutif berpengalaman.',
-  },
-  {
-    icon: Rocket,
-    title: 'Tumbuh dengan cepat',
-    desc: 'Tim kecil, ruang besar untuk memiliki keputusan. Pertumbuhan karier kami rata-rata 1.8× lebih cepat dari industri.',
-  },
-  {
-    icon: Users,
-    title: 'Tim yang Anda hormati',
-    desc: 'Ex-Gojek, Tokopedia, Stripe, dan Google. Kami merekrut pelan, tapi setiap orang membuat Anda lebih baik.',
-  },
-  {
-    icon: Heart,
-    title: 'Misi yang tulus',
-    desc: 'Bukan platform pekerjaan biasa — kami percaya cara kerja yang adil dan transparan adalah fondasi Indonesia maju.',
-  },
-]
-
 export function CareersWhy() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.careers
+
+  const WHY = [
+    {
+      icon: Target,
+      title: tc.why.impactTitle,
+      desc: tc.why.impactDesc,
+    },
+    {
+      icon: Rocket,
+      title: tc.why.growTitle,
+      desc: tc.why.growDesc,
+    },
+    {
+      icon: Users,
+      title: tc.why.teamTitle,
+      desc: tc.why.teamDesc,
+    },
+    {
+      icon: Heart,
+      title: tc.why.missionTitle,
+      desc: tc.why.missionDesc,
+    },
+  ]
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -199,7 +205,7 @@ export function CareersWhy() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Mengapa RPI
+              {tc.why.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -207,11 +213,10 @@ export function CareersWhy() {
             id="careers-why-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Empat alasan orang baik tetap di sini
+            {tc.why.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Kami tidak menjual ping-pong table. Yang kami tawarkan: pekerjaan yang
-            berarti, tim yang kuat, dan jalur karier yang nyata.
+            {tc.why.body}
           </p>
         </motion.div>
 
@@ -250,36 +255,39 @@ export function CareersWhy() {
 // Life at RPI — Benefits & Culture
 // ---------------------------------------------------------------------------
 
-const BENEFITS = [
-  { icon: Globe2,        title: 'Remote-friendly',     desc: 'Hybrid di 6 kota atau full-remote untuk peran yang sesuai. Anda yang memilih.' },
-  { icon: HeartHandshake,title: 'Kesehatan menyeluruh', desc: 'Asuransi swasta untuk Anda + keluarga, plus tunjangan kesehatan mental.' },
-  { icon: GraduationCap, title: 'Anggaran belajar',    desc: 'Rp 12 juta/tahun untuk kursus, konferensi, buku — bagaimana Anda mau tumbuh.' },
-  { icon: CalendarCheck, title: 'Cuti yang manusiawi', desc: '20 hari cuti tahunan, cuti ulang tahun, dan kebijakan WFA selama 30 hari/tahun.' },
-  { icon: Award,         title: 'Saham + bonus',       desc: 'Equity untuk semua karyawan tetap dan bonus performa setiap kuartal.' },
-  { icon: Laptop,        title: 'Setup terbaik',       desc: 'MacBook Pro M-series, monitor 4K, plus anggaran ergonomi Rp 5 juta untuk home office.' },
-  { icon: LifeBuoy,      title: 'Parental leave',      desc: '4 bulan cuti melahirkan, 4 minggu untuk pasangan — tanpa kompromi karier.' },
-  { icon: PartyPopper,   title: 'Offsite tahunan',     desc: 'Sekali setahun kami berkumpul di lokasi yang seru — Bali, Yogya, Lombok.' },
-]
-
-const CULTURE = [
-  {
-    icon: Lightbulb,
-    title: 'Tunjukkan, jangan ceritakan',
-    desc: 'Kami mengukur dari hasil, bukan jumlah jam atau slide deck. Ide kecil yang dikirim mengalahkan ide besar yang tertunda.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Diskusi sehat, keputusan tegas',
-    desc: 'Setiap suara didengar — tapi setelah keputusan diambil, kita pergi bersama. Disagree and commit.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Pekerja Indonesia first',
-    desc: 'Setiap rapat kami bertanya: apakah ini benar-benar membantu pencari kerja? Jika tidak, kami batalkan.',
-  },
-]
-
 export function CareersLife() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.careers
+
+  const BENEFITS = [
+    { icon: Globe2,         title: tc.life.benefitRemoteTitle,   desc: tc.life.benefitRemoteDesc },
+    { icon: HeartHandshake, title: tc.life.benefitHealthTitle,   desc: tc.life.benefitHealthDesc },
+    { icon: GraduationCap,  title: tc.life.benefitLearnTitle,    desc: tc.life.benefitLearnDesc },
+    { icon: CalendarCheck,  title: tc.life.benefitLeaveTitle,    desc: tc.life.benefitLeaveDesc },
+    { icon: Award,          title: tc.life.benefitEquityTitle,   desc: tc.life.benefitEquityDesc },
+    { icon: Laptop,         title: tc.life.benefitSetupTitle,    desc: tc.life.benefitSetupDesc },
+    { icon: LifeBuoy,       title: tc.life.benefitParentalTitle, desc: tc.life.benefitParentalDesc },
+    { icon: PartyPopper,    title: tc.life.benefitOffsiteTitle,  desc: tc.life.benefitOffsiteDesc },
+  ]
+
+  const CULTURE = [
+    {
+      icon: Lightbulb,
+      title: tc.life.cultureShowTitle,
+      desc: tc.life.cultureShowDesc,
+    },
+    {
+      icon: ShieldCheck,
+      title: tc.life.cultureDiscussTitle,
+      desc: tc.life.cultureDiscussDesc,
+    },
+    {
+      icon: Sparkles,
+      title: tc.life.cultureFirstTitle,
+      desc: tc.life.cultureFirstDesc,
+    },
+  ]
+
   return (
     <section
       id="life"
@@ -295,7 +303,7 @@ export function CareersLife() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Hidup di RPI
+              {tc.life.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -303,11 +311,10 @@ export function CareersLife() {
             id="careers-life-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Budaya, ritme, dan benefit
+            {tc.life.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Bagaimana rasanya bekerja bersama kami sehari-hari — dan dukungan yang Anda
-            dapatkan untuk melakukan pekerjaan terbaik dalam hidup Anda.
+            {tc.life.body}
           </p>
         </motion.div>
 
@@ -345,7 +352,7 @@ export function CareersLife() {
         {/* Benefits grid */}
         <div className="mt-16">
           <h3 className="font-heading text-foreground mb-6 text-center text-xl font-semibold">
-            Benefit yang Anda dapatkan
+            {tc.life.benefitsHeading}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {BENEFITS.map((b, i) => {
@@ -395,6 +402,9 @@ export type CareersTeamsProps = {
 }
 
 export function CareersTeams({ openings }: CareersTeamsProps) {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.careers
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -409,7 +419,7 @@ export function CareersTeams({ openings }: CareersTeamsProps) {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Tim Kami
+              {tc.teams.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -417,22 +427,21 @@ export function CareersTeams({ openings }: CareersTeamsProps) {
             id="careers-teams-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            8 tim, satu misi
+            {tc.teams.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Setiap tim memiliki ruang lingkup sendiri tetapi bekerja seperti satu
-            organisme. Tidak ada silo — hanya kepemilikan yang jelas.
+            {tc.teams.body}
           </p>
         </motion.div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {TEAMS.map((t, i) => {
-            const Icon = t.icon
-            const teamOpenings = openings[t.name]
+          {TEAMS.map((team, i) => {
+            const Icon = team.icon
+            const teamOpenings = openings[team.name]
             const openCount = teamOpenings?.count ?? 0
             return (
               <motion.div
-                key={t.name}
+                key={team.name}
                 {...fadeUp}
                 transition={{ duration: 0.4, delay: 0.03 * i }}
                 className="border-border bg-card hover:border-[color:var(--ring)] flex items-center gap-4 rounded-xl border p-5 transition"
@@ -441,27 +450,27 @@ export function CareersTeams({ openings }: CareersTeamsProps) {
                   aria-hidden
                   className="grid size-11 place-items-center rounded-lg"
                   style={{
-                    background: `color-mix(in oklab, ${t.color} 12%, transparent)`,
-                    color: t.color,
+                    background: `color-mix(in oklab, ${team.color} 12%, transparent)`,
+                    color: team.color,
                   }}
                 >
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-heading text-foreground text-sm font-semibold">
-                    {t.name}
+                    {team.name}
                   </div>
                   <div className="text-muted-foreground text-xs">
-                    {t.size} orang
+                    {tc.teams.memberCount.replace('{size}', String(team.size))}
                   </div>
                   {openCount > 0 && teamOpenings && (
                     <Link
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       href={teamOpenings.href as any}
                       className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium transition"
-                      style={{ color: t.color }}
+                      style={{ color: team.color }}
                     >
-                      {openCount} posisi terbuka
+                      {tc.teams.openCount.replace('{count}', String(openCount))}
                       <ArrowRight className="h-3 w-3" aria-hidden />
                     </Link>
                   )}
@@ -506,6 +515,9 @@ export type CareersOpeningsProps = {
 }
 
 export function CareersOpenings(props: CareersOpeningsProps) {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.careers
+
   const {
     openings,
     totalCount,
@@ -543,7 +555,7 @@ export function CareersOpenings(props: CareersOpeningsProps) {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Posisi Terbuka
+              {tc.openings.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -552,12 +564,13 @@ export function CareersOpenings(props: CareersOpeningsProps) {
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
             {hasAnyFilter
-              ? `${filteredCount} dari ${totalCount} posisi`
-              : `${totalCount} posisi sedang terbuka`}
+              ? tc.openings.headingFiltered
+                  .replace('{filtered}', String(filteredCount))
+                  .replace('{total}', String(totalCount))
+              : tc.openings.headingAll.replace('{total}', String(totalCount))}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Jika Anda tidak menemukan peran yang cocok, kirimkan profil Anda — kami
-            sering membuka peran baru sebelum diumumkan.
+            {tc.openings.body}
           </p>
         </motion.div>
 
@@ -573,15 +586,15 @@ export function CareersOpenings(props: CareersOpeningsProps) {
               type="search"
               name="q"
               defaultValue={activeQuery ?? ''}
-              placeholder="Cari peran, tim, atau lokasi…"
+              placeholder={tc.openings.searchPlaceholder}
               className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
-              aria-label="Cari posisi"
+              aria-label={tc.openings.searchLabel}
             />
             <button
               type="submit"
               className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
             >
-              Cari
+              {tc.openings.searchBtn}
             </button>
           </div>
           {/* Preserve filters on submit */}
@@ -620,15 +633,15 @@ export function CareersOpenings(props: CareersOpeningsProps) {
             )}
             aria-current={!activeTeam ? 'true' : undefined}
           >
-            Semua
+            {tc.openings.allTeams}
           </Link>
-          {teams.map((t) => {
-            const active = activeTeam === t.name
+          {teams.map((team) => {
+            const active = activeTeam === team.name
             return (
               <Link
-                key={t.name}
+                key={team.name}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                href={t.href as any}
+                href={team.href as any}
                 className={cn(
                   'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
                   active
@@ -637,9 +650,9 @@ export function CareersOpenings(props: CareersOpeningsProps) {
                 )}
                 aria-current={active ? 'true' : undefined}
               >
-                {t.name}
+                {team.name}
                 <span className={active ? 'ml-1.5 opacity-80' : 'ml-1.5 opacity-60'}>
-                  {t.count}
+                  {team.count}
                 </span>
               </Link>
             )
@@ -659,15 +672,15 @@ export function CareersOpenings(props: CareersOpeningsProps) {
             )}
             aria-current={!activeLocation ? 'true' : undefined}
           >
-            Semua Lokasi
+            {tc.openings.allLocations}
           </Link>
-          {locations.map((l) => {
-            const active = activeLocation === l.name
+          {locations.map((loc) => {
+            const active = activeLocation === loc.name
             return (
               <Link
-                key={l.slug}
+                key={loc.slug}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                href={l.href as any}
+                href={loc.href as any}
                 className={cn(
                   'rounded-full border px-3.5 py-1.5 text-xs font-medium transition',
                   active
@@ -677,9 +690,9 @@ export function CareersOpenings(props: CareersOpeningsProps) {
                 aria-current={active ? 'true' : undefined}
               >
                 <MapPin className="mr-1 inline h-3 w-3" aria-hidden />
-                {l.name}
+                {loc.name}
                 <span className={active ? 'ml-1.5 opacity-80' : 'ml-1.5 opacity-60'}>
-                  {l.count}
+                  {loc.count}
                 </span>
               </Link>
             )
@@ -690,15 +703,15 @@ export function CareersOpenings(props: CareersOpeningsProps) {
         <div className="mx-auto mb-6 grid max-w-3xl gap-3 sm:grid-cols-2">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-muted-foreground mr-1 text-[10px] font-medium uppercase tracking-wider">
-              Tipe
+              {tc.openings.typeLabel}
             </span>
-            {types.map((t) => {
-              const active = activeTypes.includes(t.value)
+            {types.map((type) => {
+              const active = activeTypes.includes(type.value)
               return (
                 <Link
-                  key={t.value}
+                  key={type.value}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={t.href as any}
+                  href={type.href as any}
                   className={
                     active
                       ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] rounded-full border px-2.5 py-1 text-[11px] font-medium transition'
@@ -706,23 +719,23 @@ export function CareersOpenings(props: CareersOpeningsProps) {
                   }
                   aria-current={active ? 'true' : undefined}
                 >
-                  {t.value}
-                  <span className="ml-1 opacity-60">{t.count}</span>
+                  {type.value}
+                  <span className="ml-1 opacity-60">{type.count}</span>
                 </Link>
               )
             })}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-muted-foreground mr-1 text-[10px] font-medium uppercase tracking-wider">
-              Level
+              {tc.openings.levelLabel}
             </span>
-            {levels.map((l) => {
-              const active = activeLevels.includes(l.value)
+            {levels.map((level) => {
+              const active = activeLevels.includes(level.value)
               return (
                 <Link
-                  key={l.value}
+                  key={level.value}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={l.href as any}
+                  href={level.href as any}
                   className={
                     active
                       ? 'border-[color:var(--ring)] bg-[color:var(--ring)] text-[color:var(--primary-foreground)] rounded-full border px-2.5 py-1 text-[11px] font-medium transition'
@@ -730,8 +743,8 @@ export function CareersOpenings(props: CareersOpeningsProps) {
                   }
                   aria-current={active ? 'true' : undefined}
                 >
-                  {l.value}
-                  <span className="ml-1 opacity-60">{l.count}</span>
+                  {level.value}
+                  <span className="ml-1 opacity-60">{level.count}</span>
                 </Link>
               )
             })}
@@ -746,17 +759,17 @@ export function CareersOpenings(props: CareersOpeningsProps) {
         {openings.length === 0 ? (
           <div className="border-border bg-card rounded-2xl border p-10 text-center">
             <h3 className="font-heading text-foreground text-base font-semibold">
-              Tidak ada posisi yang cocok
+              {tc.openings.emptyHeading}
             </h3>
             <p className="text-muted-foreground mt-2 text-sm">
-              Coba ubah filter atau bersihkan untuk melihat semua posisi.
+              {tc.openings.emptyBody}
             </p>
             <Link
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               href={clearAllHref as any}
               className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
             >
-              Bersihkan filter
+              {tc.openings.clearFilter}
             </Link>
           </div>
         ) : (
@@ -792,7 +805,7 @@ export function CareersOpenings(props: CareersOpeningsProps) {
                     </div>
                   </div>
                   <span className="text-foreground/80 group-hover:text-[color:var(--ring)] inline-flex shrink-0 items-center gap-1 text-sm font-medium transition">
-                    Lihat detail
+                    {tc.openings.viewDetail}
                     <ArrowRight className="h-4 w-4" aria-hidden />
                   </span>
                 </Link>
@@ -803,11 +816,10 @@ export function CareersOpenings(props: CareersOpeningsProps) {
 
         <div className="border-border bg-muted/20 mt-8 rounded-2xl border p-7 text-center">
           <h3 className="font-heading text-foreground text-lg font-semibold">
-            Tidak menemukan peran yang cocok?
+            {tc.openings.cta.heading}
           </h3>
           <p className="text-muted-foreground mx-auto mt-2 max-w-xl text-sm">
-            Kami selalu tertarik berkenalan dengan orang-orang hebat. Kirim profil
-            dan ceritakan bagaimana Anda ingin berkontribusi.
+            {tc.openings.cta.body}
           </p>
           <Button asChild variant="outline" className="mt-5">
             <a href="mailto:careers@rumahpekerja.id">
@@ -825,40 +837,43 @@ export function CareersOpenings(props: CareersOpeningsProps) {
 // Hiring Process
 // ---------------------------------------------------------------------------
 
-const STEPS = [
-  {
-    icon: ClipboardList,
-    title: 'Aplikasi',
-    duration: '5 menit',
-    desc: 'Kirim CV dan ceritakan kenapa peran ini cocok. Kami balas setiap aplikasi dalam 5 hari kerja.',
-  },
-  {
-    icon: MessageCircle,
-    title: 'Intro Call',
-    duration: '30 menit',
-    desc: 'Obrolan santai dengan recruiter. Kami pelajari Anda; Anda pelajari kami. Tidak ada trick question.',
-  },
-  {
-    icon: Code,
-    title: 'Studi Kasus',
-    duration: '3–5 hari',
-    desc: 'Tugas singkat yang mencerminkan pekerjaan nyata. Anda dibayar Rp 1.5 juta jika lolos ke tahap ini.',
-  },
-  {
-    icon: Users,
-    title: 'Wawancara Tim',
-    duration: '2 jam',
-    desc: 'Bertemu calon rekan tim Anda — diskusi teknis, kolaborasi, dan budaya. Bukan satu arah.',
-  },
-  {
-    icon: HandshakeIcon,
-    title: 'Penawaran',
-    duration: '1 minggu',
-    desc: 'Penawaran terbuka dengan rincian gaji, saham, dan benefit. Kami beri waktu untuk berpikir matang.',
-  },
-]
-
 export function CareersProcess() {
+  const { t } = useI18n()
+  const tc = t.formsPublicSections.careers
+
+  const STEPS = [
+    {
+      icon: ClipboardList,
+      title: tc.process.step1Title,
+      duration: tc.process.step1Duration,
+      desc: tc.process.step1Desc,
+    },
+    {
+      icon: MessageCircle,
+      title: tc.process.step2Title,
+      duration: tc.process.step2Duration,
+      desc: tc.process.step2Desc,
+    },
+    {
+      icon: Code,
+      title: tc.process.step3Title,
+      duration: tc.process.step3Duration,
+      desc: tc.process.step3Desc,
+    },
+    {
+      icon: Users,
+      title: tc.process.step4Title,
+      duration: tc.process.step4Duration,
+      desc: tc.process.step4Desc,
+    },
+    {
+      icon: HandshakeIcon,
+      title: tc.process.step5Title,
+      duration: tc.process.step5Duration,
+      desc: tc.process.step5Desc,
+    },
+  ]
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -873,7 +888,7 @@ export function CareersProcess() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Proses Rekrutmen
+              {tc.process.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -881,11 +896,10 @@ export function CareersProcess() {
             id="careers-process-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Lima langkah, transparan
+            {tc.process.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Total 2–4 minggu sejak aplikasi sampai penawaran. Tidak ada kejutan, tidak
-            ada rangkaian wawancara tanpa akhir.
+            {tc.process.body}
           </p>
         </motion.div>
 

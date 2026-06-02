@@ -7,6 +7,7 @@ import {
   updateApplicationStatus,
 } from '@/lib/tenants/application-actions'
 import { ApplicationStatusNotifyInfo } from './application-status-notify-info'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -14,7 +15,7 @@ const inputClass =
 type Option = { value: string; label: string }
 
 /**
- * Inline status select – fires updateApplicationStatus on change.
+ * Inline status select -- fires updateApplicationStatus on change.
  * Optimistically reflects the new value; reverts on server error.
  */
 export function ApplicationStatusSelect({
@@ -97,6 +98,8 @@ export function ApplicationNoteForm({
   initial: string | null
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsApplications.statusForm
   const [pending, startTransition] = useTransition()
   const [value, setValue] = useState<string>(initial ?? '')
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>(
@@ -139,7 +142,7 @@ export function ApplicationNoteForm({
         htmlFor={`note-${applicationId}`}
         className="text-foreground block text-sm font-medium"
       >
-        Catatan rekruter
+        {tl.noteLabel}
       </label>
       <textarea
         id={`note-${applicationId}`}
@@ -148,7 +151,7 @@ export function ApplicationNoteForm({
         rows={5}
         maxLength={5000}
         disabled={pending}
-        placeholder="Catatan internal mengenai pelamar ini…"
+        placeholder={tl.notePlaceholder}
         className="border-input bg-background text-foreground focus:border-ring focus:ring-ring/30 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
       />
       <div className="flex items-center justify-between text-xs">
@@ -161,11 +164,11 @@ export function ApplicationNoteForm({
         </span>
         <div className="flex items-center gap-2">
           {status === 'saving' && (
-            <span className="text-muted-foreground">Menyimpan…</span>
+            <span className="text-muted-foreground">{tl.noteSaving}</span>
           )}
           {status === 'saved' && (
             <span className="text-success" role="status">
-              Tersimpan
+              {tl.noteSaved}
             </span>
           )}
           {status === 'error' && error && (
@@ -178,7 +181,7 @@ export function ApplicationNoteForm({
             disabled={pending || tooLong}
             className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {pending ? 'Menyimpan…' : 'Simpan catatan'}
+            {pending ? tl.noteSaving : tl.noteSaveBtn}
           </button>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/atoms/button'
 import { LiveJobTicker, type LiveJobTickerEntry } from './live-job-ticker'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface HeroStorySplitProps {
   eyebrow?: string
@@ -21,16 +22,25 @@ export interface HeroStorySplitProps {
 }
 
 export function HeroStorySplit({
-  eyebrow = 'Rumah Pekerja Indonesia',
-  headline = 'Karier impian dimulai dari Rumah Pekerja Indonesia',
-  body = 'Temukan ribuan lowongan terverifikasi, pelatihan bersertifikat, dan komunitas yang mendukung perjalanan profesionalmu — semua di satu rumah.',
+  eyebrow,
+  headline,
+  body,
   jobs,
   primaryHref = '/jobs',
-  primaryLabel = 'Cari Kerja',
+  primaryLabel,
   secondaryHref = '/lms',
-  secondaryLabel = 'Pelatihan',
+  secondaryLabel,
   className,
 }: HeroStorySplitProps) {
+  const { t } = useI18n()
+  const th = t.formsMarketing.heroStorySplit
+
+  const resolvedEyebrow = eyebrow ?? th.eyebrow
+  const resolvedHeadline = headline ?? th.headline
+  const resolvedBody = body ?? th.body
+  const resolvedPrimaryLabel = primaryLabel ?? th.primaryLabel
+  const resolvedSecondaryLabel = secondaryLabel ?? th.secondaryLabel
+
   return (
     <section
       className={cn(
@@ -56,11 +66,11 @@ export function HeroStorySplit({
         >
           <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-secondary/30 bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
             <span className="h-1.5 w-1.5 rounded-full bg-secondary" aria-hidden />
-            {eyebrow}
+            {resolvedEyebrow}
           </span>
 
           <h1 className="font-heading text-4xl leading-tight md:text-5xl lg:text-6xl">
-            {headline.split('Rumah Pekerja Indonesia').map((seg, i, arr) => (
+            {resolvedHeadline.split('Rumah Pekerja Indonesia').map((seg, i, arr) => (
               <React.Fragment key={i}>
                 {seg}
                 {i < arr.length - 1 ? (
@@ -70,13 +80,13 @@ export function HeroStorySplit({
             ))}
           </h1>
 
-          <p className="mt-5 max-w-xl text-base text-primary-foreground/80 md:text-lg">{body}</p>
+          <p className="mt-5 max-w-xl text-base text-primary-foreground/80 md:text-lg">{resolvedBody}</p>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg" variant="secondary">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               <Link href={primaryHref as any}>
-                {primaryLabel}
+                {resolvedPrimaryLabel}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -84,22 +94,22 @@ export function HeroStorySplit({
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               <Link href={secondaryHref as any}>
                 <GraduationCap className="h-4 w-4" />
-                {secondaryLabel}
+                {resolvedSecondaryLabel}
               </Link>
             </Button>
           </div>
 
           <dl className="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-primary-foreground/10 pt-6">
             <div>
-              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">Lowongan</dt>
+              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">{th.statJobsLabel}</dt>
               <dd className="font-heading text-2xl text-secondary">12K+</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">Mitra</dt>
+              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">{th.statPartnersLabel}</dt>
               <dd className="font-heading text-2xl text-secondary">850+</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">Talenta</dt>
+              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">{th.statTalentLabel}</dt>
               <dd className="font-heading text-2xl text-secondary">240K</dd>
             </div>
           </dl>

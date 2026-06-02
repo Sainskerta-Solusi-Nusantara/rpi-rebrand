@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { XCircle } from 'lucide-react'
 import { withdrawApplication } from '@/lib/applications/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export function WithdrawApplicationButton({
   applicationId,
@@ -11,6 +12,9 @@ export function WithdrawApplicationButton({
   applicationId: string
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsMisc1.withdrawButton
+
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
@@ -31,14 +35,14 @@ export function WithdrawApplicationButton({
   if (confirming) {
     return (
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <span className="text-muted-foreground text-xs">Yakin tarik?</span>
+        <span className="text-muted-foreground text-xs">{tl.confirmPrompt}</span>
         <button
           type="button"
           onClick={doWithdraw}
           disabled={pending}
           className="border-destructive/40 text-destructive hover:bg-destructive/5 inline-flex items-center gap-1 rounded-md border bg-background px-2.5 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? 'Menarik…' : 'Ya, tarik'}
+          {pending ? tl.confirmPending : tl.confirmBtn}
         </button>
         <button
           type="button"
@@ -46,7 +50,7 @@ export function WithdrawApplicationButton({
           disabled={pending}
           className="text-muted-foreground hover:text-foreground text-xs font-medium disabled:opacity-60"
         >
-          Batal
+          {tl.cancelBtn}
         </button>
       </div>
     )
@@ -63,7 +67,7 @@ export function WithdrawApplicationButton({
         className="border-border text-foreground/80 hover:border-destructive/40 hover:text-destructive inline-flex items-center gap-1 rounded-md border bg-background px-2.5 py-1.5 text-xs font-medium transition"
       >
         <XCircle className="h-3.5 w-3.5" aria-hidden />
-        Tarik lamaran
+        {tl.triggerLabel}
       </button>
       {error && (
         <span role="alert" className="text-destructive text-[10px]">

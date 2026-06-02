@@ -13,6 +13,7 @@ import {
   type BulkEmailSummary,
 } from '@/lib/applications/bulk-actions'
 import { BulkEmailCustomModal } from './bulk-email-custom-modal'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type BulkTemplateOption = {
   id: string
@@ -26,11 +27,20 @@ export type BulkMemberOption = {
 
 const CUSTOM_TEMPLATE_VALUE = '__custom__'
 
-function summarize(summary: BulkSummary | BulkEmailSummary): string {
+function summarize(
+  tl: {
+    summaryBase: string
+    summarySkipped: string
+  },
+  summary: BulkSummary | BulkEmailSummary,
+): string {
   const updated = summary.updated.length
   const skipped = summary.skipped.length
-  const base = `${updated} berhasil`
-  if (skipped > 0) return `${base}, ${skipped} dilewati`
+  const base = tl.summaryBase.replace('{updated}', String(updated))
+  if (skipped > 0)
+    return tl.summarySkipped
+      .replace('{updated}', String(updated))
+      .replace('{skipped}', String(skipped))
   return base
 }
 
@@ -56,6 +66,8 @@ export function ApplicationsBulkToolbar({
   availableReviewers: BulkMemberOption[]
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsBulk.bulkToolbar
   const [pending, startTransition] = useTransition()
   const [feedback, setFeedback] = useState<string | null>(null)
   const [feedbackTone, setFeedbackTone] = useState<'ok' | 'error'>('ok')
@@ -82,7 +94,10 @@ export function ApplicationsBulkToolbar({
         showFeedback(r.error, 'error')
         return
       }
-      showFeedback(`Status: ${summarize(r.data)}`, 'ok')
+      showFeedback(
+        tl.feedbackStatus.replace('{summary}', summarize(tl, r.data)),
+        'ok',
+      )
       router.refresh()
     })
   }
@@ -103,7 +118,9 @@ export function ApplicationsBulkToolbar({
         return
       }
       showFeedback(
-        `Email: ${r.data.sent} terkirim · ${r.data.failed} gagal`,
+        tl.feedbackEmail
+          .replace('{sent}', String(r.data.sent))
+          .replace('{failed}', String(r.data.failed)),
         r.data.failed > 0 ? 'error' : 'ok',
       )
       router.refresh()
@@ -121,7 +138,10 @@ export function ApplicationsBulkToolbar({
         showFeedback(r.error, 'error')
         return
       }
-      showFeedback(`Tag: ${summarize(r.data)}`, 'ok')
+      showFeedback(
+        tl.feedbackTag.replace('{summary}', summarize(tl, r.data)),
+        'ok',
+      )
       setTag('')
       router.refresh()
     })
@@ -138,7 +158,10 @@ export function ApplicationsBulkToolbar({
         showFeedback(r.error, 'error')
         return
       }
-      showFeedback(`Tugaskan: ${summarize(r.data)}`, 'ok')
+      showFeedback(
+        tl.feedbackAssign.replace('{summary}', summarize(tl, r.data)),
+        'ok',
+      )
       router.refresh()
     })
   }
@@ -147,12 +170,12 @@ export function ApplicationsBulkToolbar({
     <>
       <div
         role="region"
-        aria-label="Aksi massal lamaran"
+        aria-label={tl.ariaRegion}
         className="border-primary/30 bg-primary/5 sticky top-0 z-30 flex flex-wrap items-center gap-3 rounded-2xl border p-3 backdrop-blur"
       >
         <div className="flex items-center gap-2">
           <span className="text-foreground text-sm font-medium">
-            {selectedIds.length.toLocaleString('id-ID')} dipilih
+            {tl.selectedCount.replace('{count}', selectedIds.length.toLocaleString('id-ID'))}
           </span>
           <button
             type="button"
@@ -160,13 +183,13 @@ export function ApplicationsBulkToolbar({
             disabled={pending}
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium disabled:opacity-60"
           >
-            <X className="h-3.5 w-3.5" aria-hidden="true" /> Batal
+            <X className="h-3.5 w-3.5" aria-hidden="true" /> {tl.cancel}
           </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <select
-            aria-label="Ubah status"
+            aria-label={tl.changeStatus}
             disabled={pending}
             defaultValue=""
             onChange={(e) => {
@@ -176,7 +199,7 @@ export function ApplicationsBulkToolbar({
             }}
             className="border-input bg-background rounded-md border px-3 py-1.5 text-sm disabled:opacity-60"
           >
-            <option value="">Ubah status…</option>
+            <option value="">{tl.changeStatus}</option>
             {availableStatuses.map((s) => (
               <option key={s.value} value={s.value}>
                 {s.label}
@@ -185,7 +208,7 @@ export function ApplicationsBulkToolbar({
           </select>
 
           <select
-            aria-label="Kirim email"
+            aria-label={tl.sendEmail}
             disabled={pending}
             defaultValue=""
             onChange={(e) => {
@@ -195,27 +218,27 @@ export function ApplicationsBulkToolbar({
             }}
             className="border-input bg-background rounded-md border px-3 py-1.5 text-sm disabled:opacity-60"
           >
-            <option value="">Kirim email…</option>
-            {availableTemplates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
+            <option value="">{tl.sendEmail}</option>
+            {availableTemplates.map((tmpl) => (
+              <option key={tmpl.id} value={tmpl.id}>
+                {tmpl.label}
               </option>
             ))}
             {/* Custom email is always available — when tenant has 0 templates
                 this is the only emit path. */}
             {!hasTemplates && (
               <option value="" disabled>
-                (tidak ada template)
+                {tl.noTemplate}
               </option>
             )}
-            <option value={CUSTOM_TEMPLATE_VALUE}>Email kustom…</option>
+            <option value={CUSTOM_TEMPLATE_VALUE}>{tl.customEmail}</option>
           </select>
 
           <div className="flex items-center gap-1">
             <input
               type="text"
-              aria-label="Tambah tag"
-              placeholder="Tambah tag"
+              aria-label={tl.addTagPlaceholder}
+              placeholder={tl.addTagPlaceholder}
               value={tag}
               onChange={(e) => setTag(e.target.value)}
               disabled={pending}
@@ -228,12 +251,12 @@ export function ApplicationsBulkToolbar({
               disabled={pending || !tag.trim()}
               className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Tambah
+              {tl.addTagButton}
             </button>
           </div>
 
           <select
-            aria-label="Tugaskan ke"
+            aria-label={tl.assignTo}
             disabled={pending}
             defaultValue=""
             onChange={(e) => {
@@ -243,7 +266,7 @@ export function ApplicationsBulkToolbar({
             }}
             className="border-input bg-background rounded-md border px-3 py-1.5 text-sm disabled:opacity-60"
           >
-            <option value="">Tugaskan ke…</option>
+            <option value="">{tl.assignTo}</option>
             {availableReviewers.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.label}
@@ -270,7 +293,7 @@ export function ApplicationsBulkToolbar({
         open={customOpen}
         onClose={() => setCustomOpen(false)}
         selectedIds={selectedIds}
-        onSent={() => showFeedback('Email kustom dikirim.', 'ok')}
+        onSent={() => showFeedback(tl.feedbackCustomEmailSent, 'ok')}
       />
     </>
   )

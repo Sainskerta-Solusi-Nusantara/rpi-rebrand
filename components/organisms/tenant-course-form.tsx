@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { CourseLevel, CourseStatus } from '@prisma/client'
 import { createCourse, updateCourse } from '@/lib/tenants/course-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -17,18 +18,6 @@ const btnPrimary =
 
 const btnSecondary =
   'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
-
-const LEVEL_LABELS: Record<CourseLevel, string> = {
-  BEGINNER: 'Pemula',
-  INTERMEDIATE: 'Menengah',
-  ADVANCED: 'Lanjutan',
-}
-
-const STATUS_LABELS: Record<CourseStatus, string> = {
-  DRAFT: 'Draft',
-  PUBLISHED: 'Dipublikasikan',
-  ARCHIVED: 'Diarsipkan',
-}
 
 export type CourseFormInitial = {
   title: string
@@ -64,8 +53,23 @@ export function CourseForm({
   instructors: { id: string; name: string; email: string }[]
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tc = t.formsTenantCourse.courseForm
+
   const seed: CourseFormInitial = initial ?? EMPTY_INITIAL
   const isEdit = Boolean(courseId)
+
+  const LEVEL_LABELS: Record<CourseLevel, string> = {
+    BEGINNER: tc.levelBeginner,
+    INTERMEDIATE: tc.levelIntermediate,
+    ADVANCED: tc.levelAdvanced,
+  }
+
+  const STATUS_LABELS: Record<CourseStatus, string> = {
+    DRAFT: tc.statusDraft,
+    PUBLISHED: tc.statusPublished,
+    ARCHIVED: tc.statusArchived,
+  }
 
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<Banner>({ kind: 'idle' })
@@ -107,11 +111,11 @@ export function CourseForm({
     <form onSubmit={onSubmit} className="space-y-8">
       <fieldset className="space-y-4">
         <legend className="text-sm font-medium text-foreground">
-          Identitas kursus
+          {tc.legendIdentity}
         </legend>
         <div className="space-y-1">
           <label htmlFor="f-title" className={labelClass}>
-            Judul
+            {tc.titleLabel}
           </label>
           <input
             id="f-title"
@@ -123,13 +127,13 @@ export function CourseForm({
             required
             minLength={5}
             maxLength={200}
-            placeholder="Membangun Aplikasi Next.js untuk Pemula"
+            placeholder={tc.titlePlaceholder}
             className={inputClass}
           />
         </div>
 
         <div className="space-y-2">
-          <span className={labelClass}>Level</span>
+          <span className={labelClass}>{tc.levelLabel}</span>
           <div className="flex flex-wrap gap-3">
             {(Object.keys(LEVEL_LABELS) as CourseLevel[]).map((lv) => (
               <label
@@ -153,7 +157,7 @@ export function CourseForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label htmlFor="f-durationHours" className={labelClass}>
-              Durasi (jam)
+              {tc.durationLabel}
             </label>
             <input
               id="f-durationHours"
@@ -172,7 +176,7 @@ export function CourseForm({
           </div>
           <div className="space-y-1">
             <label htmlFor="f-instructorId" className={labelClass}>
-              Instruktur
+              {tc.instructorLabel}
             </label>
             <select
               id="f-instructorId"
@@ -182,7 +186,7 @@ export function CourseForm({
               disabled={pending}
               className={inputClass}
             >
-              <option value="">— Belum ditentukan —</option>
+              <option value="">{tc.instructorUnassigned}</option>
               {instructors.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.name || u.email}
@@ -194,7 +198,7 @@ export function CourseForm({
 
         <div className="space-y-1">
           <label htmlFor="f-thumbnail" className={labelClass}>
-            URL thumbnail (opsional)
+            {tc.thumbnailLabel}
           </label>
           <input
             id="f-thumbnail"
@@ -211,12 +215,12 @@ export function CourseForm({
 
       <fieldset className="space-y-4">
         <legend className="text-sm font-medium text-foreground">
-          Deskripsi
+          {tc.legendDescription}
         </legend>
         <div className="space-y-1">
           <label htmlFor="f-description" className={labelClass}>
-            Deskripsi{' '}
-            <span className="text-muted-foreground">(min 50 karakter)</span>
+            {tc.descriptionLabel}{' '}
+            <span className="text-muted-foreground">{tc.descriptionHint}</span>
           </label>
           <textarea
             id="f-description"
@@ -226,7 +230,7 @@ export function CourseForm({
             disabled={pending}
             required
             minLength={50}
-            placeholder="Apa yang akan dipelajari peserta dalam kursus ini…"
+            placeholder={tc.descriptionPlaceholder}
             className={textareaClass}
           />
         </div>
@@ -234,11 +238,11 @@ export function CourseForm({
 
       <fieldset className="space-y-4">
         <legend className="text-sm font-medium text-foreground">
-          Status publikasi
+          {tc.legendPublication}
         </legend>
         <div className="space-y-1 sm:max-w-xs">
           <label htmlFor="f-status" className={labelClass}>
-            Status
+            {tc.statusLabel}
           </label>
           <select
             id="f-status"
@@ -255,8 +259,7 @@ export function CourseForm({
             ))}
           </select>
           <p className="text-muted-foreground text-xs">
-            Mengubah status menjadi “Dipublikasikan” akan mengisi tanggal
-            publikasi otomatis.
+            {tc.statusHelperText}
           </p>
         </div>
       </fieldset>
@@ -266,7 +269,7 @@ export function CourseForm({
           role="status"
           className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
         >
-          {isEdit ? 'Perubahan berhasil disimpan.' : 'Kursus berhasil dibuat.'}
+          {isEdit ? tc.bannerUpdated : tc.bannerCreated}
         </p>
       )}
       {banner.kind === 'error' && (
@@ -281,10 +284,10 @@ export function CourseForm({
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className={btnPrimary}>
           {pending
-            ? 'Menyimpan…'
+            ? tc.btnSaving
             : isEdit
-              ? 'Simpan perubahan'
-              : 'Buat kursus'}
+              ? tc.btnSaveChanges
+              : tc.btnCreate}
         </button>
         <button
           type="button"
@@ -295,7 +298,7 @@ export function CourseForm({
           disabled={pending}
           className={btnSecondary}
         >
-          Batal
+          {tc.btnCancel}
         </button>
       </div>
     </form>

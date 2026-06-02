@@ -31,6 +31,7 @@ import { Button } from '@/components/atoms/button'
 import { Input } from '@/components/atoms/input'
 import { Textarea } from '@/components/atoms/textarea'
 import { Label } from '@/components/atoms/label'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -43,6 +44,9 @@ const fadeUp = {
 // ---------------------------------------------------------------------------
 
 export function EnterpriseHero() {
+  const { t } = useI18n()
+  const tl = t.formsEnterprise.hero
+
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -74,7 +78,7 @@ export function EnterpriseHero() {
         >
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Solusi Enterprise
+            {tl.eyebrow}
           </span>
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
         </motion.div>
@@ -85,9 +89,9 @@ export function EnterpriseHero() {
           transition={{ duration: 0.55, delay: 0.1 }}
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
-          Perekrutan{' '}
-          <span className="text-[color:var(--ring)]">berskala enterprise</span>
-          {' '}untuk Indonesia.
+          {tl.headlinePart1}{' '}
+          <span className="text-[color:var(--ring)]">{tl.headlineHighlight}</span>
+          {' '}{tl.headlinePart2}
         </motion.h1>
 
         <motion.p
@@ -95,9 +99,7 @@ export function EnterpriseHero() {
           transition={{ duration: 0.55, delay: 0.15 }}
           className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg md:text-xl"
         >
-          Platform multi-tenant yang menyatukan grup usaha, BUMN, dan perusahaan
-          terregulasi — dengan SSO, SLA 99.9%, residensi data lokal, dan tim
-          sukses yang khusus untuk Anda.
+          {tl.body}
         </motion.p>
 
         <motion.div
@@ -107,13 +109,13 @@ export function EnterpriseHero() {
         >
           <Button asChild size="lg">
             <Link href="#enterprise-contact">
-              Bicara dengan Tim Sales
+              {tl.ctaPrimary}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <a href="/RPI-Enterprise-Brochure.pdf" target="_blank" rel="noopener noreferrer">
-              Unduh Brosur (PDF)
+              {tl.ctaSecondary}
             </a>
           </Button>
         </motion.div>
@@ -123,12 +125,7 @@ export function EnterpriseHero() {
           transition={{ duration: 0.55, delay: 0.25 }}
           className="mx-auto mt-16 grid max-w-4xl grid-cols-2 gap-8 md:grid-cols-4"
         >
-          {[
-            { v: '99.9%', l: 'SLA uptime' },
-            { v: '500K+', l: 'Pelamar/bulan' },
-            { v: '< 4 jam', l: 'Respons dukungan' },
-            { v: 'ISO 27001', l: 'Tersertifikasi' },
-          ].map((s) => (
+          {tl.stats.map((s) => (
             <div key={s.l} className="text-center">
               <dt className="font-heading text-foreground text-3xl font-semibold tracking-tight md:text-4xl">
                 {s.v}
@@ -160,6 +157,9 @@ const TRUST = [
 ]
 
 export function EnterpriseTrust() {
+  const { t } = useI18n()
+  const tl = t.formsEnterprise.trust
+
   return (
     <section
       className="bg-muted/30 py-14 md:py-16"
@@ -172,7 +172,7 @@ export function EnterpriseTrust() {
           id="enterprise-trust-heading"
           className="text-muted-foreground text-center text-xs font-medium uppercase tracking-[0.2em]"
         >
-          Dipercaya oleh perusahaan terdepan Indonesia
+          {tl.heading}
         </motion.h2>
 
         <motion.ul
@@ -180,21 +180,21 @@ export function EnterpriseTrust() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8"
         >
-          {TRUST.map((t) => (
+          {TRUST.map((item) => (
             <li
-              key={t.name}
+              key={item.name}
               className="border-border bg-card flex items-center gap-2.5 rounded-xl border p-3"
-              title={t.name}
+              title={item.name}
             >
               <span
                 aria-hidden
                 className="grid size-8 shrink-0 place-items-center rounded-md text-sm font-semibold text-white"
-                style={{ background: t.color }}
+                style={{ background: item.color }}
               >
-                {t.initial}
+                {item.initial}
               </span>
               <span className="text-foreground/85 truncate text-xs font-medium">
-                {t.name}
+                {item.name}
               </span>
             </li>
           ))}
@@ -208,54 +208,12 @@ export function EnterpriseTrust() {
 // Capabilities (4 pillars + detail)
 // ---------------------------------------------------------------------------
 
-const PILLARS = [
-  {
-    icon: ShieldCheck,
-    title: 'Keamanan tingkat bank',
-    desc: 'Enkripsi end-to-end, kontrol akses berlapis, audit log lengkap, dan kepatuhan terhadap UU PDP serta standar internasional.',
-    points: [
-      'SSO via SAML 2.0 / OIDC',
-      'SCIM auto-provisioning',
-      'IP allow-list & device trust',
-      'Audit log immutable 7 tahun',
-    ],
-  },
-  {
-    icon: Layers,
-    title: 'Multi-tenant untuk grup usaha',
-    desc: 'Satu kontrak induk, banyak anak perusahaan. Setiap entitas punya branding, kebijakan, dan tim sendiri — tetap dalam satu dashboard induk.',
-    points: [
-      'Hierarki tenant tak terbatas',
-      'Branding per anak usaha',
-      'Konsolidasi laporan grup',
-      'Pemisahan data tegas (RLS)',
-    ],
-  },
-  {
-    icon: Gauge,
-    title: 'Skala & performa',
-    desc: 'Diuji untuk 500.000+ pelamar/bulan dan ribuan rekruter aktif. Auto-scaling, CDN regional Indonesia, dan replikasi lintas zona.',
-    points: [
-      'P95 latency < 200ms nasional',
-      'Auto-scale tanpa intervensi',
-      'CDN Jakarta + Singapura',
-      'Disaster recovery RPO < 5 menit',
-    ],
-  },
-  {
-    icon: Award,
-    title: 'Dedicated partnership',
-    desc: 'Tim sukses yang khusus untuk Anda — Customer Success Manager, Solutions Engineer, dan jalur eskalasi langsung ke engineering.',
-    points: [
-      'Dedicated CSM bernama',
-      'Solutions Engineer on-call',
-      'Kuartalan Business Review',
-      'Direct line ke VP Engineering',
-    ],
-  },
-]
+const PILLAR_ICONS = [ShieldCheck, Layers, Gauge, Award]
 
 export function EnterpriseCapabilities() {
+  const { t } = useI18n()
+  const tl = t.formsEnterprise.capabilities
+
   return (
     <section
       className="bg-background py-20 md:py-24"
@@ -270,7 +228,7 @@ export function EnterpriseCapabilities() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Empat Pilar
+              {tl.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -278,17 +236,16 @@ export function EnterpriseCapabilities() {
             id="enterprise-capabilities-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Dibangun untuk skala enterprise
+            {tl.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Bukan paket &ldquo;Pro plus&rdquo; — arsitektur, kontrak, dan tim yang
-            berbeda dari produk SaaS biasa.
+            {tl.body}
           </p>
         </motion.div>
 
         <div className="grid gap-5 lg:grid-cols-2">
-          {PILLARS.map((p, i) => {
-            const Icon = p.icon
+          {tl.pillars.map((p, i) => {
+            const Icon = PILLAR_ICONS[i]!
             return (
               <motion.div
                 key={p.title}
@@ -343,49 +300,12 @@ export function EnterpriseCapabilities() {
 // Security & Compliance
 // ---------------------------------------------------------------------------
 
-const COMPLIANCE = [
-  { label: 'ISO 27001:2022', sub: 'Information Security' },
-  { label: 'SOC 2 Type II',   sub: 'Annual audit' },
-  { label: 'UU PDP',          sub: 'Pelindungan Data Pribadi' },
-  { label: 'PCI DSS L1',      sub: 'Payment-grade security' },
-  { label: 'OWASP ASVS L3',   sub: 'App security verified' },
-  { label: 'BSSN-ready',      sub: 'Lokalisasi data' },
-]
-
-const SECURITY_FEATURES = [
-  {
-    icon: Lock,
-    title: 'Enkripsi menyeluruh',
-    desc: 'AES-256 saat data diam, TLS 1.3 saat transit, dan envelope encryption untuk PII sensitif.',
-  },
-  {
-    icon: KeyRound,
-    title: 'Manajemen identitas',
-    desc: 'SSO SAML/OIDC, SCIM, MFA wajib, session management, dan device trust.',
-  },
-  {
-    icon: Database,
-    title: 'Residensi data Indonesia',
-    desc: 'Seluruh data tersimpan di data center berlokasi di Indonesia dengan replikasi cross-zone.',
-  },
-  {
-    icon: FileCheck,
-    title: 'Audit log lengkap',
-    desc: 'Setiap aksi tercatat dengan timestamp, IP, user, dan diff — diretensi 7 tahun tanpa modifikasi.',
-  },
-  {
-    icon: Cloud,
-    title: 'Opsi deployment',
-    desc: 'Public cloud (default), single-tenant VPC, atau on-premise untuk industri terregulasi.',
-  },
-  {
-    icon: Workflow,
-    title: 'Incident response',
-    desc: 'SLA notifikasi insiden 1 jam, post-mortem publik, dan kompensasi otomatis bila SLA terlewat.',
-  },
-]
+const SECURITY_ICONS = [Lock, KeyRound, Database, FileCheck, Cloud, Workflow]
 
 export function EnterpriseSecurity() {
+  const { t } = useI18n()
+  const tl = t.formsEnterprise.security
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -400,7 +320,7 @@ export function EnterpriseSecurity() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Keamanan & Kepatuhan
+              {tl.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -408,17 +328,16 @@ export function EnterpriseSecurity() {
             id="enterprise-security-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Sertifikasi yang Anda butuhkan
+            {tl.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Diperiksa oleh auditor independen setiap tahun. Dokumen tersedia
-            untuk tim compliance Anda di bawah NDA.
+            {tl.body}
           </p>
         </motion.div>
 
         {/* Compliance badges */}
         <ul className="mb-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {COMPLIANCE.map((c, i) => (
+          {tl.compliance.map((c, i) => (
             <motion.li
               key={c.label}
               {...fadeUp}
@@ -438,8 +357,8 @@ export function EnterpriseSecurity() {
 
         {/* Security feature grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SECURITY_FEATURES.map((f, i) => {
-            const Icon = f.icon
+          {tl.features.map((f, i) => {
+            const Icon = SECURITY_ICONS[i]!
             return (
               <motion.div
                 key={f.title}
@@ -467,61 +386,12 @@ export function EnterpriseSecurity() {
 // Implementation Roadmap
 // ---------------------------------------------------------------------------
 
-type Phase = {
-  range: string
-  title: string
-  bullets: string[]
-  icon: React.ComponentType<{ className?: string }>
-}
-
-const PHASES: Phase[] = [
-  {
-    range: 'Minggu 1–2',
-    title: 'Discovery & Architecture',
-    icon: Network,
-    bullets: [
-      'Workshop dengan tim HR, IT, dan compliance Anda',
-      'Pemetaan proses rekrutmen saat ini',
-      'Desain arsitektur tenant & integrasi',
-      'Penyusunan rencana migrasi data',
-    ],
-  },
-  {
-    range: 'Minggu 3–6',
-    title: 'Konfigurasi & Integrasi',
-    icon: ServerCog,
-    bullets: [
-      'Setup tenant induk + anak perusahaan',
-      'Konfigurasi SSO, SCIM, dan policy keamanan',
-      'Integrasi HRIS, payroll, ATS lama',
-      'Branding & custom domain per entitas',
-    ],
-  },
-  {
-    range: 'Minggu 7–10',
-    title: 'Migrasi & Pelatihan',
-    icon: Users,
-    bullets: [
-      'Migrasi data historis (kandidat, lowongan, arsip)',
-      'Pelatihan onsite untuk recruiter & admin',
-      'UAT bersama tim Anda + sign-off',
-      'Pelatihan train-the-trainer untuk skala internal',
-    ],
-  },
-  {
-    range: 'Minggu 11–12',
-    title: 'Go-Live & Hypercare',
-    icon: Sparkles,
-    bullets: [
-      'Soft launch dengan tim pilot',
-      'Hypercare 30 hari — engineer on standby',
-      'Review KPI minggu ke-2 dan ke-4',
-      'Transisi ke dukungan reguler',
-    ],
-  },
-]
+const PHASE_ICONS = [Network, ServerCog, Users, Sparkles]
 
 export function EnterpriseImplementation() {
+  const { t } = useI18n()
+  const tl = t.formsEnterprise.implementation
+
   return (
     <section
       className="bg-background py-20 md:py-24"
@@ -536,7 +406,7 @@ export function EnterpriseImplementation() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Implementasi
+              {tl.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -544,11 +414,10 @@ export function EnterpriseImplementation() {
             id="enterprise-impl-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Dari kickoff sampai go-live dalam 90 hari
+            {tl.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Metodologi yang sudah teruji di belasan grup usaha. Anda tahu apa
-            yang terjadi tiap minggu — tanpa kejutan, tanpa scope creep.
+            {tl.body}
           </p>
         </motion.div>
 
@@ -557,8 +426,8 @@ export function EnterpriseImplementation() {
             aria-hidden
             className="bg-border absolute left-[22px] top-2 bottom-2 w-px"
           />
-          {PHASES.map((p, i) => {
-            const Icon = p.icon
+          {tl.phases.map((p, i) => {
+            const Icon = PHASE_ICONS[i]!
             return (
               <motion.li
                 key={p.title}
@@ -607,6 +476,9 @@ export function EnterpriseImplementation() {
 // ---------------------------------------------------------------------------
 
 export function EnterpriseCaseStudy() {
+  const { t } = useI18n()
+  const tl = t.formsEnterprise.caseStudy
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -623,40 +495,33 @@ export function EnterpriseCaseStudy() {
             <div className="mb-4 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Studi Kasus
+                {tl.eyebrow}
               </span>
             </div>
             <h2
               id="enterprise-case-heading"
               className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
             >
-              Bagaimana grup usaha multi-industri
-              <br />
-              menyatukan 12 anak perusahaan
+              {tl.heading.replace('{count}', '12')}
             </h2>
             <p className="text-muted-foreground mt-4">
-              Sebuah konglomerat dengan 12 entitas — dari perbankan, telekomunikasi,
-              hingga otomotif — sebelumnya menggunakan 6 sistem ATS berbeda. Dalam
-              90 hari, mereka berpindah ke satu platform RPI dengan tenant terpisah
-              per entitas, tetap mempertahankan branding dan kebijakan masing-masing.
+              {tl.body.replace('{count}', '12').replace('{atsSystems}', '6')}
             </p>
 
             <blockquote className="border-l-[color:var(--ring)] my-6 border-l-2 pl-5">
               <Quote className="text-[color:var(--ring)]/30 -ml-1 h-7 w-7" aria-hidden />
               <p className="text-foreground/90 font-heading mt-2 text-base italic md:text-lg">
-                &ldquo;Yang membuat RPI berbeda bukan fitur — semua vendor punya
-                fitur. Yang berbeda adalah cara mereka memahami kompleksitas
-                grup kami dan tetap merilis dengan kualitas mingguan.&rdquo;
+                &ldquo;{tl.quote}&rdquo;
               </p>
               <footer className="text-muted-foreground mt-4 text-xs">
-                <strong className="text-foreground font-medium">Rina Adriani</strong>{' '}
-                — Group Head of Talent Acquisition, salah satu konglomerat top-10 Indonesia
+                <strong className="text-foreground font-medium">{tl.quoteAttribution}</strong>{' '}
+                &mdash; {tl.quoteRole}
               </footer>
             </blockquote>
 
             <Button asChild variant="outline">
               <a href="/case-studies/group-conglomerate">
-                Baca studi kasus lengkap
+                {tl.ctaReadMore}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
               </a>
             </Button>
@@ -664,12 +529,7 @@ export function EnterpriseCaseStudy() {
 
           {/* Right: metric cards */}
           <div className="grid grid-cols-2 gap-4">
-            {[
-              { v: '6 → 1',   l: 'Sistem ATS', sub: 'Konsolidasi penuh' },
-              { v: '83%',     l: 'Hemat biaya lisensi', sub: 'Tahun pertama' },
-              { v: '12 hari', l: 'Waktu hire rata-rata', sub: 'Dari 31 hari' },
-              { v: '4.7/5',   l: 'NPS recruiter', sub: 'Survei internal' },
-            ].map((m, i) => (
+            {tl.metrics.map((m, i) => (
               <motion.div
                 key={m.l}
                 {...fadeUp}
@@ -698,25 +558,10 @@ export function EnterpriseCaseStudy() {
 // Contact (Enterprise Sales)
 // ---------------------------------------------------------------------------
 
-const COMPANY_SIZES = [
-  '500 – 2.000 karyawan',
-  '2.000 – 10.000 karyawan',
-  '10.000 – 50.000 karyawan',
-  '50.000+ karyawan',
-]
-
-const INDUSTRIES = [
-  'Perbankan & Keuangan',
-  'Telekomunikasi',
-  'Energi & Sumber Daya',
-  'Otomotif & Manufaktur',
-  'Consumer Goods',
-  'Pemerintah / BUMN',
-  'Konglomerat',
-  'Lainnya',
-]
-
 export function EnterpriseContact() {
+  const { t } = useI18n()
+  const tl = t.formsEnterprise.contact
+
   return (
     <section
       id="enterprise-contact"
@@ -730,38 +575,29 @@ export function EnterpriseContact() {
             <div className="mb-4 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Bicara dengan Sales
+                {tl.eyebrow}
               </span>
             </div>
             <h2
               id="enterprise-contact-heading"
               className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
             >
-              Mari bicara tentang skala Anda
+              {tl.heading}
             </h2>
             <p className="text-muted-foreground mt-3 text-base">
-              Tim Enterprise Sales kami akan menghubungi Anda dalam 1 hari kerja
-              untuk demo terstruktur dan diskusi arsitektur — tanpa komitmen.
+              {tl.body}
             </p>
 
             <ul className="border-border mt-8 space-y-4 border-t pt-8">
-              {[
-                { icon: BadgeCheck, t: 'Demo terstruktur sesuai industri Anda' },
-                { icon: BadgeCheck, t: 'Akses dokumen keamanan & arsitektur' },
-                { icon: BadgeCheck, t: 'Estimasi biaya & ROI yang jujur' },
-                { icon: BadgeCheck, t: 'Tanpa komitmen, tanpa hard sell' },
-              ].map((b) => {
-                const Icon = b.icon
-                return (
-                  <li key={b.t} className="flex items-start gap-3">
-                    <Icon
-                      className="text-[color:var(--ring)] mt-0.5 h-5 w-5 shrink-0"
-                      aria-hidden
-                    />
-                    <span className="text-foreground/85 text-sm">{b.t}</span>
-                  </li>
-                )
-              })}
+              {tl.benefits.map((b) => (
+                <li key={b} className="flex items-start gap-3">
+                  <BadgeCheck
+                    className="text-[color:var(--ring)] mt-0.5 h-5 w-5 shrink-0"
+                    aria-hidden
+                  />
+                  <span className="text-foreground/85 text-sm">{b}</span>
+                </li>
+              ))}
             </ul>
 
             <div className="border-border bg-card mt-10 rounded-2xl border p-6">
@@ -774,25 +610,25 @@ export function EnterpriseContact() {
                 </span>
                 <div>
                   <div className="font-heading text-foreground text-sm font-semibold">
-                    Kantor Enterprise Sales
+                    {tl.officeLabel}
                   </div>
                   <div className="text-muted-foreground text-xs">
-                    Jakarta Selatan, Indonesia
+                    {tl.officeCity}
                   </div>
                 </div>
               </div>
               <div className="text-muted-foreground mt-4 grid grid-cols-1 gap-2 text-sm">
                 <span className="inline-flex items-center gap-2">
                   <MapPin className="text-[color:var(--ring)] h-3.5 w-3.5" aria-hidden />
-                  Menara Standard Chartered Lt. 21, Jakarta
+                  {tl.officeAddress}
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <Send className="text-[color:var(--ring)] h-3.5 w-3.5" aria-hidden />
-                  enterprise@rumahpekerja.id
+                  {tl.officeEmail}
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <Star className="text-[color:var(--ring)] h-3.5 w-3.5" aria-hidden />
-                  +62 21 5000 1010
+                  {tl.officePhone}
                 </span>
               </div>
             </div>
@@ -809,47 +645,47 @@ export function EnterpriseContact() {
             }}
           >
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Nama lengkap" htmlFor="ent-name" required>
+              <Field label={tl.form.fullNameLabel} htmlFor="ent-name" required>
                 <Input id="ent-name" name="name" autoComplete="name" required />
               </Field>
-              <Field label="Jabatan" htmlFor="ent-title" required>
+              <Field label={tl.form.jobTitleLabel} htmlFor="ent-title" required>
                 <Input
                   id="ent-title"
                   name="title"
-                  placeholder="contoh: Head of Talent"
+                  placeholder={tl.form.jobTitlePlaceholder}
                   required
                 />
               </Field>
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Email kerja" htmlFor="ent-email" required>
+              <Field label={tl.form.workEmailLabel} htmlFor="ent-email" required>
                 <Input
                   id="ent-email"
                   name="email"
                   type="email"
-                  placeholder="nama@perusahaan.com"
+                  placeholder={tl.form.workEmailPlaceholder}
                   autoComplete="email"
                   required
                 />
               </Field>
-              <Field label="Telepon" htmlFor="ent-phone">
+              <Field label={tl.form.phoneLabel} htmlFor="ent-phone">
                 <Input
                   id="ent-phone"
                   name="phone"
                   type="tel"
-                  placeholder="+62 ..."
+                  placeholder={tl.form.phonePlaceholder}
                   autoComplete="tel"
                 />
               </Field>
             </div>
 
-            <Field label="Nama perusahaan" htmlFor="ent-company" required>
+            <Field label={tl.form.companyNameLabel} htmlFor="ent-company" required>
               <Input id="ent-company" name="company" required />
             </Field>
 
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Ukuran perusahaan" htmlFor="ent-size" required>
+              <Field label={tl.form.companySizeLabel} htmlFor="ent-size" required>
                 <select
                   id="ent-size"
                   name="size"
@@ -857,13 +693,13 @@ export function EnterpriseContact() {
                   defaultValue=""
                   className="border-border bg-background text-foreground focus-visible:ring-ring/40 flex h-10 w-full rounded-md border px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2"
                 >
-                  <option value="" disabled>Pilih ukuran</option>
-                  {COMPANY_SIZES.map((s) => (
+                  <option value="" disabled>{tl.form.companySizePlaceholder}</option>
+                  {tl.companySizes.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               </Field>
-              <Field label="Industri" htmlFor="ent-industry" required>
+              <Field label={tl.form.industryLabel} htmlFor="ent-industry" required>
                 <select
                   id="ent-industry"
                   name="industry"
@@ -871,20 +707,20 @@ export function EnterpriseContact() {
                   defaultValue=""
                   className="border-border bg-background text-foreground focus-visible:ring-ring/40 flex h-10 w-full rounded-md border px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2"
                 >
-                  <option value="" disabled>Pilih industri</option>
-                  {INDUSTRIES.map((s) => (
+                  <option value="" disabled>{tl.form.industryPlaceholder}</option>
+                  {tl.industries.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               </Field>
             </div>
 
-            <Field label="Apa yang ingin Anda capai?" htmlFor="ent-message">
+            <Field label={tl.form.messageLabel} htmlFor="ent-message">
               <Textarea
                 id="ent-message"
                 name="message"
                 rows={5}
-                placeholder="Ceritakan situasi rekrutmen Anda saat ini, sistem yang sudah dipakai, dan apa yang ingin diubah…"
+                placeholder={tl.form.messagePlaceholder}
               />
             </Field>
 
@@ -896,19 +732,19 @@ export function EnterpriseContact() {
                 className="border-border text-[color:var(--ring)] mt-0.5 h-4 w-4 rounded border"
               />
               <span>
-                Saya menyetujui{' '}
+                {tl.form.consentPrefix}{' '}
                 <a
                   href="/privacy"
                   className="text-foreground underline underline-offset-2"
                 >
-                  Kebijakan Privasi
+                  {tl.form.consentPrivacyLink}
                 </a>{' '}
-                dan pemrosesan data untuk keperluan korespondensi sales.
+                {tl.form.consentSuffix}
               </span>
             </label>
 
             <Button type="submit" size="lg" className="w-full">
-              Kirim Permintaan Demo
+              {tl.form.submitLabel}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Button>
           </motion.form>

@@ -1,37 +1,56 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useMemo, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { changePassword } from '@/lib/auth/password-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 // TODO: swap inline inputs/button for @/components/atoms/* once available.
 
-const schema = z
-  .object({
-    currentPassword: z.string().min(1, 'Password saat ini wajib diisi'),
-    newPassword: z
-      .string()
-      .min(8, 'Password minimal 8 karakter')
-      .regex(/[A-Za-z]/, 'Password harus berisi huruf')
-      .regex(/[0-9]/, 'Password harus berisi angka'),
-    confirm: z.string(),
-  })
-  .refine((d) => d.newPassword === d.confirm, {
-    path: ['confirm'],
-    message: 'Konfirmasi password tidak cocok',
-  })
-  .refine((d) => d.newPassword !== d.currentPassword, {
-    path: ['newPassword'],
-    message: 'Password baru harus berbeda dari password saat ini',
-  })
-
-type FormValues = z.infer<typeof schema>
+type FormValues = {
+  currentPassword: string
+  newPassword: string
+  confirm: string
+}
 
 export function ChangePasswordForm() {
   const router = useRouter()
+  const { t } = useI18n()
+  const tc = t.formsAccount.changePassword
+
+  const schema = useMemo(
+    () =>
+      z
+        .object({
+          currentPassword: z.string().min(1, tc.errors.currentRequired),
+          newPassword: z
+            .string()
+            .min(8, tc.errors.newMin)
+            .regex(/[A-Za-z]/, tc.errors.newNeedsLetter)
+            .regex(/[0-9]/, tc.errors.newNeedsDigit),
+          confirm: z.string(),
+        })
+        .refine((d) => d.newPassword === d.confirm, {
+          path: ['confirm'],
+          message: tc.errors.confirmMismatch,
+        })
+        .refine((d) => d.newPassword !== d.currentPassword, {
+          path: ['newPassword'],
+          message: tc.errors.newSameAsCurrent,
+        }),
+    [
+      tc.errors.currentRequired,
+      tc.errors.newMin,
+      tc.errors.newNeedsLetter,
+      tc.errors.newNeedsDigit,
+      tc.errors.confirmMismatch,
+      tc.errors.newSameAsCurrent,
+    ],
+  )
+
   const [isPending, startTransition] = useTransition()
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -82,13 +101,13 @@ export function ChangePasswordForm() {
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
           <label htmlFor="currentPassword" className="block text-sm font-medium text-foreground">
-            Password saat ini
+            {tc.currentPasswordLabel}
           </label>
           <input
             id="currentPassword"
             type="password"
             autoComplete="current-password"
-            placeholder="Password saat ini"
+            placeholder={tc.currentPasswordPlaceholder}
             aria-invalid={Boolean(errors.currentPassword)}
             className={inputClass}
             {...register('currentPassword')}
@@ -100,13 +119,13 @@ export function ChangePasswordForm() {
 
         <div className="space-y-2">
           <label htmlFor="newPassword" className="block text-sm font-medium text-foreground">
-            Password baru
+            {tc.newPasswordLabel}
           </label>
           <input
             id="newPassword"
             type="password"
             autoComplete="new-password"
-            placeholder="Minimal 8 karakter, huruf & angka"
+            placeholder={tc.newPasswordPlaceholder}
             aria-invalid={Boolean(errors.newPassword)}
             className={inputClass}
             {...register('newPassword')}
@@ -118,13 +137,13 @@ export function ChangePasswordForm() {
 
         <div className="space-y-2">
           <label htmlFor="confirm" className="block text-sm font-medium text-foreground">
-            Konfirmasi password baru
+            {tc.confirmLabel}
           </label>
           <input
             id="confirm"
             type="password"
             autoComplete="new-password"
-            placeholder="Ulangi password baru"
+            placeholder={tc.confirmPlaceholder}
             aria-invalid={Boolean(errors.confirm)}
             className={inputClass}
             {...register('confirm')}
@@ -139,7 +158,7 @@ export function ChangePasswordForm() {
             role="status"
             className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400"
           >
-            Password berhasil diubah
+            {tc.successMsg}
           </div>
         )}
 
@@ -157,7 +176,7 @@ export function ChangePasswordForm() {
           disabled={isPending}
           className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending ? 'Memproses…' : 'Simpan password baru'}
+          {isPending ? tc.btnPending : tc.btnSubmit}
           <span aria-hidden className="text-[hsl(43,74%,55%)]">
             →
           </span>
@@ -165,11 +184,11 @@ export function ChangePasswordForm() {
       </form>
 
       <aside className="rounded-md border border-input bg-muted/40 px-4 py-3 text-sm">
-        <h2 className="font-medium text-foreground">Tip keamanan</h2>
+        <h2 className="font-medium text-foreground">{tc.tipTitle}</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
-          <li>Gunakan minimal 8 karakter.</li>
-          <li>Wajib berisi huruf dan angka.</li>
-          <li>Jangan gunakan password yang sama dengan situs lain.</li>
+          <li>{tc.tipMinChars}</li>
+          <li>{tc.tipMustContain}</li>
+          <li>{tc.tipNoReuse}</li>
         </ul>
       </aside>
     </div>

@@ -7,6 +7,7 @@ import {
   getMessagesAfter,
   type MessageRow,
 } from '@/lib/messaging/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const POLL_INTERVAL_MS = 10_000
 
@@ -28,6 +29,8 @@ export function MessageThread({
   currentUserId: string
   role: Role
 }) {
+  const { t } = useI18n()
+  const tl = t.formsApplications.messageThread
   const [messages, setMessages] = useState<MessageRow[]>(initialMessages)
   const [draft, setDraft] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -85,10 +88,10 @@ export function MessageThread({
         const tail = incoming[incoming.length - 1]
         if (tail) lastIdRef.current = tail.id
         scrollToBottom()
-        // New messages from the other party → mark them read.
+        // New messages from the other party -- mark them read.
         void markThreadRead(applicationId)
       } catch {
-        // swallow — next tick will retry
+        // swallow -- next tick will retry
       }
     }
 
@@ -184,7 +187,7 @@ export function MessageThread({
       >
         {groupedMessages.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center text-sm">
-            Belum ada pesan. Mulai percakapan dengan menulis pesan di bawah.
+            {tl.emptyState}
           </p>
         ) : (
           groupedMessages.map((m) => (
@@ -208,7 +211,7 @@ export function MessageThread({
           </p>
         )}
         <label htmlFor="message-body" className="sr-only">
-          Tulis pesan
+          {tl.composeLabel}
         </label>
         <textarea
           id="message-body"
@@ -218,7 +221,7 @@ export function MessageThread({
           disabled={pending}
           rows={3}
           maxLength={5000}
-          placeholder="Tulis pesan… (Ctrl+Enter untuk kirim)"
+          placeholder={tl.composePlaceholder}
           className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-ring focus:ring-ring/30 block w-full resize-none rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
         />
         <div className="mt-2 flex items-center justify-between">
@@ -231,7 +234,7 @@ export function MessageThread({
             disabled={pending || draft.trim().length === 0}
             className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {pending ? 'Mengirim…' : 'Kirim'}
+            {pending ? tl.sendPending : tl.sendBtn}
           </button>
         </div>
       </div>
@@ -248,28 +251,30 @@ function MessageBubble({
   currentUserId: string
   role: Role
 }) {
+  const { t } = useI18n()
+  const tl = t.formsApplications.messageThread
   const mine = message.senderId === currentUserId
-  const senderName = message.sender.name ?? 'Pengguna'
+  const senderName = message.sender.name ?? tl.fallbackSender
   const ts = dateFmt.format(
     typeof message.createdAt === 'string'
       ? new Date(message.createdAt)
       : message.createdAt,
   )
 
-  // Read receipt — only shown on the sender's own bubbles.
+  // Read receipt -- only shown on the sender's own bubbles.
   let readReceipt: string | null = null
   if (mine) {
     if (role === 'candidate') {
-      readReceipt = message.readByRecruiterAt ? 'Dibaca' : 'Terkirim'
+      readReceipt = message.readByRecruiterAt ? tl.readReceipt : tl.sentReceipt
     } else {
-      readReceipt = message.readByCandidateAt ? 'Dibaca' : 'Terkirim'
+      readReceipt = message.readByCandidateAt ? tl.readReceipt : tl.sentReceipt
     }
   }
 
   return (
     <div
       className={`flex ${mine ? 'justify-end' : 'justify-start'}`}
-      aria-label={mine ? 'Pesan Anda' : `Pesan dari ${senderName}`}
+      aria-label={mine ? tl.bubbleAriaOwn : tl.bubbleAriaFrom.replace('{name}', senderName)}
     >
       <div
         className={`max-w-[78%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
