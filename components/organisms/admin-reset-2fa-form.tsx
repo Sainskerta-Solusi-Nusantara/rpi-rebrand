@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShieldOff } from 'lucide-react'
 import { resetUserTwoFactor } from '@/lib/auth/totp-admin-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -21,6 +22,8 @@ export function AdminReset2faForm({
   totpEnabled: boolean
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tr = t.formsActions.reset2fa
   const [reason, setReason] = useState('')
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -31,7 +34,7 @@ export function AdminReset2faForm({
     e.preventDefault()
     setError(null)
     if (reason.trim().length < 8) {
-      setError('Alasan reset wajib, minimal 8 karakter.')
+      setError(tr.errorReasonTooShort)
       return
     }
     setConfirmOpen(true)
@@ -58,7 +61,7 @@ export function AdminReset2faForm({
         role="status"
         className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
       >
-        2FA pengguna telah di-reset. Pengguna menerima notifikasi email.
+        {tr.successMsg}
       </div>
     )
   }
@@ -67,9 +70,7 @@ export function AdminReset2faForm({
     <div className="space-y-4">
       {!totpEnabled && (
         <p className="rounded-md border border-amber-300/40 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-          Catatan: pengguna ini saat ini belum mengaktifkan 2FA. Reset tetap
-          akan membersihkan secret/recovery code apa pun yang tertinggal dan
-          tercatat di audit log.
+          {tr.notEnabledNote}
         </p>
       )}
 
@@ -79,7 +80,7 @@ export function AdminReset2faForm({
             htmlFor="reset-reason"
             className="block text-sm font-medium text-foreground"
           >
-            Alasan reset (wajib, min 8 karakter)
+            {tr.reasonLabel}
           </label>
           <textarea
             id="reset-reason"
@@ -90,12 +91,11 @@ export function AdminReset2faForm({
             minLength={8}
             disabled={pending}
             rows={3}
-            placeholder="Mis. Pengguna kehilangan ponsel dan recovery code. Identitas diverifikasi via KTP + video call (tiket #1234)."
+            placeholder={tr.reasonPlaceholder}
             className={inputClass}
           />
           <p className="text-muted-foreground text-xs">
-            Alasan akan dicatat di audit log dan dikirim ke pengguna ({userEmail})
-            dalam email notifikasi.
+            {tr.reasonHint.replace('{email}', userEmail)}
           </p>
         </div>
 
@@ -112,7 +112,7 @@ export function AdminReset2faForm({
             className={btnDestructive}
           >
             <ShieldOff className="h-4 w-4" aria-hidden="true" />
-            {pending ? 'Mereset…' : 'Reset 2FA pengguna'}
+            {pending ? tr.btnPending : tr.btnSubmit}
           </button>
         </div>
       </form>
@@ -124,11 +124,10 @@ export function AdminReset2faForm({
           className="border-destructive/40 bg-destructive/5 rounded-md border p-4"
         >
           <p id="reset-2fa-confirm-title" className="text-sm font-medium text-foreground">
-            Konfirmasi reset 2FA
+            {tr.confirmTitle}
           </p>
           <p className="text-muted-foreground mt-1 text-xs">
-            Tindakan ini akan menghapus secret 2FA dan seluruh recovery code
-            milik {userEmail}. Pengguna akan diberitahu via email. Lanjutkan?
+            {tr.confirmBody.replace('{email}', userEmail)}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -137,7 +136,7 @@ export function AdminReset2faForm({
               disabled={pending}
               className={btnDestructive}
             >
-              Ya, reset 2FA
+              {tr.confirmYes}
             </button>
             <button
               type="button"
@@ -145,7 +144,7 @@ export function AdminReset2faForm({
               disabled={pending}
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-foreground transition"
             >
-              Batal
+              {tr.confirmCancel}
             </button>
           </div>
         </div>

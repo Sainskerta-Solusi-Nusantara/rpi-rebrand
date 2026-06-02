@@ -7,6 +7,7 @@ import { Input } from '@/components/atoms/input'
 import { Label } from '@/components/atoms/label'
 import { Logo } from '@/components/atoms/logo'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface BrandingTokens {
   primary: string
@@ -34,6 +35,8 @@ const FONT_OPTIONS = ['Playfair Display', 'Inter', 'Poppins', 'Lora', 'DM Serif 
 export function BrandingForm({ initial, tenantName, onSave, className }: BrandingFormProps) {
   const [tokens, setTokens] = React.useState<BrandingTokens>(initial)
   const [saving, setSaving] = React.useState(false)
+  const { t } = useI18n()
+  const tr = t.formsActions.brandingForm
 
   const set = <K extends keyof BrandingTokens>(key: K, value: BrandingTokens[K]) =>
     setTokens((t) => ({ ...t, [key]: value }))
@@ -72,7 +75,7 @@ export function BrandingForm({ initial, tenantName, onSave, className }: Brandin
     >
       <div className="flex flex-col gap-6">
         <fieldset className="rounded-xl border border-border bg-card p-5">
-          <legend className="px-2 font-heading">Warna</legend>
+          <legend className="px-2 font-heading">{tr.sectionColors}</legend>
           <div className="grid grid-cols-2 gap-4">
             <ColorPicker label="Primary" value={tokens.primary} onChange={(v) => set('primary', v)} />
             <ColorPicker label="Secondary" value={tokens.secondary} onChange={(v) => set('secondary', v)} />
@@ -83,7 +86,7 @@ export function BrandingForm({ initial, tenantName, onSave, className }: Brandin
         </fieldset>
 
         <fieldset className="rounded-xl border border-border bg-card p-5">
-          <legend className="px-2 font-heading">Tipografi</legend>
+          <legend className="px-2 font-heading">{tr.sectionTypography}</legend>
           <div className="grid grid-cols-2 gap-4">
             <FontSelect label="Heading" value={tokens.fontHeading} onChange={(v) => set('fontHeading', v)} />
             <FontSelect label="Body" value={tokens.fontSans} onChange={(v) => set('fontSans', v)} />
@@ -91,18 +94,18 @@ export function BrandingForm({ initial, tenantName, onSave, className }: Brandin
         </fieldset>
 
         <fieldset className="rounded-xl border border-border bg-card p-5">
-          <legend className="px-2 font-heading">Logo &amp; Favicon</legend>
+          <legend className="px-2 font-heading">{tr.sectionLogoFavicon}</legend>
           <div className="grid gap-4 sm:grid-cols-2">
-            <FileField label="Logo" value={tokens.logoUrl ?? undefined} onChange={handleFile('logoUrl')} />
-            <FileField label="Favicon" value={tokens.faviconUrl ?? undefined} onChange={handleFile('faviconUrl')} />
+            <FileField label="Logo" uploadLabel={tr.uploadFile.replace('{label}', 'logo')} value={tokens.logoUrl ?? undefined} onChange={handleFile('logoUrl')} />
+            <FileField label="Favicon" uploadLabel={tr.uploadFile.replace('{label}', 'favicon')} value={tokens.faviconUrl ?? undefined} onChange={handleFile('faviconUrl')} />
           </div>
         </fieldset>
 
         <fieldset className="rounded-xl border border-border bg-card p-5">
-          <legend className="px-2 font-heading">Bentuk &amp; Kepadatan</legend>
+          <legend className="px-2 font-heading">{tr.sectionShapeDensity}</legend>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <Label className="mb-2 block">Radius ({tokens.radius}px)</Label>
+              <Label className="mb-2 block">{tr.radiusLabel.replace('{value}', String(tokens.radius))}</Label>
               <input
                 type="range"
                 min={0}
@@ -114,7 +117,7 @@ export function BrandingForm({ initial, tenantName, onSave, className }: Brandin
               />
             </div>
             <div>
-              <Label className="mb-2 block">Kepadatan</Label>
+              <Label className="mb-2 block">{tr.densityLabel}</Label>
               <div role="radiogroup" className="flex flex-wrap gap-2">
                 {(['compact', 'comfortable', 'cozy'] as const).map((d) => (
                   <label
@@ -141,7 +144,7 @@ export function BrandingForm({ initial, tenantName, onSave, className }: Brandin
 
         <div className="flex justify-end">
           <Button type="submit" loading={saving}>
-            Simpan branding
+            {tr.btnSave}
           </Button>
         </div>
       </div>
@@ -151,22 +154,22 @@ export function BrandingForm({ initial, tenantName, onSave, className }: Brandin
         className="sticky top-20 h-fit rounded-2xl border border-border bg-background p-1 shadow-lg"
       >
         <div className="rounded-xl bg-background p-5 text-foreground">
-          <p className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">Pratinjau langsung</p>
+          <p className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">{tr.previewLabel}</p>
           <div className="flex items-center gap-3">
             <Logo tenantName={tenantName} tenantLogoUrl={tokens.logoUrl ?? undefined} />
           </div>
           <div className="mt-4 rounded-[var(--radius)] bg-primary p-4 text-primary-foreground">
             <p className="font-heading text-xl" style={{ fontFamily: tokens.fontHeading }}>
-              Halo, {tenantName ?? 'Tenant'}
+              {tr.previewGreeting.replace('{name}', tenantName ?? 'Tenant')}
             </p>
             <p className="mt-1 text-sm opacity-80" style={{ fontFamily: tokens.fontSans }}>
-              Begini tampilan brand kamu.
+              {tr.previewTagline}
             </p>
             <button
               type="button"
               className="mt-3 inline-flex items-center rounded-[var(--radius)] bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground"
             >
-              Tombol Utama
+              {tr.previewButton}
             </button>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2">
@@ -236,10 +239,12 @@ function FontSelect({
 
 function FileField({
   label,
+  uploadLabel,
   value,
   onChange,
 }: {
   label: string
+  uploadLabel: string
   value?: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
@@ -253,7 +258,7 @@ function FileField({
         ) : (
           <>
             <Upload className="h-4 w-4" />
-            <span>Unggah {label.toLowerCase()}</span>
+            <span>{uploadLabel}</span>
           </>
         )}
         <input type="file" accept="image/*" onChange={onChange} className="sr-only" />

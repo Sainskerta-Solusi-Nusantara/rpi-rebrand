@@ -3,22 +3,10 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createIncident } from '@/lib/status/incident-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
-
-const SEVERITY_OPTIONS: { value: 'minor' | 'major' | 'critical'; label: string }[] = [
-  { value: 'minor', label: 'Ringan' },
-  { value: 'major', label: 'Berat' },
-  { value: 'critical', label: 'Kritis' },
-]
-
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: 'investigating', label: 'Investigasi' },
-  { value: 'identified', label: 'Teridentifikasi' },
-  { value: 'monitoring', label: 'Pemantauan' },
-  { value: 'resolved', label: 'Selesai' },
-]
 
 export interface IncidentFormProps {
   defaults?: {
@@ -35,8 +23,23 @@ export interface IncidentFormProps {
  */
 export function IncidentForm({ defaults }: IncidentFormProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tf = t.formsStatus.incidentForm
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+
+  const SEVERITY_OPTIONS: { value: 'minor' | 'major' | 'critical'; label: string }[] = [
+    { value: 'minor', label: tf.severityMinor },
+    { value: 'major', label: tf.severityMajor },
+    { value: 'critical', label: tf.severityCritical },
+  ]
+
+  const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: 'investigating', label: tf.statusInvestigating },
+    { value: 'identified', label: tf.statusIdentified },
+    { value: 'monitoring', label: tf.statusMonitoring },
+    { value: 'resolved', label: tf.statusResolved },
+  ]
 
   function onSubmit(formData: FormData) {
     setError(null)
@@ -56,7 +59,7 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
     <form action={onSubmit} className="space-y-4">
       <div>
         <label htmlFor="title" className="mb-1 block text-sm font-medium">
-          Judul insiden
+          {tf.titleLabel}
         </label>
         <input
           id="title"
@@ -66,14 +69,14 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
           defaultValue={defaults?.title}
           maxLength={200}
           className={inputClass}
-          placeholder="cth. Gangguan pengiriman email"
+          placeholder={tf.titlePlaceholder}
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="severity" className="mb-1 block text-sm font-medium">
-            Tingkat keparahan
+            {tf.severityLabel}
           </label>
           <select
             id="severity"
@@ -90,7 +93,7 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
         </div>
         <div>
           <label htmlFor="status" className="mb-1 block text-sm font-medium">
-            Status awal
+            {tf.statusLabel}
           </label>
           <select
             id="status"
@@ -109,7 +112,7 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
 
       <div>
         <label htmlFor="affectedServices" className="mb-1 block text-sm font-medium">
-          Layanan terdampak
+          {tf.affectedServicesLabel}
         </label>
         <input
           id="affectedServices"
@@ -117,16 +120,16 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
           type="text"
           defaultValue={defaults?.affectedServices}
           className={inputClass}
-          placeholder="cth. email, api, database"
+          placeholder={tf.affectedServicesPlaceholder}
         />
         <p className="text-muted-foreground mt-1 text-xs">
-          Pisahkan dengan koma. Gunakan key komponen (web, api, database, email, storage, auth, webhooks, cron).
+          {tf.affectedServicesHint}
         </p>
       </div>
 
       <div>
         <label htmlFor="startedAt" className="mb-1 block text-sm font-medium">
-          Waktu mulai (opsional)
+          {tf.startedAtLabel}
         </label>
         <input
           id="startedAt"
@@ -135,13 +138,13 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
           className={inputClass}
         />
         <p className="text-muted-foreground mt-1 text-xs">
-          Kosongkan untuk menggunakan waktu sekarang.
+          {tf.startedAtHint}
         </p>
       </div>
 
       <div>
         <label htmlFor="message" className="mb-1 block text-sm font-medium">
-          Pesan pembaruan pertama
+          {tf.messageLabel}
         </label>
         <textarea
           id="message"
@@ -149,10 +152,10 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
           rows={4}
           maxLength={2000}
           className={inputClass}
-          placeholder="Apa yang sedang diinvestigasi?"
+          placeholder={tf.messagePlaceholder}
         />
         <p className="text-muted-foreground mt-1 text-xs">
-          Kosongkan untuk menggunakan judul insiden sebagai pesan.
+          {tf.messageHint}
         </p>
       </div>
 
@@ -168,7 +171,7 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
           disabled={isPending}
           className="bg-primary text-primary-foreground inline-flex h-9 items-center rounded-md px-4 text-sm font-medium disabled:opacity-60"
         >
-          {isPending ? 'Menyimpan…' : 'Buat insiden'}
+          {isPending ? tf.submitSaving : tf.submitCreate}
         </button>
       </div>
     </form>

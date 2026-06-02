@@ -7,21 +7,17 @@ import {
   createAssessment,
   type AssessmentCategory,
 } from '@/lib/assessments/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
 
 const labelClass = 'text-muted-foreground text-xs uppercase tracking-wide'
 
-const CATEGORY_LABELS: Record<AssessmentCategory, string> = {
-  technical: 'Teknis',
-  soft: 'Soft skill',
-  language: 'Bahasa',
-  cognitive: 'Kognitif',
-}
-
 export function CreateAssessmentForm() {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsContent.createAssessmentForm
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
@@ -39,12 +35,12 @@ export function CreateAssessmentForm() {
     const dn = Number(durationMin)
     const ps = Number(passingScore)
     if (!Number.isFinite(dn) || dn < 1 || dn > 600) {
-      setError('Durasi harus antara 1–600 menit.')
+      setError(tl.errorDuration)
       setFieldError('durationMin')
       return
     }
     if (!Number.isFinite(ps) || ps < 0 || ps > 100) {
-      setError('Skor lulus harus antara 0–100.')
+      setError(tl.errorPassingScore)
       setFieldError('passingScore')
       return
     }
@@ -68,6 +64,13 @@ export function CreateAssessmentForm() {
     })
   }
 
+  const CATEGORY_LABELS: Record<AssessmentCategory, string> = {
+    technical: tl.categoryTechnical,
+    soft: tl.categorySoft,
+    language: tl.categoryLanguage,
+    cognitive: tl.categoryCognitive,
+  }
+
   return (
     <form
       onSubmit={onSubmit}
@@ -84,7 +87,7 @@ export function CreateAssessmentForm() {
 
       <div className="space-y-1">
         <label htmlFor="cf-title" className={labelClass}>
-          Judul
+          {tl.titleLabel}
         </label>
         <input
           id="cf-title"
@@ -92,7 +95,7 @@ export function CreateAssessmentForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={pending}
-          placeholder="cth: Asesmen Logika Pemrograman Dasar"
+          placeholder={tl.titlePlaceholder}
           className={inputClass}
           aria-invalid={fieldError === 'title'}
         />
@@ -100,14 +103,14 @@ export function CreateAssessmentForm() {
 
       <div className="space-y-1">
         <label htmlFor="cf-desc" className={labelClass}>
-          Deskripsi
+          {tl.descriptionLabel}
         </label>
         <textarea
           id="cf-desc"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           disabled={pending}
-          placeholder="Jelaskan apa yang diuji asesmen ini (minimal 20 karakter)."
+          placeholder={tl.descriptionPlaceholder}
           className={`${inputClass} min-h-[6rem] resize-y`}
           aria-invalid={fieldError === 'description'}
         />
@@ -116,7 +119,7 @@ export function CreateAssessmentForm() {
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1">
           <label htmlFor="cf-cat" className={labelClass}>
-            Kategori
+            {tl.categoryLabel}
           </label>
           <select
             id="cf-cat"
@@ -136,7 +139,7 @@ export function CreateAssessmentForm() {
         </div>
         <div className="space-y-1">
           <label htmlFor="cf-dur" className={labelClass}>
-            Durasi (menit)
+            {tl.durationLabel}
           </label>
           <input
             id="cf-dur"
@@ -153,7 +156,7 @@ export function CreateAssessmentForm() {
         </div>
         <div className="space-y-1">
           <label htmlFor="cf-pass" className={labelClass}>
-            Skor lulus (0–100)
+            {tl.passingScoreLabel}
           </label>
           <input
             id="cf-pass"
@@ -171,8 +174,7 @@ export function CreateAssessmentForm() {
       </div>
 
       <p className="text-muted-foreground text-xs">
-        Setelah dibuat, asesmen berstatus <strong>Draf</strong>. Tambahkan
-        pertanyaan di halaman editor lalu publikasikan.
+        {tl.helperText}
       </p>
 
       <div className="flex justify-end">
@@ -181,7 +183,7 @@ export function CreateAssessmentForm() {
           disabled={pending}
           className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-semibold disabled:opacity-60"
         >
-          {pending ? 'Membuat…' : 'Buat & buka editor'}
+          {pending ? tl.submitPending : tl.submitButton}
         </button>
       </div>
     </form>

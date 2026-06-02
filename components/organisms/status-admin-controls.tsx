@@ -6,17 +6,20 @@ import {
   deleteIncident,
   updateMaintenanceStatus,
 } from '@/lib/status/incident-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type MaintenanceStatus = 'planned' | 'in_progress' | 'completed' | 'cancelled'
 
 /** Inline destructive button for soft-deleting an incident. */
 export function IncidentDeleteButton({ id }: { id: string }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tf = t.formsStatus.statusAdminControls
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
   function onClick() {
-    if (!window.confirm('Hapus insiden ini? Tindakan ini akan menutup insiden.')) {
+    if (!window.confirm(tf.incidentDeleteConfirm)) {
       return
     }
     setError(null)
@@ -45,7 +48,7 @@ export function IncidentDeleteButton({ id }: { id: string }) {
         disabled={isPending}
         className="border-border bg-background hover:bg-muted inline-flex h-8 items-center rounded-md border px-2.5 text-xs font-medium text-red-600 disabled:opacity-60"
       >
-        {isPending ? 'Menghapus…' : 'Hapus'}
+        {isPending ? tf.incidentDeletePending : tf.incidentDelete}
       </button>
     </span>
   )
@@ -60,6 +63,8 @@ export function MaintenanceStatusActions({
   currentStatus: MaintenanceStatus
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tf = t.formsStatus.statusAdminControls
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -76,10 +81,10 @@ export function MaintenanceStatusActions({
   }
 
   const LABELS: Record<MaintenanceStatus, string> = {
-    planned: 'Direncanakan',
-    in_progress: 'Sedang berjalan',
-    completed: 'Selesai',
-    cancelled: 'Dibatalkan',
+    planned: tf.maintenanceLabelPlanned,
+    in_progress: tf.maintenanceLabelInProgress,
+    completed: tf.maintenanceLabelCompleted,
+    cancelled: tf.maintenanceLabelCancelled,
   }
 
   const transitions: MaintenanceStatus[] = (() => {
@@ -102,7 +107,7 @@ export function MaintenanceStatusActions({
       <div className="flex flex-wrap gap-2">
         {transitions.length === 0 ? (
           <span className="text-muted-foreground text-xs">
-            Tidak ada transisi tersisa.
+            {tf.maintenanceNoTransitions}
           </span>
         ) : (
           transitions.map((next) => (
@@ -113,7 +118,7 @@ export function MaintenanceStatusActions({
               onClick={() => transition(next)}
               className="border-border bg-background hover:bg-muted inline-flex h-8 items-center rounded-md border px-2.5 text-xs font-medium disabled:opacity-60"
             >
-              Ubah ke: {LABELS[next]}
+              {tf.maintenanceTransitionTo.replace('{label}', LABELS[next])}
             </button>
           ))
         )}

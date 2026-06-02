@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createMaintenance } from '@/lib/status/incident-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
@@ -24,6 +25,8 @@ export interface MaintenanceFormProps {
  */
 export function MaintenanceForm({ defaults }: MaintenanceFormProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tf = t.formsStatus.maintenanceForm
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -45,7 +48,7 @@ export function MaintenanceForm({ defaults }: MaintenanceFormProps) {
     <form action={onSubmit} className="space-y-4">
       <div>
         <label htmlFor="title" className="mb-1 block text-sm font-medium">
-          Judul pemeliharaan
+          {tf.titleLabel}
         </label>
         <input
           id="title"
@@ -55,13 +58,13 @@ export function MaintenanceForm({ defaults }: MaintenanceFormProps) {
           defaultValue={defaults?.title}
           maxLength={200}
           className={inputClass}
-          placeholder="cth. Migrasi versi basis data"
+          placeholder={tf.titlePlaceholder}
         />
       </div>
 
       <div>
         <label htmlFor="description" className="mb-1 block text-sm font-medium">
-          Deskripsi
+          {tf.descriptionLabel}
         </label>
         <textarea
           id="description"
@@ -70,13 +73,13 @@ export function MaintenanceForm({ defaults }: MaintenanceFormProps) {
           maxLength={2000}
           defaultValue={defaults?.description}
           className={inputClass}
-          placeholder="Detail singkat dampak dan rencana mitigasi."
+          placeholder={tf.descriptionPlaceholder}
         />
       </div>
 
       <div>
         <label htmlFor="affectedServices" className="mb-1 block text-sm font-medium">
-          Layanan terdampak
+          {tf.affectedServicesLabel}
         </label>
         <input
           id="affectedServices"
@@ -84,17 +87,17 @@ export function MaintenanceForm({ defaults }: MaintenanceFormProps) {
           type="text"
           defaultValue={defaults?.affectedServices}
           className={inputClass}
-          placeholder="cth. database, api"
+          placeholder={tf.affectedServicesPlaceholder}
         />
         <p className="text-muted-foreground mt-1 text-xs">
-          Pisahkan dengan koma. Gunakan key komponen.
+          {tf.affectedServicesHint}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="scheduledStart" className="mb-1 block text-sm font-medium">
-            Waktu mulai
+            {tf.scheduledStartLabel}
           </label>
           <input
             id="scheduledStart"
@@ -107,7 +110,7 @@ export function MaintenanceForm({ defaults }: MaintenanceFormProps) {
         </div>
         <div>
           <label htmlFor="scheduledEnd" className="mb-1 block text-sm font-medium">
-            Waktu selesai
+            {tf.scheduledEndLabel}
           </label>
           <input
             id="scheduledEnd"
@@ -132,7 +135,7 @@ export function MaintenanceForm({ defaults }: MaintenanceFormProps) {
           disabled={isPending}
           className="bg-primary text-primary-foreground inline-flex h-9 items-center rounded-md px-4 text-sm font-medium disabled:opacity-60"
         >
-          {isPending ? 'Menyimpan…' : 'Jadwalkan pemeliharaan'}
+          {isPending ? tf.submitSaving : tf.submitSchedule}
         </button>
       </div>
     </form>

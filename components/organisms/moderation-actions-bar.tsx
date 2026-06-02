@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateFlagStatus, removeContent } from '@/lib/moderation/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Banner =
   | { kind: 'idle' }
@@ -10,22 +11,6 @@ type Banner =
   | { kind: 'error'; message: string }
 
 type RemovalAction = 'suspend_user' | 'archive_job' | 'archive_course' | 'soft_delete_message'
-
-function allowedRemovalActions(resourceType: string): { value: RemovalAction; label: string }[] {
-  switch (resourceType) {
-    case 'job':
-      return [{ value: 'archive_job', label: 'Arsipkan lowongan' }]
-    case 'course':
-      return [{ value: 'archive_course', label: 'Arsipkan kursus' }]
-    case 'user':
-    case 'profile':
-      return [{ value: 'suspend_user', label: 'Tangguhkan pengguna' }]
-    case 'message':
-      return [{ value: 'soft_delete_message', label: 'Hapus pesan (soft)' }]
-    default:
-      return []
-  }
-}
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -49,9 +34,28 @@ export function ModerationActionsBar({
   resourceType: string
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tr = t.formsActions.moderationActions
   const [pending, startTransition] = useTransition()
   const [banner, setBanner] = useState<Banner>({ kind: 'idle' })
   const [resolutionText, setResolutionText] = useState<string>('')
+
+  function allowedRemovalActions(type: string): { value: RemovalAction; label: string }[] {
+    switch (type) {
+      case 'job':
+        return [{ value: 'archive_job', label: tr.removalArchiveJob }]
+      case 'course':
+        return [{ value: 'archive_course', label: tr.removalArchiveCourse }]
+      case 'user':
+      case 'profile':
+        return [{ value: 'suspend_user', label: tr.removalSuspendUser }]
+      case 'message':
+        return [{ value: 'soft_delete_message', label: tr.removalDeleteMessage }]
+      default:
+        return []
+    }
+  }
+
   const removalActions = allowedRemovalActions(resourceType)
   const [removalAction, setRemovalAction] = useState<RemovalAction | ''>(
     (removalActions[0]?.value as RemovalAction | undefined) ?? '',
@@ -102,11 +106,11 @@ export function ModerationActionsBar({
           onClick={() =>
             withBanner(
               () => updateFlagStatus({ flagId, status: 'reviewing' }),
-              'Status diperbarui menjadi ditinjau.',
+              tr.successReviewing,
             )
           }
         >
-          {pending ? 'Memproses…' : 'Mulai tinjau'}
+          {pending ? tr.btnPending : tr.btnReview}
         </button>
         <button
           type="button"
@@ -115,17 +119,17 @@ export function ModerationActionsBar({
           onClick={() =>
             withBanner(
               () => updateFlagStatus({ flagId, status: 'dismissed', resolution: resolutionText || undefined }),
-              'Laporan ditolak.',
+              tr.successDismissed,
             )
           }
         >
-          Tolak laporan
+          {tr.btnDismiss}
         </button>
       </div>
 
       <div className="border-border rounded-md border p-4 space-y-3">
         <label className="block text-sm font-medium text-foreground">
-          Catatan penyelesaian (opsional)
+          {tr.resolutionLabel}
         </label>
         <textarea
           className={inputClass}
@@ -134,7 +138,7 @@ export function ModerationActionsBar({
           value={resolutionText}
           onChange={(e) => setResolutionText(e.target.value)}
           disabled={pending || isTerminal}
-          placeholder="Tuliskan alasan keputusan untuk catatan internal dan pelapor."
+          placeholder={tr.resolutionPlaceholder}
         />
         <button
           type="button"
@@ -148,18 +152,18 @@ export function ModerationActionsBar({
                   status: 'resolved',
                   resolution: resolutionText || undefined,
                 }),
-              'Laporan ditandai selesai.',
+              tr.successResolved,
             )
           }
         >
-          Tandai diselesaikan
+          {tr.btnResolve}
         </button>
       </div>
 
       {removalActions.length > 0 ? (
         <div className="border-border rounded-md border p-4 space-y-3">
           <label className="block text-sm font-medium text-foreground">
-            Ambil tindakan terhadap konten
+            {tr.contentActionLabel}
           </label>
           <select
             className={inputClass}
@@ -174,7 +178,7 @@ export function ModerationActionsBar({
             ))}
           </select>
           <p className="text-muted-foreground text-xs">
-            Menjalankan tindakan akan menandai laporan sebagai selesai.
+            {tr.contentActionHint}
           </p>
           <button
             type="button"
@@ -184,22 +188,22 @@ export function ModerationActionsBar({
               if (!removalAction) return
               withBanner(
                 () => removeContent({ flagId, action: removalAction }),
-                'Tindakan diterapkan.',
+                tr.successAction,
               )
             }}
           >
-            Jalankan tindakan
+            {tr.btnExecute}
           </button>
         </div>
       ) : (
         <p className="text-muted-foreground text-xs">
-          Tidak ada tindakan otomatis untuk jenis konten ini.
+          {tr.noAutoAction}
         </p>
       )}
 
       {isTerminal ? (
         <p className="text-muted-foreground text-xs">
-          Laporan sudah ditutup. Untuk membuka kembali, ubah status melalui database.
+          {tr.terminalNote}
         </p>
       ) : null}
     </div>

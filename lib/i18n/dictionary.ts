@@ -19,6 +19,10 @@ import { dashboard } from './dictionaries/dashboard'
 import { publicpages } from './dictionaries/publicpages'
 import { partner } from './dictionaries/partner'
 import { admin } from './dictionaries/admin'
+import { formsStatus } from './dictionaries/forms-status'
+import { formsContent } from './dictionaries/forms-content'
+import { formsEditor } from './dictionaries/forms-editor'
+import { formsActions } from './dictionaries/forms-actions'
 
 export type Locale = 'id' | 'en'
 
@@ -34,6 +38,10 @@ export const dictionary = {
     public: publicpages.id,
     partner: partner.id,
     admin: admin.id,
+    formsStatus: formsStatus.id,
+    formsContent: formsContent.id,
+    formsEditor: formsEditor.id,
+    formsActions: formsActions.id,
   },
   en: {
     ...home.en,
@@ -43,6 +51,10 @@ export const dictionary = {
     public: publicpages.en,
     partner: partner.en,
     admin: admin.en,
+    formsStatus: formsStatus.en,
+    formsContent: formsContent.en,
+    formsEditor: formsEditor.en,
+    formsActions: formsActions.en,
   },
 } as const
 

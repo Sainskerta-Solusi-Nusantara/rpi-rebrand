@@ -3,16 +3,10 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { postIncidentUpdate } from '@/lib/status/incident-actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
-
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: 'investigating', label: 'Investigasi' },
-  { value: 'identified', label: 'Teridentifikasi' },
-  { value: 'monitoring', label: 'Pemantauan' },
-  { value: 'resolved', label: 'Selesai' },
-]
 
 export interface IncidentUpdateFormProps {
   incidentId: string
@@ -25,8 +19,17 @@ export function IncidentUpdateForm({
   currentStatus,
 }: IncidentUpdateFormProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tf = t.formsStatus.incidentUpdateForm
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+
+  const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: 'investigating', label: tf.statusInvestigating },
+    { value: 'identified', label: tf.statusIdentified },
+    { value: 'monitoring', label: tf.statusMonitoring },
+    { value: 'resolved', label: tf.statusResolved },
+  ]
 
   function onSubmit(formData: FormData) {
     setError(null)
@@ -58,7 +61,7 @@ export function IncidentUpdateForm({
     >
       <div>
         <label htmlFor={`status-${incidentId}`} className="mb-1 block text-sm font-medium">
-          Status baru
+          {tf.newStatusLabel}
         </label>
         <select
           id={`status-${incidentId}`}
@@ -76,7 +79,7 @@ export function IncidentUpdateForm({
 
       <div>
         <label htmlFor={`message-${incidentId}`} className="mb-1 block text-sm font-medium">
-          Pesan
+          {tf.messageLabel}
         </label>
         <textarea
           id={`message-${incidentId}`}
@@ -85,7 +88,7 @@ export function IncidentUpdateForm({
           rows={4}
           maxLength={2000}
           className={inputClass}
-          placeholder="Apa yang berubah sejak update terakhir?"
+          placeholder={tf.messagePlaceholder}
         />
       </div>
 
@@ -101,7 +104,7 @@ export function IncidentUpdateForm({
           disabled={isPending}
           className="bg-primary text-primary-foreground inline-flex h-9 items-center rounded-md px-4 text-sm font-medium disabled:opacity-60"
         >
-          {isPending ? 'Mengirim…' : 'Kirim pembaruan'}
+          {isPending ? tf.submitSending : tf.submitPost}
         </button>
       </div>
     </form>

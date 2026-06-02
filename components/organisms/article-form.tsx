@@ -23,6 +23,7 @@ import {
   type ArticleStatus,
 } from '@/lib/blog/actions'
 import { renderMarkdownToHtml } from '@/lib/blog/markdown'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -37,11 +38,6 @@ const btnPrimary =
 const btnSecondary =
   'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
 
-const STATUS_LABELS: Record<ArticleStatus, string> = {
-  DRAFT: 'Draft',
-  PUBLISHED: 'Dipublikasikan',
-  ARCHIVED: 'Diarsipkan',
-}
 
 export type ArticleFormInitial = {
   title: string
@@ -90,6 +86,8 @@ export function ArticleForm({
   initial?: ArticleFormInitial
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tl = t.formsContent.articleForm
   const seed = initial ?? EMPTY_INITIAL
   const isEdit = Boolean(articleId)
 
@@ -153,14 +151,20 @@ export function ArticleForm({
     })
   }
 
+  const STATUS_LABELS: Record<ArticleStatus, string> = {
+    DRAFT: tl.statusDraft,
+    PUBLISHED: tl.statusPublished,
+    ARCHIVED: tl.statusArchived,
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-8">
       <fieldset className="space-y-4">
-        <legend className="text-foreground text-sm font-medium">Identitas</legend>
+        <legend className="text-foreground text-sm font-medium">{tl.fieldsetIdentity}</legend>
 
         <div className="space-y-1">
           <label htmlFor="f-title" className={labelClass}>
-            Judul
+            {tl.titleLabel}
           </label>
           <input
             id="f-title"
@@ -172,32 +176,32 @@ export function ArticleForm({
             required
             minLength={5}
             maxLength={200}
-            placeholder="5 cara CV-mu lolos screening 6 detik"
+            placeholder={tl.titlePlaceholder}
             className={inputClass}
           />
         </div>
 
         <div className="space-y-1">
           <label htmlFor="f-slug" className={labelClass}>
-            Slug (otomatis)
+            {tl.slugLabel}
           </label>
           <input
             id="f-slug"
             type="text"
             value={slugPreview || ''}
             disabled
-            placeholder="cv-lolos-screening"
+            placeholder={tl.slugPlaceholder}
             className={inputClass}
           />
           <p className="text-muted-foreground text-xs">
-            Slug akhir akan ditambah suffix unik saat disimpan.
+            {tl.slugHelper}
           </p>
         </div>
 
         <div className="space-y-1">
           <label htmlFor="f-summary" className={labelClass}>
-            Ringkasan{' '}
-            <span className="text-muted-foreground">(maks 500 karakter)</span>
+            {tl.summaryLabel}{' '}
+            <span className="text-muted-foreground">{tl.summaryMaxHint}</span>
           </label>
           <textarea
             id="f-summary"
@@ -206,14 +210,14 @@ export function ArticleForm({
             onChange={(e) => setSummary(e.target.value)}
             disabled={pending}
             maxLength={500}
-            placeholder="Singkat dan menarik — muncul di daftar artikel dan preview sosmed."
+            placeholder={tl.summaryPlaceholder}
             className={`${inputClass} min-h-[6rem] resize-y`}
           />
         </div>
 
         <div className="space-y-1">
           <label htmlFor="f-cover" className={labelClass}>
-            URL gambar sampul (opsional)
+            {tl.coverLabel}
           </label>
           <input
             id="f-cover"
@@ -222,31 +226,31 @@ export function ArticleForm({
             value={coverImage}
             onChange={(e) => setCoverImage(e.target.value)}
             disabled={pending}
-            placeholder="https://cdn.example.com/cover.jpg"
+            placeholder={tl.coverPlaceholder}
             className={inputClass}
           />
         </div>
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-foreground text-sm font-medium">Tag</legend>
-        <div className="flex flex-wrap gap-2" aria-label="Tag dipilih">
+        <legend className="text-foreground text-sm font-medium">{tl.fieldsetTag}</legend>
+        <div className="flex flex-wrap gap-2" aria-label={tl.tagAriaLabel}>
           {tags.length === 0 && (
             <span className="text-muted-foreground text-xs">
-              Belum ada tag. Maks 10.
+              {tl.tagEmpty}
             </span>
           )}
-          {tags.map((t) => (
+          {tags.map((tag) => (
             <span
-              key={t}
+              key={tag}
               className="border-border bg-muted/60 text-foreground inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium"
             >
-              #{t}
+              #{tag}
               <button
                 type="button"
-                onClick={() => removeTag(t)}
+                onClick={() => removeTag(tag)}
                 disabled={pending}
-                aria-label={`Hapus tag ${t}`}
+                aria-label={tl.tagRemoveAriaLabel.replace('{t}', tag)}
                 className="text-muted-foreground hover:text-foreground inline-flex h-4 w-4 items-center justify-center rounded-full"
               >
                 <X className="h-3 w-3" aria-hidden />
@@ -266,7 +270,7 @@ export function ArticleForm({
               }
             }}
             disabled={pending || tags.length >= 10}
-            placeholder="ketik tag, tekan Enter"
+            placeholder={tl.tagInputPlaceholder}
             className={inputClass}
             maxLength={40}
           />
@@ -276,7 +280,7 @@ export function ArticleForm({
             disabled={pending || !tagInput.trim() || tags.length >= 10}
             className={btnSecondary}
           >
-            Tambah
+            {tl.tagAddButton}
           </button>
         </div>
       </fieldset>
@@ -284,7 +288,7 @@ export function ArticleForm({
       <fieldset className="space-y-3">
         <div className="flex items-center justify-between">
           <legend className="text-foreground text-sm font-medium">
-            Isi artikel (markdown)
+            {tl.fieldsetBody}
           </legend>
           <button
             type="button"
@@ -295,12 +299,12 @@ export function ArticleForm({
             {preview ? (
               <>
                 <Pencil className="h-4 w-4" aria-hidden />
-                Edit markdown
+                {tl.bodyEditButton}
               </>
             ) : (
               <>
                 <Eye className="h-4 w-4" aria-hidden />
-                Pratinjau
+                {tl.bodyPreviewButton}
               </>
             )}
           </button>
@@ -315,9 +319,7 @@ export function ArticleForm({
             disabled={pending}
             required
             minLength={50}
-            placeholder={
-              '## Pendahuluan\n\nTulis pembukamu di sini.\n\n- Poin pertama\n- Poin kedua\n\nGunakan **tebal**, *miring*, dan [tautan](https://example.com).'
-            }
+            placeholder={tl.bodyPlaceholder}
             className={textareaClass}
           />
         ) : (
@@ -332,11 +334,11 @@ export function ArticleForm({
       {isEdit && (
         <fieldset className="space-y-3">
           <legend className="text-foreground text-sm font-medium">
-            Status publikasi
+            {tl.fieldsetStatus}
           </legend>
           <div className="space-y-1 sm:max-w-xs">
             <label htmlFor="f-status" className={labelClass}>
-              Status
+              {tl.statusLabel}
             </label>
             <select
               id="f-status"
@@ -353,8 +355,7 @@ export function ArticleForm({
               ))}
             </select>
             <p className="text-muted-foreground text-xs">
-              Mengubah status menjadi “Dipublikasikan” akan mengisi tanggal
-              publikasi otomatis.
+              {tl.statusHelper}
             </p>
           </div>
         </fieldset>
@@ -365,7 +366,7 @@ export function ArticleForm({
           role="status"
           className="border-success/30 bg-success/10 text-success rounded-md border px-3 py-2 text-sm"
         >
-          {isEdit ? 'Perubahan berhasil disimpan.' : 'Artikel berhasil dibuat.'}
+          {isEdit ? tl.bannerSuccess_edit : tl.bannerSuccess_create}
         </p>
       )}
       {banner.kind === 'error' && (
@@ -379,7 +380,7 @@ export function ArticleForm({
 
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className={btnPrimary}>
-          {pending ? 'Menyimpan…' : isEdit ? 'Simpan perubahan' : 'Buat artikel'}
+          {pending ? tl.submitPending : isEdit ? tl.submitEdit : tl.submitCreate}
         </button>
         <button
           type="button"
@@ -390,7 +391,7 @@ export function ArticleForm({
           disabled={pending}
           className={btnSecondary}
         >
-          Batal
+          {tl.cancelButton}
         </button>
       </div>
     </form>

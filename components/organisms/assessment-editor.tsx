@@ -27,6 +27,7 @@ import {
   type AssessmentCategory,
   type AssessmentQuestionType,
 } from '@/lib/assessments/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const inputClass =
   'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
@@ -41,25 +42,6 @@ const btnSecondarySm =
 
 const btnGhostSm =
   'text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs disabled:cursor-not-allowed disabled:opacity-60'
-
-const QUESTION_TYPE_LABELS: Record<AssessmentQuestionType, string> = {
-  multiple_choice: 'Pilihan ganda',
-  true_false: 'Benar/Salah',
-  multi_select: 'Pilihan jamak',
-}
-
-const CATEGORY_LABELS: Record<AssessmentCategory, string> = {
-  technical: 'Teknis',
-  soft: 'Soft skill',
-  language: 'Bahasa',
-  cognitive: 'Kognitif',
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Draf',
-  PUBLISHED: 'Terbit',
-  ARCHIVED: 'Arsip',
-}
 
 export type AssessmentEditorQuestion = {
   id: string
@@ -87,6 +69,8 @@ export function AssessmentEditor({
   assessmentId: string
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const fe = t.formsEditor
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
@@ -139,11 +123,11 @@ export function AssessmentEditor({
     const dn = Number(durationMin)
     const ps = Number(passingScore)
     if (!Number.isFinite(dn) || dn < 1 || dn > 600) {
-      setError('Durasi harus antara 1–600 menit.')
+      setError(fe.messages.errorDuration)
       return
     }
     if (!Number.isFinite(ps) || ps < 0 || ps > 100) {
-      setError('Skor lulus harus antara 0–100.')
+      setError(fe.messages.errorPassingScore)
       return
     }
     startTransition(async () => {
@@ -159,7 +143,7 @@ export function AssessmentEditor({
         setError(r.error)
         return
       }
-      setInfo('Pengaturan disimpan.')
+      setInfo(fe.messages.settingsSaved)
       refresh()
     })
   }
@@ -173,16 +157,14 @@ export function AssessmentEditor({
         setError(r.error)
         return
       }
-      setInfo('Asesmen telah dipublikasikan.')
+      setInfo(fe.messages.published)
       refresh()
     })
   }
 
   function handleArchive() {
     if (
-      !window.confirm(
-        'Arsipkan asesmen ini? Kandidat tidak akan dapat memulai percobaan baru.',
-      )
+      !window.confirm(fe.messages.confirmArchive)
     ) {
       return
     }
@@ -194,7 +176,7 @@ export function AssessmentEditor({
         setError(r.error)
         return
       }
-      setInfo('Asesmen diarsipkan.')
+      setInfo(fe.messages.archived)
       refresh()
     })
   }
@@ -208,13 +190,13 @@ export function AssessmentEditor({
         setError(r.error)
         return
       }
-      setInfo('Asesmen dikembalikan ke draf.')
+      setInfo(fe.messages.unpublished)
       refresh()
     })
   }
 
   function handleDeleteQuestion(qid: string) {
-    if (!window.confirm('Hapus pertanyaan ini?')) return
+    if (!window.confirm(fe.messages.confirmDeleteQuestion)) return
     setError(null)
     setInfo(null)
     startTransition(async () => {
@@ -240,13 +222,13 @@ export function AssessmentEditor({
   }
 
   if (!loaded) {
-    return <div className="text-muted-foreground text-xs">Memuat asesmen…</div>
+    return <div className="text-muted-foreground text-xs">{fe.loading}</div>
   }
 
   if (!assessment) {
     return (
       <div className="border-border bg-card rounded-lg border p-4 text-sm">
-        Asesmen tidak ditemukan.
+        {fe.notFound}
       </div>
     )
   }
@@ -275,11 +257,11 @@ export function AssessmentEditor({
         <header className="mb-3 flex items-center justify-between gap-3">
           <div>
             <h3 className="font-heading text-base font-semibold">
-              Pengaturan asesmen
+              {fe.settings.heading}
             </h3>
             <p className="text-muted-foreground text-xs">
-              Status saat ini:{' '}
-              <strong>{STATUS_LABELS[assessment.status] ?? assessment.status}</strong>
+              {fe.settings.currentStatus}{' '}
+              <strong>{fe.status[assessment.status as keyof typeof fe.status] ?? assessment.status}</strong>
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -291,7 +273,7 @@ export function AssessmentEditor({
                 className={btnPrimarySm}
               >
                 <Send className="h-3.5 w-3.5" aria-hidden="true" />
-                Publikasikan
+                {fe.settings.publish}
               </button>
             )}
             {assessment.status === 'PUBLISHED' && (
@@ -301,7 +283,7 @@ export function AssessmentEditor({
                 disabled={pending}
                 className={btnSecondarySm}
               >
-                Tarik ke draf
+                {fe.settings.unpublish}
               </button>
             )}
             {assessment.status !== 'ARCHIVED' && (
@@ -312,7 +294,7 @@ export function AssessmentEditor({
                 className={btnSecondarySm}
               >
                 <Archive className="h-3.5 w-3.5" aria-hidden="true" />
-                Arsipkan
+                {fe.settings.archive}
               </button>
             )}
           </div>
@@ -321,7 +303,7 @@ export function AssessmentEditor({
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1 sm:col-span-2">
             <label htmlFor="ae-title" className={labelClass}>
-              Judul
+              {fe.settings.titleLabel}
             </label>
             <input
               id="ae-title"
@@ -334,7 +316,7 @@ export function AssessmentEditor({
           </div>
           <div className="space-y-1 sm:col-span-2">
             <label htmlFor="ae-desc" className={labelClass}>
-              Deskripsi
+              {fe.settings.descriptionLabel}
             </label>
             <textarea
               id="ae-desc"
@@ -346,7 +328,7 @@ export function AssessmentEditor({
           </div>
           <div className="space-y-1">
             <label htmlFor="ae-cat" className={labelClass}>
-              Kategori
+              {fe.settings.categoryLabel}
             </label>
             <select
               id="ae-cat"
@@ -357,10 +339,10 @@ export function AssessmentEditor({
               disabled={pending}
               className={inputClass}
             >
-              {(Object.keys(CATEGORY_LABELS) as AssessmentCategory[]).map(
+              {(Object.keys(fe.category) as AssessmentCategory[]).map(
                 (c) => (
                   <option key={c} value={c}>
-                    {CATEGORY_LABELS[c]}
+                    {fe.category[c as keyof typeof fe.category]}
                   </option>
                 ),
               )}
@@ -368,7 +350,7 @@ export function AssessmentEditor({
           </div>
           <div className="space-y-1">
             <label htmlFor="ae-dur" className={labelClass}>
-              Durasi (menit)
+              {fe.settings.durationLabel}
             </label>
             <input
               id="ae-dur"
@@ -384,7 +366,7 @@ export function AssessmentEditor({
           </div>
           <div className="space-y-1">
             <label htmlFor="ae-pass" className={labelClass}>
-              Skor lulus (0–100)
+              {fe.settings.passingScoreLabel}
             </label>
             <input
               id="ae-pass"
@@ -408,7 +390,7 @@ export function AssessmentEditor({
             className={btnPrimarySm}
           >
             <Save className="h-3.5 w-3.5" aria-hidden="true" />
-            Simpan pengaturan
+            {fe.settings.saveButton}
           </button>
         </div>
       </section>
@@ -417,7 +399,7 @@ export function AssessmentEditor({
       <section className="border-border bg-card rounded-lg border p-4">
         <div className="flex items-center justify-between gap-2">
           <h4 className="text-sm font-semibold">
-            Pertanyaan ({assessment.questions.length})
+            {fe.questions.heading.replace('{count}', String(assessment.questions.length))}
           </h4>
           {!creating && (
             <button
@@ -427,7 +409,7 @@ export function AssessmentEditor({
               className={btnSecondarySm}
             >
               <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-              Tambah pertanyaan
+              {fe.questions.addButton}
             </button>
           )}
         </div>
@@ -469,7 +451,7 @@ export function AssessmentEditor({
                         #{idx + 1}
                       </span>
                       <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
-                        {QUESTION_TYPE_LABELS[
+                        {fe.questionType[
                           q.type as AssessmentQuestionType
                         ] ?? q.type}
                       </span>
@@ -525,7 +507,7 @@ export function AssessmentEditor({
                       className={btnGhostSm}
                     >
                       <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                      Ubah
+                      {fe.questions.editButton}
                     </button>
                     <button
                       type="button"
@@ -534,7 +516,7 @@ export function AssessmentEditor({
                       className="text-destructive hover:text-destructive/80 inline-flex items-center gap-1 text-xs disabled:opacity-60"
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      Hapus
+                      {fe.questions.deleteButton}
                     </button>
                   </div>
                 </div>
@@ -543,7 +525,7 @@ export function AssessmentEditor({
           ))}
           {assessment.questions.length === 0 && !creating && (
             <li className="text-muted-foreground border-border bg-card rounded-lg border p-4 text-center text-xs">
-              Belum ada pertanyaan. Tambahkan satu untuk memulai.
+              {fe.questions.empty}
             </li>
           )}
         </ul>
@@ -554,11 +536,15 @@ export function AssessmentEditor({
 
 type ChoiceDraft = { text: string; isCorrect: boolean }
 
-function defaultChoicesForType(type: AssessmentQuestionType): ChoiceDraft[] {
+function defaultChoicesForType(
+  type: AssessmentQuestionType,
+  trueLabel: string,
+  falseLabel: string,
+): ChoiceDraft[] {
   if (type === 'true_false') {
     return [
-      { text: 'Benar', isCorrect: true },
-      { text: 'Salah', isCorrect: false },
+      { text: trueLabel, isCorrect: true },
+      { text: falseLabel, isCorrect: false },
     ]
   }
   return [
@@ -578,6 +564,8 @@ function QuestionForm({
   onCancel: () => void
   onDone: () => void
 }) {
+  const { t } = useI18n()
+  const fe = t.formsEditor
   const isEdit = Boolean(question)
   const [text, setText] = useState(question?.text ?? '')
   const initialType: AssessmentQuestionType =
@@ -586,7 +574,7 @@ function QuestionForm({
   const [choices, setChoices] = useState<ChoiceDraft[]>(
     question
       ? question.choices.map((c) => ({ text: c.text, isCorrect: c.isCorrect }))
-      : defaultChoicesForType(initialType),
+      : defaultChoicesForType(initialType, fe.questionForm.trueFalseTrue, fe.questionForm.trueFalseFalse),
   )
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -595,12 +583,12 @@ function QuestionForm({
     setType(next)
     if (next === 'true_false') {
       setChoices([
-        { text: 'Benar', isCorrect: true },
-        { text: 'Salah', isCorrect: false },
+        { text: fe.questionForm.trueFalseTrue, isCorrect: true },
+        { text: fe.questionForm.trueFalseFalse, isCorrect: false },
       ])
     } else if (next === 'multiple_choice') {
       setChoices((prev) => {
-        const cleaned = prev.length >= 2 ? prev : defaultChoicesForType(next)
+        const cleaned = prev.length >= 2 ? prev : defaultChoicesForType(next, fe.questionForm.trueFalseTrue, fe.questionForm.trueFalseFalse)
         let foundCorrect = false
         return cleaned.map((c) => {
           if (c.isCorrect && !foundCorrect) {
@@ -612,7 +600,7 @@ function QuestionForm({
       })
     } else {
       setChoices((prev) =>
-        prev.length >= 2 ? prev : defaultChoicesForType(next),
+        prev.length >= 2 ? prev : defaultChoicesForType(next, fe.questionForm.trueFalseTrue, fe.questionForm.trueFalseFalse),
       )
     }
   }
@@ -654,7 +642,7 @@ function QuestionForm({
     setError(null)
     const trimmedText = text.trim()
     if (trimmedText.length < 3) {
-      setError('Teks pertanyaan minimal 3 karakter.')
+      setError(fe.messages.errorQuestionMinLength)
       return
     }
     const trimmedChoices = choices.map((c) => ({
@@ -662,7 +650,7 @@ function QuestionForm({
       isCorrect: c.isCorrect,
     }))
     if (trimmedChoices.some((c) => !c.text)) {
-      setError('Setiap pilihan harus memiliki teks.')
+      setError(fe.messages.errorChoiceEmpty)
       return
     }
     startTransition(async () => {
@@ -688,16 +676,16 @@ function QuestionForm({
 
   const hint =
     type === 'multiple_choice'
-      ? 'Tepat 1 jawaban benar.'
+      ? fe.questionForm.hintMultipleChoice
       : type === 'true_false'
-        ? 'Tepat 2 pilihan dengan 1 jawaban benar.'
-        : 'Minimal 1 jawaban benar; pengguna harus memilih semua jawaban benar.'
+        ? fe.questionForm.hintTrueFalse
+        : fe.questionForm.hintMultiSelect
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h4 className="text-sm font-medium">
-          {isEdit ? 'Ubah pertanyaan' : 'Pertanyaan baru'}
+          {isEdit ? fe.questionForm.titleEdit : fe.questionForm.titleNew}
         </h4>
         <button
           type="button"
@@ -712,7 +700,7 @@ function QuestionForm({
 
       {!isEdit && (
         <div className="space-y-1">
-          <label className={labelClass}>Tipe pertanyaan</label>
+          <label className={labelClass}>{fe.questionForm.typeLabel}</label>
           <select
             value={type}
             onChange={(e) =>
@@ -721,10 +709,10 @@ function QuestionForm({
             disabled={pending}
             className={inputClass}
           >
-            {(Object.keys(QUESTION_TYPE_LABELS) as AssessmentQuestionType[]).map(
-              (t) => (
-                <option key={t} value={t}>
-                  {QUESTION_TYPE_LABELS[t]}
+            {(Object.keys(fe.questionType) as AssessmentQuestionType[]).map(
+              (qt) => (
+                <option key={qt} value={qt}>
+                  {fe.questionType[qt as keyof typeof fe.questionType]}
                 </option>
               ),
             )}
@@ -733,19 +721,19 @@ function QuestionForm({
       )}
 
       <div className="space-y-1">
-        <label className={labelClass}>Pertanyaan</label>
+        <label className={labelClass}>{fe.questionForm.textLabel}</label>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={pending}
-          placeholder="Tulis pertanyaan Anda…"
+          placeholder={fe.questionForm.textPlaceholder}
           className={`${inputClass} min-h-[5rem] resize-y`}
         />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className={labelClass}>Pilihan</label>
+          <label className={labelClass}>{fe.questionForm.choicesLabel}</label>
           <span className="text-muted-foreground text-[11px]">{hint}</span>
         </div>
         <ul className="space-y-2">
@@ -767,7 +755,7 @@ function QuestionForm({
                 value={c.text}
                 onChange={(e) => updateChoice(idx, { text: e.target.value })}
                 disabled={pending || type === 'true_false'}
-                placeholder={`Pilihan ${idx + 1}`}
+                placeholder={fe.questionForm.choicePlaceholder.replace('{n}', String(idx + 1))}
                 className={inputClass}
               />
               {type !== 'true_false' && choices.length > 2 && (
@@ -792,7 +780,7 @@ function QuestionForm({
             className={btnSecondarySm}
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-            Tambah pilihan
+            {fe.questionForm.addChoice}
           </button>
         )}
       </div>
@@ -811,10 +799,10 @@ function QuestionForm({
           className={btnPrimarySm}
         >
           {pending
-            ? 'Menyimpan…'
+            ? fe.questionForm.saving
             : isEdit
-              ? 'Simpan perubahan'
-              : 'Tambah pertanyaan'}
+              ? fe.questionForm.saveEdit
+              : fe.questionForm.saveNew}
         </button>
         <button
           type="button"
@@ -822,7 +810,7 @@ function QuestionForm({
           disabled={pending}
           className={btnSecondarySm}
         >
-          Batal
+          {fe.questionForm.cancel}
         </button>
       </div>
     </div>
