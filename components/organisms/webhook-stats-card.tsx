@@ -1,5 +1,6 @@
 import { Activity, CheckCircle2, Clock, Skull, XCircle } from 'lucide-react'
 import type { DeliveryStats } from '@/lib/webhooks/delivery-queries'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 const numberFmt = new Intl.NumberFormat('id-ID')
 
@@ -25,13 +26,15 @@ function statusColor(status: string): string {
  */
 function Sparkline({
   recent,
+  noDeliveriesLabel,
 }: {
   recent: { status: string; createdAt: Date }[]
+  noDeliveriesLabel: string
 }) {
   if (recent.length === 0) {
     return (
       <div className="text-muted-foreground text-[10px]">
-        Belum ada pengiriman.
+        {noDeliveriesLabel}
       </div>
     )
   }
@@ -55,13 +58,15 @@ function Sparkline({
  * total / success / failed / dead-letter counts, success rate %, mean
  * attempt count, and a sparkline of the last 50 attempts.
  */
-export function WebhookStatsCard({
+export async function WebhookStatsCard({
   stats,
   compact = false,
 }: {
   stats: DeliveryStats
   compact?: boolean
 }) {
+  const t = await getServerT()
+  const ns = t.formsTenantAdmin2.webhookStatsCard
   const rate = stats.successRate.toFixed(1)
   const mean = stats.meanAttempts.toFixed(2)
 
@@ -71,21 +76,21 @@ export function WebhookStatsCard({
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-muted-foreground text-[10px] uppercase">
-              Tingkat keberhasilan
+              {ns.labelSuccessRate}
             </div>
             <div className="font-heading text-lg">{rate}%</div>
           </div>
           <div className="text-right">
             <div className="text-muted-foreground text-[10px]">
-              Total {numberFmt.format(stats.total)}
+              {ns.labelTotal.replace('{n}', numberFmt.format(stats.total))}
             </div>
             <div className="text-muted-foreground text-[10px]">
-              Mati {numberFmt.format(stats.deadLetter)}
+              {ns.labelDead.replace('{n}', numberFmt.format(stats.deadLetter))}
             </div>
           </div>
         </div>
         <div className="mt-2">
-          <Sparkline recent={stats.recent} />
+          <Sparkline recent={stats.recent} noDeliveriesLabel={ns.noDeliveries} />
         </div>
       </div>
     )
@@ -95,27 +100,27 @@ export function WebhookStatsCard({
     <div className="border-border bg-card rounded-2xl border p-6">
       <div className="mb-4 flex items-center gap-2">
         <Activity className="h-5 w-5" aria-hidden="true" />
-        <h2 className="font-heading text-lg">Ringkasan pengiriman</h2>
+        <h2 className="font-heading text-lg">{ns.headingDeliverySummary}</h2>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat
-          label="Berhasil"
+          label={ns.statSuccess}
           value={numberFmt.format(stats.success)}
           icon={<CheckCircle2 className="h-4 w-4 text-green-600" />}
         />
         <Stat
-          label="Tertunda"
+          label={ns.statPending}
           value={numberFmt.format(stats.pending)}
           icon={<Clock className="h-4 w-4 text-amber-600" />}
         />
         <Stat
-          label="Gagal"
+          label={ns.statFailed}
           value={numberFmt.format(stats.failed)}
           icon={<XCircle className="h-4 w-4 text-red-600" />}
         />
         <Stat
-          label="Surat mati"
+          label={ns.statDeadLetter}
           value={numberFmt.format(stats.deadLetter)}
           icon={<Skull className="h-4 w-4 text-zinc-600" />}
         />
@@ -124,30 +129,32 @@ export function WebhookStatsCard({
       <div className="border-border mt-4 grid grid-cols-1 gap-3 border-t pt-4 sm:grid-cols-3">
         <div>
           <div className="text-muted-foreground text-xs">
-            Tingkat keberhasilan
+            {ns.metaSuccessRate}
           </div>
           <div className="font-heading text-2xl">{rate}%</div>
           <div className="text-muted-foreground text-[11px]">
-            dari {numberFmt.format(stats.success + stats.failed + stats.deadLetter)}{' '}
-            pengiriman selesai
+            {ns.metaSuccessRateDetail.replace(
+              '{n}',
+              numberFmt.format(stats.success + stats.failed + stats.deadLetter),
+            )}
           </div>
         </div>
         <div>
-          <div className="text-muted-foreground text-xs">Rata-rata percobaan</div>
+          <div className="text-muted-foreground text-xs">{ns.metaMeanAttempts}</div>
           <div className="font-heading text-2xl">{mean}</div>
           <div className="text-muted-foreground text-[11px]">
-            per pengiriman tercatat
+            {ns.metaMeanAttemptsDetail}
           </div>
         </div>
         <div>
           <div className="text-muted-foreground text-xs">
-            50 pengiriman terakhir
+            {ns.metaRecentLabel}
           </div>
           <div className="mt-1">
-            <Sparkline recent={stats.recent} />
+            <Sparkline recent={stats.recent} noDeliveriesLabel={ns.noDeliveries} />
           </div>
           <div className="text-muted-foreground mt-1 text-[10px]">
-            Hijau = berhasil • Kuning = tertunda • Merah = gagal • Abu-abu = surat mati
+            {ns.metaSparklineLegend}
           </div>
         </div>
       </div>

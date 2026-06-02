@@ -6,7 +6,6 @@ import { prisma } from '@/lib/db'
 import {
   AuditRetentionForm,
   DeleteRetentionPolicyButton,
-  RETENTION_DAY_OPTIONS,
 } from '@/components/organisms/audit-retention-form'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
@@ -21,8 +20,6 @@ export default async function GlobalAuditRetentionPage() {
   const t = await getServerT()
 
   function retentionLabel(days: number): string {
-    const match = RETENTION_DAY_OPTIONS.find((o) => o.value === days)
-    if (match) return match.label
     return days === 0
       ? t.dashboard.auditRetention.forever
       : t.dashboard.auditRetention.daysSuffix.replace('{n}', String(days))

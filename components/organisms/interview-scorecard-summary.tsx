@@ -7,6 +7,7 @@ import {
   type RecommendationValue,
 } from '@/lib/interviews/scorecard-defaults'
 import { prisma } from '@/lib/db'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', {
   dateStyle: 'medium',
@@ -81,6 +82,9 @@ export async function InterviewScorecardSummary({
 }: {
   applicationId: string
 }) {
+  const t = await getServerT()
+  const s = t.formsMisc4.interviewScorecardSummary
+
   const aggregate = await aggregateApplicationScorecards(applicationId)
 
   // We need the tenant slug to build interview detail links.
@@ -102,10 +106,10 @@ export async function InterviewScorecardSummary({
       >
         <div className="flex items-center gap-2">
           <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Scorecard Wawancara</h2>
+          <h2 className="font-heading text-lg">{s.heading}</h2>
         </div>
         <p className="text-muted-foreground text-sm">
-          Belum ada scorecard tersimpan untuk lamaran ini.
+          {s.emptyState}
         </p>
       </section>
     )
@@ -130,13 +134,13 @@ export async function InterviewScorecardSummary({
     >
       <div className="flex items-center gap-2">
         <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
-        <h2 className="font-heading text-lg">Scorecard Wawancara</h2>
+        <h2 className="font-heading text-lg">{s.heading}</h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="border-border bg-background rounded-md border p-4">
           <p className="text-muted-foreground text-xs uppercase">
-            Rata-rata skor
+            {s.statAvgScore}
           </p>
           <p className="font-heading mt-1 text-2xl">
             {formatScore(overall)}
@@ -145,12 +149,12 @@ export async function InterviewScorecardSummary({
         </div>
         <div className="border-border bg-background rounded-md border p-4">
           <p className="text-muted-foreground text-xs uppercase">
-            Total scorecard
+            {s.statTotal}
           </p>
           <p className="font-heading mt-1 text-2xl">{totalCount}</p>
         </div>
         <div className="border-border bg-background rounded-md border p-4">
-          <p className="text-muted-foreground text-xs uppercase">Konsensus</p>
+          <p className="text-muted-foreground text-xs uppercase">{s.statConsensus}</p>
           {consensus ? (
             <p className="mt-1">
               <span
@@ -160,15 +164,15 @@ export async function InterviewScorecardSummary({
               </span>
             </p>
           ) : (
-            <p className="text-muted-foreground mt-1 text-sm">Belum cukup data</p>
+            <p className="text-muted-foreground mt-1 text-sm">{s.noData}</p>
           )}
         </div>
       </div>
 
       <section aria-label="Distribusi rekomendasi" className="space-y-2">
-        <h3 className="text-sm font-semibold">Distribusi rekomendasi</h3>
+        <h3 className="text-sm font-semibold">{s.sectionDist}</h3>
         {totalRecs === 0 ? (
-          <p className="text-muted-foreground text-xs">Belum ada rekomendasi.</p>
+          <p className="text-muted-foreground text-xs">{s.emptyDist}</p>
         ) : (
           <>
             <div
@@ -211,7 +215,7 @@ export async function InterviewScorecardSummary({
 
       {criterionEntries.length > 0 && (
         <section aria-label="Rata-rata per kriteria" className="space-y-2">
-          <h3 className="text-sm font-semibold">Rata-rata per kriteria</h3>
+          <h3 className="text-sm font-semibold">{s.sectionCriteria}</h3>
           <ul className="space-y-2">
             {criterionEntries.map(([criterion, score]) => {
               const pct = Math.max(0, Math.min(100, (score / 5) * 100))
@@ -244,7 +248,7 @@ export async function InterviewScorecardSummary({
       )}
 
       <section aria-label="Scorecard per wawancara" className="space-y-2">
-        <h3 className="text-sm font-semibold">Detail per wawancara</h3>
+        <h3 className="text-sm font-semibold">{s.sectionDetail}</h3>
         <ul className="divide-border divide-y text-sm">
           {aggregate.interviews.map((row) => {
             const authorName = row.author.name ?? row.author.email
@@ -273,11 +277,13 @@ export async function InterviewScorecardSummary({
                     {recommendationLabel(row.recommendation)}
                   </span>
                   <span className="text-muted-foreground text-xs">
-                    Skor: {formatScore(row.averageScore)} / 5
+                    {s.rowScore.replace('{score}', formatScore(row.averageScore))}
                   </span>
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  Oleh {authorName} · {row.ratings.length} kriteria
+                  {s.rowBy
+                    .replace('{author}', String(authorName))
+                    .replace('{count}', String(row.ratings.length))}
                 </p>
                 {notesPreview && (
                   <p className="text-foreground mt-1 inline-flex items-start gap-1.5 text-xs">
@@ -294,7 +300,7 @@ export async function InterviewScorecardSummary({
                     href={interviewHref as any}
                     className="text-primary mt-1 inline-flex text-xs hover:underline"
                   >
-                    Buka detail wawancara →
+                    {s.rowOpenDetail}
                   </Link>
                 )}
               </li>

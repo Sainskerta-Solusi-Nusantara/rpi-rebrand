@@ -1,5 +1,6 @@
 import { ClipboardCheck } from 'lucide-react'
 import type { ApplicationScorecardSummary } from '@/lib/scorecards/queries'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 const RECOMMENDATION_LABELS: Record<string, string> = {
   strong_hire: 'Sangat direkomendasikan',
@@ -42,19 +43,22 @@ function recommendationTone(value: string): string {
  * Renders the aggregate scorecard summary for an application. Empty-state
  * driven; pass the output of `summarizeApplicationScorecards`.
  */
-export function ScorecardSummary({
+export async function ScorecardSummary({
   summary,
 }: {
   summary: ApplicationScorecardSummary
 }) {
+  const t = await getServerT()
+  const s = t.formsMisc4.scorecardSummary
+
   if (summary.count === 0) {
     return (
       <div className="border-border bg-card rounded-2xl border p-6">
         <div className="mb-3 flex items-center gap-2">
           <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Ringkasan scorecard</h2>
+          <h2 className="font-heading text-lg">{s.heading}</h2>
         </div>
-        <p className="text-muted-foreground text-sm">Belum ada scorecard.</p>
+        <p className="text-muted-foreground text-sm">{s.emptyState}</p>
       </div>
     )
   }
@@ -68,27 +72,27 @@ export function ScorecardSummary({
     <div className="border-border bg-card rounded-2xl border p-6 space-y-6">
       <div className="flex items-center gap-2">
         <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
-        <h2 className="font-heading text-lg">Ringkasan scorecard</h2>
+        <h2 className="font-heading text-lg">{s.heading}</h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="border-border bg-background rounded-md border p-4">
           <p className="text-muted-foreground text-xs uppercase">
-            Total scorecard
+            {s.statTotal}
           </p>
           <p className="font-heading mt-1 text-2xl">{summary.count}</p>
         </div>
         <div className="border-border bg-background rounded-md border p-4">
           <p className="text-muted-foreground text-xs uppercase">
-            Skor rata-rata
+            {s.statAvgScore}
           </p>
           <p className="font-heading mt-1 text-2xl">
             {formatScore(summary.averageScore)}
-            <span className="text-muted-foreground ml-1 text-sm">/ 5</span>
+            <span className="text-muted-foreground ml-1 text-sm">{s.scoreSuffix}</span>
           </p>
         </div>
         <div className="border-border bg-background rounded-md border p-4">
-          <p className="text-muted-foreground text-xs uppercase">Kriteria</p>
+          <p className="text-muted-foreground text-xs uppercase">{s.statCriteria}</p>
           <p className="font-heading mt-1 text-2xl">
             {breakdownEntries.length}
           </p>
@@ -97,7 +101,7 @@ export function ScorecardSummary({
 
       {breakdownEntries.length > 0 && (
         <section aria-label="Breakdown per kriteria" className="space-y-2">
-          <h3 className="text-sm font-semibold">Skor per kriteria</h3>
+          <h3 className="text-sm font-semibold">{s.sectionScorePerCriteria}</h3>
           <ul className="space-y-2">
             {breakdownEntries.map(([criterion, score]) => {
               const pct = Math.max(0, Math.min(100, (score / 5) * 100))
@@ -131,7 +135,7 @@ export function ScorecardSummary({
 
       {recommendationEntries.length > 0 && (
         <section aria-label="Sebaran rekomendasi" className="space-y-2">
-          <h3 className="text-sm font-semibold">Sebaran rekomendasi</h3>
+          <h3 className="text-sm font-semibold">{s.sectionRecommendationDist}</h3>
           <ul className="flex flex-wrap gap-2 text-xs">
             {recommendationEntries.map(([rec, count]) => (
               <li
@@ -147,7 +151,7 @@ export function ScorecardSummary({
       )}
 
       <section aria-label="Daftar scorecard" className="space-y-2">
-        <h3 className="text-sm font-semibold">Scorecard individu</h3>
+        <h3 className="text-sm font-semibold">{s.sectionIndividual}</h3>
         <ul className="divide-border divide-y text-sm">
           {summary.individualScorecards.map((item) => {
             const authorName = item.author.name ?? item.author.email
@@ -163,11 +167,13 @@ export function ScorecardSummary({
                     {recommendationLabel(item.recommendation)}
                   </span>
                   <span className="text-muted-foreground text-xs">
-                    Skor: {formatScore(item.averageScore)} / 5
+                    {s.itemScore.replace('{score}', formatScore(item.averageScore))}
                   </span>
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  Oleh {authorName} · {item.ratingsCount} kriteria
+                  {s.itemBy
+                    .replace('{author}', String(authorName))
+                    .replace('{count}', String(item.ratingsCount))}
                 </p>
               </li>
             )

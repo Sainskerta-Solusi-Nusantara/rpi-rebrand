@@ -44,6 +44,7 @@ const fadeUp = {
 export function PressHero() {
   const { t } = useI18n()
   const tc = t.formsPublicSections.press
+  const tl = t.formsMisc3.pressLeftover
 
   return (
     <section
@@ -87,9 +88,9 @@ export function PressHero() {
           transition={{ duration: 0.55, delay: 0.1 }}
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
-          Cerita kami,{' '}
+          {tl.headingPrefix}{' '}
           <span className="text-[color:var(--ring)]">{tc.hero.headingHighlight}</span>{' '}
-          ceritakan.
+          {tl.headingSuffix}
         </motion.h1>
 
         <motion.p
@@ -184,6 +185,7 @@ export function PressReleases({
 }: PressReleasesProps) {
   const { t } = useI18n()
   const tc = t.formsPublicSections.press
+  const tl = t.formsMisc3.pressLeftover
 
   return (
     <section
@@ -218,7 +220,7 @@ export function PressReleases({
                   : tc.releases.countAll.replace('{total}', String(totalCount))}
                 {activeQuery && (
                   <>
-                    {' '}untuk &ldquo;
+                    {' '}{tl.searchResultFor} &ldquo;
                     <strong className="text-foreground font-medium">
                       {activeQuery}
                     </strong>

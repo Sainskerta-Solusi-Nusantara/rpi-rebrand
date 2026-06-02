@@ -8,6 +8,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from '@/lib/notifications/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type NotificationItem = {
   id: string
@@ -25,27 +26,34 @@ export interface NotificationsBellProps {
   className?: string
 }
 
+type BellStrings = {
+  justNow: string
+  minutesAgo: string
+  hoursAgo: string
+  daysAgo: string
+}
+
 /**
- * Relative-time formatter, Indonesian.
- *   < 1 menit  -> "baru saja"
- *   < 60 menit -> "X menit lalu"
- *   < 24 jam   -> "Y jam lalu"
- *   < 7 hari   -> "Z hari lalu"
- *   else       -> "DD/MM" (or DD/MM/YYYY if different year)
+ * Relative-time formatter.
+ *   < 1 min  -> justNow
+ *   < 60 min -> minutesAgo (replace {x})
+ *   < 24 hr  -> hoursAgo (replace {x})
+ *   < 7 days -> daysAgo (replace {x})
+ *   else     -> "DD/MM" (or DD/MM/YYYY if different year)
  */
-function formatRelative(d: Date | string): string {
+function formatRelative(d: Date | string, s: BellStrings): string {
   const date = typeof d === 'string' ? new Date(d) : d
   if (Number.isNaN(date.getTime())) return ''
   const now = Date.now()
   const diffMs = now - date.getTime()
   const diffSec = Math.floor(diffMs / 1000)
-  if (diffSec < 60) return 'baru saja'
+  if (diffSec < 60) return s.justNow
   const diffMin = Math.floor(diffSec / 60)
-  if (diffMin < 60) return `${diffMin} menit lalu`
+  if (diffMin < 60) return s.minutesAgo.replace('{x}', String(diffMin))
   const diffHr = Math.floor(diffMin / 60)
-  if (diffHr < 24) return `${diffHr} jam lalu`
+  if (diffHr < 24) return s.hoursAgo.replace('{x}', String(diffHr))
   const diffDay = Math.floor(diffHr / 24)
-  if (diffDay < 7) return `${diffDay} hari lalu`
+  if (diffDay < 7) return s.daysAgo.replace('{x}', String(diffDay))
   const dd = String(date.getDate()).padStart(2, '0')
   const mm = String(date.getMonth() + 1).padStart(2, '0')
   const yyyy = date.getFullYear()
@@ -58,6 +66,8 @@ export function NotificationsBell({
   recentItems,
   className,
 }: NotificationsBellProps) {
+  const { t } = useI18n()
+  const tn = t.formsNotif.notificationsBell
   const [open, setOpen] = React.useState(false)
   const [items, setItems] = React.useState<NotificationItem[]>(recentItems)
   const [unreadCount, setUnreadCount] = React.useState<number>(initialCount)
@@ -167,7 +177,7 @@ export function NotificationsBell({
           className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <p className="font-medium">Notifikasi</p>
+            <p className="font-medium">{tn.heading}</p>
             <button
               type="button"
               onClick={handleMarkAll}
@@ -175,14 +185,14 @@ export function NotificationsBell({
               className="inline-flex items-center gap-1 text-xs text-secondary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
               <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              Tandai semua dibaca
+              {tn.markAllRead}
             </button>
           </div>
 
           <ul className="max-h-[400px] divide-y divide-border overflow-y-auto">
             {items.length === 0 ? (
               <li className="px-4 py-10 text-center text-sm text-muted-foreground">
-                Tidak ada notifikasi
+                {tn.empty}
               </li>
             ) : (
               items.map((n) => {
@@ -206,7 +216,7 @@ export function NotificationsBell({
                         </p>
                       ) : null}
                       <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {formatRelative(n.createdAt)}
+                        {formatRelative(n.createdAt, tn)}
                       </p>
                     </div>
                     {!n.isRead ? (
@@ -253,7 +263,7 @@ export function NotificationsBell({
               onClick={() => setOpen(false)}
               className="text-sm text-secondary hover:underline"
             >
-              Lihat semua
+              {tn.viewAll}
             </Link>
           </div>
         </div>

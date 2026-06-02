@@ -27,6 +27,7 @@ import {
 
 import { startQuizAttempt, submitQuizAttempt } from '@/lib/quiz/quiz-actions'
 import { MAX_ATTEMPTS_PER_QUIZ } from '@/lib/quiz/quiz-constants'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const btnPrimary =
   'inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
@@ -63,6 +64,8 @@ export function QuizRunner({
   alreadyTakenCount: number
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const fl = t.formsLearning.quizRunner
   const [pending, startTransition] = useTransition()
   const [attemptId, setAttemptId] = useState(initialAttemptId)
   const [taken, setTaken] = useState(alreadyTakenCount)
@@ -97,7 +100,7 @@ export function QuizRunner({
   function handleSubmit() {
     setError(null)
     if (!hasQuestions) {
-      setError('Kuis belum siap')
+      setError(fl.errorNotReady)
       return
     }
     const missing = quiz.questions.filter(
@@ -105,7 +108,7 @@ export function QuizRunner({
     )
     if (missing.length > 0) {
       setError(
-        `Mohon jawab semua pertanyaan (${missing.length} masih kosong).`,
+        fl.errorUnanswered.replace('{count}', String(missing.length)),
       )
       return
     }
@@ -152,7 +155,7 @@ export function QuizRunner({
         setResult(null)
       } catch (e: unknown) {
         const msg =
-          e instanceof Error ? e.message : 'Gagal memulai percobaan baru.'
+          e instanceof Error ? e.message : fl.errorRetry
         setError(msg)
       }
     })
@@ -163,8 +166,10 @@ export function QuizRunner({
   // ---------------------------------------------------------------------------
 
   if (result) {
-    const passMsg = `Selamat! Anda lulus dengan skor ${result.score}%`
-    const failMsg = `Belum lulus. Skor: ${result.score}%. Minimum: ${quiz.passingScore}%.`
+    const passMsg = fl.resultPass.replace('{score}', String(result.score))
+    const failMsg = fl.resultFail
+      .replace('{score}', String(result.score))
+      .replace('{passing}', String(quiz.passingScore))
     const canRetry = !result.passed && remaining > 0
     return (
       <div className="space-y-4">
@@ -194,7 +199,7 @@ export function QuizRunner({
           </p>
           {result.certificateIssued && (
             <p className="mt-2 text-sm font-medium text-emerald-800">
-              Sertifikat penyelesaian telah diterbitkan!
+              {fl.certificateIssued}
             </p>
           )}
         </div>
@@ -208,7 +213,7 @@ export function QuizRunner({
               className={btnSecondary}
             >
               <RotateCcw className="h-4 w-4" aria-hidden />
-              Coba lagi (sisa {remaining} percobaan)
+              {fl.retryButton.replace('{remaining}', String(remaining))}
             </button>
           )}
           {result.passed && !result.certificateIssued && (
@@ -218,7 +223,7 @@ export function QuizRunner({
               disabled={pending}
               className={btnPrimary}
             >
-              Lanjut ke pelajaran berikutnya
+              {fl.nextLesson}
             </button>
           )}
           {result.certificateIssued && result.certificateNumber && (
@@ -229,14 +234,14 @@ export function QuizRunner({
                 className={btnPrimary}
               >
                 <Award className="h-4 w-4" aria-hidden />
-                Unduh sertifikat
+                {fl.downloadCert}
               </Link>
               <Link
                 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                 href={(`/sertifikat/verify/${result.certificateNumber}`) as any}
                 className={btnSecondary}
               >
-                Verifikasi sertifikat
+                {fl.verifyCert}
               </Link>
             </>
           )}
@@ -261,9 +266,9 @@ export function QuizRunner({
   if (!hasQuestions) {
     return (
       <div className="border-border bg-muted/30 rounded-lg border p-6 text-center">
-        <p className="text-foreground font-medium">Kuis belum siap</p>
+        <p className="text-foreground font-medium">{fl.notReady}</p>
         <p className="text-muted-foreground mt-1 text-sm">
-          Kuis ini belum memiliki pertanyaan. Hubungi pengajar Anda.
+          {fl.notReadyDetail}
         </p>
       </div>
     )
@@ -272,8 +277,10 @@ export function QuizRunner({
   return (
     <div className="space-y-5">
       <div className="text-muted-foreground border-border border-l-4 bg-muted/30 px-4 py-2 text-xs">
-        Skor lulus minimum: <strong>{quiz.passingScore}%</strong> · Sisa
-        percobaan: <strong>{remaining}</strong> dari {MAX_ATTEMPTS_PER_QUIZ}.
+        {fl.passingBanner
+          .replace('{passing}', String(quiz.passingScore))
+          .replace('{remaining}', String(remaining))
+          .replace('{max}', String(MAX_ATTEMPTS_PER_QUIZ))}
       </div>
 
       <ol className="space-y-5">
@@ -286,13 +293,13 @@ export function QuizRunner({
               className="border-border bg-card rounded-lg border p-4"
             >
               <p className="text-muted-foreground text-xs font-medium uppercase">
-                Pertanyaan {idx + 1} dari {quiz.questions.length}
+                {fl.questionLabel
+                  .replace('{n}', String(idx + 1))
+                  .replace('{total}', String(quiz.questions.length))}
               </p>
               <p className="text-foreground mt-1 font-medium">{q.text}</p>
               <p className="text-muted-foreground mt-0.5 text-xs">
-                {isMulti
-                  ? 'Pilih satu atau lebih jawaban'
-                  : 'Pilih satu jawaban'}
+                {isMulti ? fl.selectMulti : fl.selectOne}
               </p>
               <ul className="mt-3 space-y-2">
                 {q.choices.map((c) => {
@@ -339,9 +346,7 @@ export function QuizRunner({
 
       <div className="flex flex-wrap items-center justify-end gap-2">
         <span className="text-muted-foreground text-xs">
-          {allAnswered
-            ? 'Semua pertanyaan terjawab.'
-            : 'Beberapa pertanyaan belum dijawab.'}
+          {allAnswered ? fl.allAnswered : fl.someUnanswered}
         </span>
         <button
           type="button"
@@ -352,7 +357,7 @@ export function QuizRunner({
           {pending && (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           )}
-          Kirim jawaban
+          {fl.submitButton}
         </button>
       </div>
     </div>

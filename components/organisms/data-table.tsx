@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Button } from '@/components/atoms/button'
 import { Input } from '@/components/atoms/input'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface DataTableColumn<T> {
   key: string
@@ -40,10 +41,13 @@ export function DataTable<T extends { id: string | number }>({
   pageSize = 10,
   selectable = false,
   bulkActions = [],
-  searchPlaceholder = 'Cari...',
-  emptyMessage = 'Tidak ada data.',
+  searchPlaceholder,
+  emptyMessage,
   className,
 }: DataTableProps<T>) {
+  const { t } = useI18n()
+  const td = t.formsTables.dataTable
+
   const [query, setQuery] = React.useState('')
   const [page, setPage] = React.useState(1)
   const [selected, setSelected] = React.useState<Set<T['id']>>(new Set())
@@ -84,6 +88,9 @@ export function DataTable<T extends { id: string | number }>({
 
   const selectedRows = rows.filter((r) => selected.has(r.id))
 
+  const resolvedSearchPlaceholder = searchPlaceholder ?? td.searchPlaceholder
+  const resolvedEmptyMessage = emptyMessage ?? td.emptyMessage
+
   return (
     <div className={cn('rounded-xl border border-border bg-card', className)}>
       <div className="flex flex-wrap items-center gap-3 border-b border-border p-3">
@@ -94,14 +101,16 @@ export function DataTable<T extends { id: string | number }>({
               setQuery(e.target.value)
               setPage(1)
             }}
-            placeholder={searchPlaceholder}
+            placeholder={resolvedSearchPlaceholder}
             prefix={<Search className="h-4 w-4 text-muted-foreground" />}
-            aria-label="Cari"
+            aria-label={td.searchAriaLabel}
           />
         </div>
         {selectable && selectedRows.length > 0 && bulkActions.length > 0 ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{selectedRows.length} dipilih</span>
+            <span className="text-xs text-muted-foreground">
+              {td.selected.replace('{n}', String(selectedRows.length))}
+            </span>
             {bulkActions.map((a) => (
               <Button
                 key={a.label}
@@ -127,7 +136,7 @@ export function DataTable<T extends { id: string | number }>({
                 <th className="w-10 px-3 py-3">
                   <input
                     type="checkbox"
-                    aria-label="Pilih semua"
+                    aria-label={td.selectAll}
                     checked={pageRows.length > 0 && pageRows.every((r) => selected.has(r.id))}
                     onChange={toggleAll}
                     className="h-4 w-4 rounded border-input accent-[var(--secondary)]"
@@ -155,7 +164,7 @@ export function DataTable<T extends { id: string | number }>({
                   <td className="px-3 py-3">
                     <input
                       type="checkbox"
-                      aria-label={`Pilih baris ${row.id}`}
+                      aria-label={td.selectRow.replace('{id}', String(row.id))}
                       checked={selected.has(row.id)}
                       onChange={() => toggleOne(row.id)}
                       className="h-4 w-4 rounded border-input accent-[var(--secondary)]"
@@ -182,7 +191,7 @@ export function DataTable<T extends { id: string | number }>({
             {pageRows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + (selectable ? 1 : 0)} className="px-4 py-12 text-center text-sm text-muted-foreground">
-                  {emptyMessage}
+                  {resolvedEmptyMessage}
                 </td>
               </tr>
             ) : null}
@@ -193,8 +202,11 @@ export function DataTable<T extends { id: string | number }>({
       <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 text-xs text-muted-foreground">
         <p>
           {filtered.length === 0
-            ? '0 hasil'
-            : `Menampilkan ${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filtered.length)} dari ${filtered.length}`}
+            ? td.zeroResults
+            : td.showing
+                .replace('{from}', String((safePage - 1) * pageSize + 1))
+                .replace('{to}', String(Math.min(safePage * pageSize, filtered.length)))
+                .replace('{total}', String(filtered.length))}
         </p>
         <div className="flex items-center gap-1">
           <button
@@ -202,7 +214,7 @@ export function DataTable<T extends { id: string | number }>({
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={safePage <= 1}
             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border disabled:opacity-40 hover:bg-muted"
-            aria-label="Halaman sebelumnya"
+            aria-label={td.prevPage}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -214,7 +226,7 @@ export function DataTable<T extends { id: string | number }>({
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={safePage >= totalPages}
             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border disabled:opacity-40 hover:bg-muted"
-            aria-label="Halaman berikutnya"
+            aria-label={td.nextPage}
           >
             <ChevronRight className="h-4 w-4" />
           </button>

@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/atoms/select'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface PaginationProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> {
   page: number
@@ -57,6 +58,8 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
     },
     ref,
   ) => {
+    const { t } = useI18n()
+    const tp = t.formsTables.pagination
     const pages = pageNumbers(page, pageCount, siblingCount)
 
     return (
@@ -73,7 +76,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
             size="sm"
             disabled={page <= 1}
             onClick={() => onPageChange(page - 1)}
-            aria-label="Halaman sebelumnya"
+            aria-label={tp.prevPage}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
@@ -90,7 +93,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
                 size="sm"
                 onClick={() => onPageChange(p)}
                 aria-current={p === page ? 'page' : undefined}
-                aria-label={`Halaman ${p}`}
+                aria-label={tp.pageLabel.replace('{p}', String(p))}
               >
                 {p}
               </Button>
@@ -102,7 +105,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
             size="sm"
             disabled={page >= pageCount}
             onClick={() => onPageChange(page + 1)}
-            aria-label="Halaman berikutnya"
+            aria-label={tp.nextPage}
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
@@ -110,7 +113,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
 
         {showPageSize && pageSize != null && onPageSizeChange && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Per halaman</span>
+            <span>{tp.perPage}</span>
             <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
               <SelectTrigger className="h-8 w-20">
                 <SelectValue />

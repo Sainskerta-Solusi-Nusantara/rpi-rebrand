@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/atoms/button'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -40,6 +41,8 @@ const fadeUp = {
 // ---------------------------------------------------------------------------
 
 export function LegalHero() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.legal.hero
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -69,7 +72,7 @@ export function LegalHero() {
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Kembali ke Tentang Kami
+          {s.backLink}
         </Link>
       </div>
 
@@ -81,7 +84,7 @@ export function LegalHero() {
         >
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Legal & Kepatuhan
+            {s.eyebrow}
           </span>
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
         </motion.div>
@@ -92,8 +95,8 @@ export function LegalHero() {
           transition={{ duration: 0.55, delay: 0.1 }}
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
-          Transparansi adalah{' '}
-          <span className="text-[color:var(--ring)]">kewajiban</span>.
+          {s.headingStart}{' '}
+          <span className="text-[color:var(--ring)]">{s.headingHighlight}</span>.
         </motion.h1>
 
         <motion.p
@@ -101,8 +104,7 @@ export function LegalHero() {
           transition={{ duration: 0.55, delay: 0.15 }}
           className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg md:text-xl"
         >
-          Semua informasi entitas hukum, kepatuhan regulasi, dokumen legal,
-          dan kontak tim hukum kami — di satu halaman, terus diperbarui.
+          {s.body}
         </motion.p>
 
         <motion.div
@@ -112,15 +114,15 @@ export function LegalHero() {
         >
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-            Terdaftar legal sejak 2021
+            {s.badge1}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-            ISO 27001 & SOC 2 Type II
+            {s.badge2}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Lock className="h-3.5 w-3.5" aria-hidden />
-            Patuh UU PDP & GDPR
+            {s.badge3}
           </span>
         </motion.div>
       </div>
@@ -132,18 +134,21 @@ export function LegalHero() {
 // Entity
 // ---------------------------------------------------------------------------
 
-const ENTITY_FACTS: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }[] = [
-  { icon: Building2, label: 'Nama Perusahaan', value: 'PT Rumah Pekerja Indonesia' },
-  { icon: ScrollText, label: 'Bentuk Hukum', value: 'Perseroan Terbatas (Tertutup)' },
-  { icon: Landmark, label: 'Akta Pendirian', value: 'No. 24, 17 Agustus 2021 — Notaris Rini Setiawati, S.H., M.Kn.' },
-  { icon: Receipt, label: 'NPWP', value: '91.234.567.8-073.000' },
-  { icon: FileText, label: 'NIB (OSS)', value: '8120020410012' },
-  { icon: BadgeCheck, label: 'SIUP', value: 'No. 503/4521/PB/2021' },
-  { icon: Gavel, label: 'TDP', value: '09.03.1.62.04521' },
-  { icon: Globe, label: 'KBLI', value: '63122 (Portal Web/Platform Digital)' },
-]
-
 export function LegalEntity() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.legal.entity
+
+  const ENTITY_FACTS: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }[] = [
+    { icon: Building2, label: s.factLabel1, value: 'PT Rumah Pekerja Indonesia' },
+    { icon: ScrollText, label: s.factLabel2, value: 'Perseroan Terbatas (Tertutup)' },
+    { icon: Landmark, label: s.factLabel3, value: 'No. 24, 17 Agustus 2021 — Notaris Rini Setiawati, S.H., M.Kn.' },
+    { icon: Receipt, label: s.factLabel4, value: '91.234.567.8-073.000' },
+    { icon: FileText, label: s.factLabel5, value: '8120020410012' },
+    { icon: BadgeCheck, label: s.factLabel6, value: 'No. 503/4521/PB/2021' },
+    { icon: Gavel, label: s.factLabel7, value: '09.03.1.62.04521' },
+    { icon: Globe, label: s.factLabel8, value: '63122 (Portal Web/Platform Digital)' },
+  ]
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -158,7 +163,7 @@ export function LegalEntity() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Entitas Hukum
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -166,12 +171,10 @@ export function LegalEntity() {
             id="legal-entity-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Siapa kami secara hukum
+            {s.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            PT Rumah Pekerja Indonesia adalah perusahaan terdaftar di
-            Indonesia, terverifikasi OSS, dan tunduk pada hukum perdata dan
-            ketenagakerjaan RI.
+            {s.body}
           </p>
         </motion.div>
 
@@ -210,7 +213,7 @@ export function LegalEntity() {
           <div className="space-y-5">
             <div className="border-border bg-card rounded-2xl border p-6">
               <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                <MapPin className="inline h-3.5 w-3.5" aria-hidden /> Alamat Hukum
+                <MapPin className="inline h-3.5 w-3.5" aria-hidden /> {s.labelAddress}
               </div>
               <address className="text-foreground/85 mt-3 not-italic text-sm leading-relaxed">
                 <strong className="text-foreground font-semibold">
@@ -229,7 +232,7 @@ export function LegalEntity() {
 
             <div className="border-border bg-card rounded-2xl border p-6">
               <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                <Globe className="inline h-3.5 w-3.5" aria-hidden /> Domain Resmi
+                <Globe className="inline h-3.5 w-3.5" aria-hidden /> {s.labelDomain}
               </div>
               <ul className="mt-3 space-y-2 text-sm">
                 <li>
@@ -237,7 +240,7 @@ export function LegalEntity() {
                     rumahpekerja.id
                   </span>
                   <span className="text-muted-foreground ml-2 text-xs">
-                    — domain utama
+                    {s.domainMainSuffix}
                   </span>
                 </li>
                 <li>
@@ -245,7 +248,7 @@ export function LegalEntity() {
                     rpi.co.id
                   </span>
                   <span className="text-muted-foreground ml-2 text-xs">
-                    — domain alternatif
+                    {s.domainAltSuffix}
                   </span>
                 </li>
                 <li>
@@ -253,14 +256,13 @@ export function LegalEntity() {
                     rumahpekerjaindonesia.com
                   </span>
                   <span className="text-muted-foreground ml-2 text-xs">
-                    — domain redirect
+                    {s.domainRedirectSuffix}
                   </span>
                 </li>
               </ul>
               <p className="text-muted-foreground border-border mt-4 border-t pt-3 text-xs">
-                Email atau komunikasi yang mengaku-aku dari RPI tetapi tidak
-                berasal dari domain di atas <strong>bukan</strong> komunikasi
-                resmi.
+                {s.domainWarning} <strong>{s.domainWarningStrong}</strong>{' '}
+                {s.domainWarningEnd}
               </p>
             </div>
           </div>
@@ -283,60 +285,63 @@ type Standard = {
   href?: string
 }
 
-const STANDARDS: Standard[] = [
-  {
-    acronym: 'ISO 27001:2022',
-    full: 'Information Security Management Systems',
-    status: 'aktif',
-    desc: 'Sistem manajemen keamanan informasi tersertifikasi. Audit ulang setiap 12 bulan.',
-    auditor: 'BSI Group · sertifikat aktif hingga Q3 2027',
-  },
-  {
-    acronym: 'SOC 2 Type II',
-    full: 'Service Organization Control 2',
-    status: 'aktif',
-    desc: 'Kontrol keamanan, ketersediaan, integritas pemrosesan, kerahasiaan, dan privasi.',
-    auditor: 'Deloitte · laporan terbaru: Februari 2026',
-  },
-  {
-    acronym: 'UU PDP',
-    full: 'Pelindungan Data Pribadi (UU No. 27/2022)',
-    status: 'aktif',
-    desc: 'Patuh penuh terhadap UU Pelindungan Data Pribadi Indonesia. DPO tersedia untuk pertanyaan subject.',
-  },
-  {
-    acronym: 'GDPR',
-    full: 'General Data Protection Regulation (EU)',
-    status: 'aktif',
-    desc: 'Untuk pengguna dari Uni Eropa: hak akses, koreksi, penghapusan, dan portabilitas data.',
-  },
-  {
-    acronym: 'PCI DSS L1',
-    full: 'Payment Card Industry Data Security Standard',
-    status: 'aktif',
-    desc: 'Untuk pemrosesan pembayaran mitra dan layanan premium. Validasi setiap 12 bulan.',
-  },
-  {
-    acronym: 'OWASP ASVS L3',
-    full: 'Application Security Verification Standard',
-    status: 'aktif',
-    desc: 'Standar verifikasi keamanan aplikasi level tertinggi untuk aplikasi yang menangani data sensitif.',
-  },
-  {
-    acronym: 'BSSN-ready',
-    full: 'Badan Siber dan Sandi Negara — Lokalisasi Data',
-    status: 'aktif',
-    desc: 'Seluruh data pengguna Indonesia disimpan di data center berlokasi di wilayah RI.',
-  },
-  {
-    acronym: 'ISO 27701',
-    full: 'Privacy Information Management',
-    status: 'persiapan',
-    desc: 'Ekstensi ISO 27001 untuk manajemen informasi privasi. Target sertifikasi Q4 2026.',
-  },
-]
-
 export function LegalCompliance() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.legal.compliance
+
+  const STANDARDS: Standard[] = [
+    {
+      acronym: 'ISO 27001:2022',
+      full: 'Information Security Management Systems',
+      status: 'aktif',
+      desc: s.std1Desc,
+      auditor: 'BSI Group · sertifikat aktif hingga Q3 2027',
+    },
+    {
+      acronym: 'SOC 2 Type II',
+      full: 'Service Organization Control 2',
+      status: 'aktif',
+      desc: s.std2Desc,
+      auditor: 'Deloitte · laporan terbaru: Februari 2026',
+    },
+    {
+      acronym: 'UU PDP',
+      full: 'Pelindungan Data Pribadi (UU No. 27/2022)',
+      status: 'aktif',
+      desc: s.std3Desc,
+    },
+    {
+      acronym: 'GDPR',
+      full: 'General Data Protection Regulation (EU)',
+      status: 'aktif',
+      desc: s.std4Desc,
+    },
+    {
+      acronym: 'PCI DSS L1',
+      full: 'Payment Card Industry Data Security Standard',
+      status: 'aktif',
+      desc: s.std5Desc,
+    },
+    {
+      acronym: 'OWASP ASVS L3',
+      full: 'Application Security Verification Standard',
+      status: 'aktif',
+      desc: s.std6Desc,
+    },
+    {
+      acronym: 'BSSN-ready',
+      full: 'Badan Siber dan Sandi Negara — Lokalisasi Data',
+      status: 'aktif',
+      desc: s.std7Desc,
+    },
+    {
+      acronym: 'ISO 27701',
+      full: 'Privacy Information Management',
+      status: 'persiapan',
+      desc: s.std8Desc,
+    },
+  ]
+
   return (
     <section
       className="bg-background py-20 md:py-24"
@@ -351,7 +356,7 @@ export function LegalCompliance() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Kepatuhan Regulasi
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -359,18 +364,17 @@ export function LegalCompliance() {
             id="legal-compliance-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Standar yang kami patuhi
+            {s.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Diaudit oleh pihak ketiga independen setiap tahun. Laporan tersedia
-            untuk tim compliance Anda atas permintaan, di bawah NDA.
+            {s.body}
           </p>
         </motion.div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-          {STANDARDS.map((s, i) => (
+          {STANDARDS.map((std, i) => (
             <motion.article
-              key={s.acronym}
+              key={std.acronym}
               {...fadeUp}
               transition={{ duration: 0.4, delay: 0.03 * i }}
               className="border-border bg-card flex h-full flex-col rounded-2xl border p-6"
@@ -383,16 +387,16 @@ export function LegalCompliance() {
                       aria-hidden
                     />
                     <h3 className="font-heading text-foreground text-base font-semibold">
-                      {s.acronym}
+                      {std.acronym}
                     </h3>
                   </div>
                   <p className="text-muted-foreground mt-1 text-xs">
-                    {s.full}
+                    {std.full}
                   </p>
                 </div>
                 <span
                   className={
-                    s.status === 'aktif'
+                    std.status === 'aktif'
                       ? 'inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600'
                       : 'inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-600'
                   }
@@ -400,21 +404,21 @@ export function LegalCompliance() {
                   <span
                     aria-hidden
                     className={
-                      s.status === 'aktif'
+                      std.status === 'aktif'
                         ? 'size-1.5 rounded-full bg-emerald-500'
                         : 'size-1.5 rounded-full bg-amber-500'
                     }
                   />
-                  {s.status === 'aktif' ? 'Aktif' : 'Persiapan'}
+                  {std.status === 'aktif' ? s.statusActive : s.statusPrep}
                 </span>
               </div>
               <p className="text-foreground/85 mt-4 text-sm leading-relaxed">
-                {s.desc}
+                {std.desc}
               </p>
-              {s.auditor && (
+              {std.auditor && (
                 <p className="border-border text-muted-foreground mt-4 border-t pt-3 text-xs">
-                  <span className="text-foreground/70 font-medium">Auditor:</span>{' '}
-                  {s.auditor}
+                  <span className="text-foreground/70 font-medium">{s.auditorLabel}</span>{' '}
+                  {std.auditor}
                 </p>
               )}
             </motion.article>
@@ -438,66 +442,69 @@ type LegalDoc = {
   external?: boolean
 }
 
-const DOCS: LegalDoc[] = [
-  {
-    icon: ScrollText,
-    title: 'Syarat & Ketentuan',
-    desc: 'Aturan penggunaan platform untuk pencari kerja dan pengguna umum.',
-    lastUpdated: 'Diperbarui 1 Mei 2026',
-    href: '/terms',
-  },
-  {
-    icon: Lock,
-    title: 'Kebijakan Privasi',
-    desc: 'Bagaimana kami mengumpulkan, memproses, menyimpan, dan melindungi data Anda.',
-    lastUpdated: 'Diperbarui 1 Mei 2026',
-    href: '/privacy',
-  },
-  {
-    icon: Cookie,
-    title: 'Kebijakan Cookie',
-    desc: 'Jenis cookie yang kami gunakan dan cara mengontrolnya di perangkat Anda.',
-    lastUpdated: 'Diperbarui 1 Mei 2026',
-    href: '/cookies',
-  },
-  {
-    icon: FileText,
-    title: 'Acceptable Use Policy',
-    desc: 'Perilaku yang diizinkan dan dilarang di platform, untuk pengguna dan mitra.',
-    lastUpdated: 'Diperbarui 14 April 2026',
-    href: '/legal/aup',
-  },
-  {
-    icon: Shield,
-    title: 'Data Processing Addendum',
-    desc: 'DPA standar untuk mitra perekrut tier Business dan Enterprise (GDPR & UU PDP).',
-    lastUpdated: 'Diperbarui 14 April 2026',
-    href: '/legal/dpa',
-  },
-  {
-    icon: BadgeCheck,
-    title: 'Service Level Agreement',
-    desc: 'Jaminan uptime, respons insiden, dan kompensasi otomatis untuk paket Enterprise.',
-    lastUpdated: 'Diperbarui 14 April 2026',
-    href: '/legal/sla',
-  },
-  {
-    icon: Newspaper,
-    title: 'Master Subscription Agreement',
-    desc: 'Kontrak induk untuk pelanggan Business dan Enterprise, termasuk lampiran teknis.',
-    lastUpdated: 'Diperbarui 1 Maret 2026',
-    href: '/legal/msa',
-  },
-  {
-    icon: Receipt,
-    title: 'Pajak & Penagihan',
-    desc: 'Informasi PPN 11%, format faktur pajak, dan kebijakan refund.',
-    lastUpdated: 'Diperbarui 1 Maret 2026',
-    href: '/legal/billing',
-  },
-]
-
 export function LegalDocuments() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.legal.documents
+
+  const DOCS: LegalDoc[] = [
+    {
+      icon: ScrollText,
+      title: s.doc1Title,
+      desc: s.doc1Desc,
+      lastUpdated: s.doc1Updated,
+      href: '/terms',
+    },
+    {
+      icon: Lock,
+      title: s.doc2Title,
+      desc: s.doc2Desc,
+      lastUpdated: s.doc2Updated,
+      href: '/privacy',
+    },
+    {
+      icon: Cookie,
+      title: s.doc3Title,
+      desc: s.doc3Desc,
+      lastUpdated: s.doc3Updated,
+      href: '/cookies',
+    },
+    {
+      icon: FileText,
+      title: 'Acceptable Use Policy',
+      desc: s.doc4Desc,
+      lastUpdated: s.doc4Updated,
+      href: '/legal/aup',
+    },
+    {
+      icon: Shield,
+      title: 'Data Processing Addendum',
+      desc: s.doc5Desc,
+      lastUpdated: s.doc5Updated,
+      href: '/legal/dpa',
+    },
+    {
+      icon: BadgeCheck,
+      title: 'Service Level Agreement',
+      desc: s.doc6Desc,
+      lastUpdated: s.doc6Updated,
+      href: '/legal/sla',
+    },
+    {
+      icon: Newspaper,
+      title: 'Master Subscription Agreement',
+      desc: s.doc7Desc,
+      lastUpdated: s.doc7Updated,
+      href: '/legal/msa',
+    },
+    {
+      icon: Receipt,
+      title: s.doc8Title,
+      desc: s.doc8Desc,
+      lastUpdated: s.doc8Updated,
+      href: '/legal/billing',
+    },
+  ]
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -512,7 +519,7 @@ export function LegalDocuments() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Dokumen Legal
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -520,12 +527,10 @@ export function LegalDocuments() {
             id="legal-docs-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Kontrak & kebijakan
+            {s.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Semua dokumen ditulis dalam Bahasa Indonesia, dengan versi Inggris
-            tersedia untuk dokumen B2B. Riwayat perubahan dipertahankan dan
-            dapat diakses atas permintaan.
+            {s.body}
           </p>
         </motion.div>
 
@@ -580,6 +585,8 @@ export function LegalDocuments() {
 // ---------------------------------------------------------------------------
 
 export function LegalIP() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.legal.ip
   return (
     <section
       className="bg-background py-20 md:py-24"
@@ -594,7 +601,7 @@ export function LegalIP() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Hak Kekayaan Intelektual
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -602,7 +609,7 @@ export function LegalIP() {
             id="legal-ip-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Merek dagang & hak cipta
+            {s.heading}
           </h2>
         </motion.div>
 
@@ -613,16 +620,13 @@ export function LegalIP() {
               aria-hidden
             />
             <h3 className="font-heading text-foreground mt-4 text-base font-semibold">
-              Hak Cipta
+              {s.copyrightTitle}
             </h3>
             <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-              © 2021–2026 PT Rumah Pekerja Indonesia. Semua hak dilindungi.
-              Konten platform, kode sumber, materi pelatihan, dan publikasi
-              riset dilindungi UU Hak Cipta No. 28/2014.
+              {s.copyrightBody}
             </p>
             <p className="text-muted-foreground/80 mt-3 text-xs">
-              Untuk permintaan izin penggunaan ulang, hubungi tim legal di
-              bawah.
+              {s.copyrightNote}
             </p>
           </div>
 
@@ -632,24 +636,24 @@ export function LegalIP() {
               aria-hidden
             />
             <h3 className="font-heading text-foreground mt-4 text-base font-semibold">
-              Merek Dagang Terdaftar
+              {s.trademarkTitle}
             </h3>
             <ul className="text-muted-foreground mt-3 space-y-1.5 text-sm">
               <li>
                 <strong className="text-foreground font-medium">
-                  Rumah Pekerja Indonesia®
+                  Rumah Pekerja Indonesia&reg;
                 </strong>{' '}
-                · DJKI No. IDM000789012
+                &middot; DJKI No. IDM000789012
               </li>
               <li>
-                <strong className="text-foreground font-medium">RPI®</strong>{' '}
-                · DJKI No. IDM000789015
+                <strong className="text-foreground font-medium">RPI&reg;</strong>{' '}
+                &middot; DJKI No. IDM000789015
               </li>
               <li>
                 <strong className="text-foreground font-medium">
-                  RPI Academy™
+                  RPI Academy&trade;
                 </strong>{' '}
-                · pending registrasi
+                &middot; {s.trademarkPending}
               </li>
             </ul>
             <p className="text-muted-foreground/80 mt-4 text-xs">
@@ -664,23 +668,21 @@ export function LegalIP() {
               aria-hidden
             />
             <h3 className="font-heading text-foreground mt-4 text-base font-semibold">
-              Penggunaan Brand & Logo
+              {s.brandTitle}
             </h3>
             <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-              Jurnalis, mitra, dan pengguna dipersilakan menggunakan logo dan
-              nama RPI untuk peliputan, integrasi resmi, atau halaman case
-              study, sesuai dengan brand guidelines kami.
+              {s.brandBody}
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Button asChild variant="outline" size="sm">
                 <a href="/press-kit/RPI-Brand-Guidelines.pdf">
-                  Brand Guidelines PDF
+                  {s.ctaBrandGuidelines}
                   <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden />
                 </a>
               </Button>
               <Button asChild variant="outline" size="sm">
                 <a href="/press-kit/RPI-Logo-Pack.zip">
-                  Logo Pack ZIP
+                  {s.ctaLogoPack}
                   <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden />
                 </a>
               </Button>
@@ -703,34 +705,37 @@ type DisclosureItem = {
   cta: { label: string; href: string }
 }
 
-const DISCLOSURES: DisclosureItem[] = [
-  {
-    icon: Bug,
-    title: 'Vulnerability Disclosure Program',
-    desc: 'Temuan kerentanan keamanan dapat dilaporkan via security@. Bounty hingga USD 10K untuk kerentanan kritis.',
-    cta: { label: 'security@rumahpekerja.id', href: 'mailto:security@rumahpekerja.id' },
-  },
-  {
-    icon: AlertTriangle,
-    title: 'Laporan Insiden Keamanan',
-    desc: 'Notifikasi insiden publik dipublikasikan di status.rumahpekerja.id, plus laporan post-mortem dalam 5 hari kerja.',
-    cta: { label: 'status.rumahpekerja.id', href: 'https://status.rumahpekerja.id' },
-  },
-  {
-    icon: FileText,
-    title: 'Laporan Transparansi Tahunan',
-    desc: 'Statistik permintaan data dari penegak hukum, takedown notice, dan moderasi konten — dipublikasikan setiap Maret.',
-    cta: { label: 'Lihat Laporan 2025', href: '/legal/transparency-2025' },
-  },
-  {
-    icon: Newspaper,
-    title: 'Audit Bias AI',
-    desc: 'Sistem matching AI kami diaudit independen setiap 6 bulan untuk bias gender, usia, dan asal sekolah.',
-    cta: { label: 'Audit Bias 2026', href: '/legal/bias-audit-2026' },
-  },
-]
-
 export function LegalDisclosure() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.legal.disclosure
+
+  const DISCLOSURES: DisclosureItem[] = [
+    {
+      icon: Bug,
+      title: 'Vulnerability Disclosure Program',
+      desc: s.disc1Desc,
+      cta: { label: 'security@rumahpekerja.id', href: 'mailto:security@rumahpekerja.id' },
+    },
+    {
+      icon: AlertTriangle,
+      title: 'Laporan Insiden Keamanan',
+      desc: s.disc2Desc,
+      cta: { label: 'status.rumahpekerja.id', href: 'https://status.rumahpekerja.id' },
+    },
+    {
+      icon: FileText,
+      title: 'Laporan Transparansi Tahunan',
+      desc: s.disc3Desc,
+      cta: { label: s.disc3Cta, href: '/legal/transparency-2025' },
+    },
+    {
+      icon: Newspaper,
+      title: 'Audit Bias AI',
+      desc: s.disc4Desc,
+      cta: { label: s.disc4Cta, href: '/legal/bias-audit-2026' },
+    },
+  ]
+
   return (
     <section
       className="bg-muted/30 py-20 md:py-24"
@@ -745,7 +750,7 @@ export function LegalDisclosure() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Disclosure & Laporan
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -753,12 +758,10 @@ export function LegalDisclosure() {
             id="legal-disclosure-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Komitmen transparansi
+            {s.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Kami mempublikasikan laporan rutin tentang insiden, audit, dan
-            permintaan data — karena akuntabilitas tidak boleh hanya saat
-            ditanya.
+            {s.body}
           </p>
         </motion.div>
 
@@ -806,30 +809,33 @@ export function LegalDisclosure() {
 // Contact
 // ---------------------------------------------------------------------------
 
-const LEGAL_CONTACTS = [
-  {
-    label: 'Pertanyaan Umum Hukum',
-    email: 'legal@rumahpekerja.id',
-    desc: 'Untuk pertanyaan kontrak, lisensi, atau kemitraan hukum.',
-  },
-  {
-    label: 'Privasi & Data Subject',
-    email: 'privacy@rumahpekerja.id',
-    desc: 'Akses, koreksi, atau penghapusan data pribadi Anda. DPO membalas dalam 30 hari kerja sesuai UU PDP.',
-  },
-  {
-    label: 'Permintaan Penegak Hukum',
-    email: 'lawenforcement@rumahpekerja.id',
-    desc: 'Subpoena dan permintaan resmi dari penegak hukum dengan dokumentasi lengkap.',
-  },
-  {
-    label: 'Keamanan',
-    email: 'security@rumahpekerja.id',
-    desc: 'Laporan kerentanan dan insiden keamanan. PGP key tersedia atas permintaan.',
-  },
-]
-
 export function LegalContact() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.legal.contact
+
+  const LEGAL_CONTACTS = [
+    {
+      label: s.contact1Label,
+      email: 'legal@rumahpekerja.id',
+      desc: s.contact1Desc,
+    },
+    {
+      label: s.contact2Label,
+      email: 'privacy@rumahpekerja.id',
+      desc: s.contact2Desc,
+    },
+    {
+      label: s.contact3Label,
+      email: 'lawenforcement@rumahpekerja.id',
+      desc: s.contact3Desc,
+    },
+    {
+      label: s.contact4Label,
+      email: 'security@rumahpekerja.id',
+      desc: s.contact4Desc,
+    },
+  ]
+
   return (
     <section
       className="bg-background py-20 md:py-24"
@@ -854,19 +860,17 @@ export function LegalContact() {
             <div className="mb-4 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Tim Hukum
+                {s.eyebrow}
               </span>
             </div>
             <h2
               id="legal-contact-heading"
               className="font-heading text-foreground text-3xl font-semibold tracking-tight md:text-4xl"
             >
-              Hubungi tim hukum kami
+              {s.heading}
             </h2>
             <p className="text-muted-foreground mt-3 max-w-2xl text-base">
-              Tim legal RPI dipimpin oleh in-house counsel dengan dukungan
-              kantor hukum independen untuk litigasi atau penanganan kasus
-              kompleks. Respons rata-rata 2 hari kerja.
+              {s.body}
             </p>
 
             <ul className="border-border mt-8 divide-border divide-y border-y">
@@ -896,12 +900,11 @@ export function LegalContact() {
 
             <div className="text-muted-foreground mt-8 flex flex-wrap items-center justify-between gap-4 text-xs">
               <span>
-                Untuk subpoena atau dokumen pengadilan resmi, kirim ke alamat
-                hukum di atas, perhatian: <em>Legal Department</em>.
+                {s.subpoenaNote} <em>Legal Department</em>.
               </span>
               <Button asChild variant="outline" size="sm">
                 <a href="mailto:legal@rumahpekerja.id">
-                  Email Tim Legal
+                  {s.ctaEmail}
                 </a>
               </Button>
             </div>

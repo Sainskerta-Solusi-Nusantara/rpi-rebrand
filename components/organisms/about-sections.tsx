@@ -21,6 +21,7 @@ import { Button } from '@/components/atoms/button'
 import { Avatar } from '@/components/atoms/avatar'
 import { AnimatedCounter } from '@/components/atoms/animated-counter'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -33,6 +34,8 @@ const fadeUp = {
 // ---------------------------------------------------------------------------
 
 export function AboutHero() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.about.hero
   return (
     <section
       className="relative isolate overflow-hidden bg-background"
@@ -64,7 +67,7 @@ export function AboutHero() {
         >
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Tentang Kami
+            {s.eyebrow}
           </span>
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
         </motion.div>
@@ -75,8 +78,8 @@ export function AboutHero() {
           transition={{ duration: 0.55, delay: 0.1 }}
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
-          Membangun masa depan{' '}
-          <span className="text-[color:var(--ring)]">pekerja Indonesia</span>.
+          {s.heading}{' '}
+          <span className="text-[color:var(--ring)]">{s.headingHighlight}</span>.
         </motion.h1>
 
         <motion.p
@@ -84,9 +87,7 @@ export function AboutHero() {
           transition={{ duration: 0.55, delay: 0.2 }}
           className="mx-auto mt-6 max-w-2xl text-pretty text-center text-base text-muted-foreground md:text-lg"
         >
-          Rumah Pekerja Indonesia adalah platform yang menghubungkan pekerja,
-          mitra perekrut, dan pelatihan keterampilan di seluruh Indonesia —
-          dengan adil, transparan, dan berpihak.
+          {s.body}
         </motion.p>
 
         <motion.div
@@ -96,14 +97,14 @@ export function AboutHero() {
         >
           <Button asChild size="lg">
             <Link href="/register">
-              Bergabung sebagai Pekerja
+              {s.ctaWorker}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link href="/mitra">
               <Building2 className="h-4 w-4" aria-hidden />
-              Bermitra dengan Kami
+              {s.ctaMitra}
             </Link>
           </Button>
         </motion.div>
@@ -117,6 +118,9 @@ export function AboutHero() {
 // ---------------------------------------------------------------------------
 
 export function AboutMission() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.about.mission
+  const tags = [s.tag1, s.tag2, s.tag3, s.tag4]
   return (
     <section
       className="bg-background py-16 md:py-24"
@@ -128,7 +132,7 @@ export function AboutMission() {
             <div className="mb-5 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Misi
+                {s.eyebrow}
               </span>
             </div>
             <motion.h2
@@ -137,7 +141,7 @@ export function AboutMission() {
               transition={{ duration: 0.5 }}
               className="font-heading text-balance text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl"
             >
-              Setiap pekerja berhak atas kesempatan yang adil.
+              {s.heading}
             </motion.h2>
           </div>
 
@@ -148,19 +152,16 @@ export function AboutMission() {
               className="space-y-5 text-base leading-relaxed text-muted-foreground md:text-lg"
             >
               <p>
-                Kami membangun infrastruktur ketenagakerjaan digital yang
-                membuat pekerja Indonesia lebih{' '}
-                <span className="text-foreground">terlihat</span>, lebih{' '}
-                <span className="text-foreground">terampil</span>, dan lebih{' '}
-                <span className="text-foreground">sejahtera</span>.
+                {s.body1Start}{' '}
+                <span className="text-foreground">{s.body1Terlihat}</span>{s.body1Comma1}{' '}
+                <span className="text-foreground">{s.body1Terampil}</span>{s.body1Comma2}{' '}
+                <span className="text-foreground">{s.body1Sejahtera}</span>{s.body1End}
               </p>
               <p>
-                Sekaligus memberi mitra perekrut alat yang adil, transparan,
-                dan efisien untuk menemukan talenta yang tepat — tanpa
-                perantara, tanpa biaya tersembunyi.
+                {s.body2}
               </p>
               <div className="flex flex-wrap gap-2 pt-2">
-                {['Adil', 'Transparan', 'Berpihak', 'Bertumbuh'].map((tag) => (
+                {tags.map((tag) => (
                   <span
                     key={tag}
                     className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground"
@@ -188,38 +189,37 @@ interface Milestone {
   icon: React.ComponentType<{ className?: string }>
 }
 
-const MILESTONES: Milestone[] = [
-  {
-    year: '2023',
-    title: 'Ide lahir',
-    description:
-      'Berawal dari keresahan akan jurang antara pekerja Indonesia dan kesempatan kerja yang layak.',
-    icon: Sparkles,
-  },
-  {
-    year: '2024',
-    title: 'Peluncuran beta multi-tenant',
-    description:
-      'Platform pertama kali dibuka untuk mitra pilihan dengan arsitektur multi-tenant per subdomain.',
-    icon: Rocket,
-  },
-  {
-    year: '2025',
-    title: 'Skala ekosistem',
-    description:
-      'Ribuan pekerja, ratusan mitra, dan kurikulum LMS bersertifikat mulai berjalan bersama.',
-    icon: TrendingUp,
-  },
-  {
-    year: '2026',
-    title: 'Standar baru',
-    description:
-      'Memperluas LMS bersertifikat, integrasi instansi nasional, dan pengembangan jalur karier transparan.',
-    icon: Award,
-  },
-]
-
 export function AboutJourney() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.about.journey
+
+  const MILESTONES: Milestone[] = [
+    {
+      year: '2023',
+      title: s.milestone1Title,
+      description: s.milestone1Desc,
+      icon: Sparkles,
+    },
+    {
+      year: '2024',
+      title: s.milestone2Title,
+      description: s.milestone2Desc,
+      icon: Rocket,
+    },
+    {
+      year: '2025',
+      title: s.milestone3Title,
+      description: s.milestone3Desc,
+      icon: TrendingUp,
+    },
+    {
+      year: '2026',
+      title: s.milestone4Title,
+      description: s.milestone4Desc,
+      icon: Award,
+    },
+  ]
+
   return (
     <section
       className="bg-muted/30 py-16 md:py-24"
@@ -230,7 +230,7 @@ export function AboutJourney() {
           <div className="mb-5 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Perjalanan Kami
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -240,7 +240,7 @@ export function AboutJourney() {
             transition={{ duration: 0.5 }}
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Dari satu ide menjadi sebuah gerakan.
+            {s.heading}
           </motion.h2>
         </div>
 
@@ -288,34 +288,33 @@ interface Value {
   description: string
 }
 
-const VALUES: Value[] = [
-  {
-    icon: ShieldCheck,
-    title: 'Adil',
-    description:
-      'Setiap lowongan dan mitra divalidasi. Tidak ada biaya tersembunyi, tidak ada perantara curang.',
-  },
-  {
-    icon: Eye,
-    title: 'Transparan',
-    description:
-      'Rentang gaji, lokasi kerja, dan persyaratan ditampilkan jelas di setiap lowongan.',
-  },
-  {
-    icon: Heart,
-    title: 'Berpihak pada pekerja',
-    description:
-      'Semua keputusan produk dievaluasi dari satu sudut pandang: apakah ini memberdayakan pekerja?',
-  },
-  {
-    icon: Compass,
-    title: 'Bertumbuh bersama',
-    description:
-      'Pelatihan, sertifikasi, dan jalur karier yang membuat pekerja terus berkembang sepanjang waktu.',
-  },
-]
-
 export function AboutValues() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.about.values
+
+  const VALUES: Value[] = [
+    {
+      icon: ShieldCheck,
+      title: s.value1Title,
+      description: s.value1Desc,
+    },
+    {
+      icon: Eye,
+      title: s.value2Title,
+      description: s.value2Desc,
+    },
+    {
+      icon: Heart,
+      title: s.value3Title,
+      description: s.value3Desc,
+    },
+    {
+      icon: Compass,
+      title: s.value4Title,
+      description: s.value4Desc,
+    },
+  ]
+
   return (
     <section
       className="bg-background py-16 md:py-24"
@@ -326,7 +325,7 @@ export function AboutValues() {
           <div className="mb-5 flex items-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Nilai Kami
+              {s.eyebrow}
             </span>
           </div>
           <motion.h2
@@ -335,7 +334,7 @@ export function AboutValues() {
             transition={{ duration: 0.5 }}
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Empat prinsip yang memandu setiap keputusan.
+            {s.heading}
           </motion.h2>
         </div>
 
@@ -370,7 +369,7 @@ export function AboutValues() {
         >
           <Button asChild variant="outline" size="lg">
             <Link href="/tentang/values">
-              Pelajari Nilai-Nilai Kami
+              {s.cta}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
@@ -397,26 +396,29 @@ export function AboutImpact({
   tenantsCount,
   coursesCount,
 }: AboutImpactProps) {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.about.impact
+
   const items = [
     {
       value: usersCount,
-      label: 'Pekerja terdaftar',
-      context: 'membangun karier bersama Rumah Pekerja Indonesia.',
+      label: s.label1,
+      context: s.context1,
     },
     {
       value: jobsCount,
-      label: 'Lowongan aktif',
-      context: 'tersebar di berbagai industri dan kota.',
+      label: s.label2,
+      context: s.context2,
     },
     {
       value: tenantsCount,
-      label: 'Mitra terverifikasi',
-      context: 'sudah memvalidasi izin dan legalitasnya.',
+      label: s.label3,
+      context: s.context3,
     },
     {
       value: coursesCount,
-      label: 'Kursus tersedia',
-      context: 'dengan sertifikat yang dapat diverifikasi.',
+      label: s.label4,
+      context: s.context4,
     },
   ]
 
@@ -430,7 +432,7 @@ export function AboutImpact({
           <div className="mb-5 flex items-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Dampak Hari Ini
+              {s.eyebrow}
             </span>
           </div>
           <motion.h2
@@ -439,7 +441,7 @@ export function AboutImpact({
             transition={{ duration: 0.5 }}
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Angka yang bercerita.
+            {s.heading}
           </motion.h2>
         </div>
 
@@ -477,14 +479,17 @@ interface TeamMember {
   focus: string
 }
 
-const TEAM: TeamMember[] = [
-  { role: 'Founder & CEO', focus: 'Visi produk & ekosistem' },
-  { role: 'CTO', focus: 'Arsitektur multi-tenant & data' },
-  { role: 'Head of Operations', focus: 'Mitra & verifikasi' },
-  { role: 'Head of Learning', focus: 'Kurikulum LMS & sertifikasi' },
-]
-
 export function AboutTeam() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.about.team
+
+  const TEAM: TeamMember[] = [
+    { role: s.member1Role, focus: s.member1Focus },
+    { role: s.member2Role, focus: s.member2Focus },
+    { role: s.member3Role, focus: s.member3Focus },
+    { role: s.member4Role, focus: s.member4Focus },
+  ]
+
   return (
     <section
       className="bg-background py-16 md:py-24"
@@ -495,7 +500,7 @@ export function AboutTeam() {
           <div className="mb-5 flex items-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Tim Kami
+              {s.eyebrow}
             </span>
           </div>
           <motion.h2
@@ -504,11 +509,10 @@ export function AboutTeam() {
             transition={{ duration: 0.5 }}
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Orang-orang di balik Rumah Pekerja.
+            {s.heading}
           </motion.h2>
           <p className="mt-3 text-base text-muted-foreground md:text-lg">
-            120 anggota tim, 8 departemen, tersebar di 6 kota — bersatu dalam
-            satu misi.
+            {s.body}
           </p>
         </div>
 
@@ -543,19 +547,19 @@ export function AboutTeam() {
         >
           <Button asChild variant="outline" size="lg">
             <Link href="/tentang/tim">
-              Bertemu Seluruh Tim
+              {s.ctaTeam}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link href="/tentang/karier">
-              Karier di RPI
+              {s.ctaKarier}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <Button asChild variant="ghost" size="lg">
             <Link href="/tentang/legal">
-              Legal & Kepatuhan
+              {s.ctaLegal}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>

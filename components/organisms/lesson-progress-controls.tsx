@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 
 import { markLessonComplete } from '@/lib/enrollments/actions'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export function LessonProgressControls({
   enrollmentId,
@@ -16,6 +17,8 @@ export function LessonProgressControls({
   completed: boolean
 }) {
   const router = useRouter()
+  const { t } = useI18n()
+  const fl = t.formsLearning.lessonProgress
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   // Optimistic local state — flips immediately, server-revalidate brings the
@@ -52,12 +55,10 @@ export function LessonProgressControls({
         </span>
         <span className="flex flex-col">
           <span className="text-foreground text-sm font-medium">
-            {optimisticDone ? 'Pelajaran selesai' : 'Tandai selesai'}
+            {optimisticDone ? fl.doneLabel : fl.markLabel}
           </span>
           <span className="text-muted-foreground text-xs">
-            {optimisticDone
-              ? 'Progres kursus diperbarui.'
-              : 'Centang setelah Anda menyelesaikan materi pelajaran ini.'}
+            {optimisticDone ? fl.doneDetail : fl.markDetail}
           </span>
         </span>
         <span className="ml-auto inline-flex items-center text-xs">

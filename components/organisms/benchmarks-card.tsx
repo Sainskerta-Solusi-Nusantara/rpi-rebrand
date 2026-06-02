@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Minus, HelpCircle } from 'lucide-react'
 import type { BenchmarkMetric } from '@/lib/benchmarks/queries'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 const numberFmt = new Intl.NumberFormat('id-ID', {
   maximumFractionDigits: 1,
@@ -9,11 +10,11 @@ const intFmt = new Intl.NumberFormat('id-ID', {
   maximumFractionDigits: 0,
 })
 
-function formatValue(value: number | null, unit: BenchmarkMetric['unit']): string {
+function formatValue(value: number | null, unit: BenchmarkMetric['unit'], daysLabel: string): string {
   if (value == null) return '—'
   switch (unit) {
     case 'days':
-      return `${numberFmt.format(value)} hari`
+      return daysLabel.replace('{value}', numberFmt.format(value))
     case 'percent':
       return `${numberFmt.format(value)}%`
     case 'count':
@@ -25,10 +26,10 @@ function formatValue(value: number | null, unit: BenchmarkMetric['unit']): strin
   }
 }
 
-function formatPlatform(value: number | null, unit: BenchmarkMetric['unit']): string {
+function formatPlatform(value: number | null, unit: BenchmarkMetric['unit'], marketLabel: string, daysLabel: string): string {
   if (value == null) return '—'
-  if (unit === 'idr_diff') return 'pasar'
-  return formatValue(value, unit)
+  if (unit === 'idr_diff') return marketLabel
+  return formatValue(value, unit, daysLabel)
 }
 
 const STATUS_TONE: Record<BenchmarkMetric['status'], string> = {
@@ -36,13 +37,6 @@ const STATUS_TONE: Record<BenchmarkMetric['status'], string> = {
   at: 'bg-muted text-muted-foreground border-border',
   below: 'bg-rose-100 text-rose-800 border-rose-200',
   unknown: 'bg-muted text-muted-foreground border-border',
-}
-
-const STATUS_LABEL: Record<BenchmarkMetric['status'], string> = {
-  above: 'Di atas median',
-  at: 'Sebanding',
-  below: 'Di bawah median',
-  unknown: 'Belum cukup data',
 }
 
 const STATUS_BAR: Record<BenchmarkMetric['status'], string> = {
@@ -62,7 +56,17 @@ function StatusIcon({ status }: { status: BenchmarkMetric['status'] }) {
   return <HelpCircle className="h-3 w-3" aria-hidden="true" />
 }
 
-export function BenchmarksCard({ metric }: { metric: BenchmarkMetric }) {
+export async function BenchmarksCard({ metric }: { metric: BenchmarkMetric }) {
+  const t = await getServerT()
+  const b = t.formsInsights.benchmarks
+
+  const STATUS_LABEL: Record<BenchmarkMetric['status'], string> = {
+    above: b.statusAbove,
+    at: b.statusAt,
+    below: b.statusBelow,
+    unknown: b.statusUnknown,
+  }
+
   const tone = STATUS_TONE[metric.status]
   const label = STATUS_LABEL[metric.status]
   const isUnknown = metric.status === 'unknown' || metric.tenantValue == null
@@ -103,8 +107,8 @@ export function BenchmarksCard({ metric }: { metric: BenchmarkMetric }) {
           <h3 className="font-heading text-sm font-medium">{metric.label}</h3>
           <p className="text-muted-foreground mt-0.5 text-xs">
             {metric.direction === 'higher_better'
-              ? 'Lebih tinggi = lebih baik'
-              : 'Lebih rendah = lebih baik'}
+              ? b.higherBetter
+              : b.lowerBetter}
           </p>
         </div>
         <span
@@ -117,16 +121,16 @@ export function BenchmarksCard({ metric }: { metric: BenchmarkMetric }) {
 
       {isUnknown ? (
         <div className="flex flex-1 items-center justify-center py-6">
-          <p className="text-muted-foreground text-sm">Data tidak cukup</p>
+          <p className="text-muted-foreground text-sm">{b.noData}</p>
         </div>
       ) : (
         <>
           <div className="flex items-baseline gap-2">
             <span className="font-heading text-2xl tabular-nums">
-              {formatValue(metric.tenantValue, metric.unit)}
+              {formatValue(metric.tenantValue, metric.unit, b.unitDays)}
             </span>
             <span className="text-muted-foreground text-xs">
-              vs {formatPlatform(metric.platformMedian, metric.unit)}
+              vs {formatPlatform(metric.platformMedian, metric.unit, b.unitIdrDiffMarket, b.unitDays)}
             </span>
           </div>
 
@@ -134,9 +138,9 @@ export function BenchmarksCard({ metric }: { metric: BenchmarkMetric }) {
           <div className="space-y-1.5" aria-hidden="true">
             <div>
               <div className="text-muted-foreground mb-0.5 flex justify-between text-[10px]">
-                <span>Tenant</span>
+                <span>{b.labelTenant}</span>
                 <span className="tabular-nums">
-                  {formatValue(metric.tenantValue, metric.unit)}
+                  {formatValue(metric.tenantValue, metric.unit, b.unitDays)}
                 </span>
               </div>
               <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
@@ -148,9 +152,9 @@ export function BenchmarksCard({ metric }: { metric: BenchmarkMetric }) {
             </div>
             <div>
               <div className="text-muted-foreground mb-0.5 flex justify-between text-[10px]">
-                <span>Median platform</span>
+                <span>{b.labelPlatformMedian}</span>
                 <span className="tabular-nums">
-                  {formatPlatform(metric.platformMedian, metric.unit)}
+                  {formatPlatform(metric.platformMedian, metric.unit, b.unitIdrDiffMarket, b.unitDays)}
                 </span>
               </div>
               <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
@@ -165,8 +169,8 @@ export function BenchmarksCard({ metric }: { metric: BenchmarkMetric }) {
       )}
 
       <footer className="text-muted-foreground border-border/60 mt-auto border-t pt-2 text-[10px]">
-        Sampel: {intFmt.format(metric.sampleSize)} entri
-        {metric.sampleSize < 5 ? ' · minimum 5 untuk pembandingan' : ''}
+        {b.sampleSize.replace('{count}', intFmt.format(metric.sampleSize))}
+        {metric.sampleSize < 5 ? b.sampleMinimum : ''}
       </footer>
     </article>
   )

@@ -9,6 +9,7 @@ import {
   markMentionAsRead,
 } from '@/lib/applications/note-actions'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type MentionInboxRow = {
   id: string
@@ -43,6 +44,8 @@ function preview(text: string, max = 160): string {
  */
 export function MentionsInbox({ initial }: MentionsInboxProps) {
   const router = useRouter()
+  const { t } = useI18n()
+  const tn = t.formsNotif.mentionsInbox
   const [rows, setRows] = React.useState<MentionInboxRow[]>(initial)
   const [pending, startTransition] = React.useTransition()
 
@@ -96,11 +99,10 @@ export function MentionsInbox({ initial }: MentionsInboxProps) {
           aria-hidden="true"
         />
         <p className="text-foreground mt-3 text-sm font-medium">
-          Belum ada mention
+          {tn.emptyTitle}
         </p>
         <p className="text-muted-foreground mt-1 text-xs">
-          Anda akan melihatnya di sini ketika anggota tim menyebut Anda di
-          catatan lamaran.
+          {tn.emptyDesc}
         </p>
       </div>
     )
@@ -111,8 +113,8 @@ export function MentionsInbox({ initial }: MentionsInboxProps) {
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-sm">
           {unreadCount > 0
-            ? `${unreadCount} mention belum dibaca`
-            : 'Semua mention sudah dibaca'}
+            ? tn.unreadSummary.replace('{x}', String(unreadCount))
+            : tn.allRead}
         </p>
         <button
           type="button"
@@ -121,7 +123,7 @@ export function MentionsInbox({ initial }: MentionsInboxProps) {
           className="text-secondary inline-flex items-center gap-1 text-xs hover:underline disabled:cursor-not-allowed disabled:opacity-50"
         >
           <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
-          Tandai semua dibaca
+          {tn.markAllRead}
         </button>
       </div>
 
@@ -155,11 +157,11 @@ export function MentionsInbox({ initial }: MentionsInboxProps) {
               <div className="min-w-0 flex-1 space-y-1">
                 <p className="text-sm">
                   <span className="font-medium">
-                    Anda disebut oleh {r.authorName}
+                    {tn.mentionedBy.replace('{authorName}', r.authorName)}
                   </span>
                   <span className="text-muted-foreground">
                     {' '}
-                    di lamaran {r.candidateName} — {r.jobTitle}
+                    {tn.mentionContext.replace('{candidateName}', r.candidateName).replace('{jobTitle}', r.jobTitle)}
                   </span>
                 </p>
                 <p className="text-muted-foreground line-clamp-2 break-words text-sm">
@@ -176,7 +178,7 @@ export function MentionsInbox({ initial }: MentionsInboxProps) {
                     href={href as any}
                     className="text-secondary ml-auto hover:underline"
                   >
-                    Buka lamaran
+                    {tn.openApplication}
                   </Link>
                 </div>
               </div>

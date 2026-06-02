@@ -14,6 +14,7 @@ import {
   MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface JobItem {
   id: string
@@ -161,29 +162,39 @@ function formatSalaryShort(
   }
 
   if (lo !== null && hi !== null && lo >= 1_000_000 && hi >= 1_000_000) {
-    return `Rp ${toJt(lo)}–${toJt(hi)} Jt`
+    return `Rp ${toJt(lo)}-${toJt(hi)} Jt`
   }
   const single = (lo ?? hi) as number
   return `Rp ${toJt(single)} Jt`
 }
 
-function relativeTimeId(date: Date | string | null | undefined): string {
-  if (!date) return 'Baru'
+type CarouselStrings = {
+  relativeNew: string
+  relativeHours: string
+  relativeDays: string
+  relativeWeeks: string
+}
+
+function relativeTime(date: Date | string | null | undefined, strings: CarouselStrings): string {
+  if (!date) return strings.relativeNew
   const d = typeof date === 'string' ? new Date(date) : date
-  if (Number.isNaN(d.getTime())) return 'Baru'
+  if (Number.isNaN(d.getTime())) return strings.relativeNew
 
   const diffMs = Date.now() - d.getTime()
   const min = Math.floor(diffMs / 60000)
   const hr = Math.floor(min / 60)
   const day = Math.floor(hr / 24)
 
-  if (min < 60) return 'Baru'
-  if (hr < 24) return `${hr} jam lalu`
-  if (day < 7) return `${day} hari lalu`
-  return `${Math.floor(day / 7)} minggu lalu`
+  if (min < 60) return strings.relativeNew
+  if (hr < 24) return strings.relativeHours.replace('{hr}', String(hr))
+  if (day < 7) return strings.relativeDays.replace('{day}', String(day))
+  return strings.relativeWeeks.replace('{week}', String(Math.floor(day / 7)))
 }
 
 export function JobsCarousel({ jobs, categories, className }: JobsCarouselProps) {
+  const { t } = useI18n()
+  const tc = t.formsTables.jobsCarousel
+
   const data = jobs && jobs.length > 0 ? jobs : PLACEHOLDER_JOBS
   const cats =
     categories && categories.length > 0
@@ -202,20 +213,20 @@ export function JobsCarousel({ jobs, categories, className }: JobsCarouselProps)
         <div className="mb-6 flex items-center gap-3">
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Lowongan
+            {tc.eyebrow}
           </span>
         </div>
 
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-            Yang sedang dicari minggu ini.
+            {tc.heading}
           </h2>
           <div className="flex items-center gap-3">
             <Link
               href="/jobs"
               className="group inline-flex items-center gap-1.5 text-sm font-medium text-foreground transition-colors hover:text-[color:var(--ring)]"
             >
-              Lihat semua lowongan
+              {tc.viewAll}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <div className="flex items-center gap-2">
@@ -323,10 +334,10 @@ export function JobsCarousel({ jobs, categories, className }: JobsCarouselProps)
                 <div className="mt-5 flex items-center justify-between border-t border-border/60 pt-3 text-xs">
                   <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" aria-hidden />
-                    {relativeTimeId(job.publishedAt)}
+                    {relativeTime(job.publishedAt, tc)}
                   </span>
                   <span className="relative z-20 inline-flex items-center gap-1 font-medium text-foreground transition-colors group-hover:text-[color:var(--ring)]">
-                    Lihat detail
+                    {tc.viewDetail}
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </div>

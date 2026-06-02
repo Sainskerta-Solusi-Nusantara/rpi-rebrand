@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 type SidebarGroup = {
   label: string
@@ -32,7 +33,7 @@ function ToggleRow({ label, count, href, active }: SidebarGroup) {
   )
 }
 
-function FilterGroup({ title, items }: { title: string; items: SidebarGroup[] }) {
+function FilterGroup({ title, items, emptyLabel }: { title: string; items: SidebarGroup[]; emptyLabel: string }) {
   return (
     <div>
       <h2 className="text-muted-foreground mb-2 text-[11px] font-semibold uppercase tracking-wider">
@@ -40,7 +41,7 @@ function FilterGroup({ title, items }: { title: string; items: SidebarGroup[] })
       </h2>
       <div className="space-y-1">
         {items.length === 0 ? (
-          <p className="text-muted-foreground text-xs">Belum ada data.</p>
+          <p className="text-muted-foreground text-xs">{emptyLabel}</p>
         ) : (
           items.map((item) => (
             <ToggleRow
@@ -57,18 +58,21 @@ function FilterGroup({ title, items }: { title: string; items: SidebarGroup[] })
   )
 }
 
-export default function CoursesSidebar({
+export default async function CoursesSidebar({
   levels,
   durations,
   tenants,
   instructors,
 }: CoursesSidebarProps) {
+  const t = await getServerT()
+  const tc = t.formsMisc3.coursesSidebar
+
   return (
     <aside aria-label="Filter" className="space-y-8">
-      <FilterGroup title="Tingkat" items={levels} />
-      <FilterGroup title="Durasi" items={durations} />
-      <FilterGroup title="Mitra" items={tenants} />
-      <FilterGroup title="Instruktur" items={instructors} />
+      <FilterGroup title={tc.filterLevel} items={levels} emptyLabel={tc.emptyData} />
+      <FilterGroup title={tc.filterDuration} items={durations} emptyLabel={tc.emptyData} />
+      <FilterGroup title={tc.filterPartner} items={tenants} emptyLabel={tc.emptyData} />
+      <FilterGroup title={tc.filterInstructor} items={instructors} emptyLabel={tc.emptyData} />
     </aside>
   )
 }

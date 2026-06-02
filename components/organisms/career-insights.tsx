@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Calendar, Clock, ArrowRight, Bookmark, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface CareerInsightsProps {
   className?: string
@@ -78,6 +79,9 @@ const ARTICLES: Article[] = [
 ]
 
 export function CareerInsights({ className }: CareerInsightsProps): JSX.Element {
+  const { t } = useI18n()
+  const ci = t.formsInsights.careerInsights
+
   return (
     <section className={cn('py-20 md:py-28 bg-muted/30', className)}>
       <div className="max-w-7xl mx-auto px-6">
@@ -92,13 +96,13 @@ export function CareerInsights({ className }: CareerInsightsProps): JSX.Element 
           >
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-semibold uppercase tracking-wider">
               <BookOpen className="w-3.5 h-3.5" />
-              Insight Karier
+              {ci.badge}
             </span>
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mt-4">
-              Tips & Strategi untuk Karier yang Lebih Cerah
+              {ci.heading}
             </h2>
             <p className="text-muted-foreground mt-3 text-base md:text-lg">
-              Artikel pilihan dari para ahli karier, recruiter, dan profesional sukses.
+              {ci.subheading}
             </p>
           </motion.div>
 
@@ -112,7 +116,7 @@ export function CareerInsights({ className }: CareerInsightsProps): JSX.Element 
               href="/blog"
               className="inline-flex items-center gap-2 text-secondary font-semibold hover:gap-3 transition-all"
             >
-              Lihat Semua Artikel
+              {ci.viewAll}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </motion.div>
@@ -163,7 +167,7 @@ export function CareerInsights({ className }: CareerInsightsProps): JSX.Element 
                     </span>
                   </div>
                   <span className="inline-flex items-center gap-2 text-white font-semibold group-hover:gap-3 transition-all">
-                    Baca
+                    {ci.readLink}
                     <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
@@ -201,8 +205,7 @@ export function CareerInsights({ className }: CareerInsightsProps): JSX.Element 
                     {article.title}
                   </h3>
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
-                    Pelajari strategi praktis dan tips actionable dari para ahli untuk
-                    mengembangkan karier Anda ke level berikutnya.
+                    {ci.articleTeaser}
                   </p>
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">

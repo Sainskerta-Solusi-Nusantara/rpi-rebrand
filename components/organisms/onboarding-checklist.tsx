@@ -7,6 +7,7 @@ import { ArrowRight, Check, Circle, PartyPopper, Wand2, X } from 'lucide-react'
 import type { ChecklistStep } from '@/lib/onboarding/checklist'
 import { skipOnboarding } from '@/lib/onboarding/wizard-actions'
 import { MAX_WIZARD_STEP_INDEX } from '@/lib/onboarding/wizard-config'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const DISMISS_KEY = 'rpi_onboarding_dismissed'
 
@@ -23,6 +24,9 @@ export function OnboardingChecklist({
   wizardStep,
   wizardCompleted,
 }: OnboardingChecklistProps) {
+  const { t } = useI18n()
+  const s = t.formsMisc4.onboardingChecklist
+
   const router = useRouter()
   const [closing, setClosing] = React.useState(false)
   const [closeError, setCloseError] = React.useState<string | null>(null)
@@ -41,7 +45,7 @@ export function OnboardingChecklist({
   }, [])
 
   const total = steps.length
-  const doneCount = steps.filter((s) => s.done).length
+  const doneCount = steps.filter((step) => step.done).length
   const percent = total > 0 ? Math.round((doneCount / total) * 100) : 0
   const allDone = total > 0 && doneCount === total
 
@@ -71,7 +75,7 @@ export function OnboardingChecklist({
         }
         router.refresh()
       } catch {
-        setCloseError('Terjadi kesalahan. Coba lagi.')
+        setCloseError(s.closeError)
         setClosing(false)
       }
     })()
@@ -85,15 +89,17 @@ export function OnboardingChecklist({
 
   return (
     <section
-      aria-label="Daftar onboarding"
+      aria-label={s.ariaSection}
       className="border-border bg-card mb-6 rounded-2xl border p-6"
     >
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="font-heading text-lg">Selesaikan pengaturan akun</h2>
+            <h2 className="font-heading text-lg">{s.heading}</h2>
             <span className="text-muted-foreground text-sm font-medium">
-              {doneCount} dari {total} selesai
+              {s.progress
+                .replace('{done}', String(doneCount))
+                .replace('{total}', String(total))}
             </span>
           </div>
           <div className="bg-muted mt-3 h-2 w-full overflow-hidden rounded-full">
@@ -110,7 +116,7 @@ export function OnboardingChecklist({
         <button
           type="button"
           onClick={handleDismiss}
-          aria-label="Tutup daftar onboarding"
+          aria-label={s.ariaDismiss}
           className="text-muted-foreground hover:bg-muted hover:text-foreground -mt-1 -mr-1 rounded-full p-1 transition-colors"
         >
           <X className="h-4 w-4" />
@@ -146,7 +152,7 @@ export function OnboardingChecklist({
               <Link
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 href={step.href as any}
-                aria-label={`Buka ${step.label}`}
+                aria-label={s.ariaOpenStep.replace('{label}', step.label)}
                 className="text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 rounded-full p-2 transition-colors"
               >
                 <ArrowRight className="h-4 w-4" />
@@ -159,7 +165,7 @@ export function OnboardingChecklist({
       {percent > 0 && percent < 100 && (
         <div className="text-muted-foreground mt-4 flex items-center gap-2 text-xs">
           <PartyPopper className="h-3.5 w-3.5" />
-          <span>Bagus! Lanjutkan untuk menyelesaikan semua langkah.</span>
+          <span>{s.encouragement}</span>
         </div>
       )}
 
@@ -171,7 +177,7 @@ export function OnboardingChecklist({
             className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition"
           >
             <Wand2 className="h-4 w-4" aria-hidden="true" />
-            Buka wizard onboarding
+            {s.openWizard}
           </Link>
         ) : (
           <button
@@ -180,7 +186,7 @@ export function OnboardingChecklist({
             disabled={closing}
             className="text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium underline-offset-4 transition hover:underline disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {closing ? 'Memuat…' : 'Tutup wizard'}
+            {closing ? s.closing : s.closeWizard}
           </button>
         )}
         {closeError && (

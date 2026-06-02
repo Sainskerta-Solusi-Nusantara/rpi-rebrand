@@ -17,6 +17,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { normalizeSkill, searchSkills } from '@/lib/skills/search'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const chipClass =
   'inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground'
@@ -32,7 +33,7 @@ export function SkillAutocomplete({
   value,
   onChange,
   disabled,
-  placeholder = 'Ketik untuk mencari skill, Enter untuk menambah',
+  placeholder,
 }: {
   /** Optional hidden form field name (comma-joined). */
   name?: string
@@ -41,6 +42,11 @@ export function SkillAutocomplete({
   disabled?: boolean
   placeholder?: string
 }) {
+  const { t } = useI18n()
+  const s = t.formsMisc4.skillAutocomplete
+
+  const resolvedPlaceholder = placeholder ?? s.placeholder
+
   const [query, setQuery] = useState('')
   const [debounced, setDebounced] = useState('')
   const [open, setOpen] = useState(false)
@@ -50,13 +56,13 @@ export function SkillAutocomplete({
 
   // 300ms debounce on the query → suggestion search.
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(query), 300)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setDebounced(query), 300)
+    return () => clearTimeout(timer)
   }, [query])
 
   const suggestions = useMemo(() => {
     if (!debounced.trim()) return []
-    return searchSkills(debounced, 8).filter((s) => !value.includes(s))
+    return searchSkills(debounced, 8).filter((sk) => !value.includes(sk))
   }, [debounced, value])
 
   useEffect(() => {
@@ -79,7 +85,7 @@ export function SkillAutocomplete({
   }
 
   function removeSkill(slug: string) {
-    onChange(value.filter((s) => s !== slug))
+    onChange(value.filter((sk) => sk !== slug))
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -126,15 +132,15 @@ export function SkillAutocomplete({
   return (
     <div className="relative">
       {value.length > 0 && (
-        <ul className="mb-2 flex flex-wrap gap-1.5" aria-label="Skill terpilih">
-          {value.map((s) => (
-            <li key={s} className={chipClass}>
-              <span>{s}</span>
+        <ul className="mb-2 flex flex-wrap gap-1.5" aria-label={s.ariaSelectedList}>
+          {value.map((sk) => (
+            <li key={sk} className={chipClass}>
+              <span>{sk}</span>
               <button
                 type="button"
-                onClick={() => removeSkill(s)}
+                onClick={() => removeSkill(sk)}
                 disabled={disabled}
-                aria-label={`Hapus ${s}`}
+                aria-label={s.ariaRemoveChip.replace('{skill}', sk)}
                 className={chipBtnClass}
               >
                 ×
@@ -159,7 +165,7 @@ export function SkillAutocomplete({
         }}
         onKeyDown={onKeyDown}
         disabled={disabled}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         className={inputClass}
         aria-autocomplete="list"
         aria-expanded={open && suggestions.length > 0}
@@ -172,15 +178,15 @@ export function SkillAutocomplete({
           role="listbox"
           className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-background py-1 shadow-md"
         >
-          {suggestions.map((s, i) => (
+          {suggestions.map((sk, i) => (
             <li
-              key={s}
+              key={sk}
               role="option"
               aria-selected={i === activeIndex}
               onMouseDown={(e) => {
                 // Prevent input blur racing with click.
                 e.preventDefault()
-                addSkill(s)
+                addSkill(sk)
                 inputRef.current?.focus()
               }}
               onMouseEnter={() => setActiveIndex(i)}
@@ -190,7 +196,7 @@ export function SkillAutocomplete({
                   : 'text-foreground hover:bg-muted/60'
               }`}
             >
-              {s}
+              {sk}
             </li>
           ))}
         </ul>

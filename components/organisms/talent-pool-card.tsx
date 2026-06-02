@@ -3,6 +3,7 @@ import { MapPin, FileText, ExternalLink, Briefcase } from 'lucide-react'
 import type { TalentPoolCandidate } from '@/lib/talent-pool/queries'
 import { TalentPoolOutreachModal } from './talent-pool-outreach-modal'
 import { MatchScoreBadge } from './match-score-badge'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
 
@@ -15,7 +16,7 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
  * is no place email/phone could leak — both fields are absent from that
  * type by design (see lib/talent-pool/queries.ts).
  */
-export function TalentPoolCard({
+export async function TalentPoolCard({
   candidate,
   tenantSlug,
   avgMatchScore,
@@ -28,6 +29,9 @@ export function TalentPoolCard({
    */
   avgMatchScore?: number | null
 }) {
+  const t = await getServerT()
+  const tc = t.formsInsights.talentPoolCard
+
   const initials = candidate.displayName
     .split(/\s+/)
     .filter(Boolean)
@@ -68,7 +72,7 @@ export function TalentPoolCard({
         {typeof avgMatchScore === 'number' ? (
           <div
             className="shrink-0"
-            title="Rata-rata skor kecocokan dari lamaran sebelumnya"
+            title={tc.avgMatchScoreTitle}
           >
             <MatchScoreBadge score={avgMatchScore} size="sm" />
           </div>
@@ -86,14 +90,14 @@ export function TalentPoolCard({
           <Briefcase className="h-3 w-3" aria-hidden="true" />
           <span>
             {candidate.experienceYears > 0
-              ? `${candidate.experienceYears} tahun pengalaman`
-              : 'Pengalaman <1 tahun'}
+              ? tc.experienceYears.replace('{years}', String(candidate.experienceYears))
+              : tc.experienceLessThanOne}
           </span>
         </div>
         {candidate.hasResume && (
           <div className="flex items-center gap-1">
             <FileText className="h-3 w-3" aria-hidden="true" />
-            <span>CV tersedia</span>
+            <span>{tc.resumeAvailable}</span>
           </div>
         )}
       </dl>
@@ -112,7 +116,7 @@ export function TalentPoolCard({
       )}
 
       <p className="text-muted-foreground mt-auto text-[11px]">
-        Diperbarui {dateFmt.format(candidate.updatedAt)}
+        {tc.updatedAt.replace('{date}', dateFmt.format(candidate.updatedAt))}
       </p>
 
       <footer className="flex items-center justify-between gap-2">
@@ -122,7 +126,7 @@ export function TalentPoolCard({
           className="text-foreground hover:text-primary inline-flex items-center gap-1 text-sm font-medium"
         >
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-          Lihat profil
+          {tc.viewProfile}
         </Link>
         <TalentPoolOutreachModal
           tenantSlug={tenantSlug}

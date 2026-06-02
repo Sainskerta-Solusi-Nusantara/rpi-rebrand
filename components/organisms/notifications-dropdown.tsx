@@ -5,6 +5,7 @@ import * as Popover from '@radix-ui/react-popover'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export interface NotificationItemData {
   id: string
@@ -33,6 +34,8 @@ export function NotificationsDropdown({
   viewAllHref = '/dashboard/notifications',
   className,
 }: NotificationsDropdownProps) {
+  const { t } = useI18n()
+  const tn = t.formsNotif.notificationsDropdown
   const unreadCount = items.filter((i) => i.unread).length
 
   return (
@@ -63,21 +66,21 @@ export function NotificationsDropdown({
           )}
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <p className="font-medium">Notifikasi</p>
+            <p className="font-medium">{tn.heading}</p>
             <button
               type="button"
               onClick={onMarkAllRead}
               className="text-xs text-secondary hover:underline disabled:opacity-50"
               disabled={unreadCount === 0}
             >
-              Tandai semua dibaca
+              {tn.markAllRead}
             </button>
           </div>
 
           <ul className="max-h-96 overflow-y-auto divide-y divide-border">
             {items.length === 0 ? (
               <li className="px-4 py-10 text-center text-sm text-muted-foreground">
-                Tidak ada notifikasi.
+                {tn.empty}
               </li>
             ) : (
               items.map((n) => {
@@ -113,7 +116,7 @@ export function NotificationsDropdown({
           <div className="border-t border-border px-4 py-2 text-center">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <Link href={viewAllHref as any} className="text-sm text-secondary hover:underline">
-              Lihat semua
+              {tn.viewAll}
             </Link>
           </div>
         </Popover.Content>

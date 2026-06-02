@@ -7,14 +7,11 @@ import {
   AuditRetentionForm,
   DeleteRetentionPolicyButton,
   PreviewImpactButton,
-  RETENTION_DAY_OPTIONS,
 } from '@/components/organisms/audit-retention-form'
 
 export const metadata = { title: 'Retensi Audit Tenant — Dasbor' }
 
 function retentionLabel(days: number): string {
-  const match = RETENTION_DAY_OPTIONS.find((o) => o.value === days)
-  if (match) return match.label
   return days === 0 ? 'Selamanya' : `${days} hari`
 }
 

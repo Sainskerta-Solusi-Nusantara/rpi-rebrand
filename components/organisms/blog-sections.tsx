@@ -86,6 +86,7 @@ export type BlogHeroProps = {
 export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHeroProps) {
   const { t } = useI18n()
   const tc = t.formsPublicSections.blog
+  const tl = t.formsMisc3.blogLeftover
 
   return (
     <section
@@ -129,9 +130,9 @@ export function BlogHero({ activeCategory, activeQuery, categoryHrefs }: BlogHer
           transition={{ duration: 0.55, delay: 0.1 }}
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
-          Cerita, riset, dan{' '}
+          {tl.headingPrefix}{' '}
           <span className="text-[color:var(--ring)]">{tc.hero.headingHighlight}</span>
-          {' '}dari dunia kerja Indonesia.
+          {' '}{tl.headingSuffix}
         </motion.h1>
 
         <motion.p
@@ -352,6 +353,7 @@ export function BlogGrid({
 }: BlogGridProps) {
   const { t } = useI18n()
   const tc = t.formsPublicSections.blog
+  const tl = t.formsMisc3.blogLeftover
 
   const activeCategoryLabel =
     activeCategory !== 'all'
@@ -378,7 +380,7 @@ export function BlogGrid({
                 tc.grid.countCategory.replace('{category}', activeCategoryLabel)}
               {activeQuery && (
                 <>
-                  {' '}untuk &ldquo;
+                  {' '}{tl.searchResultFor} &ldquo;
                   <strong className="text-foreground font-medium">
                     {activeQuery}
                   </strong>
@@ -535,6 +537,9 @@ export function BlogGrid({
 }
 
 function ArticleCard({ article }: { article: Article }) {
+  const { t } = useI18n()
+  const tl = t.formsMisc3.blogLeftover
+
   return (
     <Link
       href={`/blog/${article.slug}`}
@@ -567,7 +572,7 @@ function ArticleCard({ article }: { article: Article }) {
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Clock className="h-3 w-3" aria-hidden />
-            {article.readMin} min
+            {tl.articleReadMin.replace('{n}', String(article.readMin))}
           </span>
         </div>
       </div>

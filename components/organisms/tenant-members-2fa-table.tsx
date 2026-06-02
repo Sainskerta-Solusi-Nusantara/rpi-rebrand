@@ -1,6 +1,7 @@
 import { ShieldCheck, ShieldX } from 'lucide-react'
 import { getTenantMembersTwoFactorStatus } from '@/lib/tenants/tenant-2fa-queries'
 import { NudgeMemberButton } from '@/components/organisms/tenant-two-factor-policy'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', {
   dateStyle: 'medium',
@@ -28,10 +29,12 @@ export async function TenantMembers2faTable({
   tenantSlug: string
   canNudge: boolean
 }) {
+  const t = await getServerT()
+  const ns = t.formsTenantAdmin2.members2faTable
   const members = await getTenantMembersTwoFactorStatus(tenantId)
 
   if (members.length === 0) {
-    return <p className="text-muted-foreground text-sm">Belum ada anggota.</p>
+    return <p className="text-muted-foreground text-sm">{ns.emptyMembers}</p>
   }
 
   return (
@@ -39,11 +42,11 @@ export async function TenantMembers2faTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-            <th className="py-2 pr-3 font-medium">Anggota</th>
-            <th className="py-2 pr-3 font-medium">Peran</th>
-            <th className="py-2 pr-3 font-medium">Status 2FA</th>
-            <th className="py-2 pr-3 font-medium">Aktif sejak</th>
-            <th className="py-2 font-medium text-right">Aksi</th>
+            <th className="py-2 pr-3 font-medium">{ns.thMember}</th>
+            <th className="py-2 pr-3 font-medium">{ns.thRole}</th>
+            <th className="py-2 pr-3 font-medium">{ns.th2faStatus}</th>
+            <th className="py-2 pr-3 font-medium">{ns.thActiveSince}</th>
+            <th className="py-2 font-medium text-right">{ns.thAction}</th>
           </tr>
         </thead>
         <tbody>
@@ -60,12 +63,12 @@ export async function TenantMembers2faTable({
                 {m.totpEnabled ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
                     <ShieldCheck className="h-3 w-3" aria-hidden="true" />
-                    Aktif
+                    {ns.statusActive}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
                     <ShieldX className="h-3 w-3" aria-hidden="true" />
-                    Belum aktif
+                    {ns.statusInactive}
                   </span>
                 )}
               </td>

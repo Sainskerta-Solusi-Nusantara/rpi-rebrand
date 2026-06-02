@@ -19,6 +19,7 @@ import type {
   Suggestion,
   SuggestionCategory,
 } from '@/lib/resume/analyzer'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Props = {
   resumeId: string
@@ -26,23 +27,6 @@ type Props = {
 }
 
 type Filter = 'all' | Severity
-
-const SEVERITY_LABEL: Record<Severity, string> = {
-  high: 'Tinggi',
-  medium: 'Sedang',
-  low: 'Rendah',
-}
-
-const CATEGORY_LABEL: Record<SuggestionCategory | 'summary', string> = {
-  length: 'Panjang',
-  phrasing: 'Frasa',
-  completeness: 'Kelengkapan',
-  skills: 'Keahlian',
-  achievements: 'Pencapaian',
-  consistency: 'Konsistensi',
-  contact: 'Kontak',
-  summary: 'Ringkasan',
-}
 
 function scoreColor(score: number): {
   bar: string
@@ -91,6 +75,26 @@ function isAutoFixable(id: string): boolean {
 }
 
 export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
+  const { t } = useI18n()
+  const rs = t.formsInsights.resumeSuggestions
+
+  const SEVERITY_LABEL: Record<Severity, string> = {
+    high: rs.severityHigh,
+    medium: rs.severityMedium,
+    low: rs.severityLow,
+  }
+
+  const CATEGORY_LABEL: Record<SuggestionCategory | 'summary', string> = {
+    length: rs.categoryLength,
+    phrasing: rs.categoryPhrasing,
+    completeness: rs.categoryCompleteness,
+    skills: rs.categorySkills,
+    achievements: rs.categoryAchievements,
+    consistency: rs.categoryConsistency,
+    contact: rs.categoryContact,
+    summary: rs.categorySummary,
+  }
+
   const [analysis, setAnalysis] = useState<AnalysisResult>(initialAnalysis)
   const [filter, setFilter] = useState<Filter>('all')
   const [isReanalyzing, startReanalyze] = useTransition()
@@ -136,7 +140,7 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
         return
       }
       if (r.data) setAnalysis(r.data)
-      setBanner({ kind: 'success', text: 'Saran berhasil diterapkan.' })
+      setBanner({ kind: 'success', text: rs.successApply })
     })
   }
 
@@ -149,11 +153,10 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
         <div>
           <h2 className="font-heading flex items-center gap-2 text-lg">
             <Sparkles className="h-5 w-5 text-amber-500" aria-hidden />
-            Saran AI untuk CV Anda
+            {rs.heading}
           </h2>
           <p className="text-muted-foreground text-sm">
-            Analisis otomatis berbasis aturan. Tidak ada data dikirim ke layanan
-            eksternal.
+            {rs.subheading}
           </p>
         </div>
         <button
@@ -166,14 +169,14 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
             className={`h-4 w-4 ${isReanalyzing ? 'animate-spin' : ''}`}
             aria-hidden
           />
-          Analisis ulang
+          {rs.reanalyzeButton}
         </button>
       </header>
 
       {/* Score gauge */}
       <div className={`mb-5 rounded-md ${color.bg} p-4`}>
         <div className="mb-2 flex items-end justify-between gap-2">
-          <span className="text-muted-foreground text-sm">Skor resume Anda</span>
+          <span className="text-muted-foreground text-sm">{rs.scoreLabel}</span>
           <span className={`font-heading text-3xl ${color.text}`}>
             {analysis.score}
             <span className="text-muted-foreground text-base">/100</span>
@@ -227,24 +230,24 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
         <FilterChip
           active={filter === 'all'}
           onClick={() => setFilter('all')}
-          label={`Semua (${analysis.suggestions.length})`}
+          label={rs.filterAll.replace('{count}', String(analysis.suggestions.length))}
         />
         <FilterChip
           active={filter === 'high'}
           onClick={() => setFilter('high')}
-          label={`Tinggi (${counts.high})`}
+          label={rs.filterHigh.replace('{count}', String(counts.high))}
           color="red"
         />
         <FilterChip
           active={filter === 'medium'}
           onClick={() => setFilter('medium')}
-          label={`Sedang (${counts.medium})`}
+          label={rs.filterMedium.replace('{count}', String(counts.medium))}
           color="amber"
         />
         <FilterChip
           active={filter === 'low'}
           onClick={() => setFilter('low')}
-          label={`Rendah (${counts.low})`}
+          label={rs.filterLow.replace('{count}', String(counts.low))}
           color="sky"
         />
       </div>
@@ -272,8 +275,8 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
           />
           <p className="text-muted-foreground text-sm">
             {analysis.suggestions.length === 0
-              ? 'Tidak ada saran perbaikan. CV Anda terlihat baik!'
-              : 'Tidak ada saran pada filter ini.'}
+              ? rs.emptyAll
+              : rs.emptyFilter}
           </p>
         </div>
       ) : (
@@ -309,14 +312,14 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
                   {s.exampleBefore && (
                     <div className="bg-muted/40 rounded p-2 text-xs">
                       <div className="text-muted-foreground mb-1 font-medium">
-                        Sebelum
+                        {rs.exampleBefore}
                       </div>
                       <div>{s.exampleBefore}</div>
                     </div>
                   )}
                   {s.exampleAfter && (
                     <div className="rounded border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-900">
-                      <div className="mb-1 font-medium">Sesudah</div>
+                      <div className="mb-1 font-medium">{rs.exampleAfter}</div>
                       <div>{s.exampleAfter}</div>
                     </div>
                   )}
@@ -333,12 +336,12 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
                   >
                     <Wand2 className="h-3.5 w-3.5" aria-hidden />
                     {applyingId === s.id
-                      ? 'Menerapkan…'
-                      : 'Terapkan otomatis'}
+                      ? rs.applyingButton
+                      : rs.applyButton}
                   </button>
                 ) : (
                   <span className="text-muted-foreground text-xs">
-                    Edit manual pada formulir di atas
+                    {rs.manualEdit}
                   </span>
                 )}
               </div>

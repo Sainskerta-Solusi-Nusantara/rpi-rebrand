@@ -4,6 +4,7 @@ import * as React from 'react'
 import { ArrowUpDown, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { Badge } from '@/components/atoms/badge'
 import { cn, formatDate } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 export type JobsTableStatus = 'ACTIVE' | 'PAUSED' | 'CLOSED' | 'DRAFT'
 
@@ -25,14 +26,17 @@ export interface JobsTableProps {
 
 type SortKey = 'position' | 'applicants' | 'status' | 'postedAt'
 
-const STATUS_VARIANTS: Record<JobsTableStatus, { label: string; tone: 'success' | 'warning' | 'muted' | 'destructive' }> = {
-  ACTIVE: { label: 'Aktif', tone: 'success' },
-  PAUSED: { label: 'Dijeda', tone: 'warning' },
-  CLOSED: { label: 'Ditutup', tone: 'destructive' },
-  DRAFT: { label: 'Draf', tone: 'muted' },
-}
-
 export function JobsTable({ rows, pageSize = 10, onRowAction, className }: JobsTableProps) {
+  const { t } = useI18n()
+  const tj = t.formsTables.jobsTable
+
+  const STATUS_VARIANTS: Record<JobsTableStatus, { label: string; tone: 'success' | 'warning' | 'muted' | 'destructive' }> = {
+    ACTIVE: { label: tj.statusActive, tone: 'success' },
+    PAUSED: { label: tj.statusPaused, tone: 'warning' },
+    CLOSED: { label: tj.statusClosed, tone: 'destructive' },
+    DRAFT: { label: tj.statusDraft, tone: 'muted' },
+  }
+
   const [sortKey, setSortKey] = React.useState<SortKey>('postedAt')
   const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('desc')
   const [page, setPage] = React.useState(1)
@@ -80,11 +84,11 @@ export function JobsTable({ rows, pageSize = 10, onRowAction, className }: JobsT
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-              <SortableTh label="Posisi" active={sortKey === 'position'} dir={sortDir} onClick={() => toggleSort('position')} />
-              <SortableTh label="Pelamar" active={sortKey === 'applicants'} dir={sortDir} onClick={() => toggleSort('applicants')} />
-              <SortableTh label="Status" active={sortKey === 'status'} dir={sortDir} onClick={() => toggleSort('status')} />
-              <SortableTh label="Diposting" active={sortKey === 'postedAt'} dir={sortDir} onClick={() => toggleSort('postedAt')} />
-              <th className="px-4 py-3 text-right">Aksi</th>
+              <SortableTh label={tj.colPosition} active={sortKey === 'position'} dir={sortDir} onClick={() => toggleSort('position')} />
+              <SortableTh label={tj.colApplicants} active={sortKey === 'applicants'} dir={sortDir} onClick={() => toggleSort('applicants')} />
+              <SortableTh label={tj.colStatus} active={sortKey === 'status'} dir={sortDir} onClick={() => toggleSort('status')} />
+              <SortableTh label={tj.colPostedAt} active={sortKey === 'postedAt'} dir={sortDir} onClick={() => toggleSort('postedAt')} />
+              <th className="px-4 py-3 text-right">{tj.colActions}</th>
             </tr>
           </thead>
           <tbody>
@@ -119,7 +123,7 @@ export function JobsTable({ rows, pageSize = 10, onRowAction, className }: JobsT
             {pageRows.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
-                  Belum ada lowongan.
+                  {tj.emptyMessage}
                 </td>
               </tr>
             ) : null}
@@ -129,8 +133,10 @@ export function JobsTable({ rows, pageSize = 10, onRowAction, className }: JobsT
 
       <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 text-xs text-muted-foreground">
         <p>
-          Menampilkan {(safePage - 1) * pageSize + 1}&ndash;
-          {Math.min(safePage * pageSize, sorted.length)} dari {sorted.length}
+          {tj.showing
+            .replace('{from}', String((safePage - 1) * pageSize + 1))
+            .replace('{to}', String(Math.min(safePage * pageSize, sorted.length)))
+            .replace('{total}', String(sorted.length))}
         </p>
         <div className="flex items-center gap-1">
           <button
@@ -138,7 +144,7 @@ export function JobsTable({ rows, pageSize = 10, onRowAction, className }: JobsT
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={safePage <= 1}
             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border disabled:opacity-40 hover:bg-muted"
-            aria-label="Halaman sebelumnya"
+            aria-label={tj.prevPage}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -150,7 +156,7 @@ export function JobsTable({ rows, pageSize = 10, onRowAction, className }: JobsT
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={safePage >= totalPages}
             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border disabled:opacity-40 hover:bg-muted"
-            aria-label="Halaman berikutnya"
+            aria-label={tj.nextPage}
           >
             <ChevronRight className="h-4 w-4" />
           </button>

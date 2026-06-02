@@ -21,6 +21,7 @@ import {
 
 import { Button } from '@/components/atoms/button'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -64,6 +65,8 @@ export function PricingHero() {
 }
 
 function PricingHeroInner() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.hero
   const { billing, setBilling } = React.useContext(BillingContext)
   return (
     <section
@@ -96,7 +99,7 @@ function PricingHeroInner() {
         >
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Harga & Paket
+            {s.eyebrow}
           </span>
           <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
         </motion.div>
@@ -107,10 +110,10 @@ function PricingHeroInner() {
           transition={{ duration: 0.55, delay: 0.1 }}
           className="font-heading text-balance text-center text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
         >
-          Harga yang{' '}
-          <span className="text-[color:var(--ring)]">transparan</span>.
+          {s.headingStart}{' '}
+          <span className="text-[color:var(--ring)]">{s.headingHighlight}</span>.
           <br />
-          Tanpa kejutan di akhir bulan.
+          {s.headingLine2}
         </motion.h1>
 
         <motion.p
@@ -118,9 +121,7 @@ function PricingHeroInner() {
           transition={{ duration: 0.55, delay: 0.15 }}
           className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg md:text-xl"
         >
-          Mulai gratis selama Anda butuh. Naik ke paket berbayar saat tim
-          rekrutmen Anda tumbuh — pembatalan dalam satu klik, tanpa kontrak
-          mengikat.
+          {s.body}
         </motion.p>
 
         <motion.div
@@ -138,15 +139,15 @@ function PricingHeroInner() {
         >
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-            Aman & terenkripsi
+            {s.badge1}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-            Tanpa biaya setup
+            {s.badge2}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            Batalkan kapan saja
+            {s.badge3}
           </span>
         </motion.div>
       </div>
@@ -163,10 +164,12 @@ function BillingToggle({
   billing: Billing
   onChange: (b: Billing) => void
 }) {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.hero
   return (
     <div
       role="tablist"
-      aria-label="Periode penagihan"
+      aria-label={s.billingAriaLabel}
       className="border-border bg-card relative inline-flex items-center rounded-full border p-1 shadow-sm"
     >
       <button
@@ -181,7 +184,7 @@ function BillingToggle({
             : 'text-muted-foreground hover:text-foreground',
         )}
       >
-        Bulanan
+        {s.billingMonthly}
       </button>
       <button
         type="button"
@@ -195,7 +198,7 @@ function BillingToggle({
             : 'text-muted-foreground hover:text-foreground',
         )}
       >
-        Tahunan
+        {s.billingYearly}
         <span
           className={cn(
             'rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide',
@@ -204,7 +207,7 @@ function BillingToggle({
               : 'bg-[color:var(--ring)]/15 text-[color:var(--ring)]',
           )}
         >
-          HEMAT 20%
+          {s.billingSavings}
         </span>
       </button>
     </div>
@@ -229,93 +232,64 @@ type Plan = {
   icon: React.ComponentType<{ className?: string }>
 }
 
-const PLANS: Plan[] = [
-  {
-    id: 'free',
-    name: 'Gratis',
-    tagline: 'Untuk mencoba & UMKM kecil',
-    monthly: 0,
-    yearly: 0,
-    cta: 'Mulai Gratis',
-    href: '/register?plan=free',
-    icon: Zap,
-    features: [
-      '1 lowongan aktif',
-      'Hingga 50 pelamar per bulan',
-      'Subdomain RPI (kerja.rumahpekerja.id)',
-      'ATS Kanban dasar',
-      '1 anggota tim',
-      'Dukungan email (3 hari kerja)',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    tagline: 'Untuk tim rekrutmen yang tumbuh',
-    monthly: 1_490_000,
-    yearly: 1_192_000,
-    cta: 'Mulai Trial 14 Hari',
-    href: '/register?plan=pro',
-    icon: Star,
-    features: [
-      '10 lowongan aktif',
-      'Hingga 1.000 pelamar per bulan',
-      'Custom subdomain (karir.perusahaan.com)',
-      'Branding logo & warna',
-      'ATS Kanban + automasi dasar',
-      '5 anggota tim',
-      'Dukungan email & chat (1 hari kerja)',
-      'Akses Talent Pool RPI',
-    ],
-  },
-  {
-    id: 'business',
-    name: 'Business',
-    tagline: 'Pilihan paling populer',
-    monthly: 4_990_000,
-    yearly: 3_992_000,
-    cta: 'Mulai Trial 14 Hari',
-    href: '/register?plan=business',
-    icon: Sparkles,
-    highlight: true,
-    badge: 'Paling Populer',
-    features: [
-      'Lowongan tak terbatas',
-      'Hingga 10.000 pelamar per bulan',
-      'Custom domain & full branding',
-      'ATS lengkap + automasi lanjutan',
-      'Tim tak terbatas + role-based access',
-      'Integrasi LinkedIn, JobStreet, Email',
-      'Dashboard analytics & laporan kustom',
-      'Dukungan prioritas (4 jam respons)',
-      'Akses Premium Talent Pool',
-    ],
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    tagline: 'Untuk perusahaan & grup',
-    monthly: 'custom',
-    yearly: 'custom',
-    cta: 'Hubungi Sales',
-    href: '/contact?topic=enterprise',
-    icon: Server,
-    features: [
-      'Semua fitur Business, plus:',
-      'SSO (SAML / OIDC) & SCIM provisioning',
-      'SLA 99.9% dengan kredit otomatis',
-      'Dedicated Customer Success Manager',
-      'On-premise atau private cloud opsi',
-      'Kontrak khusus & SOW kustom',
-      'Pelatihan onboarding di tempat',
-      'Multi-tenant untuk grup usaha',
-      'Integrasi API tanpa batas',
-    ],
-  },
-]
+function usePlans(): Plan[] {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.plans
+  return [
+    {
+      id: 'free',
+      name: s.freeName,
+      tagline: s.freeTagline,
+      monthly: 0,
+      yearly: 0,
+      cta: s.freeCta,
+      href: '/register?plan=free',
+      icon: Zap,
+      features: [s.free1, s.free2, s.free3, s.free4, s.free5, s.free6],
+    },
+    {
+      id: 'pro',
+      name: s.proName,
+      tagline: s.proTagline,
+      monthly: 1_490_000,
+      yearly: 1_192_000,
+      cta: s.proCta,
+      href: '/register?plan=pro',
+      icon: Star,
+      features: [s.pro1, s.pro2, s.pro3, s.pro4, s.pro5, s.pro6, s.pro7, s.pro8],
+    },
+    {
+      id: 'business',
+      name: s.businessName,
+      tagline: s.businessTagline,
+      monthly: 4_990_000,
+      yearly: 3_992_000,
+      cta: s.businessCta,
+      href: '/register?plan=business',
+      icon: Sparkles,
+      highlight: true,
+      badge: s.businessBadge,
+      features: [s.business1, s.business2, s.business3, s.business4, s.business5, s.business6, s.business7, s.business8, s.business9],
+    },
+    {
+      id: 'enterprise',
+      name: s.enterpriseName,
+      tagline: s.enterpriseTagline,
+      monthly: 'custom',
+      yearly: 'custom',
+      cta: s.enterpriseCta,
+      href: '/contact?topic=enterprise',
+      icon: Server,
+      features: [s.enterprise1, s.enterprise2, s.enterprise3, s.enterprise4, s.enterprise5, s.enterprise6, s.enterprise7, s.enterprise8, s.enterprise9],
+    },
+  ]
+}
 
 function PlansGrid() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.hero
   const { billing } = React.useContext(BillingContext)
+  const PLANS = usePlans()
   return (
     <div className="container mx-auto w-full max-w-7xl px-6 pb-20 md:pb-24">
       <div className="grid gap-5 lg:grid-cols-4">
@@ -331,14 +305,15 @@ function PlansGrid() {
       </div>
 
       <p className="text-muted-foreground mt-8 text-center text-xs">
-        Harga belum termasuk PPN 11%. Pembayaran dengan kartu kredit, transfer
-        bank, atau virtual account.
+        {s.vatNote}
       </p>
     </div>
   )
 }
 
 function PlanCard({ plan, billing }: { plan: Plan; billing: Billing }) {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.plans
   const Icon = plan.icon
   const price = billing === 'monthly' ? plan.monthly : plan.yearly
   const isCustom = price === 'custom'
@@ -386,10 +361,10 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: Billing }) {
         {isCustom ? (
           <div>
             <div className="font-heading text-foreground text-3xl font-semibold tracking-tight">
-              Kustom
+              {s.priceCustom}
             </div>
             <p className="text-muted-foreground mt-1 text-xs">
-              Sesuai skala & kebutuhan
+              {s.priceCustomNote}
             </p>
           </div>
         ) : isFree ? (
@@ -397,7 +372,7 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: Billing }) {
             <div className="font-heading text-foreground text-4xl font-semibold tracking-tight">
               Rp 0
             </div>
-            <p className="text-muted-foreground mt-1 text-xs">Selamanya</p>
+            <p className="text-muted-foreground mt-1 text-xs">{s.priceForever}</p>
           </div>
         ) : (
           <div>
@@ -406,12 +381,12 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: Billing }) {
               <span className="font-heading text-foreground text-4xl font-semibold tracking-tight">
                 {(price as number).toLocaleString('id-ID')}
               </span>
-              <span className="text-muted-foreground text-sm">/bulan</span>
+              <span className="text-muted-foreground text-sm">{s.pricePerMonth}</span>
             </div>
             <p className="text-muted-foreground mt-1 text-xs">
               {billing === 'yearly'
-                ? `Ditagih tahunan · Rp ${((price as number) * 12).toLocaleString('id-ID')}/tahun`
-                : 'Ditagih bulanan'}
+                ? s.priceBilledYearly.replace('{amount}', ((price as number) * 12).toLocaleString('id-ID'))
+                : s.priceBilledMonthly}
             </p>
           </div>
         )}
@@ -463,59 +438,67 @@ type FeatureGroup = {
   rows: FeatureRow[]
 }
 
-const COMPARE: FeatureGroup[] = [
-  {
-    title: 'Lowongan & Pelamar',
-    rows: [
-      { label: 'Lowongan aktif',          values: ['1', '10', 'Unlimited', 'Unlimited'] },
-      { label: 'Pelamar / bulan',          values: ['50', '1.000', '10.000', 'Unlimited'] },
-      { label: 'Distribusi multi-channel', values: [false, true, true, true] },
-      { label: 'Lowongan rahasia',         values: [false, false, true, true] },
-    ],
-  },
-  {
-    title: 'Branding & Domain',
-    rows: [
-      { label: 'Subdomain RPI',     values: [true, true, true, true] },
-      { label: 'Custom subdomain',  values: [false, true, true, true] },
-      { label: 'Custom domain',     values: [false, false, true, true] },
-      { label: 'Tema & warna',      values: [false, true, true, true] },
-      { label: 'White-label penuh', values: [false, false, false, true] },
-    ],
-  },
-  {
-    title: 'ATS & Kolaborasi',
-    rows: [
-      { label: 'ATS Kanban',                  values: ['Dasar', 'Standar', 'Lengkap', 'Lengkap'] },
-      { label: 'Anggota tim',                 values: ['1', '5', 'Unlimited', 'Unlimited'] },
-      { label: 'Role-based access',           values: [false, false, true, true] },
-      { label: 'Automasi alur kerja',         values: [false, 'Dasar', 'Lanjutan', 'Lanjutan'] },
-      { label: 'Catatan & rating internal',   values: [true, true, true, true] },
-    ],
-  },
-  {
-    title: 'Integrasi & API',
-    rows: [
-      { label: 'Integrasi LinkedIn / JobStreet', values: [false, true, true, true] },
-      { label: 'API publik',                     values: [false, false, true, true] },
-      { label: 'Webhook',                        values: [false, false, true, true] },
-      { label: 'SSO (SAML/OIDC)',                values: [false, false, false, true] },
-      { label: 'SCIM provisioning',              values: [false, false, false, true] },
-    ],
-  },
-  {
-    title: 'Analytics & Dukungan',
-    rows: [
-      { label: 'Dashboard analytics',       values: [false, 'Dasar', 'Lanjutan', 'Lanjutan'] },
-      { label: 'Laporan kustom',            values: [false, false, true, true] },
-      { label: 'Dukungan',                  values: ['Email', 'Email + Chat', 'Prioritas', 'Dedicated CSM'] },
-      { label: 'SLA',                       values: [false, false, false, '99.9%'] },
-      { label: 'Onboarding di tempat',      values: [false, false, false, true] },
-    ],
-  },
-]
+function useCompare(): FeatureGroup[] {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.compare
+  return [
+    {
+      title: s.group1,
+      rows: [
+        { label: s.rowActiveJobs,    values: ['1', '10', s.cellUnlimited, s.cellUnlimited] },
+        { label: s.rowApplicants,    values: ['50', '1.000', '10.000', s.cellUnlimited] },
+        { label: s.rowMultiChannel,  values: [false, true, true, true] },
+        { label: s.rowPrivate,       values: [false, false, true, true] },
+      ],
+    },
+    {
+      title: s.group2,
+      rows: [
+        { label: s.rowSubdomainRpi,   values: [true, true, true, true] },
+        { label: s.rowCustomSubdomain, values: [false, true, true, true] },
+        { label: s.rowCustomDomain,   values: [false, false, true, true] },
+        { label: s.rowTheme,          values: [false, true, true, true] },
+        { label: s.rowWhiteLabel,     values: [false, false, false, true] },
+      ],
+    },
+    {
+      title: s.group3,
+      rows: [
+        { label: s.rowAts,        values: [s.cellBasic, s.cellStandard, s.cellFull, s.cellFull] },
+        { label: s.rowMembers,    values: ['1', '5', s.cellUnlimited, s.cellUnlimited] },
+        { label: s.rowRbac,       values: [false, false, true, true] },
+        { label: s.rowAutomation, values: [false, s.cellBasic, s.cellAdvanced, s.cellAdvanced] },
+        { label: s.rowNotes,      values: [true, true, true, true] },
+      ],
+    },
+    {
+      title: s.group4,
+      rows: [
+        { label: s.rowLinkedIn, values: [false, true, true, true] },
+        { label: s.rowApi,      values: [false, false, true, true] },
+        { label: s.rowWebhook,  values: [false, false, true, true] },
+        { label: s.rowSso,      values: [false, false, false, true] },
+        { label: s.rowScim,     values: [false, false, false, true] },
+      ],
+    },
+    {
+      title: s.group5,
+      rows: [
+        { label: s.rowAnalytics,     values: [false, s.cellBasic, s.cellAdvanced, s.cellAdvanced] },
+        { label: s.rowCustomReport,  values: [false, false, true, true] },
+        { label: s.rowSupport,       values: [s.cellEmail, s.cellEmailChat, s.cellPriority, s.cellDedicatedCsm] },
+        { label: s.rowSla,           values: [false, false, false, '99.9%'] },
+        { label: s.rowOnboarding,    values: [false, false, false, true] },
+      ],
+    },
+  ]
+}
 
 export function PricingCompare() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.compare
+  const PLANS = usePlans()
+  const COMPARE = useCompare()
   const [open, setOpen] = React.useState(false)
   return (
     <section
@@ -531,7 +514,7 @@ export function PricingCompare() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Bandingkan Fitur
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -539,10 +522,10 @@ export function PricingCompare() {
             id="pricing-compare-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Apa saja yang Anda dapatkan
+            {s.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Perbandingan lengkap setiap paket. Klik kelompok untuk membuka detail.
+            {s.body}
           </p>
         </motion.div>
 
@@ -550,7 +533,7 @@ export function PricingCompare() {
           {/* Header */}
           <div className="border-border bg-muted/40 grid grid-cols-[1.6fr_repeat(4,1fr)] border-b">
             <div className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Fitur
+              {s.colFeature}
             </div>
             {PLANS.map((p) => (
               <div
@@ -573,7 +556,7 @@ export function PricingCompare() {
             className="hover:bg-muted/40 border-border flex w-full items-center justify-between gap-4 border-b px-5 py-3 text-left text-sm font-medium transition lg:hidden"
             aria-expanded={open}
           >
-            <span>{open ? 'Sembunyikan' : 'Tampilkan'} perbandingan lengkap</span>
+            <span>{s.showHide.replace('{action}', open ? s.hide : s.show)}</span>
             <ChevronDown
               className={cn('h-4 w-4 transition', open && 'rotate-180')}
               aria-hidden
@@ -605,7 +588,7 @@ export function PricingCompare() {
                             idx === 2 && 'bg-[color:var(--ring)]/[0.04]',
                           )}
                         >
-                          <CellValue v={v} />
+                          <CellValue v={v} ariaIncluded={s.ariaIncluded} ariaNotIncluded={s.ariaNotIncluded} />
                         </div>
                       ))}
                     </div>
@@ -620,12 +603,12 @@ export function PricingCompare() {
   )
 }
 
-function CellValue({ v }: { v: Cell }) {
+function CellValue({ v, ariaIncluded, ariaNotIncluded }: { v: Cell; ariaIncluded: string; ariaNotIncluded: string }) {
   if (v === true) {
     return (
       <Check
         className="text-[color:var(--ring)] h-4 w-4"
-        aria-label="Termasuk"
+        aria-label={ariaIncluded}
       />
     )
   }
@@ -633,7 +616,7 @@ function CellValue({ v }: { v: Cell }) {
     return (
       <Minus
         className="text-muted-foreground/40 h-4 w-4"
-        aria-label="Tidak termasuk"
+        aria-label={ariaNotIncluded}
       />
     )
   }
@@ -651,34 +634,17 @@ type Addon = {
   desc: string
 }
 
-const ADDONS: Addon[] = [
-  {
-    icon: BarChart3,
-    title: 'RPI Academy untuk Tenant',
-    price: 'Rp 990.000 /bulan',
-    desc: 'Kursus & jalur belajar internal untuk pelamar dan karyawan tenant Anda — sertifikat terverifikasi RPI.',
-  },
-  {
-    icon: PlugZap,
-    title: 'Integrasi Kustom',
-    price: 'Mulai Rp 5.000.000',
-    desc: 'Integrasi satu kali dengan HRIS, payroll, ATS lama, atau sistem internal Anda. Dilakukan tim teknis RPI.',
-  },
-  {
-    icon: Headphones,
-    title: 'Premium Support',
-    price: 'Rp 2.490.000 /bulan',
-    desc: 'Respons 1 jam, on-call engineer untuk insiden P0/P1, dan kuartalan business review dengan tim sukses.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Audit Keamanan',
-    price: 'Rp 15.000.000 /tahun',
-    desc: 'Penetrasi tahunan, laporan SOC 2-readiness, dan kebijakan keamanan kustom untuk industri terregulasi.',
-  },
-]
-
 export function PricingAddons() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.addons
+
+  const ADDONS: Addon[] = [
+    { icon: BarChart3, title: s.addon1Title, price: s.addon1Price, desc: s.addon1Desc },
+    { icon: PlugZap, title: s.addon2Title, price: s.addon2Price, desc: s.addon2Desc },
+    { icon: Headphones, title: s.addon3Title, price: s.addon3Price, desc: s.addon3Desc },
+    { icon: ShieldCheck, title: s.addon4Title, price: s.addon4Price, desc: s.addon4Desc },
+  ]
+
   return (
     <section
       className="bg-background py-20 md:py-24"
@@ -693,7 +659,7 @@ export function PricingAddons() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Add-on
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -701,11 +667,10 @@ export function PricingAddons() {
             id="pricing-addons-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Bangun paket sesuai kebutuhan
+            {s.heading}
           </h2>
           <p className="text-muted-foreground mt-3">
-            Tambah modul yang Anda perlukan tanpa harus naik tingkat ke paket
-            yang lebih besar.
+            {s.body}
           </p>
         </motion.div>
 
@@ -751,42 +716,21 @@ export function PricingAddons() {
 // Pricing FAQ
 // ---------------------------------------------------------------------------
 
-const FAQ_ITEMS = [
-  {
-    q: 'Bisakah saya pindah paket kapan saja?',
-    a: 'Tentu. Upgrade berlaku langsung dengan prorata, downgrade berlaku di siklus penagihan berikutnya. Tidak ada penalti atau biaya tersembunyi.',
-  },
-  {
-    q: 'Apakah ada periode trial?',
-    a: 'Paket Pro dan Business memiliki trial 14 hari tanpa kartu kredit. Anda akan dapat email pengingat 3 hari sebelum trial berakhir.',
-  },
-  {
-    q: 'Bagaimana cara pembayaran?',
-    a: 'Kami menerima kartu kredit (Visa, Mastercard, JCB), transfer bank, dan virtual account dari semua bank di Indonesia. Untuk Enterprise tersedia juga invoice 30 hari.',
-  },
-  {
-    q: 'Apakah harga sudah termasuk PPN?',
-    a: 'Belum. Semua harga di atas belum termasuk PPN 11% sesuai regulasi pemerintah. Faktur pajak otomatis dikirim setiap pembayaran.',
-  },
-  {
-    q: 'Apa yang terjadi jika kuota pelamar terlewati?',
-    a: 'Kami tidak akan menonaktifkan lowongan Anda. Anda akan mendapat notifikasi dan opsi membeli paket tambahan, atau upgrade ke tingkat berikutnya.',
-  },
-  {
-    q: 'Apakah data lowongan saya aman jika berhenti berlangganan?',
-    a: 'Ya. Data Anda disimpan selama 90 hari setelah pembatalan. Anda bisa export lengkap (CSV/JSON) kapan saja dari dashboard.',
-  },
-  {
-    q: 'Saya pencari kerja — apakah ini juga berbayar?',
-    a: 'Tidak. Semua fitur untuk pencari kerja 100% gratis dan akan selalu gratis. Halaman ini khusus untuk perusahaan & mitra perekrut.',
-  },
-  {
-    q: 'Apakah ada diskon untuk startup, nirlaba, atau pendidikan?',
-    a: 'Ya. Kami punya program khusus: startup tahap awal (50% off 1 tahun), yayasan/nirlaba (gratis Business), dan institusi pendidikan (paket khusus). Hubungi sales.',
-  },
-]
-
 export function PricingFAQ() {
+  const { t } = useI18n()
+  const s = t.formsMarketing2.pricing.faq
+
+  const FAQ_ITEMS = [
+    { q: s.q1, a: s.a1 },
+    { q: s.q2, a: s.a2 },
+    { q: s.q3, a: s.a3 },
+    { q: s.q4, a: s.a4 },
+    { q: s.q5, a: s.a5 },
+    { q: s.q6, a: s.a6 },
+    { q: s.q7, a: s.a7 },
+    { q: s.q8, a: s.a8 },
+  ]
+
   const [open, setOpen] = React.useState<number | null>(0)
   return (
     <section
@@ -802,7 +746,7 @@ export function PricingFAQ() {
           <div className="mb-4 flex items-center justify-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Pertanyaan tentang Harga
+              {s.eyebrow}
             </span>
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
           </div>
@@ -810,7 +754,7 @@ export function PricingFAQ() {
             id="pricing-faq-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Yang sering ditanyakan
+            {s.heading}
           </h2>
         </motion.div>
 

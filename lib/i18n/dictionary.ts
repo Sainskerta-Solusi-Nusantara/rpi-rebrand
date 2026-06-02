@@ -47,6 +47,14 @@ import { formsMisc1 } from './dictionaries/forms-misc1'
 import { formsSavedSearch } from './dictionaries/forms-savedsearch'
 import { formsMisc2 } from './dictionaries/forms-misc2'
 import { formsInterviewPipe } from './dictionaries/forms-interviewpipe'
+import { formsNotif } from './dictionaries/forms-notif'
+import { formsTables } from './dictionaries/forms-tables'
+import { formsLearning } from './dictionaries/forms-learning'
+import { formsInsights } from './dictionaries/forms-insights'
+import { formsMisc4 } from './dictionaries/forms-misc4'
+import { formsTenantAdmin2 } from './dictionaries/forms-tenantadmin2'
+import { formsMisc3 } from './dictionaries/forms-misc3'
+import { formsMarketing2 } from './dictionaries/forms-marketing2'
 
 export type Locale = 'id' | 'en'
 
@@ -87,6 +95,14 @@ export const dictionary = {
     formsMisc2: formsMisc2.id,
     formsApplications: formsApplications.id,
     formsInterviewPipe: formsInterviewPipe.id,
+    formsNotif: formsNotif.id,
+    formsTables: formsTables.id,
+    formsLearning: formsLearning.id,
+    formsInsights: formsInsights.id,
+    formsMisc4: formsMisc4.id,
+    formsTenantAdmin2: formsTenantAdmin2.id,
+    formsMisc3: formsMisc3.id,
+    formsMarketing2: formsMarketing2.id,
   },
   en: {
     ...home.en,
@@ -121,6 +137,14 @@ export const dictionary = {
     formsMisc2: formsMisc2.en,
     formsApplications: formsApplications.en,
     formsInterviewPipe: formsInterviewPipe.en,
+    formsNotif: formsNotif.en,
+    formsTables: formsTables.en,
+    formsLearning: formsLearning.en,
+    formsInsights: formsInsights.en,
+    formsMisc4: formsMisc4.en,
+    formsTenantAdmin2: formsTenantAdmin2.en,
+    formsMisc3: formsMisc3.en,
+    formsMarketing2: formsMarketing2.en,
   },
 } as const
 

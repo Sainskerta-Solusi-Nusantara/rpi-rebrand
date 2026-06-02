@@ -8,6 +8,7 @@ import {
   type TemplateStatus,
 } from '@/lib/tenants/email-template-actions'
 import { renderTemplate } from '@/lib/tenants/email-template-render'
+import { useI18n } from '@/lib/i18n/i18n-provider'
 
 type Banner =
   | { kind: 'idle' }
@@ -62,6 +63,8 @@ export function EmailTemplateForm({
   defaultSubject: string
   defaultBody: string
 }) {
+  const { t } = useI18n()
+  const ns = t.formsTenantAdmin2.emailTemplateForm
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [resetting, startResetTransition] = useTransition()
@@ -77,6 +80,16 @@ export function EmailTemplateForm({
 
   const previewSubject = useMemo(() => renderTemplate(subject, SAMPLE_VARS), [subject])
   const previewBody = useMemo(() => renderTemplate(body, SAMPLE_VARS), [body])
+
+  const varDescriptions: Record<string, string> = {
+    name: ns.varNameCandidate,
+    jobTitle: ns.varJobTitle,
+    tenantName: ns.varTenantName,
+    oldStatus: ns.varOldStatus,
+    newStatus: ns.varNewStatus,
+    applicationUrl: ns.varApplicationUrl,
+    recruiterNote: ns.varRecruiterNote,
+  }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -95,20 +108,14 @@ export function EmailTemplateForm({
       }
       setBanner({
         kind: 'success',
-        message: r.data?.created
-          ? 'Template kustom berhasil dibuat.'
-          : 'Template kustom berhasil disimpan.',
+        message: r.data?.created ? ns.successCreated : ns.successSaved,
       })
       router.refresh()
     })
   }
 
   function onReset() {
-    if (
-      !confirm(
-        'Hapus template kustom dan kembali ke template default RPI untuk status ini?',
-      )
-    ) {
+    if (!confirm(ns.confirmReset)) {
       return
     }
     setBanner({ kind: 'idle' })
@@ -122,7 +129,7 @@ export function EmailTemplateForm({
       setSubject(defaultSubject)
       setBody(defaultBody)
       setEnabled(true)
-      setBanner({ kind: 'success', message: 'Template kustom dihapus.' })
+      setBanner({ kind: 'success', message: ns.successDeleted })
       router.refresh()
     })
   }
@@ -142,7 +149,7 @@ export function EmailTemplateForm({
               htmlFor={`subject-${status}`}
               className="text-muted-foreground text-xs uppercase"
             >
-              Subjek email
+              {ns.labelSubject}
             </label>
             <input
               id={`subject-${status}`}
@@ -155,7 +162,9 @@ export function EmailTemplateForm({
               className={inputClass}
               required
             />
-            <p className="text-muted-foreground text-xs">{subject.length}/200 karakter</p>
+            <p className="text-muted-foreground text-xs">
+              {ns.charCountSubject.replace('{n}', String(subject.length))}
+            </p>
           </div>
 
           <div className="space-y-1">
@@ -163,7 +172,7 @@ export function EmailTemplateForm({
               htmlFor={`body-${status}`}
               className="text-muted-foreground text-xs uppercase"
             >
-              Isi email (teks polos)
+              {ns.labelBody}
             </label>
             <textarea
               id={`body-${status}`}
@@ -177,7 +186,7 @@ export function EmailTemplateForm({
               required
             />
             <p className="text-muted-foreground text-xs">
-              {body.length}/10.000 karakter. Baris baru akan dipertahankan saat dikirim.
+              {ns.charCountBody.replace('{n}', String(body.length))}
             </p>
           </div>
 
@@ -192,12 +201,11 @@ export function EmailTemplateForm({
               className="border-input h-4 w-4 rounded"
             />
             <label htmlFor={`enabled-${status}`} className="text-sm">
-              Aktifkan template kustom untuk status ini
+              {ns.labelEnabled}
             </label>
           </div>
           <p className="text-muted-foreground -mt-1 text-xs">
-            Saat dinonaktifkan, RPI akan memakai template default meskipun row kustom
-            tersimpan.
+            {ns.helperDisabled}
           </p>
 
           <section
@@ -205,11 +213,10 @@ export function EmailTemplateForm({
             className="border-border rounded-md border bg-muted/30 p-3"
           >
             <div className="text-foreground mb-2 text-sm font-medium">
-              Variabel yang tersedia
+              {ns.sectionVarsLabel}
             </div>
             <p className="text-muted-foreground mb-2 text-xs">
-              Klik untuk menyisipkan ke isi email. Variabel akan diganti otomatis saat
-              email dikirim ke kandidat.
+              {ns.sectionVarsHint}
             </p>
             <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
               {AVAILABLE_VARIABLES.map((v) => (
@@ -219,14 +226,14 @@ export function EmailTemplateForm({
                     onClick={() => insertVariable(v.name)}
                     disabled={busy}
                     className="bg-background hover:bg-muted border-border inline-block w-full rounded border px-2 py-1 text-left font-mono disabled:cursor-not-allowed disabled:opacity-60"
-                    title={v.description}
+                    title={varDescriptions[v.name] ?? v.description}
                   >
                     {'{{'}
                     {v.name}
                     {'}}'}
                   </button>
                   <span className="text-muted-foreground ml-1 block pl-2">
-                    {v.description}
+                    {varDescriptions[v.name] ?? v.description}
                   </span>
                 </li>
               ))}
@@ -235,18 +242,17 @@ export function EmailTemplateForm({
         </div>
 
         <aside aria-label="Pratinjau" className="space-y-2">
-          <div className="text-muted-foreground text-xs uppercase">Pratinjau</div>
+          <div className="text-muted-foreground text-xs uppercase">{ns.previewHeading}</div>
           <div className="border-border bg-background rounded-md border p-4 shadow-sm">
-            <div className="text-muted-foreground mb-1 text-xs">Subjek</div>
-            <div className="mb-3 text-sm font-semibold">{previewSubject || '(kosong)'}</div>
-            <div className="text-muted-foreground mb-1 text-xs">Isi</div>
+            <div className="text-muted-foreground mb-1 text-xs">{ns.previewSubjectLabel}</div>
+            <div className="mb-3 text-sm font-semibold">{previewSubject || ns.previewEmpty}</div>
+            <div className="text-muted-foreground mb-1 text-xs">{ns.previewBodyLabel}</div>
             <pre className="text-foreground whitespace-pre-wrap break-words font-sans text-sm leading-relaxed">
-              {previewBody || '(kosong)'}
+              {previewBody || ns.previewEmpty}
             </pre>
           </div>
           <p className="text-muted-foreground text-xs">
-            Pratinjau memakai data contoh. Saat dikirim, variabel digantikan dengan data
-            kandidat asli.
+            {ns.sectionVarsHint}
           </p>
         </aside>
       </div>
@@ -274,7 +280,7 @@ export function EmailTemplateForm({
           disabled={busy}
           className="inline-flex items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? 'Menyimpan…' : initial ? 'Simpan perubahan' : 'Simpan template kustom'}
+          {pending ? ns.btnSavePending : initial ? ns.btnSaveUpdate : ns.btnSaveCreate}
         </button>
         {initial && (
           <button
@@ -283,7 +289,7 @@ export function EmailTemplateForm({
             disabled={busy}
             className="border-border text-foreground hover:bg-muted inline-flex items-center justify-center gap-2 rounded-md border bg-background px-4 py-2.5 text-sm font-medium shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {resetting ? 'Menghapus…' : 'Reset ke default'}
+            {resetting ? ns.btnResetPending : ns.btnReset}
           </button>
         )}
       </div>
