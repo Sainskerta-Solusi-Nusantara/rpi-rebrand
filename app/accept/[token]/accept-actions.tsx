@@ -28,7 +28,7 @@ export function AcceptInviteButton({ token }: { token: string }) {
         type="button"
         onClick={onClick}
         disabled={pending}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? 'Memproses…' : 'Terima undangan'}
         <span aria-hidden className="text-[hsl(43,74%,55%)]">

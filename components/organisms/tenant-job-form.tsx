@@ -21,7 +21,7 @@ const textareaClass = `${inputClass} min-h-[8rem] resize-y leading-relaxed`
 const labelClass = 'text-muted-foreground text-xs uppercase tracking-wide'
 
 const btnPrimary =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60'
+  'inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
 const btnSecondary =
   'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
@@ -440,7 +440,7 @@ export function JobForm({
                 <button
                   type="button"
                   onClick={applyJdPreview}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[hsl(220,50%,14%)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[hsl(220,50%,18%)]"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
                 >
                   {tl.jdApply}
                 </button>

@@ -199,7 +199,7 @@ export function PlanSelectionForm({
                 type="button"
                 onClick={() => requestChange(p.key)}
                 disabled={disabled}
-                className="mt-auto inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isCurrent ? 'Plan aktif' : `Pilih ${p.name}`}
               </button>
@@ -252,7 +252,7 @@ export function PlanSelectionForm({
                 type="button"
                 onClick={() => submitChange(confirming)}
                 disabled={pending}
-                className="inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {pending ? 'Memproses…' : 'Ya, ubah plan'}
               </button>

@@ -95,7 +95,7 @@ export default async function AdminTenantDetailPage({
 
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <div className="grid size-14 place-items-center rounded-xl bg-[hsl(220,50%,14%)] text-white">
+          <div className="grid size-14 place-items-center rounded-xl bg-primary text-primary-foreground">
             <Building2 className="h-7 w-7" aria-hidden="true" />
           </div>
           <div>

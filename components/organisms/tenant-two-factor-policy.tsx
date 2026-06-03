@@ -9,7 +9,7 @@ import {
 } from '@/lib/tenants/tenant-2fa-actions'
 
 const btnPrimary =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60'
+  'inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
 const btnSecondary =
   'border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
@@ -75,7 +75,7 @@ export function TenantTwoFactorPolicy({
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-3">
-        <div className="grid size-10 shrink-0 place-items-center rounded-md bg-[hsl(220,50%,14%)] text-white">
+        <div className="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
           <ShieldCheck className="h-5 w-5" aria-hidden="true" />
         </div>
         <div className="flex-1">
@@ -85,7 +85,7 @@ export function TenantTwoFactorPolicy({
               checked={required}
               disabled={pending}
               onChange={(e) => onToggle(e.target.checked)}
-              className="size-4 rounded border-border accent-[hsl(220,50%,14%)]"
+              className="size-4 rounded border-border accent-primary"
             />
             <span className="text-sm font-medium text-foreground">
               Wajibkan 2FA untuk semua anggota

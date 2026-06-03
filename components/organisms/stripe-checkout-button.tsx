@@ -48,7 +48,7 @@ export function StripeCheckoutButton({
 
   const baseClass =
     variant === 'primary'
-      ? 'bg-[hsl(220,50%,14%)] text-white hover:bg-[hsl(220,50%,18%)]'
+      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
       : 'border-border hover:bg-muted border'
 
   return (

@@ -11,12 +11,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen w-full bg-background text-foreground">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
         {/* Brand panel */}
-        <aside className="relative hidden flex-col justify-between bg-[hsl(220,50%,14%)] p-12 text-white lg:flex">
+        <aside className="relative hidden flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
           {/* TODO: replace inline navy with var(--brand-navy) once Agent 2 exposes tokens */}
           <div className="flex items-center gap-3">
             <div
               aria-hidden
-              className="grid h-10 w-10 place-items-center rounded-md bg-[hsl(43,74%,55%)] font-heading text-lg font-bold text-[hsl(220,50%,14%)]"
+              className="grid h-10 w-10 place-items-center rounded-md bg-[hsl(43,74%,55%)] font-heading text-lg font-bold text-primary"
             >
               R
             </div>
@@ -52,7 +52,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div className="flex flex-1 items-center justify-center px-6 py-10 sm:px-10">
             <div className="w-full max-w-md">
               <div className="mb-8 flex items-center justify-between lg:hidden">
-                <Link href="/" className="font-heading text-xl font-semibold text-[hsl(220,50%,14%)]">
+                <Link href="/" className="font-heading text-xl font-semibold text-primary">
                   Rumah Pekerja Indonesia
                 </Link>
               </div>

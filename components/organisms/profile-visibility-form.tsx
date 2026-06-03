@@ -139,7 +139,7 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
           <button
             type="submit"
             disabled={isPending || username.trim() === (savedUsername ?? '')}
-            className="inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,55%)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPending ? tv.btnPending : tv.btnSave}
           </button>
@@ -219,7 +219,7 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
                 href={profilePath as any}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[hsl(220,50%,14%)] px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
               >
                 <ExternalLink className="h-4 w-4" aria-hidden />
                 {tv.btnViewPublic}

@@ -24,7 +24,7 @@ export default async function LogoutPage() {
         aria-hidden
         className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[hsl(43,74%,55%)]/15 text-3xl"
       >
-        <span className="text-[hsl(220,50%,14%)]">↩</span>
+        <span className="text-primary">↩</span>
       </div>
 
       <header className="space-y-2">

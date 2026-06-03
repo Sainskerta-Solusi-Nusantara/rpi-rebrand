@@ -229,7 +229,7 @@ export function PushSubscribeToggle({ initialSubscribed }: Props) {
             type="button"
             onClick={handleEnable}
             disabled={busy || status === 'denied' || status === 'no-vapid'}
-            className="inline-flex items-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Bell className="h-4 w-4" aria-hidden="true" />
             {busy ? 'Memproses…' : 'Aktifkan notifikasi push'}

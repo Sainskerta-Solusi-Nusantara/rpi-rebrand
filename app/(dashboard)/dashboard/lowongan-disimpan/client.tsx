@@ -27,7 +27,7 @@ export function SavedSearchListClient({
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             {t.pagesDash.lowonganDisimpan.createButton}

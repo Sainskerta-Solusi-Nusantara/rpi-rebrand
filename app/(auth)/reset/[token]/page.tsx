@@ -37,7 +37,7 @@ export default async function ResetTokenPage({
         <div className="flex flex-col gap-2 text-sm">
           <Link
             href="/forgot"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             {tr.requestNew}
             <span aria-hidden className="text-[hsl(43,74%,55%)]">

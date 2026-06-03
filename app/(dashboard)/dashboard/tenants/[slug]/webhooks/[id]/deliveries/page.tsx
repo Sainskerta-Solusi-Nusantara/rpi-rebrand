@@ -203,7 +203,7 @@ export default async function WebhookDeliveriesPage({
           <div className="flex items-end gap-2">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-1.5 text-sm font-medium text-white"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground"
             >
               {wd.btnApply}
             </button>

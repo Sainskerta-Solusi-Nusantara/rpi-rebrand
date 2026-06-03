@@ -15,7 +15,7 @@ const badgeVariants = cva(
         destructive: 'border-transparent bg-destructive/15 text-destructive',
         gold: 'border-transparent bg-[color:var(--ring)]/15 text-[color:var(--ring)]',
         indigo: 'border-transparent bg-indigo-100 text-indigo-700',
-        navy: 'border-transparent bg-[hsl(220,50%,14%)] text-white',
+        navy: 'border-transparent bg-primary text-primary-foreground',
         muted: 'border-transparent bg-muted text-muted-foreground',
       },
       size: {

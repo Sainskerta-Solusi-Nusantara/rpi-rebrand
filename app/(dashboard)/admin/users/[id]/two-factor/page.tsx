@@ -45,7 +45,7 @@ export default async function AdminResetTwoFactorPage({
       </div>
 
       <header className="flex items-center gap-3">
-        <div className="grid size-11 place-items-center rounded-xl bg-[hsl(220,50%,14%)] text-white">
+        <div className="grid size-11 place-items-center rounded-xl bg-primary text-primary-foreground">
           <ShieldCheck className="h-6 w-6" aria-hidden="true" />
         </div>
         <div>

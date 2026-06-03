@@ -67,7 +67,7 @@ export default async function TenantBenchmarksPage({
 
       <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-xl bg-[hsl(220,50%,14%)] text-white">
+          <div className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">
             <Gauge className="h-5 w-5" aria-hidden="true" />
           </div>
           <div>

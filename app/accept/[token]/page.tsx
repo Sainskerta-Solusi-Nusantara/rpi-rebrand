@@ -43,7 +43,7 @@ export default async function AcceptInvitePage({
           <p className="text-muted-foreground mt-2 text-sm">{message}</p>
           <Link
             href="/dashboard"
-            className="mt-6 inline-flex items-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+            className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             Kembali ke dashboard
           </Link>
@@ -60,7 +60,7 @@ export default async function AcceptInvitePage({
   return (
     <main className="min-h-screen w-full bg-background text-foreground">
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 py-12">
-        <div className="grid size-14 place-items-center rounded-xl bg-[hsl(220,50%,14%)] text-white">
+        <div className="grid size-14 place-items-center rounded-xl bg-primary text-primary-foreground">
           <Building2 className="h-7 w-7" aria-hidden="true" />
         </div>
 
@@ -92,7 +92,7 @@ export default async function AcceptInvitePage({
               <div className="flex flex-col gap-2">
                 <Link
                   href={`/login?callbackUrl=${encodeURIComponent(`/accept/${params.token}`)}` as never}
-                  className="inline-flex items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+                  className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
                 >
                   Masuk untuk menerima
                   <span aria-hidden className="text-[hsl(43,74%,55%)]">

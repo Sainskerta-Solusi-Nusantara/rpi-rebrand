@@ -126,7 +126,7 @@ export default async function BrandingPage({
             label="Logo (dark)"
             helpText="Tampil di latar gelap. SVG/PNG transparan, maks 2 MB."
             initialUrl={b?.logoDark ?? null}
-            previewBg="bg-[hsl(220,50%,14%)]"
+            previewBg="bg-primary"
           />
           <TenantLogoUploader
             tenantSlug={tenant.slug}

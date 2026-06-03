@@ -36,7 +36,7 @@ export default async function SavedSearchUnsubscribePage({
           <Link
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href={'/dashboard/pencarian-tersimpan' as any}
-            className="inline-flex items-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             {u.openSaved}
           </Link>
@@ -66,7 +66,7 @@ export default async function SavedSearchUnsubscribePage({
           <Link
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href={'/dashboard/pencarian-tersimpan' as any}
-            className="inline-flex items-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             {u.openSaved}
           </Link>
@@ -102,7 +102,7 @@ export default async function SavedSearchUnsubscribePage({
         <Link
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           href={'/dashboard/pencarian-tersimpan' as any}
-          className="inline-flex items-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+          className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
         >
           {u.manageAlerts}
         </Link>

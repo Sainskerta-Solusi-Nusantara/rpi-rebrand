@@ -40,7 +40,7 @@ export default async function VerifyTokenPage({
           {signedIn ? (
             <Link
               href="/dashboard/keamanan"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
             >
               {tv.ctaSecurity}
               <span aria-hidden className="text-[hsl(43,74%,55%)]">
@@ -50,7 +50,7 @@ export default async function VerifyTokenPage({
           ) : (
             <Link
               href="/login"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
             >
               {tv.ctaLogin}
               <span aria-hidden className="text-[hsl(43,74%,55%)]">
@@ -69,7 +69,7 @@ export default async function VerifyTokenPage({
         aria-hidden
         className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[hsl(43,74%,55%)]/15 text-3xl"
       >
-        <span className="text-[hsl(220,50%,14%)]">✓</span>
+        <span className="text-primary">✓</span>
       </div>
 
       <header className="space-y-2 text-center">
@@ -84,7 +84,7 @@ export default async function VerifyTokenPage({
       <div className="flex flex-col gap-2 text-sm">
         <Link
           href={signedIn ? '/dashboard' : '/login'}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
         >
           {signedIn ? tv.ctaDashboard : tv.ctaToLogin}
           <span aria-hidden className="text-[hsl(43,74%,55%)]">
