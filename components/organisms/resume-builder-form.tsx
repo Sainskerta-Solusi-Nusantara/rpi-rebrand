@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClassNoDisabled as inputClass } from '@/lib/ui/form-styles'
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -32,8 +33,6 @@ const ACCEPT_FILE =
   'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 const MAX_FILE_BYTES = 10 * 1024 * 1024
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
 
 function emptyExperience(): Experience {
   return {

@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClassNoDisabled as inputClass } from '@/lib/ui/form-styles'
 import { useState, useTransition, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,8 +26,6 @@ type ProfileInitial = {
 // because the server preprocesses empty -> undefined before validation.
 const phoneRegex = /^[+\d\s\-()]*$/
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
 
 export function ProfileForm({ initial }: { initial: ProfileInitial }) {
   const router = useRouter()

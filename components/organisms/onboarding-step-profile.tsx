@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClassNoDisabled as inputClass } from '@/lib/ui/form-styles'
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -16,8 +17,6 @@ export type OnboardingProfileInitial = {
   location: string | null
 }
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
 
 export interface OnboardingStepProfileProps {
   initial: OnboardingProfileInitial

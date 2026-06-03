@@ -1,5 +1,6 @@
 'use client'
 
+import { btnPrimary } from '@/lib/ui/form-styles'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShieldCheck, BellRing } from 'lucide-react'
@@ -8,8 +9,6 @@ import {
   bulkNudgeTwoFactor,
 } from '@/lib/tenants/tenant-2fa-actions'
 
-const btnPrimary =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
 const btnSecondary =
   'border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'

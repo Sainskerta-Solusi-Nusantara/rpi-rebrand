@@ -8,6 +8,7 @@
  * (or script) snippet to paste into their own external website.
  */
 
+import { inputClass } from '@/lib/ui/form-styles'
 import { useMemo, useState } from 'react'
 import { Copy, ExternalLink, Check, Info } from 'lucide-react'
 import {
@@ -15,8 +16,6 @@ import {
   buildScriptSnippet,
 } from '@/lib/embed/snippet-builder'
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
 
 const textareaClass =
   'block w-full rounded-md border border-input bg-muted/40 px-3 py-2 font-mono text-xs text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'

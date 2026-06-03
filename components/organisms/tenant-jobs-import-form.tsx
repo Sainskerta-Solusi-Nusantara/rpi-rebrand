@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClass, labelClass, btnPrimaryLg as btnPrimary, btnSecondary } from '@/lib/ui/form-styles'
 import { useState, useTransition, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -12,18 +13,11 @@ import {
 } from '@/lib/tenants/job-import-actions'
 import { useI18n } from '@/lib/i18n/i18n-provider'
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
 
 const textareaClass = `${inputClass} min-h-[10rem] font-mono text-xs leading-relaxed`
 
-const labelClass = 'text-muted-foreground text-xs uppercase tracking-wide'
 
-const btnPrimary =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
-const btnSecondary =
-  'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
 
 type Stage =
   | { kind: 'upload'; error?: string }

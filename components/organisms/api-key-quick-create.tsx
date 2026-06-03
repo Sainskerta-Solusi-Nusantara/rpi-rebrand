@@ -1,12 +1,11 @@
 'use client'
 
+import { btnPrimary } from '@/lib/ui/form-styles'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Copy, KeyRound } from 'lucide-react'
 import { createTenantApiKey } from '@/lib/tenants/api-key-actions'
 
-const btnPrimary =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
 /**
  * Single-click create of a `read`-scope tenant API key, shown inline on the

@@ -1,5 +1,6 @@
 'use client'
 
+import { btnSecondarySm as btnSecondary } from '@/lib/ui/form-styles'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, Loader2, RotateCcw, XCircle } from 'lucide-react'
@@ -13,8 +14,6 @@ import {
 const btnPrimary =
   'inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
-const btnSecondary =
-  'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-1.5 rounded-md border px-4 py-2 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
 
 export type QuizTakerQuiz = {
   id: string

@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClassNoPlaceholder as inputClass } from '@/lib/ui/form-styles'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateTenantBranding } from '@/lib/tenants/branding-actions'
@@ -27,8 +28,6 @@ const COLOR_FIELDS: { key: keyof BrandingFields; label: string }[] = [
   { key: 'ringColor', label: 'Ring (focus)' },
 ]
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
 
 type Banner = { kind: 'idle' } | { kind: 'success' } | { kind: 'error'; message: string }
 

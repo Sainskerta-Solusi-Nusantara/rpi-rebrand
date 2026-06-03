@@ -14,6 +14,7 @@
  * retry (if attempts remain) or jump to the certificate when issued.
  */
 
+import { btnSecondarySm as btnSecondary } from '@/lib/ui/form-styles'
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -32,8 +33,6 @@ import { useI18n } from '@/lib/i18n/i18n-provider'
 const btnPrimary =
   'inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
-const btnSecondary =
-  'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-1.5 rounded-md border px-4 py-2 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
 
 export type QuizRunnerQuiz = {
   id: string

@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClassNoPlaceholder as inputClass, btnPrimary } from '@/lib/ui/form-styles'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShieldCheck } from 'lucide-react'
@@ -8,11 +9,7 @@ import {
   regenerateRecoveryCodes,
 } from '@/lib/auth/totp-actions'
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
 
-const btnPrimary =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
 const btnDestructive =
   'border-destructive/40 text-destructive hover:bg-destructive/5 inline-flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60'

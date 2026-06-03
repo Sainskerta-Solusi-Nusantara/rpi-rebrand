@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClassNoDisabled as inputClass } from '@/lib/ui/form-styles'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -86,8 +87,6 @@ export function ProfileVisibilityForm({ initial }: { initial: Initial }) {
     }
   }
 
-  const inputClass =
-    'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
 
   return (
     <div className="space-y-6">

@@ -14,6 +14,7 @@
  * Validation messages from server actions are surfaced inline via a banner.
  */
 
+import { inputClass, labelClass, btnPrimaryLg as btnPrimary, btnSecondary } from '@/lib/ui/form-styles'
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, Pencil, X } from 'lucide-react'
@@ -25,18 +26,11 @@ import {
 import { renderMarkdownToHtml } from '@/lib/blog/markdown'
 import { useI18n } from '@/lib/i18n/i18n-provider'
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
 
 const textareaClass = `${inputClass} min-h-[20rem] resize-y font-mono text-[13px] leading-relaxed`
 
-const labelClass = 'text-muted-foreground text-xs uppercase tracking-wide'
 
-const btnPrimary =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
 
-const btnSecondary =
-  'border-border bg-background hover:bg-muted inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium text-foreground transition disabled:cursor-not-allowed disabled:opacity-60'
 
 
 export type ArticleFormInitial = {

@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClassNoDisabled as inputClass } from '@/lib/ui/form-styles'
 import { useEffect, useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -79,8 +80,6 @@ export function OnboardingForm() {
     })
   }
 
-  const inputClass =
-    'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
 
   return (
     <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">

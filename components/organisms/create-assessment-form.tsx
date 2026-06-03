@@ -1,5 +1,6 @@
 'use client'
 
+import { inputClass, labelClass } from '@/lib/ui/form-styles'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -9,10 +10,7 @@ import {
 } from '@/lib/assessments/actions'
 import { useI18n } from '@/lib/i18n/i18n-provider'
 
-const inputClass =
-  'block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
 
-const labelClass = 'text-muted-foreground text-xs uppercase tracking-wide'
 
 export function CreateAssessmentForm() {
   const router = useRouter()
