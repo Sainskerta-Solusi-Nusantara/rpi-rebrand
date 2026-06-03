@@ -11,6 +11,7 @@ import {
   isRetryableError,
   shouldDeadLetter,
 } from '@/lib/webhooks/retry-policy'
+import { captureException } from '@/lib/observability/report'
 
 const MAX_RESPONSE_BODY_CHARS = 4096
 
@@ -140,7 +141,7 @@ async function recordDeadLetterAudit(
       },
     })
   } catch (err) {
-    console.error('[webhooks/retry-worker] dead_letter audit failed', err)
+    captureException(err, { scope: 'webhooks/retry-worker', at: 'dead_letter-audit', webhookId, deliveryId })
   }
 }
 

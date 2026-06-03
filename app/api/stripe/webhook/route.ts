@@ -15,14 +15,18 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { verifyWebhookSignature } from '@/lib/billing/stripe'
 import { handleStripeEvent } from '@/lib/billing/stripe-webhook'
+import { createLogger } from '@/lib/observability/logger'
+import { captureException } from '@/lib/observability/report'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const log = createLogger('stripe-webhook')
+
 export async function POST(req: NextRequest) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET
   if (!secret) {
-    console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET not configured')
+    log.error('STRIPE_WEBHOOK_SECRET not configured')
     return NextResponse.json(
       { error: 'Webhook secret not configured' },
       { status: 503 },
@@ -34,7 +38,7 @@ export async function POST(req: NextRequest) {
 
   const verification = verifyWebhookSignature(rawBody, sig, secret)
   if (!verification.valid) {
-    console.warn('[stripe-webhook] signature verification failed:', verification.reason)
+    log.warn('signature verification failed', { reason: verification.reason })
     return NextResponse.json(
       { error: 'Invalid signature' },
       { status: 400 },
@@ -69,7 +73,7 @@ export async function POST(req: NextRequest) {
       // Replay — already recorded. Return 200 so Stripe stops retrying.
       return NextResponse.json({ received: true, duplicate: true }, { status: 200 })
     }
-    console.error('[stripe-webhook] failed to record event', err)
+    captureException(err, { at: 'record-event', eventId: event.id, type: event.type })
     // Still return 200 — we don't want infinite retries when DB is the issue.
     return NextResponse.json({ received: true, recorded: false }, { status: 200 })
   }
@@ -83,7 +87,7 @@ export async function POST(req: NextRequest) {
       })
     }
   } catch (err) {
-    console.error('[stripe-webhook] handler error', err)
+    captureException(err, { at: 'handle-event', eventId: event.id, type: event.type })
     if (recordId) {
       const msg = err instanceof Error ? err.message : 'unknown error'
       await prisma.stripeWebhookEvent

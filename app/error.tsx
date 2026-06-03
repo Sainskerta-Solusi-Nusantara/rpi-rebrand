@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
+import { captureException } from '@/lib/observability/report'
 
-export default function GlobalError({
+export default function RouteError({
   error,
   reset,
 }: {
@@ -10,9 +11,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    // TODO: wire to telemetry (Sentry/PostHog) when configured.
-    // eslint-disable-next-line no-console
-    console.error('App error boundary:', error)
+    captureException(error, { boundary: 'route', digest: error.digest })
   }, [error])
 
   return (
