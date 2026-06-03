@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { Award, BookOpen, Clock, GraduationCap, PlayCircle } from 'lucide-react'
 
@@ -144,11 +145,13 @@ export default async function CandidateCoursesPage({
                 className="border-border bg-card flex flex-col overflow-hidden rounded-2xl border"
               >
                 {e.course.thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={e.course.thumbnail}
                     alt={e.course.title}
                     className="aspect-video w-full object-cover"
+                    width={640}
+                    height={360}
+                    unoptimized
                   />
                 ) : (
                   <div

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Trophy } from 'lucide-react'
 import { getTenantReferralLeaderboard } from '@/lib/referrals/queries'
 
@@ -63,11 +64,13 @@ export async function ReferralLeaderboard({
                     <td className="py-2 pr-3">
                       <div className="flex items-center gap-2">
                         {r.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={r.image}
                             alt=""
                             className="h-7 w-7 rounded-full object-cover"
+                            width={28}
+                            height={28}
+                            unoptimized
                           />
                         ) : (
                           <span className="bg-muted text-muted-foreground inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium">

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
@@ -76,11 +77,13 @@ export default async function LMSPage() {
             {inProgress.map((e) => (
               <li key={e.id} className="border-border rounded-xl border overflow-hidden">
                 {e.course.thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={e.course.thumbnail}
                     alt={e.course.title}
                     className="aspect-video w-full object-cover"
+                    width={640}
+                    height={360}
+                    unoptimized
                   />
                 ) : (
                   <div className="bg-muted aspect-video w-full" />

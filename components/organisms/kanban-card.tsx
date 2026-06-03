@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import type { ApplicationStatus } from '@prisma/client'
@@ -69,10 +70,13 @@ export function KanbanCard({
       <div className="flex items-start gap-2">
         {card.applicantImage ? (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          <Image
             src={card.applicantImage}
             alt=""
             className="size-8 shrink-0 rounded-full object-cover"
+            width={32}
+            height={32}
+            unoptimized
           />
         ) : (
           <div className="bg-muted size-8 shrink-0 rounded-full" />

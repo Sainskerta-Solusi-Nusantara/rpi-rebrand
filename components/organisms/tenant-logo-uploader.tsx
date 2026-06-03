@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Upload } from 'lucide-react'
@@ -97,11 +98,13 @@ export function TenantLogoUploader({
       <div className="text-sm font-medium text-foreground">{label}</div>
       <div className={`border-border flex h-24 items-center justify-center rounded-md border ${previewBg}`}>
         {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={previewUrl}
             alt={label}
             className="max-h-full max-w-[80%] object-contain"
+            width={160}
+            height={96}
+            unoptimized
           />
         ) : (
           <span className="text-muted-foreground text-xs">{tl.emptyState}</span>

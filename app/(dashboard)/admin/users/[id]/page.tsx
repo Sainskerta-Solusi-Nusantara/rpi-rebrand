@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ChevronLeft, Mail, Globe, Clock, ShieldCheck, ShieldX, KeyRound } from 'lucide-react'
@@ -106,11 +107,13 @@ export default async function AdminUserDetailPage({
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           {user.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={user.image}
               alt=""
               className="size-14 rounded-full object-cover"
+              width={56}
+              height={56}
+              unoptimized
             />
           ) : (
             <div className="bg-muted size-14 rounded-full" />

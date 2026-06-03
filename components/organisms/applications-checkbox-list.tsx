@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { ApplicationStatus } from '@prisma/client'
@@ -174,11 +175,13 @@ export function ApplicationsCheckboxList({
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       {row.user.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={row.user.image}
                           alt=""
                           className="size-8 rounded-full object-cover"
+                          width={32}
+                          height={32}
+                          unoptimized
                         />
                       ) : (
                         <div className="bg-muted size-8 rounded-full" />

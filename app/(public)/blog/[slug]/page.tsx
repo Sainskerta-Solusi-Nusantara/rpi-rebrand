@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { Metadata } from 'next'
 import { safeJsonLd } from '@/lib/security/sanitize'
 import Link from 'next/link'
@@ -166,10 +167,13 @@ export default async function ArticleDetailPage({
         <section className="bg-background pb-10">
           <div className="container mx-auto w-full max-w-4xl px-6">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={article.coverImage}
               alt=""
               className="border-border aspect-[16/9] w-full rounded-2xl border object-cover"
+              width={640}
+              height={360}
+              unoptimized
             />
           </div>
         </section>

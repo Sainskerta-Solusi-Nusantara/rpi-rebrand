@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import * as React from 'react'
 import { Upload } from 'lucide-react'
 import { Button } from '@/components/atoms/button'
@@ -253,8 +254,14 @@ function FileField({
       <Label className="mb-1.5 block text-xs">{label}</Label>
       <label className="flex h-24 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background text-sm text-muted-foreground hover:border-secondary hover:text-secondary">
         {value ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt={label} className="h-16 w-auto object-contain" />
+          <Image
+            src={value}
+            alt={label}
+            className="h-16 w-auto object-contain"
+            width={200}
+            height={64}
+            unoptimized
+          />
         ) : (
           <>
             <Upload className="h-4 w-4" />

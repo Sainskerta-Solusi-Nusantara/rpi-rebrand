@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, Trash2, Upload } from 'lucide-react'
@@ -75,11 +76,13 @@ export function AvatarUploader({ initialUrl, label }: { initialUrl: string | nul
       <div className="flex items-center gap-4">
         <div className="bg-muted relative grid size-20 place-items-center overflow-hidden rounded-full">
           {previewUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={previewUrl}
               alt="Foto profil"
               className="size-full object-cover"
+              width={80}
+              height={80}
+              unoptimized
             />
           ) : (
             <span className="font-heading text-2xl text-foreground">{initial}</span>

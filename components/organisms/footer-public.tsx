@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import * as React from 'react'
 import type { Route } from 'next'
 import Link from 'next/link'
@@ -131,8 +132,14 @@ export function FooterPublic({
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-3">
               {tenantLogoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={tenantLogoUrl} alt={tenantName} className="h-9 w-auto" />
+                <Image
+                  src={tenantLogoUrl}
+                  alt={tenantName}
+                  className="h-9 w-auto"
+                  width={160}
+                  height={36}
+                  unoptimized
+                />
               ) : (
                 <Logo alt={tenantName} />
               )}

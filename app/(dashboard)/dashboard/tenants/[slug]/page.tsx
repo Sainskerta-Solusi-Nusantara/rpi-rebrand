@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ChevronLeft, Building2, UserPlus, Mail, Crown, LogOut, Palette, Webhook, Key, Activity, Globe, CreditCard, Briefcase, FileText, BarChart3, GraduationCap, MailQuestion, Users, Code, HelpCircle, TrendingUp, Archive, FileSpreadsheet, History, ShieldCheck, Rss } from 'lucide-react'
@@ -406,11 +407,13 @@ export default async function ManageTenantPage({
                       <td className="py-2 pr-3">
                         <div className="flex items-center gap-2">
                           {m.user.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <Image
                               src={m.user.image}
                               alt=""
                               className="size-8 rounded-full object-cover"
+                              width={32}
+                              height={32}
+                              unoptimized
                             />
                           ) : (
                             <div className="bg-muted size-8 rounded-full" />

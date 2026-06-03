@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ShieldCheck, ShieldX } from 'lucide-react'
@@ -110,11 +111,13 @@ export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
                       className="flex items-center gap-2 hover:underline"
                     >
                       {u.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={u.image}
                           alt=""
                           className="size-8 rounded-full object-cover"
+                          width={32}
+                          height={32}
+                          unoptimized
                         />
                       ) : (
                         <div className="bg-muted size-8 rounded-full" />

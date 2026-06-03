@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, FileText, ExternalLink, Briefcase } from 'lucide-react'
 import type { TalentPoolCandidate } from '@/lib/talent-pool/queries'
@@ -45,11 +46,13 @@ export async function TalentPoolCard({
     <article className="border-border bg-card flex h-full flex-col gap-3 rounded-2xl border p-5">
       <header className="flex items-start gap-3">
         {candidate.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={candidate.image}
             alt=""
             className="h-12 w-12 rounded-full object-cover"
+            width={48}
+            height={48}
+            unoptimized
           />
         ) : (
           <div

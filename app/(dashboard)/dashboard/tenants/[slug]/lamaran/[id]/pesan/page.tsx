@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ChevronLeft, MessageSquare } from 'lucide-react'
@@ -63,11 +64,13 @@ export default async function RecruiterMessagesPage({
       <header className="border-border bg-card flex flex-col gap-2 rounded-2xl border p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           {application.user.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={application.user.image}
               alt=""
               className="size-12 rounded-full object-cover"
+              width={48}
+              height={48}
+              unoptimized
             />
           ) : (
             <div className="bg-muted size-12 rounded-full" />

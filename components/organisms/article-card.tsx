@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { CalendarDays, ArrowUpRight } from 'lucide-react'
 import type { ArticleListItem } from '@/lib/blog/queries'
@@ -41,12 +42,13 @@ export function ArticleCard({ article }: { article: ArticleListItem }) {
       >
         <div className="bg-muted aspect-[16/9] w-full overflow-hidden">
           {article.coverImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={article.coverImage}
               alt=""
               className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-              loading="lazy"
+              width={640}
+              height={360}
+              unoptimized
             />
           ) : (
             <div

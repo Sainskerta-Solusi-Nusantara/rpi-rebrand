@@ -27,6 +27,7 @@
  * /dashboard/tenants/[slug]/embed.
  */
 
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { safeCssColor, safeFontName } from '@/lib/security/sanitize'
 import Link from 'next/link'
@@ -302,11 +303,13 @@ export default async function EmbedJobsPage({
       <div className="rpi-embed" data-theme={theme}>
         <header className="rpi-embed-header">
           {logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={logo}
               alt={tenant.name}
               className="rpi-embed-logo"
+              width={160}
+              height={36}
+              unoptimized
             />
           ) : (
             <div

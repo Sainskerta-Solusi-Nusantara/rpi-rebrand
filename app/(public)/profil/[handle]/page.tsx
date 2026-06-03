@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -114,11 +115,13 @@ export default async function PublicProfilePage({
         <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center gap-6 px-6 py-16 text-center text-white md:py-20">
           <div className="grid size-28 place-items-center overflow-hidden rounded-full border-4 border-white/20 bg-white/10 shadow-2xl backdrop-blur">
             {profile.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={profile.image}
                 alt={`Foto ${profile.displayName}`}
                 className="h-full w-full object-cover"
+                width={112}
+                height={112}
+                unoptimized
               />
             ) : (
               <span className="font-heading text-4xl font-bold text-white">

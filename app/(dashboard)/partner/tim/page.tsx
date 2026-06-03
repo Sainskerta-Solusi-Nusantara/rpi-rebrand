@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
@@ -104,11 +105,13 @@ export default async function PartnerTeamPage() {
               <li key={m.id} className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
                   {m.user.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={m.user.image}
                       alt={m.user.name ?? m.user.email}
                       className="size-10 rounded-full object-cover"
+                      width={40}
+                      height={40}
+                      unoptimized
                     />
                   ) : (
                     <div className="bg-muted size-10 rounded-full" />

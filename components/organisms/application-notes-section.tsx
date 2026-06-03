@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { StickyNote, Pin } from 'lucide-react'
 import {
   getNotesForApplication,
@@ -83,11 +84,13 @@ function NoteItem({
     >
       <div className="flex items-start gap-3">
         {note.author.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={note.author.image}
             alt=""
             className="size-8 shrink-0 rounded-full object-cover"
+            width={32}
+            height={32}
+            unoptimized
           />
         ) : (
           <div className="bg-muted text-foreground inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-medium">

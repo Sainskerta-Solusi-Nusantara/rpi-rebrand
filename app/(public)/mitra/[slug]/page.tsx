@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -134,18 +135,22 @@ export default async function TenantPublicPage({
         <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center gap-6 px-6 py-16 text-center text-white md:py-24">
           <div className="grid size-24 place-items-center rounded-2xl bg-white p-3 shadow-2xl">
             {tenant.branding?.logoLight ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={tenant.branding.logoLight}
                 alt={`Logo ${tenant.name}`}
                 className="h-full w-full object-contain"
+                width={96}
+                height={96}
+                unoptimized
               />
             ) : tenant.branding?.logoDark ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={tenant.branding.logoDark}
                 alt={`Logo ${tenant.name}`}
                 className="h-full w-full object-contain"
+                width={96}
+                height={96}
+                unoptimized
               />
             ) : (
               <span
@@ -384,11 +389,13 @@ export default async function TenantPublicPage({
                     }}
                   >
                     {course.thumbnail ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={course.thumbnail}
                         alt={course.title}
                         className="h-full w-full object-cover"
+                        width={640}
+                        height={360}
+                        unoptimized
                       />
                     ) : (
                       <div className="absolute inset-0 grid place-items-center">

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
@@ -503,11 +504,13 @@ export default async function TenantApplicationDetailPage({
       <header className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           {application.user.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={application.user.image}
               alt=""
               className="size-14 rounded-full object-cover"
+              width={56}
+              height={56}
+              unoptimized
             />
           ) : (
             <div className="bg-muted size-14 rounded-full" />
