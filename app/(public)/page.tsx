@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { safeJsonLd } from '@/lib/security/sanitize'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { headers } from 'next/headers'
@@ -178,7 +179,7 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       {/* 1. Hero — stats-forward */}

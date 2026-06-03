@@ -23,6 +23,7 @@ import {
 } from 'react'
 import { DEFAULT_TOKENS, type BrandingTokens } from './tokens'
 import { generateBrandingCss } from './generate-css'
+import { safeCustomCss } from '@/lib/security/sanitize'
 
 type ThemeContextValue = {
   tokens: BrandingTokens
@@ -59,7 +60,7 @@ export function ThemeProvider({ initial, customCss, children }: ThemeProviderPro
 
   const css = useMemo(() => {
     const base = generateBrandingCss(tokens)
-    return customCss ? `${base}\n${customCss}` : base
+    return customCss ? `${base}\n${safeCustomCss(customCss)}` : base
   }, [tokens, customCss])
 
   const value = useMemo<ThemeContextValue>(

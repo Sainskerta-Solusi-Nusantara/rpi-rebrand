@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { safeJsonLd } from '@/lib/security/sanitize'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
@@ -157,7 +158,7 @@ export default async function CourseDetailPage({ params }: { params: Params }) {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       {/* Hero */}

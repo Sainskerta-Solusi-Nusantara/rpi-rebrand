@@ -28,6 +28,7 @@
  */
 
 import { notFound } from 'next/navigation'
+import { safeCssColor, safeFontName } from '@/lib/security/sanitize'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { getTenantBranding } from '@/lib/branding/server'
@@ -139,16 +140,21 @@ export default async function EmbedJobsPage({
   })
 
   // Theme — "dark" simply swaps surface tokens. Branding primary stays.
+  // Tenant token colors are hex-validated on write, but this public embed
+  // injects them into a raw <style>; sanitize at render too (defense in depth)
+  // so a malformed color can never break out of the CSS block.
   const bgColor =
-    theme === 'dark' ? '#0a1726' : (tokens?.backgroundColor ?? '#ffffff')
+    theme === 'dark' ? '#0a1726' : safeCssColor(tokens?.backgroundColor, '#ffffff')
   const fgColor =
-    theme === 'dark' ? '#f5f5f4' : (tokens?.foregroundColor ?? '#0a2540')
+    theme === 'dark' ? '#f5f5f4' : safeCssColor(tokens?.foregroundColor, '#0a2540')
   const cardBg = theme === 'dark' ? '#0e1f33' : '#ffffff'
-  const borderColor = theme === 'dark' ? '#1f3149' : (tokens?.borderColor ?? '#e5e7eb')
-  const mutedFg = theme === 'dark' ? '#94a3b8' : (tokens?.mutedForeground ?? '#6b7280')
-  const primary = tokens?.primaryColor ?? '#0a2540'
-  const primaryFg = tokens?.primaryForeground ?? '#ffffff'
-  const ring = tokens?.ringColor ?? '#c9a961'
+  const borderColor =
+    theme === 'dark' ? '#1f3149' : safeCssColor(tokens?.borderColor, '#e5e7eb')
+  const mutedFg =
+    theme === 'dark' ? '#94a3b8' : safeCssColor(tokens?.mutedForeground, '#6b7280')
+  const primary = safeCssColor(tokens?.primaryColor, '#0a2540')
+  const primaryFg = safeCssColor(tokens?.primaryForeground, '#ffffff')
+  const ring = safeCssColor(tokens?.ringColor, '#c9a961')
 
   const radiusPx = `${tokens?.radius ?? 12}px`
 
@@ -166,7 +172,7 @@ export default async function EmbedJobsPage({
       --rpi-radius: ${radiusPx};
       background: var(--rpi-bg);
       color: var(--rpi-fg);
-      font-family: ${tokens?.fontBody ?? 'Inter'}, ui-sans-serif, system-ui, sans-serif;
+      font-family: ${safeFontName(tokens?.fontBody, 'Inter')}, ui-sans-serif, system-ui, sans-serif;
       min-height: 100vh;
       padding: 20px;
       box-sizing: border-box;
@@ -187,7 +193,7 @@ export default async function EmbedJobsPage({
       object-fit: contain;
     }
     .rpi-embed-title {
-      font-family: ${tokens?.fontHeading ?? 'Playfair Display'}, ui-serif, serif;
+      font-family: ${safeFontName(tokens?.fontHeading, 'Playfair Display')}, ui-serif, serif;
       font-size: 18px;
       font-weight: 600;
       margin: 0;

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { safeJsonLd } from '@/lib/security/sanitize'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
@@ -106,7 +107,7 @@ export default async function ArticleDetailPage({
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       <section className="bg-background pb-10 pt-12 md:pb-12 md:pt-16">

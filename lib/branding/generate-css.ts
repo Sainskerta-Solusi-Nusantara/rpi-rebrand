@@ -11,6 +11,7 @@
  */
 
 import { DEFAULT_TOKENS, type BrandingTokens } from './tokens'
+import { safeCssColor } from '@/lib/security/sanitize'
 
 const FONT_FALLBACK_SERIF = 'ui-serif, Georgia, serif'
 const FONT_FALLBACK_SANS = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
@@ -37,34 +38,41 @@ export function generateBrandingCss(t: Partial<BrandingTokens> = {}): string {
   const heading = cssQuoteFont(merged.fontHeading)
   const body = cssQuoteFont(merged.fontBody)
 
+  // Color values are injected into a raw <style>; sanitize every one against a
+  // safe-color allowlist (falling back to the default token) so a malformed or
+  // malicious stored color can never break out of the declaration / <style>.
+  // This holds regardless of which write path validated the value.
+  const c = (key: keyof BrandingTokens) =>
+    safeCssColor(merged[key] as string, DEFAULT_TOKENS[key] as string)
+
   // Color tokens — exposed both via descriptive names and shadcn-style aliases.
   const decls: string[] = [
     // Primary
-    `--primary:${merged.primaryColor}`,
-    `--primary-foreground:${merged.primaryForeground}`,
+    `--primary:${c('primaryColor')}`,
+    `--primary-foreground:${c('primaryForeground')}`,
     // Secondary
-    `--secondary:${merged.secondaryColor}`,
-    `--secondary-foreground:${merged.secondaryForeground}`,
+    `--secondary:${c('secondaryColor')}`,
+    `--secondary-foreground:${c('secondaryForeground')}`,
     // Accent
-    `--accent:${merged.accentColor}`,
-    `--accent-foreground:${merged.accentForeground}`,
+    `--accent:${c('accentColor')}`,
+    `--accent-foreground:${c('accentForeground')}`,
     // Surfaces
-    `--background:${merged.backgroundColor}`,
-    `--foreground:${merged.foregroundColor}`,
-    `--muted:${merged.mutedColor}`,
-    `--muted-foreground:${merged.mutedForeground}`,
-    `--border:${merged.borderColor}`,
-    `--input:${merged.borderColor}`,
-    `--card:${merged.backgroundColor}`,
-    `--card-foreground:${merged.foregroundColor}`,
-    `--popover:${merged.backgroundColor}`,
-    `--popover-foreground:${merged.foregroundColor}`,
+    `--background:${c('backgroundColor')}`,
+    `--foreground:${c('foregroundColor')}`,
+    `--muted:${c('mutedColor')}`,
+    `--muted-foreground:${c('mutedForeground')}`,
+    `--border:${c('borderColor')}`,
+    `--input:${c('borderColor')}`,
+    `--card:${c('backgroundColor')}`,
+    `--card-foreground:${c('foregroundColor')}`,
+    `--popover:${c('backgroundColor')}`,
+    `--popover-foreground:${c('foregroundColor')}`,
     // Status
-    `--destructive:${merged.destructiveColor}`,
+    `--destructive:${c('destructiveColor')}`,
     `--destructive-foreground:#FFFFFF`,
-    `--success:${merged.successColor}`,
-    `--warning:${merged.warningColor}`,
-    `--ring:${merged.ringColor}`,
+    `--success:${c('successColor')}`,
+    `--warning:${c('warningColor')}`,
+    `--ring:${c('ringColor')}`,
     // Shape & density
     `--radius:${radiusPx}px`,
     `--density-scale:${densityScale}`,
@@ -78,14 +86,17 @@ export function generateBrandingCss(t: Partial<BrandingTokens> = {}): string {
 }
 
 /**
- * Quote a font-family name for safe CSS embedding. Names containing
- * spaces are wrapped in single quotes; single quotes inside the name are
- * stripped defensively (validate.ts already restricts to a safe list).
+ * Quote a font-family name for safe CSS embedding. This CSS is injected into a
+ * raw <style> tag, so we must allow ONLY safe font-name characters — anything
+ * else (`<`, `>`, `;`, `{`, `}`, quotes) could terminate the declaration or the
+ * <style> element (the HTML parser ends a <style> at a literal `</style` even
+ * inside CSS quotes) and inject markup. An allowlist is used rather than a
+ * blocklist so no escape sequence is missed.
  */
 function cssQuoteFont(name: string): string {
-  const cleaned = name.replace(/['"\\;{}]/g, '').trim()
+  const cleaned = (name ?? '').replace(/[^A-Za-z0-9 _-]/g, '').trim().slice(0, 48)
   if (!cleaned) return `'Inter'`
-  return /\s/.test(cleaned) ? `'${cleaned}'` : `'${cleaned}'`
+  return `'${cleaned}'`
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {
