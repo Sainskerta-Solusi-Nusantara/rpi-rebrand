@@ -14,6 +14,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { buildCertificateSvg } from '@/lib/enrollments/certificate-svg'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 /**
  * Result envelope used by every action in this file. The generic T merges
@@ -44,7 +45,7 @@ function getRequestMeta() {
 // ---------------------------------------------------------------------------
 
 const enrollSchema = z.object({
-  courseSlug: z.string().min(1, 'Slug kursus wajib diisi.'),
+  courseSlug: z.string().min(1),
 })
 
 /**
@@ -64,7 +65,7 @@ export async function enrollInCourse(input: {
   }
   const userId = session.user.id
 
-  const parsed = enrollSchema.safeParse(input)
+  const parsed = await localizedParse(enrollSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {
@@ -147,8 +148,8 @@ export async function enrollInCourse(input: {
 // ---------------------------------------------------------------------------
 
 const markLessonSchema = z.object({
-  enrollmentId: z.string().min(1, 'ID pendaftaran wajib diisi.'),
-  lessonId: z.string().min(1, 'ID pelajaran wajib diisi.'),
+  enrollmentId: z.string().min(1),
+  lessonId: z.string().min(1),
 })
 
 /**
@@ -177,7 +178,7 @@ export async function markLessonComplete(input: {
   }
   const userId = session.user.id
 
-  const parsed = markLessonSchema.safeParse(input)
+  const parsed = await localizedParse(markLessonSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {
@@ -337,7 +338,7 @@ export async function markLessonComplete(input: {
 // ---------------------------------------------------------------------------
 
 const issueSchema = z.object({
-  enrollmentId: z.string().min(1, 'ID pendaftaran wajib diisi.'),
+  enrollmentId: z.string().min(1),
 })
 
 /**
@@ -358,7 +359,7 @@ export async function issueCertificate(input: {
   }
   const userId = session.user.id
 
-  const parsed = issueSchema.safeParse(input)
+  const parsed = await localizedParse(issueSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {
@@ -514,7 +515,7 @@ async function issueCertificateInternal(opts: {
 // ---------------------------------------------------------------------------
 
 const unenrollSchema = z.object({
-  enrollmentId: z.string().min(1, 'ID pendaftaran wajib diisi.'),
+  enrollmentId: z.string().min(1),
 })
 
 /**
@@ -534,7 +535,7 @@ export async function unenroll(input: {
   }
   const userId = session.user.id
 
-  const parsed = unenrollSchema.safeParse(input)
+  const parsed = await localizedParse(unenrollSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {

@@ -15,6 +15,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -65,14 +66,14 @@ const lessonContentTypeSchema = z.nativeEnum(LessonContentType)
 const optionalText = z
   .string()
   .trim()
-  .max(20_000, 'Teks terlalu panjang')
+  .max(20_000)
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined))
 
 const optionalShortText = z
   .string()
   .trim()
-  .max(2_048, 'Teks terlalu panjang')
+  .max(2_048)
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined))
 
@@ -94,22 +95,22 @@ const durationHoursNumber = z.preprocess(
     return v
   },
   z
-    .number({ invalid_type_error: 'Durasi harus berupa angka' })
-    .int('Durasi harus bilangan bulat')
-    .min(1, 'Durasi minimal 1 jam')
-    .max(1000, 'Durasi maksimal 1000 jam'),
+    .number()
+    .int()
+    .min(1)
+    .max(1000),
 )
 
 const baseCourseSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(5, 'Judul minimal 5 karakter')
-    .max(200, 'Judul maksimal 200 karakter'),
+    .min(5)
+    .max(200),
   description: z
     .string()
     .trim()
-    .min(50, 'Deskripsi minimal 50 karakter'),
+    .min(50),
   level: courseLevelSchema,
   durationHours: durationHoursNumber,
   instructorId: optionalInstructorId,
@@ -134,26 +135,26 @@ function readCourseFormData(fd: FormData) {
 const moduleTitleSchema = z
   .string()
   .trim()
-  .min(2, 'Judul modul minimal 2 karakter')
-  .max(200, 'Judul modul maksimal 200 karakter')
+  .min(2)
+  .max(200)
 
 const lessonTitleSchema = z
   .string()
   .trim()
-  .min(2, 'Judul pelajaran minimal 2 karakter')
-  .max(200, 'Judul pelajaran maksimal 200 karakter')
+  .min(2)
+  .max(200)
 
 const orderSchema = z
-  .number({ invalid_type_error: 'Urutan tidak valid' })
-  .int('Urutan harus bilangan bulat')
-  .min(0, 'Urutan minimal 0')
-  .max(10_000, 'Urutan terlalu besar')
+  .number()
+  .int()
+  .min(0)
+  .max(10_000)
 
 const lessonDurationMinSchema = z
-  .number({ invalid_type_error: 'Durasi tidak valid' })
-  .int('Durasi harus bilangan bulat')
-  .min(0, 'Durasi minimal 0 menit')
-  .max(100_000, 'Durasi terlalu besar')
+  .number()
+  .int()
+  .min(0)
+  .max(100_000)
 
 // =============================================================================
 // Context loaders (mirror loadTenantForBranding / loadJobForAction)
@@ -414,7 +415,7 @@ export async function createCourse(input: {
   const ctx = await loadTenantForCourse(input.tenantSlug, 'course.create', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = baseCourseSchema.safeParse(readCourseFormData(input.values))
+  const parsed = await localizedParse(baseCourseSchema, readCourseFormData(input.values))
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -495,7 +496,7 @@ export async function updateCourse(input: {
   const ctx = await loadCourseForAction(input.courseId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = baseCourseSchema.safeParse(readCourseFormData(input.values))
+  const parsed = await localizedParse(baseCourseSchema, readCourseFormData(input.values))
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -581,7 +582,7 @@ export async function changeCourseStatus(input: {
   status: CourseStatus
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const statusParse = courseStatusSchema.safeParse(input.status)
+  const statusParse = await localizedParse(courseStatusSchema, input.status)
   if (!statusParse.success) {
     return { ok: false, error: t.srvTenant2.course.statusInvalid }
   }
@@ -685,7 +686,7 @@ export async function createModule(input: {
   const ctx = await loadCourseForAction(input.courseId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const titleParse = moduleTitleSchema.safeParse(input.title)
+  const titleParse = await localizedParse(moduleTitleSchema, input.title)
   if (!titleParse.success) {
     return {
       ok: false,
@@ -693,7 +694,7 @@ export async function createModule(input: {
       field: 'title',
     }
   }
-  const orderParse = orderSchema.safeParse(input.order)
+  const orderParse = await localizedParse(orderSchema, input.order)
   if (!orderParse.success) {
     return {
       ok: false,
@@ -752,7 +753,7 @@ export async function updateModule(input: {
 
   const data: Prisma.ModuleUpdateInput = {}
   if (input.title !== undefined) {
-    const titleParse = moduleTitleSchema.safeParse(input.title)
+    const titleParse = await localizedParse(moduleTitleSchema, input.title)
     if (!titleParse.success) {
       return {
         ok: false,
@@ -763,7 +764,7 @@ export async function updateModule(input: {
     data.title = titleParse.data
   }
   if (input.order !== undefined) {
-    const orderParse = orderSchema.safeParse(input.order)
+    const orderParse = await localizedParse(orderSchema, input.order)
     if (!orderParse.success) {
       return {
         ok: false,
@@ -874,7 +875,7 @@ export async function createLesson(input: {
   const ctx = await loadModuleForAction(input.moduleId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const titleParse = lessonTitleSchema.safeParse(input.title)
+  const titleParse = await localizedParse(lessonTitleSchema, input.title)
   if (!titleParse.success) {
     return {
       ok: false,
@@ -882,7 +883,7 @@ export async function createLesson(input: {
       field: 'title',
     }
   }
-  const contentTypeParse = lessonContentTypeSchema.safeParse(input.contentType)
+  const contentTypeParse = await localizedParse(lessonContentTypeSchema, input.contentType)
   if (!contentTypeParse.success) {
     return {
       ok: false,
@@ -890,7 +891,7 @@ export async function createLesson(input: {
       field: 'contentType',
     }
   }
-  const orderParse = orderSchema.safeParse(input.order)
+  const orderParse = await localizedParse(orderSchema, input.order)
   if (!orderParse.success) {
     return {
       ok: false,
@@ -898,7 +899,7 @@ export async function createLesson(input: {
       field: 'order',
     }
   }
-  const durationParse = lessonDurationMinSchema.safeParse(input.durationMin)
+  const durationParse = await localizedParse(lessonDurationMinSchema, input.durationMin)
   if (!durationParse.success) {
     return {
       ok: false,
@@ -906,8 +907,8 @@ export async function createLesson(input: {
       field: 'durationMin',
     }
   }
-  const contentUrlParse = optionalShortText.safeParse(input.contentUrl ?? '')
-  const contentBodyParse = optionalText.safeParse(input.contentBody ?? '')
+  const contentUrlParse = await localizedParse(optionalShortText, input.contentUrl ?? '')
+  const contentBodyParse = await localizedParse(optionalText, input.contentBody ?? '')
   if (!contentUrlParse.success || !contentBodyParse.success) {
     return { ok: false, error: t.srvTenant2.course.lessonContentInvalid }
   }
@@ -973,7 +974,7 @@ export async function updateLesson(input: {
   const data: Prisma.LessonUpdateInput = {}
 
   if (input.title !== undefined) {
-    const p = lessonTitleSchema.safeParse(input.title)
+    const p = await localizedParse(lessonTitleSchema, input.title)
     if (!p.success) {
       return {
         ok: false,
@@ -984,28 +985,28 @@ export async function updateLesson(input: {
     data.title = p.data
   }
   if (input.contentType !== undefined) {
-    const p = lessonContentTypeSchema.safeParse(input.contentType)
+    const p = await localizedParse(lessonContentTypeSchema, input.contentType)
     if (!p.success) {
       return { ok: false, error: t.srvTenant2.course.contentTypeInvalid, field: 'contentType' }
     }
     data.contentType = p.data
   }
   if (input.contentUrl !== undefined) {
-    const p = optionalShortText.safeParse(input.contentUrl)
+    const p = await localizedParse(optionalShortText, input.contentUrl)
     if (!p.success) {
       return { ok: false, error: t.srvTenant2.course.contentUrlInvalid, field: 'contentUrl' }
     }
     data.contentUrl = p.data ?? null
   }
   if (input.contentBody !== undefined) {
-    const p = optionalText.safeParse(input.contentBody)
+    const p = await localizedParse(optionalText, input.contentBody)
     if (!p.success) {
       return { ok: false, error: t.srvTenant2.course.contentBodyInvalid, field: 'contentBody' }
     }
     data.contentBody = p.data ?? null
   }
   if (input.order !== undefined) {
-    const p = orderSchema.safeParse(input.order)
+    const p = await localizedParse(orderSchema, input.order)
     if (!p.success) {
       return {
         ok: false,
@@ -1016,7 +1017,7 @@ export async function updateLesson(input: {
     data.order = p.data
   }
   if (input.durationMin !== undefined) {
-    const p = lessonDurationMinSchema.safeParse(input.durationMin)
+    const p = await localizedParse(lessonDurationMinSchema, input.durationMin)
     if (!p.success) {
       return {
         ok: false,

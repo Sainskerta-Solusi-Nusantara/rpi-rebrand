@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvAuth3 } from '@/lib/i18n/dictionaries/srv-auth3'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -17,33 +18,33 @@ const phoneRegex = /^[+\d\s\-()]*$/
 
 const profileSchema = z.object({
   name: z
-    .string({ required_error: 'Nama wajib diisi' })
+    .string()
     .trim()
-    .min(2, 'Nama minimal 2 karakter')
-    .max(120, 'Nama maksimal 120 karakter'),
+    .min(2)
+    .max(120),
   phone: z.preprocess(
     emptyToUndefined,
     z
       .string()
-      .max(30, 'Nomor telepon maksimal 30 karakter')
-      .regex(phoneRegex, 'Format nomor telepon tidak valid')
+      .max(30)
+      .refine((v) => phoneRegex.test(v), { params: { i18n: 'phoneFormat' } })
       .optional(),
   ),
   bio: z.preprocess(
     emptyToUndefined,
-    z.string().max(1000, 'Bio maksimal 1000 karakter').optional(),
+    z.string().max(1000).optional(),
   ),
   headline: z.preprocess(
     emptyToUndefined,
-    z.string().max(200, 'Headline maksimal 200 karakter').optional(),
+    z.string().max(200).optional(),
   ),
   location: z.preprocess(
     emptyToUndefined,
-    z.string().max(120, 'Lokasi maksimal 120 karakter').optional(),
+    z.string().max(120).optional(),
   ),
   image: z.preprocess(
     emptyToUndefined,
-    z.string().url('URL gambar tidak valid').optional(),
+    z.string().url().optional(),
   ),
 })
 
@@ -64,7 +65,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
     image: formData.get('image'),
   }
 
-  const parsed = profileSchema.safeParse(raw)
+  const parsed = await localizedParse(profileSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

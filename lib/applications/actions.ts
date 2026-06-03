@@ -14,6 +14,7 @@ import {
 } from '@/lib/mailer'
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -38,7 +39,7 @@ const answerInputSchema = z.object({
 })
 
 const submitApplicationSchema = z.object({
-  jobSlug: z.string().min(1, 'Slug lowongan wajib diisi.'),
+  jobSlug: z.string().min(1),
   resumeId: z
     .string()
     .min(1)
@@ -46,7 +47,7 @@ const submitApplicationSchema = z.object({
     .or(z.literal('').transform(() => undefined)),
   coverLetter: z
     .string()
-    .max(5000, 'Cover letter maksimal 5000 karakter.')
+    .max(5000)
     .optional()
     .or(z.literal('').transform(() => undefined)),
   answers: z.array(answerInputSchema).max(50).optional(),
@@ -75,7 +76,7 @@ export async function submitApplication(input: {
   }
   const userId = session.user.id
 
-  const parsed = submitApplicationSchema.safeParse(input)
+  const parsed = await localizedParse(submitApplicationSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {

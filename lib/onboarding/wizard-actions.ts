@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
@@ -30,10 +31,10 @@ function getRequestMeta() {
 
 const advanceSchema = z.object({
   step: z
-    .number({ required_error: 'Step wajib diisi' })
-    .int('Step harus bilangan bulat')
-    .min(0, 'Step minimal 0')
-    .max(MAX_WIZARD_STEP_INDEX, `Step maksimal ${MAX_WIZARD_STEP_INDEX}`),
+    .number()
+    .int()
+    .min(0)
+    .max(MAX_WIZARD_STEP_INDEX),
 })
 
 /**
@@ -46,7 +47,7 @@ export async function advanceOnboardingStep(input: {
   const t = await getServerT()
   const session = await requireAuth()
 
-  const parsed = advanceSchema.safeParse(input)
+  const parsed = await localizedParse(advanceSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

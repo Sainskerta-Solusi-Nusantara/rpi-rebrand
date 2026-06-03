@@ -14,6 +14,7 @@ import {
   type QuestionCategory,
 } from '@/lib/interview-questions/constants'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 function getRequestMeta() {
   try {
@@ -52,52 +53,45 @@ function sanitizeTags(input: string[] | undefined): string[] {
 }
 
 const createSchema = z.object({
-  tenantSlug: z.string().min(1, 'Tenant tidak valid'),
+  tenantSlug: z.string().min(1),
   text: z
     .string()
     .trim()
-    .min(10, 'Pertanyaan minimal 10 karakter')
-    .max(1000, 'Pertanyaan maksimal 1000 karakter'),
-  category: z.enum(QUESTION_CATEGORIES, {
-    errorMap: () => ({ message: 'Kategori tidak valid' }),
-  }),
+    .min(10)
+    .max(1000),
+  category: z.enum(QUESTION_CATEGORIES),
   difficulty: z
-    .number({
-      invalid_type_error: 'Tingkat kesulitan harus berupa angka',
-      required_error: 'Tingkat kesulitan wajib diisi',
-    })
-    .int('Tingkat kesulitan harus bilangan bulat')
-    .min(1, 'Tingkat kesulitan minimal 1')
-    .max(5, 'Tingkat kesulitan maksimal 5'),
+    .number()
+    .int()
+    .min(1)
+    .max(5),
   tags: z
     .array(z.string())
-    .max(10, 'Maksimal 10 tag')
+    .max(10)
     .optional()
     .default([]),
 })
 
 const updateSchema = z.object({
-  questionId: z.string().min(1, 'ID pertanyaan tidak valid'),
+  questionId: z.string().min(1),
   text: z
     .string()
     .trim()
-    .min(10, 'Pertanyaan minimal 10 karakter')
-    .max(1000, 'Pertanyaan maksimal 1000 karakter')
+    .min(10)
+    .max(1000)
     .optional(),
   category: z
-    .enum(QUESTION_CATEGORIES, {
-      errorMap: () => ({ message: 'Kategori tidak valid' }),
-    })
+    .enum(QUESTION_CATEGORIES)
     .optional(),
   difficulty: z
-    .number({ invalid_type_error: 'Tingkat kesulitan harus berupa angka' })
-    .int('Tingkat kesulitan harus bilangan bulat')
-    .min(1, 'Tingkat kesulitan minimal 1')
-    .max(5, 'Tingkat kesulitan maksimal 5')
+    .number()
+    .int()
+    .min(1)
+    .max(5)
     .optional(),
   tags: z
     .array(z.string())
-    .max(10, 'Maksimal 10 tag')
+    .max(10)
     .optional(),
 })
 
@@ -181,7 +175,7 @@ export async function createQuestion(input: {
   tags?: string[]
 }): Promise<ActionResult<{ questionId: string }>> {
   const t = await getServerT()
-  const parsed = createSchema.safeParse(input)
+  const parsed = await localizedParse(createSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -244,7 +238,7 @@ export async function updateQuestion(input: {
   tags?: string[]
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = updateSchema.safeParse(input)
+  const parsed = await localizedParse(updateSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

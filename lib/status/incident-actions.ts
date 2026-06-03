@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { AuditAction, Prisma } from '@prisma/client'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
 import { getServerT } from '@/lib/i18n/server-dictionary'
@@ -100,18 +101,14 @@ function revalidateMaintenance(id?: string) {
 /* -------------------------------------------------------------------------- */
 
 const createIncidentSchema = z.object({
-  title: z.string().trim().min(1, 'Judul wajib diisi').max(200, 'Judul maksimal 200 karakter'),
-  severity: z.enum(SEVERITIES, {
-    errorMap: () => ({ message: 'Tingkat keparahan tidak valid' }),
-  }),
-  status: z.enum(INCIDENT_STATUSES, {
-    errorMap: () => ({ message: 'Status tidak valid' }),
-  }),
+  title: z.string().trim().min(1).max(200),
+  severity: z.enum(SEVERITIES),
+  status: z.enum(INCIDENT_STATUSES),
   affectedServices: z.preprocess(emptyToUndefined, z.string().optional()),
   startedAt: z.preprocess(emptyToUndefined, z.string().optional()),
   message: z.preprocess(
     emptyToUndefined,
-    z.string().max(2000, 'Pesan maksimal 2000 karakter').optional(),
+    z.string().max(2000).optional(),
   ),
 })
 
@@ -136,7 +133,7 @@ export async function createIncident(
     startedAt: formData.get('startedAt'),
     message: formData.get('message'),
   }
-  const parsed = createIncidentSchema.safeParse(raw)
+  const parsed = await localizedParse(createIncidentSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -192,14 +189,12 @@ export async function createIncident(
 }
 
 const postUpdateSchema = z.object({
-  status: z.enum(INCIDENT_STATUSES, {
-    errorMap: () => ({ message: 'Status tidak valid' }),
-  }),
+  status: z.enum(INCIDENT_STATUSES),
   message: z
     .string()
     .trim()
-    .min(1, 'Pesan wajib diisi')
-    .max(2000, 'Pesan maksimal 2000 karakter'),
+    .min(1)
+    .max(2000),
 })
 
 /**
@@ -220,7 +215,7 @@ export async function postIncidentUpdate(
     status: formData.get('status'),
     message: formData.get('message'),
   }
-  const parsed = postUpdateSchema.safeParse(raw)
+  const parsed = await localizedParse(postUpdateSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -318,14 +313,14 @@ export async function deleteIncident(id: string): Promise<ActionResult> {
 
 const createMaintenanceSchema = z
   .object({
-    title: z.string().trim().min(1, 'Judul wajib diisi').max(200),
+    title: z.string().trim().min(1).max(200),
     description: z.preprocess(
       emptyToUndefined,
-      z.string().max(2000, 'Deskripsi maksimal 2000 karakter').optional(),
+      z.string().max(2000).optional(),
     ),
     affectedServices: z.preprocess(emptyToUndefined, z.string().optional()),
-    scheduledStart: z.string().min(1, 'Waktu mulai wajib diisi'),
-    scheduledEnd: z.string().min(1, 'Waktu selesai wajib diisi'),
+    scheduledStart: z.string().min(1),
+    scheduledEnd: z.string().min(1),
   })
   .superRefine((d, ctx) => {
     const start = new Date(d.scheduledStart)
@@ -334,14 +329,14 @@ const createMaintenanceSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['scheduledStart'],
-        message: 'Waktu mulai tidak valid',
+        params: { i18n: 'startTimeInvalid' },
       })
     }
     if (Number.isNaN(end.getTime())) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['scheduledEnd'],
-        message: 'Waktu selesai tidak valid',
+        params: { i18n: 'endTimeInvalid' },
       })
     }
     if (
@@ -352,7 +347,7 @@ const createMaintenanceSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['scheduledEnd'],
-        message: 'Waktu selesai harus setelah waktu mulai',
+        params: { i18n: 'endAfterStart' },
       })
     }
   })
@@ -372,7 +367,7 @@ export async function createMaintenance(
     scheduledStart: formData.get('scheduledStart'),
     scheduledEnd: formData.get('scheduledEnd'),
   }
-  const parsed = createMaintenanceSchema.safeParse(raw)
+  const parsed = await localizedParse(createMaintenanceSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

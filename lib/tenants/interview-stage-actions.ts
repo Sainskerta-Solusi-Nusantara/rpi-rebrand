@@ -9,6 +9,7 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { scheduleInterview } from '@/lib/tenants/interview-actions'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-constants'
 
@@ -32,61 +33,59 @@ function getRequestMeta() {
 }
 
 const stageEntrySchema = z.object({
-  interviewId: z.string().min(1, 'ID wawancara wajib diisi'),
+  interviewId: z.string().min(1),
   stageOrder: z
-    .number({ invalid_type_error: 'Urutan tahap harus berupa angka' })
-    .int('Urutan tahap harus bilangan bulat')
-    .min(1, 'Urutan tahap minimal 1')
-    .max(50, 'Urutan tahap maksimal 50'),
+    .number()
+    .int()
+    .min(1)
+    .max(50),
   stageName: z
     .string()
     .trim()
-    .max(80, 'Nama tahap maksimal 80 karakter')
+    .max(80)
     .optional()
     .transform((v) => (v && v.length > 0 ? v : undefined)),
 })
 
 const reorderSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
-  stages: z.array(stageEntrySchema).min(1, 'Minimal satu tahap wajib diberikan'),
+  applicationId: z.string().min(1),
+  stages: z.array(stageEntrySchema).min(1),
 })
 
 const setStageSchema = z.object({
-  interviewId: z.string().min(1, 'ID wawancara wajib diisi'),
+  interviewId: z.string().min(1),
   stageOrder: z
-    .number({ invalid_type_error: 'Urutan tahap harus berupa angka' })
-    .int('Urutan tahap harus bilangan bulat')
-    .min(1, 'Urutan tahap minimal 1')
-    .max(50, 'Urutan tahap maksimal 50'),
+    .number()
+    .int()
+    .min(1)
+    .max(50),
   stageName: z
     .string()
     .trim()
-    .max(80, 'Nama tahap maksimal 80 karakter')
+    .max(80)
     .optional()
     .transform((v) => (v && v.length > 0 ? v : undefined)),
 })
 
 const quickAddSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+  applicationId: z.string().min(1),
   stageName: z
     .string()
     .trim()
-    .min(1, 'Nama tahap wajib diisi')
-    .max(80, 'Nama tahap maksimal 80 karakter'),
+    .min(1)
+    .max(80),
   scheduledAt: z
     .string()
-    .min(1, 'Tanggal & jam wajib diisi')
+    .min(1)
     .refine((v) => !Number.isNaN(Date.parse(v)), {
-      message: 'Format tanggal tidak valid',
+      params: { i18n: 'dateInvalid' },
     }),
   durationMin: z
-    .number({ invalid_type_error: 'Durasi harus berupa angka' })
-    .int('Durasi harus bilangan bulat')
-    .min(15, 'Durasi minimal 15 menit')
-    .max(480, 'Durasi maksimal 480 menit'),
-  type: z.enum(['video', 'onsite', 'phone'], {
-    errorMap: () => ({ message: 'Jenis wawancara tidak valid' }),
-  }),
+    .number()
+    .int()
+    .min(15)
+    .max(480),
+  type: z.enum(['video', 'onsite', 'phone']),
   meetingUrl: z
     .string()
     .trim()
@@ -99,7 +98,7 @@ const quickAddSchema = z.object({
     .transform((v) => (v && v.length > 0 ? v : undefined)),
   notes: z
     .string()
-    .max(5000, 'Catatan maksimal 5000 karakter')
+    .max(5000)
     .optional()
     .transform((v) => (v && v.trim().length > 0 ? v.trim() : undefined)),
 })
@@ -160,7 +159,7 @@ export async function reorderStages(input: {
   stages: Array<{ interviewId: string; stageOrder: number; stageName?: string }>
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = reorderSchema.safeParse(input)
+  const parsed = await localizedParse(reorderSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -271,7 +270,7 @@ export async function setInterviewStage(input: {
   stageName?: string
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = setStageSchema.safeParse(input)
+  const parsed = await localizedParse(setStageSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -381,7 +380,7 @@ export async function quickAddStage(input: {
   notes?: string
 }): Promise<ActionResult<{ interviewId: string }>> {
   const t = await getServerT()
-  const parsed = quickAddSchema.safeParse(input)
+  const parsed = await localizedParse(quickAddSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

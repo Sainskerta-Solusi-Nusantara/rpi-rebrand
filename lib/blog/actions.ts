@@ -24,6 +24,7 @@ import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { AuditAction, Prisma } from '@prisma/client'
 import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/db'
@@ -92,12 +93,12 @@ const tagSchema = z
   .string()
   .trim()
   .min(1)
-  .max(40, 'Tag terlalu panjang')
-  .regex(/^[a-z0-9](?:[a-z0-9- ]*[a-z0-9])?$/i, 'Tag hanya boleh huruf, angka, atau tanda hubung')
+  .max(40)
+  .refine((v) => /^[a-z0-9](?:[a-z0-9- ]*[a-z0-9])?$/i.test(v), { params: { i18n: 'tagFormat' } })
 
 const baseTagsSchema = z
   .array(tagSchema)
-  .max(10, 'Maksimal 10 tag')
+  .max(10)
   .optional()
   .transform((v) => (v ?? []).map((t) => t.trim().toLowerCase()))
 
@@ -105,23 +106,23 @@ const createArticleSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(5, 'Judul minimal 5 karakter')
-    .max(200, 'Judul maksimal 200 karakter'),
+    .min(5)
+    .max(200),
   summary: z
     .string()
     .trim()
-    .max(500, 'Ringkasan maksimal 500 karakter')
+    .max(500)
     .optional()
     .transform((v) => (v && v.length > 0 ? v : undefined)),
   body: z
     .string()
     .trim()
-    .min(50, 'Isi artikel minimal 50 karakter'),
+    .min(50),
   coverImage: z
     .string()
     .trim()
-    .max(2048, 'URL gambar terlalu panjang')
-    .url('URL gambar tidak valid')
+    .max(2048)
+    .url()
     .optional()
     .or(z.literal('').transform(() => undefined)),
   tags: baseTagsSchema,
@@ -197,7 +198,7 @@ export async function createArticle(input: {
   const actor = await requireAdminActor()
   if ('error' in actor) return { ok: false, error: actor.error }
 
-  const parsed = createArticleSchema.safeParse(input)
+  const parsed = await localizedParse(createArticleSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -263,7 +264,7 @@ export async function updateArticle(input: {
   status?: ArticleStatus
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = updateArticleSchema.safeParse(input)
+  const parsed = await localizedParse(updateArticleSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

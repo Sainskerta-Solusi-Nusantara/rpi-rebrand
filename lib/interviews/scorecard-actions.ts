@@ -12,6 +12,7 @@ import {
   isRecommendationValue,
 } from '@/lib/interviews/scorecard-defaults'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ScorecardActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -21,32 +22,27 @@ const ratingSchema = z.object({
   criterion: z
     .string()
     .trim()
-    .min(1, 'Nama kriteria wajib diisi')
-    .max(100, 'Nama kriteria maksimal 100 karakter'),
+    .min(1)
+    .max(100),
   score: z
-    .number({
-      invalid_type_error: 'Skor harus berupa angka',
-      required_error: 'Skor wajib diisi',
-    })
-    .int('Skor harus bilangan bulat')
-    .min(1, 'Skor minimal 1')
-    .max(5, 'Skor maksimal 5'),
+    .number()
+    .int()
+    .min(1)
+    .max(5),
 })
 
 const payloadSchema = z.object({
-  interviewId: z.string().min(1, 'ID wawancara wajib diisi'),
+  interviewId: z.string().min(1),
   ratings: z
     .array(ratingSchema)
-    .min(1, 'Minimal satu kriteria penilaian')
-    .max(15, 'Maksimal 15 kriteria penilaian'),
+    .min(1)
+    .max(15),
   notes: z
     .string()
-    .max(5000, 'Catatan maksimal 5000 karakter')
+    .max(5000)
     .optional()
     .transform((v) => (v && v.trim().length > 0 ? v.trim() : undefined)),
-  recommendation: z.enum(RECOMMENDATION_VALUES, {
-    errorMap: () => ({ message: 'Rekomendasi tidak valid' }),
-  }),
+  recommendation: z.enum(RECOMMENDATION_VALUES),
 })
 
 function getRequestMeta() {
@@ -185,7 +181,7 @@ async function readPayload(input: unknown): Promise<
     }
   }
 
-  const parsed = payloadSchema.safeParse(raw)
+  const parsed = await localizedParse(payloadSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

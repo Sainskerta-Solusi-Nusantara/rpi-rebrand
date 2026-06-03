@@ -13,6 +13,7 @@
 import { headers } from 'next/headers'
 import { z } from 'zod'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { AuditAction, PlanTier, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
@@ -50,14 +51,12 @@ function customerSuffix(customerId?: string | null): string | null {
 }
 
 const checkoutSchema = z.object({
-  tenantSlug: z.string().trim().min(1, 'Tenant tidak valid.'),
-  plan: z.nativeEnum(PlanTier, {
-    errorMap: () => ({ message: 'Plan tidak dikenali.' }),
-  }),
+  tenantSlug: z.string().trim().min(1),
+  plan: z.nativeEnum(PlanTier),
 })
 
 const portalSchema = z.object({
-  tenantSlug: z.string().trim().min(1, 'Tenant tidak valid.'),
+  tenantSlug: z.string().trim().min(1),
 })
 
 function appUrl(): string {
@@ -71,7 +70,7 @@ export async function startStripeCheckout(formData: FormData): Promise<ActionRes
     return { ok: false, error: t.srvBilling.stripe.demoMode }
   }
 
-  const parsed = checkoutSchema.safeParse({
+  const parsed = await localizedParse(checkoutSchema, {
     tenantSlug: formData.get('tenantSlug'),
     plan: formData.get('plan'),
   })
@@ -157,7 +156,7 @@ export async function openBillingPortal(formData: FormData): Promise<ActionResul
     return { ok: false, error: t.srvBilling.stripe.demoMode }
   }
 
-  const parsed = portalSchema.safeParse({
+  const parsed = await localizedParse(portalSchema, {
     tenantSlug: formData.get('tenantSlug'),
   })
   if (!parsed.success) {

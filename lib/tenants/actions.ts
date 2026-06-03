@@ -13,6 +13,7 @@ import { shouldSendEmail } from '@/lib/auth/notification-prefs'
 import { sendEmail, tenantInviteEmail } from '@/lib/mailer'
 import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -60,14 +61,14 @@ function getRequestMeta() {
 }
 
 const createTenantSchema = z.object({
-  name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(120),
+  name: z.string().trim().min(2).max(120),
   slug: z
     .string()
     .trim()
     .toLowerCase()
-    .min(3, 'Slug minimal 3 karakter')
-    .max(40, 'Slug maksimal 40 karakter')
-    .regex(SLUG_RE, 'Gunakan huruf kecil, angka, dan tanda hubung saja.'),
+    .min(3)
+    .max(40)
+    .refine((v) => SLUG_RE.test(v), { params: { i18n: 'slugFormat' } }),
 })
 
 /**
@@ -81,7 +82,7 @@ export async function createTenant(formData: FormData): Promise<ActionResult<{ s
     return { ok: false, error: t.srvTenant1.tenant.mustLogin }
   }
 
-  const parsed = createTenantSchema.safeParse({
+  const parsed = await localizedParse(createTenantSchema, {
     name: formData.get('name'),
     slug: formData.get('slug'),
   })
@@ -152,7 +153,7 @@ export async function createTenant(formData: FormData): Promise<ActionResult<{ s
 
 const inviteSchema = z.object({
   tenantSlug: z.string().min(1),
-  email: z.string().email('Email tidak valid').transform((v) => v.toLowerCase().trim()),
+  email: z.string().email().transform((v) => v.toLowerCase().trim()),
   role: z.enum(INVITABLE_ROLES),
 })
 
@@ -171,7 +172,7 @@ export async function createTenantInvite(input: {
     return { ok: false, error: t.srvTenant1.tenant.mustLoginInvite }
   }
 
-  const parsed = inviteSchema.safeParse(input)
+  const parsed = await localizedParse(inviteSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -505,7 +506,7 @@ export async function updateMemberRole(input: {
   role: TenantRole
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = updateMemberRoleSchema.safeParse(input)
+  const parsed = await localizedParse(updateMemberRoleSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return { ok: false, error: issue?.message ?? t.srvTenant1.tenant.dataInvalid }

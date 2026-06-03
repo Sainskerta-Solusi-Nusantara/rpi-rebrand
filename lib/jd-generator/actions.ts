@@ -14,6 +14,7 @@ import { createHash } from 'crypto'
 import { headers } from 'next/headers'
 import { z } from 'zod'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import {
   AuditAction,
   EmploymentType,
@@ -38,8 +39,8 @@ const inputSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(3, 'Judul minimal 3 karakter')
-    .max(200, 'Judul maksimal 200 karakter'),
+    .min(3)
+    .max(200),
   level: z.nativeEnum(ExperienceLevel),
   employmentType: z.nativeEnum(EmploymentType),
   location: z.string().trim().max(120).optional().default(''),
@@ -78,7 +79,7 @@ export async function generateJdAction(
     return { ok: false, error: t.srvBilling.jdGenerator.mustSignIn }
   }
 
-  const parsed = inputSchema.safeParse(input)
+  const parsed = await localizedParse(inputSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

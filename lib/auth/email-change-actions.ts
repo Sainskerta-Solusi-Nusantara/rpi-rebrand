@@ -15,6 +15,7 @@ import {
   sendEmail,
 } from '@/lib/mailer'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -44,8 +45,8 @@ function getRequestMeta() {
 }
 
 const requestSchema = z.object({
-  newEmail: z.string().email('Email baru tidak valid').transform((v) => v.toLowerCase().trim()),
-  password: z.string().min(1, 'Masukkan password'),
+  newEmail: z.string().email().transform((v) => v.toLowerCase().trim()),
+  password: z.string().min(1),
 })
 
 /**
@@ -60,7 +61,7 @@ export async function requestEmailChange(formData: FormData): Promise<ActionResu
     return { ok: false, error: t.srvAuth2.emailChange.mustLogin }
   }
 
-  const parsed = requestSchema.safeParse({
+  const parsed = await localizedParse(requestSchema, {
     newEmail: formData.get('newEmail'),
     password: formData.get('password'),
   })

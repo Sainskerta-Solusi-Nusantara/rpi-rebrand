@@ -14,6 +14,7 @@ import {
   renderTemplate,
 } from '@/lib/tenants/email-template-resolver'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 function escapeHtmlForTemplate(s: string): string {
   return s
@@ -39,17 +40,15 @@ const MANAGEABLE_STATUSES = [
 ] as const
 
 const statusSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
-  status: z.nativeEnum(ApplicationStatus, {
-    errorMap: () => ({ message: 'Status tidak valid' }),
-  }),
+  applicationId: z.string().min(1),
+  status: z.nativeEnum(ApplicationStatus),
 })
 
 const noteSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+  applicationId: z.string().min(1),
   notes: z
     .string()
-    .max(5000, 'Catatan maksimal 5000 karakter')
+    .max(5000)
     .transform((v) => v.trim()),
 })
 
@@ -117,7 +116,7 @@ export async function updateApplicationStatus(input: {
   status: ApplicationStatus | string
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = statusSchema.safeParse(input)
+  const parsed = await localizedParse(statusSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -344,7 +343,7 @@ export async function updateApplicationNote(input: {
   notes: string
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = noteSchema.safeParse(input)
+  const parsed = await localizedParse(noteSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

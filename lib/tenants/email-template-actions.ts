@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -30,27 +31,23 @@ const TEMPLATE_STATUS_VALUES = [
 export type TemplateStatus = (typeof TEMPLATE_STATUS_VALUES)[number]
 
 const upsertSchema = z.object({
-  tenantSlug: z.string().min(1, 'Slug tenant wajib diisi'),
-  status: z.enum(TEMPLATE_STATUS_VALUES, {
-    errorMap: () => ({ message: 'Status tidak valid' }),
-  }),
+  tenantSlug: z.string().min(1),
+  status: z.enum(TEMPLATE_STATUS_VALUES),
   subject: z
     .string()
     .trim()
-    .min(5, 'Subjek minimal 5 karakter')
-    .max(200, 'Subjek maksimal 200 karakter'),
+    .min(5)
+    .max(200),
   body: z
     .string()
-    .min(50, 'Isi email minimal 50 karakter')
-    .max(10_000, 'Isi email maksimal 10.000 karakter'),
+    .min(50)
+    .max(10_000),
   enabled: z.boolean().default(true),
 })
 
 const deleteSchema = z.object({
-  tenantSlug: z.string().min(1, 'Slug tenant wajib diisi'),
-  status: z.enum(TEMPLATE_STATUS_VALUES, {
-    errorMap: () => ({ message: 'Status tidak valid' }),
-  }),
+  tenantSlug: z.string().min(1),
+  status: z.enum(TEMPLATE_STATUS_VALUES),
 })
 
 function getRequestMeta() {
@@ -107,7 +104,7 @@ export async function upsertEmailTemplate(input: {
   enabled?: boolean
 }): Promise<ActionResult<{ id: string; created: boolean }>> {
   const t = await getServerT()
-  const parsed = upsertSchema.safeParse({
+  const parsed = await localizedParse(upsertSchema, {
     tenantSlug: input.tenantSlug,
     status: input.status,
     subject: input.subject,
@@ -183,7 +180,7 @@ export async function deleteEmailTemplate(input: {
   status: string
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = deleteSchema.safeParse(input)
+  const parsed = await localizedParse(deleteSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

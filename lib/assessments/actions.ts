@@ -9,6 +9,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasPermission } from '@/lib/auth/rbac'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -55,16 +56,16 @@ const choiceSchema = z.object({
   text: z
     .string()
     .trim()
-    .min(1, 'Teks pilihan tidak boleh kosong')
-    .max(2_000, 'Teks pilihan terlalu panjang'),
+    .min(1)
+    .max(2_000),
   isCorrect: z.boolean(),
 })
 
 const questionTextSchema = z
   .string()
   .trim()
-  .min(3, 'Teks pertanyaan minimal 3 karakter')
-  .max(4_000, 'Teks pertanyaan terlalu panjang')
+  .min(3)
+  .max(4_000)
 
 // =============================================================================
 // Helpers
@@ -175,25 +176,25 @@ const createSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(5, 'Judul minimal 5 karakter')
-    .max(200, 'Judul maksimal 200 karakter'),
+    .min(5)
+    .max(200),
   description: z
     .string()
     .trim()
-    .min(20, 'Deskripsi minimal 20 karakter')
-    .max(5_000, 'Deskripsi terlalu panjang'),
+    .min(20)
+    .max(5_000),
   category: categorySchema,
   durationMin: z
-    .number({ invalid_type_error: 'Durasi harus berupa angka' })
-    .int('Durasi harus bilangan bulat')
-    .min(1, 'Durasi minimal 1 menit')
-    .max(600, 'Durasi maksimal 600 menit')
+    .number()
+    .int()
+    .min(1)
+    .max(600)
     .optional(),
   passingScore: z
-    .number({ invalid_type_error: 'Skor lulus harus berupa angka' })
-    .int('Skor lulus harus bilangan bulat')
-    .min(0, 'Skor lulus minimal 0')
-    .max(100, 'Skor lulus maksimal 100')
+    .number()
+    .int()
+    .min(0)
+    .max(100)
     .optional(),
 })
 
@@ -205,7 +206,7 @@ export async function createAssessment(input: {
   passingScore?: number
 }): Promise<ActionResult<{ id: string; slug: string }>> {
   const t = await getServerT()
-  const parsed = createSchema.safeParse(input)
+  const parsed = await localizedParse(createSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -276,7 +277,7 @@ export async function createAssessment(input: {
 // =============================================================================
 
 const updateSchema = z.object({
-  assessmentId: z.string().min(1, 'ID asesmen wajib diisi.'),
+  assessmentId: z.string().min(1),
   title: createSchema.shape.title.optional(),
   description: createSchema.shape.description.optional(),
   category: categorySchema.optional(),
@@ -293,7 +294,7 @@ export async function updateAssessment(input: {
   passingScore?: number
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = updateSchema.safeParse(input)
+  const parsed = await localizedParse(updateSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -453,10 +454,10 @@ export async function unpublishAssessment(
 // =============================================================================
 
 const addQuestionSchema = z.object({
-  assessmentId: z.string().min(1, 'ID asesmen wajib diisi.'),
+  assessmentId: z.string().min(1),
   text: questionTextSchema,
   type: questionTypeSchema,
-  choices: z.array(choiceSchema).min(2, 'Minimal 2 pilihan jawaban.'),
+  choices: z.array(choiceSchema).min(2),
 })
 
 export async function addQuestion(input: {
@@ -466,7 +467,7 @@ export async function addQuestion(input: {
   choices: Array<{ text: string; isCorrect: boolean }>
 }): Promise<ActionResult<{ id: string }>> {
   const t = await getServerT()
-  const parsed = addQuestionSchema.safeParse(input)
+  const parsed = await localizedParse(addQuestionSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -548,7 +549,7 @@ export async function addQuestion(input: {
 // =============================================================================
 
 const updateQuestionSchema = z.object({
-  questionId: z.string().min(1, 'ID pertanyaan wajib diisi.'),
+  questionId: z.string().min(1),
   text: questionTextSchema.optional(),
   choices: z.array(choiceSchema).optional(),
 })
@@ -559,7 +560,7 @@ export async function updateQuestion(input: {
   choices?: Array<{ text: string; isCorrect: boolean }>
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = updateQuestionSchema.safeParse(input)
+  const parsed = await localizedParse(updateQuestionSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

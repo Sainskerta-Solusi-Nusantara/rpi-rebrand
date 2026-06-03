@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -39,32 +40,27 @@ const ratingSchema = z.object({
   criterion: z
     .string()
     .trim()
-    .min(1, 'Nama kriteria wajib diisi')
-    .max(100, 'Nama kriteria maksimal 100 karakter'),
+    .min(1)
+    .max(100),
   score: z
-    .number({
-      invalid_type_error: 'Skor harus berupa angka',
-      required_error: 'Skor wajib diisi',
-    })
-    .int('Skor harus bilangan bulat')
-    .min(1, 'Skor minimal 1')
-    .max(5, 'Skor maksimal 5'),
+    .number()
+    .int()
+    .min(1)
+    .max(5),
 })
 
 const upsertSchema = z.object({
-  interviewId: z.string().min(1, 'ID wawancara wajib diisi'),
+  interviewId: z.string().min(1),
   ratings: z
     .array(ratingSchema)
-    .min(1, 'Minimal satu kriteria penilaian')
-    .max(10, 'Maksimal 10 kriteria penilaian'),
+    .min(1)
+    .max(10),
   notes: z
     .string()
-    .max(5000, 'Catatan maksimal 5000 karakter')
+    .max(5000)
     .optional()
     .transform((v) => (v && v.trim().length > 0 ? v.trim() : undefined)),
-  recommendation: z.enum(RECOMMENDATIONS, {
-    errorMap: () => ({ message: 'Rekomendasi tidak valid' }),
-  }),
+  recommendation: z.enum(RECOMMENDATIONS),
 })
 
 type LoadInterviewCtx =
@@ -143,7 +139,7 @@ export async function upsertScorecard(input: {
   recommendation: string
 }): Promise<ActionResult<{ scorecardId: string; created: boolean }>> {
   const t = await getServerT()
-  const parsed = upsertSchema.safeParse(input)
+  const parsed = await localizedParse(upsertSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

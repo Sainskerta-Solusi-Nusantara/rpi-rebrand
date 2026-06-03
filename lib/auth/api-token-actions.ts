@@ -14,6 +14,7 @@ import {
 } from '@/lib/auth/api-token'
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvAuth1 } from '@/lib/i18n/dictionaries/srv-auth1'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -36,9 +37,9 @@ function expiryToDate(choice: ExpiryChoice): Date | null {
 }
 
 const createSchema = z.object({
-  name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(80, 'Maks 80 karakter'),
+  name: z.string().trim().min(2).max(80),
   expiry: expirySchema.default('90d'),
-  scopes: z.array(z.enum(API_TOKEN_SCOPES)).min(1, 'Pilih minimal satu scope'),
+  scopes: z.array(z.enum(API_TOKEN_SCOPES)).min(1),
 })
 
 function getRequestMeta() {
@@ -70,7 +71,7 @@ export async function createApiToken(formData: FormData): Promise<
   if (!session?.user?.id) return { ok: false, error: t.mustLogin }
 
   const scopesRaw = formData.getAll('scopes').map((v) => String(v))
-  const parsed = createSchema.safeParse({
+  const parsed = await localizedParse(createSchema, {
     name: formData.get('name'),
     expiry: formData.get('expiry') ?? 'none',
     scopes: scopesRaw,

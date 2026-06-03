@@ -9,6 +9,7 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import type { Session } from 'next-auth'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -30,20 +31,20 @@ export type MessageRow = {
 }
 
 const sendSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+  applicationId: z.string().min(1),
   body: z
     .string()
-    .min(1, 'Pesan tidak boleh kosong')
-    .max(5000, 'Pesan maksimal 5000 karakter')
+    .min(1)
+    .max(5000)
     .transform((v) => v.trim()),
 })
 
 const markReadSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+  applicationId: z.string().min(1),
 })
 
 const getAfterSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+  applicationId: z.string().min(1),
   sinceMessageId: z.string().nullable().optional(),
 })
 
@@ -156,7 +157,7 @@ export async function sendMessage(input: {
   body: string
 }): Promise<ActionResult<{ messageId: string }>> {
   const t = await getServerT()
-  const parsed = sendSchema.safeParse(input)
+  const parsed = await localizedParse(sendSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -331,7 +332,7 @@ export async function markThreadRead(
   applicationId: string,
 ): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = markReadSchema.safeParse({ applicationId })
+  const parsed = await localizedParse(markReadSchema, { applicationId })
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? t.srvMessaging.messaging.dataInvalid }
   }
@@ -378,7 +379,7 @@ export async function getMessagesAfter(input: {
   sinceMessageId: string | null
 }): Promise<ActionResult<{ messages: MessageRow[] }>> {
   const t = await getServerT()
-  const parsed = getAfterSchema.safeParse(input)
+  const parsed = await localizedParse(getAfterSchema, input)
   if (!parsed.success) {
     return {
       ok: false,

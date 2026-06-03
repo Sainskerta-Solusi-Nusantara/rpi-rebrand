@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
@@ -25,10 +26,10 @@ const emptyToNull = (v: unknown): string | null => {
 }
 
 const nameSchema = z
-  .string({ required_error: 'Nama pencarian wajib diisi' })
+  .string()
   .trim()
-  .min(1, 'Nama pencarian wajib diisi')
-  .max(80, 'Nama maksimal 80 karakter')
+  .min(1)
+  .max(80)
 
 function parseEmploymentType(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
@@ -95,15 +96,16 @@ type ParsedFields = {
   emailAlerts: boolean
 }
 
-function parseFormFields(
+async function parseFormFields(
   formData: FormData,
   opts: { defaultEmailAlerts: boolean },
   msgs: { nameInvalid: string; queryTooLong: string; categorySlugTooLong: string; locationTooLong: string },
-):
+): Promise<
   | { ok: true; data: ParsedFields }
-  | { ok: false; error: string; field?: string } {
+  | { ok: false; error: string; field?: string }
+> {
   const nameRaw = formData.get('name')
-  const nameParsed = nameSchema.safeParse(nameRaw)
+  const nameParsed = await localizedParse(nameSchema, nameRaw)
   if (!nameParsed.success) {
     const issue = nameParsed.error.issues[0]
     return { ok: false, error: issue?.message ?? msgs.nameInvalid, field: 'name' }
@@ -151,7 +153,7 @@ export async function createSavedSearch(formData: FormData): Promise<ActionResul
   const session = await auth()
   if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearch.mustLogin }
 
-  const parsed = parseFormFields(formData, { defaultEmailAlerts: true }, {
+  const parsed = await parseFormFields(formData, { defaultEmailAlerts: true }, {
     nameInvalid: t.srvSavedSearch.savedSearch.nameInvalid,
     queryTooLong: t.srvSavedSearch.savedSearch.queryTooLong,
     categorySlugTooLong: t.srvSavedSearch.savedSearch.categorySlugTooLong,
@@ -203,7 +205,7 @@ export async function updateSavedSearch(
   if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearch.mustLogin }
   if (!id) return { ok: false, error: t.srvSavedSearch.savedSearch.idInvalid }
 
-  const parsed = parseFormFields(formData, { defaultEmailAlerts: true }, {
+  const parsed = await parseFormFields(formData, { defaultEmailAlerts: true }, {
     nameInvalid: t.srvSavedSearch.savedSearch.nameInvalid,
     queryTooLong: t.srvSavedSearch.savedSearch.queryTooLong,
     categorySlugTooLong: t.srvSavedSearch.savedSearch.categorySlugTooLong,

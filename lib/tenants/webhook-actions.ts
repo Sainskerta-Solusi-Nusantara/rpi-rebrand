@@ -10,6 +10,7 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { WEBHOOK_EVENTS, type WebhookEvent } from '@/lib/webhooks/events'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -23,8 +24,8 @@ const eventSchema = z.enum(WEBHOOK_EVENTS)
 const urlSchema = z
   .string()
   .trim()
-  .min(1, 'URL wajib diisi')
-  .max(2048, 'URL terlalu panjang')
+  .min(1)
+  .max(2048)
   .refine(
     (raw) => {
       try {
@@ -36,27 +37,27 @@ const urlSchema = z
         return false
       }
     },
-    'URL harus menggunakan HTTPS (atau http://localhost untuk pengujian)',
+    { params: { i18n: 'httpsUrl' } },
   )
 
 const nameSchema = z
   .string()
   .trim()
-  .min(2, 'Nama minimal 2 karakter')
-  .max(80, 'Nama maksimal 80 karakter')
+  .min(2)
+  .max(80)
 
 const createSchema = z.object({
   tenantSlug: z.string().min(1),
   name: nameSchema,
   url: urlSchema,
-  events: z.array(eventSchema).min(1, 'Pilih minimal satu event'),
+  events: z.array(eventSchema).min(1),
 })
 
 const updateSchema = z.object({
   webhookId: z.string().min(1),
   name: nameSchema,
   url: urlSchema,
-  events: z.array(eventSchema).min(1, 'Pilih minimal satu event'),
+  events: z.array(eventSchema).min(1),
   enabled: z.boolean(),
 })
 
@@ -170,7 +171,7 @@ export async function createTenantWebhook(input: {
   events: string[]
 }): Promise<ActionResult<{ id: string; secret: string }>> {
   const t = await getServerT()
-  const parsed = createSchema.safeParse(input)
+  const parsed = await localizedParse(createSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -242,7 +243,7 @@ export async function updateTenantWebhook(input: {
   enabled: boolean
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = updateSchema.safeParse(input)
+  const parsed = await localizedParse(updateSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

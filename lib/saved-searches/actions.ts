@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { getServerT } from '@/lib/i18n/server-dictionary'
@@ -24,27 +25,25 @@ const emptyToUndefined = (v: unknown) =>
 
 const createSchema = z.object({
   name: z
-    .string({ required_error: 'Nama pencarian wajib diisi' })
+    .string()
     .trim()
-    .min(2, 'Nama minimal 2 karakter')
-    .max(80, 'Nama maksimal 80 karakter'),
+    .min(2)
+    .max(80),
   query: z.preprocess(
     emptyToUndefined,
-    z.string().max(120, 'Kata kunci maksimal 120 karakter').optional(),
+    z.string().max(120).optional(),
   ),
   categorySlug: z.preprocess(
     emptyToUndefined,
-    z.string().max(120, 'Slug kategori maksimal 120 karakter').optional(),
+    z.string().max(120).optional(),
   ),
   location: z.preprocess(
     emptyToUndefined,
-    z.string().max(120, 'Lokasi maksimal 120 karakter').optional(),
+    z.string().max(120).optional(),
   ),
   employmentType: z.preprocess(
     (v) => (typeof v === 'string' ? v : ''),
-    z.enum(EMPLOYMENT_TYPES, {
-      errorMap: () => ({ message: 'Tipe pekerjaan tidak valid' }),
-    }),
+    z.enum(EMPLOYMENT_TYPES),
   ),
   emailAlerts: z.preprocess((v) => {
     if (typeof v === 'boolean') return v
@@ -54,7 +53,7 @@ const createSchema = z.object({
 })
 
 const updateSchema = createSchema.partial().extend({
-  id: z.string().min(1, 'ID wajib diisi'),
+  id: z.string().min(1),
 })
 
 export type SavedSearchInput = {
@@ -77,7 +76,7 @@ export async function createSavedSearch(input: SavedSearchInput): Promise<Action
   const session = await auth()
   if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearches.mustLogin }
 
-  const parsed = createSchema.safeParse({
+  const parsed = await localizedParse(createSchema, {
     name: input.name,
     query: input.query,
     categorySlug: input.categorySlug,
@@ -135,7 +134,7 @@ export async function updateSavedSearch(input: SavedSearchUpdateInput): Promise<
   const session = await auth()
   if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearches.mustLogin }
 
-  const parsed = updateSchema.safeParse({
+  const parsed = await localizedParse(updateSchema, {
     id: input.id,
     name: input.name,
     query: input.query,

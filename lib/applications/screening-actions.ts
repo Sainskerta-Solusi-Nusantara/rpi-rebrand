@@ -9,18 +9,19 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { scoreApplication } from './screening'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
   | { ok: false; error: string; field?: string }
 
 const idSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+  applicationId: z.string().min(1),
 })
 
 const jobIdSchema = z.object({
-  tenantSlug: z.string().min(1, 'Tenant wajib diisi'),
-  jobId: z.string().min(1, 'ID lowongan wajib diisi'),
+  tenantSlug: z.string().min(1),
+  jobId: z.string().min(1),
 })
 
 function getRequestMeta() {
@@ -156,7 +157,7 @@ export async function runScreening(input: {
   applicationId: string
 }): Promise<ActionResult<{ score: number; tags: string[] }>> {
   const t = await getServerT()
-  const parsed = idSchema.safeParse(input)
+  const parsed = await localizedParse(idSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -232,7 +233,7 @@ export async function runScreeningForJob(input: {
   jobId: string
 }): Promise<ActionResult<BulkScreeningSummary>> {
   const t = await getServerT()
-  const parsed = jobIdSchema.safeParse(input)
+  const parsed = await localizedParse(jobIdSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -381,7 +382,7 @@ export async function clearScreening(input: {
   applicationId: string
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = idSchema.safeParse(input)
+  const parsed = await localizedParse(idSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

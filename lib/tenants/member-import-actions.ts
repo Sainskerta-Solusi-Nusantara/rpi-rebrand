@@ -10,6 +10,7 @@ import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { parseCsv } from '@/lib/csv'
 import { createTenantInvite } from '@/lib/tenants/actions'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 // =============================================================================
 // Types
@@ -100,11 +101,11 @@ function getRequestMeta() {
 const emailField = z
   .string()
   .trim()
-  .min(1, 'Email wajib diisi')
+  .min(1)
   .transform((v) => v.toLowerCase())
   .refine(
     (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-    'Email tidak valid',
+    { params: { i18n: 'emailInvalid' } },
   )
 
 const roleField = z.preprocess((v) => {
@@ -113,14 +114,12 @@ const roleField = z.preprocess((v) => {
     return v.trim().toUpperCase().replace(/[-\s]+/g, '_')
   }
   return v
-}, z.enum(INVITABLE_ROLES, {
-  errorMap: () => ({ message: 'Peran harus ADMIN, RECRUITER, atau MEMBER' }),
-}))
+}, z.enum(INVITABLE_ROLES))
 
 const optionalName = z
   .string()
   .trim()
-  .max(200, 'Nama maksimal 200 karakter')
+  .max(200)
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined))
 
@@ -255,11 +254,11 @@ function buildRawObject(
   return obj
 }
 
-function validateRow(raw: Record<string, string>): {
+async function validateRow(raw: Record<string, string>): Promise<{
   parsed: CsvRowParsed | null
   errors: string[]
-} {
-  const result = rowSchema.safeParse(raw)
+}> {
+  const result = await localizedParse(rowSchema, raw)
   if (!result.success) {
     const errors = result.error.issues.map((issue) => {
       const path = issue.path.join('.')
@@ -338,11 +337,13 @@ export async function parseAndValidateMembersCsv(input: {
     parsed: CsvRowParsed | null
     errors: string[]
   }
-  const intermediates: Intermediate[] = parsed.dataRows.map((dr) => {
-    const raw = buildRawObject(parsed.headerMap, dr.raw)
-    const { parsed: pr, errors } = validateRow(raw)
-    return { lineNum: dr.lineNum, raw, parsed: pr, errors }
-  })
+  const intermediates: Intermediate[] = await Promise.all(
+    parsed.dataRows.map(async (dr) => {
+      const raw = buildRawObject(parsed.headerMap, dr.raw)
+      const { parsed: pr, errors } = await validateRow(raw)
+      return { lineNum: dr.lineNum, raw, parsed: pr, errors }
+    }),
+  )
 
   const validEmails = Array.from(
     new Set(
@@ -465,11 +466,13 @@ export async function bulkImportMembers(input: {
     parsed: CsvRowParsed | null
     errors: string[]
   }
-  const intermediates: Intermediate[] = parsed.dataRows.map((dr) => {
-    const raw = buildRawObject(parsed.headerMap, dr.raw)
-    const { parsed: pr, errors } = validateRow(raw)
-    return { lineNum: dr.lineNum, parsed: pr, errors }
-  })
+  const intermediates: Intermediate[] = await Promise.all(
+    parsed.dataRows.map(async (dr) => {
+      const raw = buildRawObject(parsed.headerMap, dr.raw)
+      const { parsed: pr, errors } = await validateRow(raw)
+      return { lineNum: dr.lineNum, parsed: pr, errors }
+    }),
+  )
 
   const validEmails = Array.from(
     new Set(

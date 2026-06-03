@@ -17,6 +17,7 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { parseCsv } from '@/lib/csv'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 // =============================================================================
 // Types
@@ -128,7 +129,7 @@ function buildJobSlug(title: string): string {
 const optionalText = z
   .string()
   .trim()
-  .max(20_000, 'Teks terlalu panjang')
+  .max(20_000)
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined))
 
@@ -183,12 +184,12 @@ const rowSchema = z
     title: z
       .string()
       .trim()
-      .min(5, 'Judul minimal 5 karakter')
-      .max(200, 'Judul maksimal 200 karakter'),
+      .min(5)
+      .max(200),
     description: z
       .string()
       .trim()
-      .min(50, 'Deskripsi minimal 50 karakter'),
+      .min(50),
     responsibilities: optionalText,
     requirements: optionalText,
     benefits: optionalText,
@@ -199,8 +200,8 @@ const rowSchema = z
     location: z
       .string()
       .trim()
-      .min(2, 'Lokasi minimal 2 karakter')
-      .max(120, 'Lokasi maksimal 120 karakter'),
+      .min(2)
+      .max(120),
     locationType: enumOrDefault(LocationType, LocationType.ONSITE),
     categorySlug: optionalSlug,
     tags: tagsSchema,
@@ -212,7 +213,7 @@ const rowSchema = z
       v.salaryMax === undefined ||
       v.salaryMin <= v.salaryMax,
     {
-      message: 'Gaji minimum tidak boleh melebihi gaji maksimum',
+      params: { i18n: 'salaryRange' },
       path: ['salaryMin'],
     },
   )
@@ -349,11 +350,11 @@ function buildRawObject(
   return obj
 }
 
-function validateRow(raw: Record<string, string>): {
+async function validateRow(raw: Record<string, string>): Promise<{
   parsed: CsvRowParsed | null
   errors: string[]
-} {
-  const result = rowSchema.safeParse(raw)
+}> {
+  const result = await localizedParse(rowSchema, raw)
   if (!result.success) {
     const errors = result.error.issues.map((issue) => {
       const path = issue.path.join('.')
@@ -403,7 +404,7 @@ export async function parseAndValidateJobsCsv(input: {
 
   for (const dr of parsed.dataRows) {
     const raw = buildRawObject(parsed.headerMap, dr.raw)
-    const { parsed: pr, errors } = validateRow(raw)
+    const { parsed: pr, errors } = await validateRow(raw)
 
     if (pr && pr.categorySlug && !knownCategorySlugs.has(pr.categorySlug)) {
       errors.push(
@@ -485,7 +486,7 @@ export async function bulkImportJobs(input: {
     parsed.dataRows.map(async (dr): Promise<Outcome> => {
       try {
         const raw = buildRawObject(parsed.headerMap, dr.raw)
-        const { parsed: pr, errors } = validateRow(raw)
+        const { parsed: pr, errors } = await validateRow(raw)
         if (!pr) {
           return {
             kind: 'skipped',

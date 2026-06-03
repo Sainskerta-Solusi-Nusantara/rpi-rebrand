@@ -15,6 +15,7 @@ import {
 } from '@/lib/tenants/api-key'
 import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -37,9 +38,9 @@ function expiryToDate(choice: ExpiryChoice): Date | null {
 }
 
 const createSchema = z.object({
-  name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(80, 'Maks 80 karakter'),
+  name: z.string().trim().min(2).max(80),
   expiry: expirySchema.default('90d'),
-  scopes: z.array(z.enum(TENANT_API_KEY_SCOPES)).min(1, 'Pilih minimal satu scope'),
+  scopes: z.array(z.enum(TENANT_API_KEY_SCOPES)).min(1),
 })
 
 function getRequestMeta() {
@@ -94,7 +95,7 @@ export async function createTenantApiKey(input: {
   const t = await getServerT()
   const fd = input.values
   const scopesRaw = fd.getAll('scopes').map((v) => String(v))
-  const parsed = createSchema.safeParse({
+  const parsed = await localizedParse(createSchema, {
     name: fd.get('name'),
     expiry: fd.get('expiry') ?? 'none',
     scopes: scopesRaw,

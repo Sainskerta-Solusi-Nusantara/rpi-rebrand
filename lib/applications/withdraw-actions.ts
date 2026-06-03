@@ -1,6 +1,7 @@
 'use server'
 
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 /**
  * Candidate-facing withdraw + reopen actions.
@@ -53,10 +54,10 @@ const TERMINAL_STATUSES: ApplicationStatus[] = [
 ]
 
 const withdrawSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran tidak valid.'),
+  applicationId: z.string().min(1),
   reason: z
     .string()
-    .max(2000, 'Alasan maksimal 2000 karakter.')
+    .max(2000)
     .optional()
     .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
 })
@@ -93,7 +94,7 @@ export async function withdrawApplication(
   }
   const userId = session.user.id
 
-  const parsed = withdrawSchema.safeParse(readInput(input))
+  const parsed = await localizedParse(withdrawSchema, readInput(input))
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

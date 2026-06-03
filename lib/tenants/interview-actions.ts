@@ -14,6 +14,7 @@ import {
   interviewCancelledEmail,
 } from '@/lib/mailer'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -55,25 +56,20 @@ function getRequestMeta() {
 const baseInterviewShape = {
   scheduledAt: z
     .string()
-    .min(1, 'Tanggal & jam wajib diisi')
+    .min(1)
     .refine((v) => !Number.isNaN(Date.parse(v)), {
-      message: 'Format tanggal tidak valid',
+      params: { i18n: 'dateInvalid' },
     })
     .transform((v) => new Date(v))
     .refine((d) => d.getTime() > Date.now(), {
-      message: 'Tidak bisa menjadwalkan wawancara di masa lalu',
+      params: { i18n: 'cannotScheduleInPast' },
     }),
   durationMin: z
-    .number({
-      invalid_type_error: 'Durasi harus berupa angka',
-      required_error: 'Durasi wajib diisi',
-    })
-    .int('Durasi harus bilangan bulat')
-    .min(15, 'Durasi minimal 15 menit')
-    .max(480, 'Durasi maksimal 480 menit'),
-  type: z.enum(INTERVIEW_TYPES, {
-    errorMap: () => ({ message: 'Jenis wawancara tidak valid' }),
-  }),
+    .number()
+    .int()
+    .min(15)
+    .max(480),
+  type: z.enum(INTERVIEW_TYPES),
   meetingUrl: z
     .string()
     .trim()
@@ -86,21 +82,19 @@ const baseInterviewShape = {
     .transform((v) => (v && v.length > 0 ? v : undefined)),
   notes: z
     .string()
-    .max(5000, 'Catatan maksimal 5000 karakter')
+    .max(5000)
     .optional()
     .transform((v) => (v && v.trim().length > 0 ? v.trim() : undefined)),
   stageOrder: z
-    .number({
-      invalid_type_error: 'Urutan tahap harus berupa angka',
-    })
-    .int('Urutan tahap harus bilangan bulat')
-    .min(1, 'Urutan tahap minimal 1')
-    .max(50, 'Urutan tahap maksimal 50')
+    .number()
+    .int()
+    .min(1)
+    .max(50)
     .optional(),
   stageName: z
     .string()
     .trim()
-    .max(80, 'Nama tahap maksimal 80 karakter')
+    .max(80)
     .optional()
     .transform((v) => (v && v.length > 0 ? v : undefined)),
 }
@@ -123,7 +117,7 @@ function applyTypeRefinements<T extends z.ZodTypeAny>(schema: T): T {
         }
       },
       {
-        message: 'Tautan meeting wajib berupa URL valid untuk wawancara video',
+        params: { i18n: 'videoLinkRequired' },
         path: ['meetingUrl'],
       },
     )
@@ -135,7 +129,7 @@ function applyTypeRefinements<T extends z.ZodTypeAny>(schema: T): T {
         return len >= 2 && len <= 200
       },
       {
-        message: 'Lokasi wajib diisi (2-200 karakter) untuk wawancara onsite',
+        params: { i18n: 'onsiteLocationRequired' },
         path: ['location'],
       },
     )
@@ -143,14 +137,14 @@ function applyTypeRefinements<T extends z.ZodTypeAny>(schema: T): T {
 
 const scheduleSchema = applyTypeRefinements(
   z.object({
-    applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+    applicationId: z.string().min(1),
     ...baseInterviewShape,
   }),
 )
 
 const updateSchema = applyTypeRefinements(
   z.object({
-    interviewId: z.string().min(1, 'ID wawancara wajib diisi'),
+    interviewId: z.string().min(1),
     ...baseInterviewShape,
   }),
 )
@@ -299,7 +293,7 @@ export async function scheduleInterview(input: {
   stageName?: string
 }): Promise<ActionResult<{ interviewId: string }>> {
   const t = await getServerT()
-  const parsed = scheduleSchema.safeParse(input)
+  const parsed = await localizedParse(scheduleSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -475,7 +469,7 @@ export async function updateInterview(input: {
   stageName?: string
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = updateSchema.safeParse(input)
+  const parsed = await localizedParse(updateSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

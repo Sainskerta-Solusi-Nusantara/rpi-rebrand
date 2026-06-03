@@ -10,6 +10,7 @@ import { hasTenantPermission } from '@/lib/auth/rbac'
 import { parseMentions } from '@/lib/applications/mention-parser'
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -33,11 +34,11 @@ function getRequestMeta() {
 }
 
 const createSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi.'),
+  applicationId: z.string().min(1),
   body: z
     .string()
-    .min(1, 'Catatan tidak boleh kosong.')
-    .max(5000, 'Catatan maksimal 5000 karakter.')
+    .min(1)
+    .max(5000)
     .transform((v) => v.trim()),
   parentNoteId: z
     .string()
@@ -47,11 +48,11 @@ const createSchema = z.object({
 })
 
 const updateSchema = z.object({
-  noteId: z.string().min(1, 'ID catatan wajib diisi.'),
+  noteId: z.string().min(1),
   body: z
     .string()
-    .min(1, 'Catatan tidak boleh kosong.')
-    .max(5000, 'Catatan maksimal 5000 karakter.')
+    .min(1)
+    .max(5000)
     .transform((v) => v.trim()),
 })
 
@@ -127,7 +128,7 @@ export async function createNote(
         }
       : input
 
-  const parsed = createSchema.safeParse(raw)
+  const parsed = await localizedParse(createSchema, raw)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {
@@ -298,7 +299,7 @@ export async function updateNote(
   }
   const actorId = session.user.id
 
-  const parsed = updateSchema.safeParse({ noteId, body })
+  const parsed = await localizedParse(updateSchema, { noteId, body })
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {

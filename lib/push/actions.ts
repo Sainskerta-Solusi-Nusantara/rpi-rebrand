@@ -2,6 +2,7 @@
 
 import { headers } from 'next/headers'
 import { z } from 'zod'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
@@ -29,18 +30,18 @@ function getRequestMeta() {
 }
 
 const keysSchema = z.object({
-  p256dh: z.string().min(8, 'Kunci p256dh tidak valid'),
-  auth: z.string().min(4, 'Kunci auth tidak valid'),
+  p256dh: z.string().min(8),
+  auth: z.string().min(4),
 })
 
 const subscribeSchema = z.object({
-  endpoint: z.string().url('Endpoint push tidak valid').max(2048),
+  endpoint: z.string().url().max(2048),
   keys: keysSchema,
   userAgent: z.string().max(500).optional(),
 })
 
 const unsubscribeSchema = z.object({
-  endpoint: z.string().url('Endpoint push tidak valid').max(2048),
+  endpoint: z.string().url().max(2048),
 })
 
 /**
@@ -55,7 +56,7 @@ export async function subscribeToPush(input: {
   const session = await auth()
   if (!session?.user?.id) return { ok: false, error: t.srvAuth4.push.mustSignIn }
 
-  const parsed = subscribeSchema.safeParse(input)
+  const parsed = await localizedParse(subscribeSchema, input)
   if (!parsed.success) {
     const msg = parsed.error.issues[0]?.message ?? t.srvAuth4.push.invalidData
     return { ok: false, error: msg }
@@ -138,7 +139,7 @@ export async function unsubscribeFromPush(input: {
   const session = await auth()
   if (!session?.user?.id) return { ok: false, error: t.srvAuth4.push.mustSignIn }
 
-  const parsed = unsubscribeSchema.safeParse(input)
+  const parsed = await localizedParse(unsubscribeSchema, input)
   if (!parsed.success) {
     const msg = parsed.error.issues[0]?.message ?? t.srvAuth4.push.invalidData
     return { ok: false, error: msg }

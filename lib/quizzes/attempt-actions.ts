@@ -7,6 +7,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -47,7 +48,7 @@ function shuffle<T>(arr: ReadonlyArray<T>): T[] {
 // =============================================================================
 
 const startSchema = z.object({
-  quizId: z.string().min(1, 'ID kuis wajib diisi.'),
+  quizId: z.string().min(1),
 })
 
 export type StartAttemptPayload = {
@@ -82,7 +83,7 @@ export async function startAttempt(input: {
   }
   const userId = session.user.id
 
-  const parsed = startSchema.safeParse(input)
+  const parsed = await localizedParse(startSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {
@@ -210,7 +211,7 @@ const answerSchema = z.object({
 })
 
 const submitSchema = z.object({
-  attemptId: z.string().min(1, 'ID percobaan wajib diisi.'),
+  attemptId: z.string().min(1),
   answers: z.array(answerSchema),
 })
 
@@ -249,7 +250,7 @@ export async function submitAttempt(input: {
   if (!session?.user?.id) return { ok: false, error: t.srvScoring.quizzesAttempt.mustLogin }
   const userId = session.user.id
 
-  const parsed = submitSchema.safeParse(input)
+  const parsed = await localizedParse(submitSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {

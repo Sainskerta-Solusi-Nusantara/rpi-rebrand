@@ -14,6 +14,7 @@ import {
   type JobQuestionType,
 } from '@/lib/jobs/question-constants'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 // =============================================================================
 // Helpers
@@ -90,28 +91,26 @@ function sanitizeOptions(raw: unknown): string[] {
 const labelSchema = z
   .string()
   .trim()
-  .min(5, 'Label pertanyaan minimal 5 karakter')
-  .max(300, 'Label pertanyaan maksimal 300 karakter')
+  .min(5)
+  .max(300)
 
-const typeSchema = z.enum(JOB_QUESTION_TYPES, {
-  errorMap: () => ({ message: 'Tipe pertanyaan tidak valid' }),
-})
+const typeSchema = z.enum(JOB_QUESTION_TYPES)
 
 const helpTextSchema = z
   .string()
   .trim()
-  .max(500, 'Teks bantuan maksimal 500 karakter')
+  .max(500)
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined))
 
 const optionsSchema = z
   .array(z.string())
-  .max(20, 'Maksimal 20 pilihan')
+  .max(20)
   .optional()
 
 const addSchema = z
   .object({
-    jobId: z.string().min(1, 'ID lowongan tidak valid'),
+    jobId: z.string().min(1),
     label: labelSchema,
     type: typeSchema,
     required: z.boolean().optional().default(false),
@@ -124,8 +123,7 @@ const addSchema = z
       if (cleaned.length < 2) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message:
-            'Tipe pilihan membutuhkan minimal 2 opsi (1-200 karakter masing-masing)',
+          params: { i18n: 'questionMinOptions' },
           path: ['options'],
         })
       }
@@ -134,7 +132,7 @@ const addSchema = z
 
 const updateSchema = z
   .object({
-    questionId: z.string().min(1, 'ID pertanyaan tidak valid'),
+    questionId: z.string().min(1),
     label: labelSchema.optional(),
     type: typeSchema.optional(),
     required: z.boolean().optional(),
@@ -150,8 +148,7 @@ const updateSchema = z
       if (cleaned.length < 2) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message:
-            'Tipe pilihan membutuhkan minimal 2 opsi (1-200 karakter masing-masing)',
+          params: { i18n: 'questionMinOptions' },
           path: ['options'],
         })
       }
@@ -301,7 +298,7 @@ export async function addJobQuestion(input: {
   helpText?: string
 }): Promise<ActionResult<{ id: string }>> {
   const t = await getServerT()
-  const parsed = addSchema.safeParse(input)
+  const parsed = await localizedParse(addSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -377,7 +374,7 @@ export async function updateJobQuestion(input: {
   helpText?: string
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = updateSchema.safeParse(input)
+  const parsed = await localizedParse(updateSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

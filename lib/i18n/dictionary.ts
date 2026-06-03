@@ -81,6 +81,7 @@ import { srvAuth2 } from './dictionaries/srv-auth2'
 import { srvAuth4 } from './dictionaries/srv-auth4'
 import { srvBilling } from './dictionaries/srv-billing'
 import { srvTenant2 } from './dictionaries/srv-tenant2'
+import { zodErrors } from './dictionaries/zod-errors'
 export type Locale = 'id' | 'en'
 
 export const locales: Locale[] = ['id', 'en']
@@ -153,6 +154,7 @@ export const dictionary = {
     srvAuth4: srvAuth4.id,
     srvBilling: srvBilling.id,
     srvTenant2: srvTenant2.id,
+    zodErrors: zodErrors.id,
   },
   en: {
     ...home.en,
@@ -220,6 +222,7 @@ export const dictionary = {
     srvAuth4: srvAuth4.en,
     srvBilling: srvBilling.en,
     srvTenant2: srvTenant2.en,
+    zodErrors: zodErrors.en,
   },
 } as const
 

@@ -9,6 +9,7 @@ import { hashPassword } from '@/lib/auth/password'
 import { emailVerificationEmail, passwordResetEmail, sendEmail } from '@/lib/mailer'
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvAuth1 } from '@/lib/i18n/dictionaries/srv-auth1'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -73,18 +74,18 @@ async function issueVerificationEmail(opts: {
 // Password policy: min 8 chars, at least one letter and one number.
 const passwordPolicy = z
   .string()
-  .min(8, 'Password minimal 8 karakter')
-  .regex(/[A-Za-z]/, 'Password harus berisi huruf')
-  .regex(/[0-9]/, 'Password harus berisi angka')
+  .min(8)
+  .refine((v) => /[A-Za-z]/.test(v), { params: { i18n: 'passwordLetter' } })
+  .refine((v) => /[0-9]/.test(v), { params: { i18n: 'passwordNumber' } })
 
 const registerSchema = z.object({
-  name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(120),
-  email: z.string().email('Email tidak valid').transform((v) => v.toLowerCase().trim()),
+  name: z.string().trim().min(2).max(120),
+  email: z.string().email().transform((v) => v.toLowerCase().trim()),
   password: passwordPolicy,
   acceptTerms: z
     .union([z.literal('on'), z.literal('true'), z.boolean()])
     .transform((v) => v === true || v === 'on' || v === 'true')
-    .refine((v) => v === true, 'Anda harus menyetujui syarat & ketentuan'),
+    .refine((v) => v === true, { params: { i18n: 'agreeTerms' } }),
 })
 
 /**
@@ -100,7 +101,7 @@ export async function registerUser(formData: FormData): Promise<ActionResult> {
     password: formData.get('password'),
     acceptTerms: formData.get('acceptTerms'),
   }
-  const parsed = registerSchema.safeParse(raw)
+  const parsed = await localizedParse(registerSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return { ok: false, error: issue?.message ?? t.dataInvalid, field: issue?.path[0] as string | undefined }
@@ -162,7 +163,7 @@ export async function registerUser(formData: FormData): Promise<ActionResult> {
 }
 
 const forgotSchema = z.object({
-  email: z.string().email('Email tidak valid').transform((v) => v.toLowerCase().trim()),
+  email: z.string().email().transform((v) => v.toLowerCase().trim()),
 })
 
 /**
@@ -173,7 +174,7 @@ const forgotSchema = z.object({
 export async function requestPasswordReset(formData: FormData): Promise<ActionResult> {
   const locale = await getServerLocale()
   const t = srvAuth1[locale].auth
-  const parsed = forgotSchema.safeParse({ email: formData.get('email') })
+  const parsed = await localizedParse(forgotSchema, { email: formData.get('email') })
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? t.emailInvalid, field: 'email' }
   }
@@ -222,13 +223,13 @@ export async function requestPasswordReset(formData: FormData): Promise<ActionRe
 
 const resetSchema = z
   .object({
-    token: z.string().min(32, 'Token tidak valid').max(128, 'Token tidak valid'),
+    token: z.string().min(32).max(128),
     password: passwordPolicy,
     confirm: z.string(),
   })
   .refine((d) => d.password === d.confirm, {
     path: ['confirm'],
-    message: 'Konfirmasi password tidak cocok',
+    params: { i18n: 'passwordConfirmMismatch' },
   })
 
 /**
@@ -244,7 +245,7 @@ export async function resetPassword(formData: FormData): Promise<ActionResult> {
     password: formData.get('password'),
     confirm: formData.get('confirm'),
   }
-  const parsed = resetSchema.safeParse(raw)
+  const parsed = await localizedParse(resetSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

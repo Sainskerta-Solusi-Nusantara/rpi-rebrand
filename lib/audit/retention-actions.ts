@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
@@ -22,10 +23,10 @@ const upsertSchema = z.object({
   scope: z.enum(['global', 'tenant']),
   tenantId: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   resourceType: z
-    .string({ required_error: 'Tipe sumber daya wajib diisi' })
+    .string()
     .trim()
-    .min(1, 'Tipe sumber daya wajib diisi')
-    .max(120, 'Tipe sumber daya maksimal 120 karakter'),
+    .min(1)
+    .max(120),
   retentionDays: z
     .preprocess(
       (v) => (typeof v === 'string' ? Number(v) : v),
@@ -33,7 +34,7 @@ const upsertSchema = z.object({
     )
     .refine(
       (n) => ALLOWED_RETENTION_DAYS.includes(n as (typeof ALLOWED_RETENTION_DAYS)[number]),
-      { message: 'Nilai lama simpan tidak diperbolehkan' },
+      { params: { i18n: 'retentionValueNotAllowed' } },
     ),
   archiveEnabled: z.preprocess(
     (v) => v === 'on' || v === 'true' || v === true,
@@ -65,7 +66,7 @@ export async function upsertRetentionPolicy(
     retentionDays: formData.get('retentionDays'),
     archiveEnabled: formData.get('archiveEnabled'),
   }
-  const parsed = upsertSchema.safeParse(raw)
+  const parsed = await localizedParse(upsertSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

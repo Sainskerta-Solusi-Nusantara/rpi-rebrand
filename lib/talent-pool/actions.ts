@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -51,12 +52,12 @@ export type ActionResult<T = undefined> =
  */
 
 const sendOutreachSchema = z.object({
-  tenantSlug: z.string().min(1, 'Tenant wajib diisi'),
-  candidateUserId: z.string().min(1, 'Kandidat wajib diisi'),
+  tenantSlug: z.string().min(1),
+  candidateUserId: z.string().min(1),
   body: z
     .string()
-    .min(10, 'Pesan minimal 10 karakter')
-    .max(2000, 'Pesan maksimal 2000 karakter')
+    .min(10)
+    .max(2000)
     .transform((v) => v.trim()),
 })
 
@@ -123,7 +124,7 @@ export async function sendOutreach(input: {
   body: string
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = sendOutreachSchema.safeParse(input)
+  const parsed = await localizedParse(sendOutreachSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

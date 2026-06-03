@@ -7,6 +7,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -38,7 +39,7 @@ function setsEqual(a: Set<string>, b: Set<string>): boolean {
 // =============================================================================
 
 const startSchema = z.object({
-  assessmentId: z.string().min(1, 'ID asesmen wajib diisi.'),
+  assessmentId: z.string().min(1),
 })
 
 export type StartAssessmentAttemptPayload = {
@@ -71,7 +72,7 @@ export async function startAssessmentAttempt(input: {
   if (!session?.user?.id) return { ok: false, error: t.srvAssessments.attempt.auth.mustLogin }
   const userId = session.user.id
 
-  const parsed = startSchema.safeParse(input)
+  const parsed = await localizedParse(startSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {
@@ -173,7 +174,7 @@ const answerSchema = z.object({
 })
 
 const submitSchema = z.object({
-  attemptId: z.string().min(1, 'ID percobaan wajib diisi.'),
+  attemptId: z.string().min(1),
   answers: z.array(answerSchema),
 })
 
@@ -200,7 +201,7 @@ export async function submitAssessmentAttempt(input: {
   if (!session?.user?.id) return { ok: false, error: t.srvAssessments.attempt.auth.mustLogin }
   const userId = session.user.id
 
-  const parsed = submitSchema.safeParse(input)
+  const parsed = await localizedParse(submitSchema, input)
   if (!parsed.success) {
     const first = parsed.error.issues[0]
     return {

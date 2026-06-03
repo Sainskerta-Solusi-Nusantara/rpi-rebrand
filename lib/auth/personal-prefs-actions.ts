@@ -9,6 +9,7 @@ import { locales } from '@/lib/i18n/dictionary'
 import { SUPPORTED_TIMEZONES } from '@/lib/auth/personal-prefs'
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvAuth3 } from '@/lib/i18n/dictionaries/srv-auth3'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -22,7 +23,7 @@ const schema = z.object({
     .string()
     .min(2)
     .max(64)
-    .regex(TZ_RE, 'Format zona waktu tidak valid')
+    .refine((v) => TZ_RE.test(v), { params: { i18n: 'timezoneFormat' } })
     .refine((tz) => {
       try {
         new Intl.DateTimeFormat('en-US', { timeZone: tz }).format(new Date())
@@ -30,7 +31,7 @@ const schema = z.object({
       } catch {
         return false
       }
-    }, 'Zona waktu tidak dikenali'),
+    }, { params: { i18n: 'timezoneUnknown' } }),
 })
 
 export async function updatePersonalPrefs(formData: FormData): Promise<ActionResult> {
@@ -38,7 +39,7 @@ export async function updatePersonalPrefs(formData: FormData): Promise<ActionRes
   const session = await auth()
   if (!session?.user?.id) return { ok: false, error: t.srvAuth3.personalPrefs.mustLogin }
 
-  const parsed = schema.safeParse({
+  const parsed = await localizedParse(schema, {
     locale: String(formData.get('locale') ?? ''),
     timezone: String(formData.get('timezone') ?? ''),
   })

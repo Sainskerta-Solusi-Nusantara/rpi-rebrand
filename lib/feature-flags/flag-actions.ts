@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
@@ -29,15 +30,15 @@ const baseFlagSchema = z.object({
   key: z
     .string()
     .trim()
-    .min(1, 'Key wajib diisi')
-    .max(60, 'Key maksimal 60 karakter')
-    .regex(KEY_REGEX, 'Key harus huruf kecil, angka, tanda - atau _ (mulai huruf)'),
-  name: z.string().trim().min(1, 'Nama wajib diisi').max(120, 'Nama maksimal 120 karakter'),
+    .min(1)
+    .max(60)
+    .refine((v) => KEY_REGEX.test(v), { params: { i18n: 'flagKeyFormat' } }),
+  name: z.string().trim().min(1).max(120),
   description: z.preprocess(emptyToUndefined, z.string().max(500).optional()),
-  type: z.enum(FLAG_TYPES, { errorMap: () => ({ message: 'Tipe flag tidak valid' }) }),
+  type: z.enum(FLAG_TYPES),
   percentage: z.preprocess(
     (v) => (typeof v === 'string' ? Number(v) : v),
-    z.number().int().min(0, 'Persentase minimal 0').max(100, 'Persentase maksimal 100'),
+    z.number().int().min(0).max(100),
   ),
   segmentRules: z.preprocess(emptyToUndefined, z.string().optional()),
   environments: z.preprocess(emptyToUndefined, z.string().optional()),
@@ -131,7 +132,7 @@ export async function createFlag(formData: FormData): Promise<ActionResult<{ id:
     segmentRules: formData.get('segmentRules'),
     environments: formData.get('environments'),
   }
-  const parsed = baseFlagSchema.safeParse(raw)
+  const parsed = await localizedParse(baseFlagSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -192,7 +193,7 @@ export async function updateFlag(id: string, formData: FormData): Promise<Action
     segmentRules: formData.get('segmentRules'),
     environments: formData.get('environments'),
   }
-  const parsed = baseFlagSchema.safeParse(raw)
+  const parsed = await localizedParse(baseFlagSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -311,13 +312,13 @@ const overrideSchema = z
   })
   .superRefine((d, ctx) => {
     if (d.scope === 'user' && !d.userId) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['userId'], message: 'userId wajib diisi untuk scope user' })
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['userId'], params: { i18n: 'userIdRequiredForUserScope' } })
     }
     if (d.scope === 'tenant' && !d.tenantId) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['tenantId'], message: 'tenantId wajib diisi untuk scope tenant' })
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['tenantId'], params: { i18n: 'tenantIdRequiredForTenantScope' } })
     }
     if (d.scope === 'both' && (!d.userId || !d.tenantId)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['userId'], message: 'Scope keduanya membutuhkan userId & tenantId' })
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['userId'], params: { i18n: 'scopeBothRequired' } })
     }
   })
 
@@ -341,7 +342,7 @@ export async function addOverride(
     value: formData.get('value'),
     reason: formData.get('reason'),
   }
-  const parsed = overrideSchema.safeParse(raw)
+  const parsed = await localizedParse(overrideSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

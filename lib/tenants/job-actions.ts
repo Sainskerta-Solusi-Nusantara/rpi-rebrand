@@ -16,6 +16,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -67,7 +68,7 @@ const jobStatusSchema = z.nativeEnum(JobStatus)
 const optionalText = z
   .string()
   .trim()
-  .max(20_000, 'Teks terlalu panjang')
+  .max(20_000)
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined))
 
@@ -109,12 +110,12 @@ const baseJobSchema = z
     title: z
       .string()
       .trim()
-      .min(5, 'Judul minimal 5 karakter')
-      .max(200, 'Judul maksimal 200 karakter'),
+      .min(5)
+      .max(200),
     description: z
       .string()
       .trim()
-      .min(50, 'Deskripsi minimal 50 karakter'),
+      .min(50),
     responsibilities: optionalText,
     requirements: optionalText,
     benefits: optionalText,
@@ -125,8 +126,8 @@ const baseJobSchema = z
     location: z
       .string()
       .trim()
-      .min(2, 'Lokasi minimal 2 karakter')
-      .max(120, 'Lokasi maksimal 120 karakter'),
+      .min(2)
+      .max(120),
     locationType: locationTypeSchema,
     categoryId: optionalCategoryId,
     tags: tagsSchema,
@@ -137,7 +138,7 @@ const baseJobSchema = z
       v.salaryMin === undefined ||
       v.salaryMax === undefined ||
       v.salaryMin <= v.salaryMax,
-    { message: 'Gaji minimum tidak boleh melebihi gaji maksimum', path: ['salaryMin'] },
+    { params: { i18n: 'salaryRange' }, path: ['salaryMin'] },
   )
 
 function readJobFormData(fd: FormData) {
@@ -258,7 +259,7 @@ export async function createJob(input: {
   const ctx = await loadTenantForJob(input.tenantSlug, 'job.create')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = baseJobSchema.safeParse(readJobFormData(input.values))
+  const parsed = await localizedParse(baseJobSchema, readJobFormData(input.values))
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -366,7 +367,7 @@ export async function updateJob(input: {
   const ctx = await loadJobForAction(input.jobId, 'job.update')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = baseJobSchema.safeParse(readJobFormData(input.values))
+  const parsed = await localizedParse(baseJobSchema, readJobFormData(input.values))
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -474,7 +475,7 @@ export async function changeJobStatus(input: {
   status: JobStatus
 }): Promise<ActionResult> {
   const t = await getServerT()
-  const statusParse = jobStatusSchema.safeParse(input.status)
+  const statusParse = await localizedParse(jobStatusSchema, input.status)
   if (!statusParse.success) {
     return { ok: false, error: t.srvTenant3.job.invalidStatus }
   }

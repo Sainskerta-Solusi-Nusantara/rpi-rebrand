@@ -5,28 +5,29 @@ import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
 import { hashPassword, verifyPassword } from '@/lib/auth/password'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
 const passwordPolicy = z
   .string()
-  .min(8, 'Password minimal 8 karakter')
-  .regex(/[A-Za-z]/, 'Password harus berisi huruf')
-  .regex(/[0-9]/, 'Password harus berisi angka')
+  .min(8)
+  .refine((v) => /[A-Za-z]/.test(v), { params: { i18n: 'passwordLetter' } })
+  .refine((v) => /[0-9]/.test(v), { params: { i18n: 'passwordNumber' } })
 
 const schema = z
   .object({
-    currentPassword: z.string().min(1, 'Password saat ini wajib diisi'),
+    currentPassword: z.string().min(1),
     newPassword: passwordPolicy,
     confirm: z.string(),
   })
   .refine((d) => d.newPassword === d.confirm, {
     path: ['confirm'],
-    message: 'Konfirmasi password tidak cocok',
+    params: { i18n: 'passwordConfirmMismatch' },
   })
   .refine((d) => d.newPassword !== d.currentPassword, {
     path: ['newPassword'],
-    message: 'Password baru harus berbeda dari password saat ini',
+    params: { i18n: 'passwordDifferent' },
   })
 
 /**
@@ -42,7 +43,7 @@ export async function changePassword(formData: FormData): Promise<ActionResult> 
     newPassword: formData.get('newPassword'),
     confirm: formData.get('confirm'),
   }
-  const parsed = schema.safeParse(raw)
+  const parsed = await localizedParse(schema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

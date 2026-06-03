@@ -13,6 +13,7 @@ import {
   saveResumeFile,
 } from '@/lib/storage'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -65,10 +66,10 @@ const resumeContentSchema = z
 export type ResumeContent = z.infer<typeof resumeContentSchema>
 
 const nameSchema = z
-  .string({ required_error: 'Nama CV wajib diisi' })
+  .string()
   .trim()
-  .min(1, 'Nama CV wajib diisi')
-  .max(80, 'Nama CV maksimal 80 karakter')
+  .min(1)
+  .max(80)
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -131,7 +132,7 @@ export async function createResume(input: {
   if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumes.mustLogin }
   const userId = session.user.id
 
-  const parsed = createSchema.safeParse(input)
+  const parsed = await localizedParse(createSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -193,7 +194,7 @@ export async function updateResume(input: {
   if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumes.mustLogin }
   const userId = session.user.id
 
-  const parsed = updateSchema.safeParse(input)
+  const parsed = await localizedParse(updateSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
@@ -118,10 +119,10 @@ export async function getOrCreateMyReferral(): Promise<ActionResult<ReferralRow>
 
 const applySchema = z.object({
   code: z
-    .string({ required_error: 'Kode referral wajib diisi' })
+    .string()
     .trim()
-    .min(4, 'Kode referral terlalu pendek')
-    .max(32, 'Kode referral terlalu panjang'),
+    .min(4)
+    .max(32),
 })
 
 /**
@@ -137,7 +138,7 @@ export async function applyReferralCode(input: {
   if (!session?.user?.id) return { ok: false, error: t.srvCalendar.referrals.mustLogin }
   const userId = session.user.id
 
-  const parsed = applySchema.safeParse(input)
+  const parsed = await localizedParse(applySchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -257,7 +258,7 @@ export async function _applyReferralForUser(input: {
 }
 
 const recordSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+  applicationId: z.string().min(1),
 })
 
 /**
@@ -274,7 +275,7 @@ export async function recordReferralApplication(input: {
   if (!session?.user?.id) return { ok: false, error: t.srvCalendar.referrals.mustLogin }
   const userId = session.user.id
 
-  const parsed = recordSchema.safeParse(input)
+  const parsed = await localizedParse(recordSchema, input)
   if (!parsed.success) {
     return { ok: false, error: t.srvCalendar.referrals.inputInvalid }
   }

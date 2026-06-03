@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 import { AuditAction, PlanTier, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
@@ -14,14 +15,12 @@ export type ActionResult<T = undefined> =
   | { ok: false; error: string; field?: string }
 
 const planSchema = z.object({
-  tenantSlug: z.string().trim().min(1, 'Tenant tidak valid.'),
-  plan: z.nativeEnum(PlanTier, {
-    errorMap: () => ({ message: 'Plan tidak dikenali.' }),
-  }),
+  tenantSlug: z.string().trim().min(1),
+  plan: z.nativeEnum(PlanTier),
 })
 
 const cancelSchema = z.object({
-  tenantSlug: z.string().trim().min(1, 'Tenant tidak valid.'),
+  tenantSlug: z.string().trim().min(1),
 })
 
 function getRequestMeta() {
@@ -90,7 +89,7 @@ export async function updateTenantPlan(input: {
   plan: PlanTier
 }): Promise<ActionResult<{ plan: PlanTier }>> {
   const t = await getServerT()
-  const parsed = planSchema.safeParse(input)
+  const parsed = await localizedParse(planSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -171,7 +170,7 @@ export async function cancelSubscription(
   tenantSlug: string,
 ): Promise<ActionResult> {
   const t = await getServerT()
-  const parsed = cancelSchema.safeParse({ tenantSlug })
+  const parsed = await localizedParse(cancelSchema, { tenantSlug })
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

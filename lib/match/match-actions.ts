@@ -9,17 +9,18 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { scoreApplicationToJob, type MatchResult } from './match-scorer'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
   | { ok: false; error: string; field?: string }
 
 const idSchema = z.object({
-  applicationId: z.string().min(1, 'ID lamaran wajib diisi'),
+  applicationId: z.string().min(1),
 })
 
 const jobIdSchema = z.object({
-  jobId: z.string().min(1, 'ID lowongan wajib diisi'),
+  jobId: z.string().min(1),
   limit: z.number().int().min(1).max(200).optional(),
 })
 
@@ -118,7 +119,7 @@ export async function rescoreApplication(
   input: { applicationId: string },
 ): Promise<ActionResult<MatchResult>> {
   const t = await getServerT()
-  const parsed = idSchema.safeParse(input)
+  const parsed = await localizedParse(idSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -204,7 +205,7 @@ export async function rescoreAllForJob(
   input: { jobId: string; limit?: number },
 ): Promise<ActionResult<BulkRescoreSummary>> {
   const t = await getServerT()
-  const parsed = jobIdSchema.safeParse(input)
+  const parsed = await localizedParse(jobIdSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -328,7 +329,7 @@ export async function rescoreAllStaleApplications(
   input: { olderThanDays?: number; limit?: number } = {},
 ): Promise<ActionResult<BulkRescoreSummary>> {
   const t = await getServerT()
-  const parsed = staleSchema.safeParse(input)
+  const parsed = await localizedParse(staleSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

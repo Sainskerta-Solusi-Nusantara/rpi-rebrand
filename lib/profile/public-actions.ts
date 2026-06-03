@@ -7,6 +7,7 @@ import { AuditAction, type Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -26,15 +27,12 @@ export type ActionResult<T = undefined> =
 const usernameRegex = /^[a-z][a-z0-9_-]{2,19}$/
 
 const usernameSchema = z
-  .string({ required_error: 'Username wajib diisi' })
+  .string()
   .trim()
   .toLowerCase()
-  .min(3, 'Username minimal 3 karakter')
-  .max(20, 'Username maksimal 20 karakter')
-  .regex(
-    usernameRegex,
-    'Username hanya boleh huruf kecil, angka, tanda hubung (-), dan garis bawah (_), serta diawali huruf',
-  )
+  .min(3)
+  .max(20)
+  .regex(usernameRegex)
 
 /**
  * Reserved usernames that conflict with public routes, brand, or sensitive
@@ -152,7 +150,7 @@ export async function setUsername(input: {
   const session = await requireAuth()
   const userId = session.user.id
 
-  const parsed = setUsernameSchema.safeParse(input)
+  const parsed = await localizedParse(setUsernameSchema, input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -236,7 +234,7 @@ export async function setProfileVisibility(input: {
   const session = await requireAuth()
   const userId = session.user.id
 
-  const parsed = setVisibilitySchema.safeParse(input)
+  const parsed = await localizedParse(setVisibilitySchema, input)
   if (!parsed.success) {
     return { ok: false, error: t.srvMessaging.publicProfile.requestInvalid }
   }

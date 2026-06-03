@@ -32,6 +32,7 @@ import { sendEmail } from '@/lib/mailer'
 import { renderTemplate } from '@/lib/tenants/email-template-resolver'
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 export type BulkResult<T = undefined> =
   | { ok: true; data: T }
@@ -175,7 +176,7 @@ const statusSchema = z.object({
   newStatus: z.nativeEnum(ApplicationStatus),
   notes: z
     .string()
-    .max(5000, 'Catatan maksimal 5000 karakter.')
+    .max(5000)
     .optional()
     .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
 })
@@ -201,7 +202,7 @@ export async function bulkUpdateStatus(
     return { ok: false, error: m.statusInvalid, field: 'newStatus' }
   }
 
-  const parsed = statusSchema.safeParse(raw)
+  const parsed = await localizedParse(statusSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -286,12 +287,12 @@ const emailSchema = z
     applicationIds: z.array(z.string().min(1)).min(1).max(MAX_BULK_SIZE),
     templateId: z.string().min(1).optional(),
     subject: z.string().max(300).optional(),
-    body: z.string().max(5000, 'Pesan terlalu panjang (maks 5000 karakter).').optional(),
+    body: z.string().max(5000).optional(),
   })
   .refine(
     (v) => Boolean(v.templateId) || (Boolean(v.subject) && Boolean(v.body)),
     {
-      message: 'Pilih template atau isi email kustom.',
+      params: { i18n: 'emailTemplateChoice' },
       path: ['templateId'],
     },
   )
@@ -323,7 +324,7 @@ export async function bulkSendEmail(
         }
       : input
 
-  const parsed = emailSchema.safeParse(raw)
+  const parsed = await localizedParse(emailSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -449,8 +450,8 @@ const tagSchema = z.object({
   applicationIds: z.array(z.string().min(1)).min(1).max(MAX_BULK_SIZE),
   tag: z
     .string()
-    .min(1, 'Tag wajib diisi.')
-    .max(40, 'Tag maksimal 40 karakter.')
+    .min(1)
+    .max(40)
     .transform((v) => v.trim()),
 })
 
@@ -467,7 +468,7 @@ export async function bulkAddTag(
         }
       : input
 
-  const parsed = tagSchema.safeParse(raw)
+  const parsed = await localizedParse(tagSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
@@ -534,7 +535,7 @@ export async function bulkAddTag(
 
 const assignSchema = z.object({
   applicationIds: z.array(z.string().min(1)).min(1).max(MAX_BULK_SIZE),
-  reviewerId: z.string().min(1, 'Pilih pengulas.'),
+  reviewerId: z.string().min(1),
 })
 
 export async function bulkAssignReviewer(
@@ -550,7 +551,7 @@ export async function bulkAssignReviewer(
         }
       : input
 
-  const parsed = assignSchema.safeParse(raw)
+  const parsed = await localizedParse(assignSchema, raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {

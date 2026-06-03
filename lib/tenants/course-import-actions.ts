@@ -15,6 +15,7 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { parseCsv } from '@/lib/csv'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { localizedParse } from '@/lib/i18n/zod-error-map'
 
 // =============================================================================
 // Types
@@ -117,7 +118,7 @@ function buildCourseSlug(title: string): string {
 const optionalShortText = z
   .string()
   .trim()
-  .max(2_048, 'Teks terlalu panjang')
+  .max(2_048)
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined))
 
@@ -128,7 +129,7 @@ const optionalEmail = z
   .transform((v) => (v && v.length > 0 ? v.toLowerCase() : undefined))
   .refine(
     (v) => v === undefined || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-    'Email instruktur tidak valid',
+    { params: { i18n: 'instructorEmail' } },
   )
 
 const durationHoursNumber = z.preprocess(
@@ -143,10 +144,10 @@ const durationHoursNumber = z.preprocess(
     return v
   },
   z
-    .number({ invalid_type_error: 'Durasi harus berupa angka' })
-    .int('Durasi harus bilangan bulat')
-    .min(1, 'Durasi minimal 1 jam')
-    .max(1000, 'Durasi maksimal 1000 jam'),
+    .number()
+    .int()
+    .min(1)
+    .max(1000),
 )
 
 const enumOrDefault = <T extends string>(
@@ -166,12 +167,12 @@ const rowSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(5, 'Judul minimal 5 karakter')
-    .max(200, 'Judul maksimal 200 karakter'),
+    .min(5)
+    .max(200),
   description: z
     .string()
     .trim()
-    .min(50, 'Deskripsi minimal 50 karakter'),
+    .min(50),
   level: enumOrDefault(CourseLevel, CourseLevel.BEGINNER),
   durationHours: durationHoursNumber,
   instructorEmail: optionalEmail,
@@ -300,11 +301,11 @@ function buildRawObject(
   return obj
 }
 
-function validateRow(raw: Record<string, string>): {
+async function validateRow(raw: Record<string, string>): Promise<{
   parsed: CsvRowParsed | null
   errors: string[]
-} {
-  const result = rowSchema.safeParse(raw)
+}> {
+  const result = await localizedParse(rowSchema, raw)
   if (!result.success) {
     const errors = result.error.issues.map((issue) => {
       const path = issue.path.join('.')
@@ -377,7 +378,7 @@ export async function parseAndValidateCoursesCsv(input: {
 
   for (const dr of parsed.dataRows) {
     const raw = buildRawObject(parsed.headerMap, dr.raw)
-    const { parsed: pr, errors } = validateRow(raw)
+    const { parsed: pr, errors } = await validateRow(raw)
 
     if (pr && pr.instructorEmail && !emailToUserId.has(pr.instructorEmail)) {
       errors.push(`instructorEmail: ${t.srvTenant2.courseImport.instructorNotFound}`)
@@ -449,7 +450,7 @@ export async function bulkImportCourses(input: {
     parsed.dataRows.map(async (dr): Promise<Outcome> => {
       try {
         const raw = buildRawObject(parsed.headerMap, dr.raw)
-        const { parsed: pr, errors } = validateRow(raw)
+        const { parsed: pr, errors } = await validateRow(raw)
         if (!pr) {
           return {
             kind: 'skipped',
