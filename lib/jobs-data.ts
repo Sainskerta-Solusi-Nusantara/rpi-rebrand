@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { prisma } from '@/lib/db'
 import { tenantMeta } from '@/lib/tenant-meta'
+import { parseQueryTerms, scoreRelevance, recencyBoost } from '@/lib/search/relevance'
 
 export type JobLocationType = 'onsite' | 'hybrid' | 'remote'
 export type JobEmploymentType =
@@ -198,9 +199,15 @@ const VALID_EXPERIENCE_LEVELS = new Set([
   'EXECUTIVE',
 ])
 
-export type JobSort = 'newest' | 'salary-high' | 'salary-low' | 'least-applicants'
+export type JobSort =
+  | 'relevance'
+  | 'newest'
+  | 'salary-high'
+  | 'salary-low'
+  | 'least-applicants'
 
 const VALID_JOB_SORTS = new Set<JobSort>([
+  'relevance',
   'newest',
   'salary-high',
   'salary-low',
@@ -264,16 +271,32 @@ function buildJobsWhere(filters: JobFilters): any {
   const employmentTypes = sanitize(filters.employmentTypes, VALID_EMPLOYMENT_TYPES)
   const locationTypes = sanitize(filters.locationTypes, VALID_LOCATION_TYPES)
   const experienceLevels = sanitize(filters.experienceLevels, VALID_EXPERIENCE_LEVELS)
-  const q = filters.q?.trim()
   const fMin = safeSalary(filters.salaryMin)
   const fMax = safeSalary(filters.salaryMax)
+  const terms = parseQueryTerms(filters.q)
+
+  // All AND clauses accumulate into one array so salary + per-term filters
+  // don't collide on the `AND` key.
+  const and: object[] = []
 
   // Salary overlap test:
   //   keep job if job.salaryMax >= fMin AND job.salaryMin <= fMax
   // Jobs with null salary fields are excluded when either bound is active.
-  const salaryClauses: object[] = []
-  if (fMin !== undefined) salaryClauses.push({ salaryMax: { gte: fMin } })
-  if (fMax !== undefined) salaryClauses.push({ salaryMin: { lte: fMax } })
+  if (fMin !== undefined) and.push({ salaryMax: { gte: fMin } })
+  if (fMax !== undefined) and.push({ salaryMin: { lte: fMax } })
+
+  // Multi-term AND: every term must match somewhere (title/description/tags/
+  // tenant name). More precise than treating the whole query as one substring.
+  for (const term of terms) {
+    and.push({
+      OR: [
+        { title: { contains: term, mode: 'insensitive' as const } },
+        { description: { contains: term, mode: 'insensitive' as const } },
+        { tags: { has: term } },
+        { tenant: { name: { contains: term, mode: 'insensitive' as const } } },
+      ],
+    })
+  }
 
   return {
     status: 'PUBLISHED',
@@ -281,18 +304,28 @@ function buildJobsWhere(filters: JobFilters): any {
     ...(employmentTypes.length ? { employmentType: { in: employmentTypes } } : {}),
     ...(locationTypes.length ? { locationType: { in: locationTypes } } : {}),
     ...(experienceLevels.length ? { experienceLevel: { in: experienceLevels } } : {}),
-    ...(salaryClauses.length ? { AND: salaryClauses } : {}),
-    ...(q
-      ? {
-          OR: [
-            { title: { contains: q, mode: 'insensitive' as const } },
-            { description: { contains: q, mode: 'insensitive' as const } },
-            { tags: { has: q.toLowerCase() } },
-            { tenant: { name: { contains: q, mode: 'insensitive' as const } } },
-          ],
-        }
-      : {}),
+    ...(and.length ? { AND: and } : {}),
   }
+}
+
+/** Relevance score for a job row against the parsed query terms. */
+function jobRelevanceScore(
+  row: PrismaJobWithRelations,
+  terms: string[],
+  fullQuery: string,
+): number {
+  return (
+    scoreRelevance(
+      [
+        { text: row.title, weight: 3 },
+        { text: row.tags, weight: 2 },
+        { text: row.tenant?.name, weight: 1.5 },
+        { text: row.description, weight: 1 },
+      ],
+      terms,
+      fullQuery,
+    ) + recencyBoost(row.publishedAt, 0.5)
+  )
 }
 
 export const getAllJobs = cache(
@@ -327,22 +360,52 @@ export const getJobsPage = cache(
     const safePage = Math.max(1, Math.floor(page))
     const safeSize = Math.min(60, Math.max(1, Math.floor(pageSize)))
     const where = buildJobsWhere(filters)
+    const q = filters.q?.trim() ?? ''
+    const terms = parseQueryTerms(q)
+    const useRelevance = sanitizeJobSort(filters.sort) === 'relevance' && terms.length > 0
 
     let total = 0
     let rows: PrismaJobWithRelations[] = []
     try {
-      const result = await prisma.$transaction([
-        prisma.job.count({ where }),
-        prisma.job.findMany({
-          where,
-          orderBy: buildJobsOrderBy(filters.sort),
-          include: JOB_INCLUDE,
-          skip: (safePage - 1) * safeSize,
-          take: safeSize,
-        }),
-      ])
-      total = result[0]
-      rows = result[1] as PrismaJobWithRelations[]
+      if (useRelevance) {
+        // Relevance can't be expressed in Prisma orderBy, so rank a bounded
+        // candidate pool in app code. The pool is ordered by recency first so
+        // the most relevant of the freshest jobs surface on early pages.
+        const RELEVANCE_POOL = 200
+        const result = await prisma.$transaction([
+          prisma.job.count({ where }),
+          prisma.job.findMany({
+            where,
+            orderBy: { publishedAt: 'desc' },
+            include: JOB_INCLUDE,
+            take: RELEVANCE_POOL,
+          }),
+        ])
+        total = result[0]
+        const ranked = (result[1] as PrismaJobWithRelations[])
+          .map((row) => ({ row, score: jobRelevanceScore(row, terms, q) }))
+          .sort(
+            (a, b) =>
+              b.score - a.score ||
+              (b.row.publishedAt?.getTime() ?? 0) - (a.row.publishedAt?.getTime() ?? 0),
+          )
+        rows = ranked
+          .slice((safePage - 1) * safeSize, safePage * safeSize)
+          .map((s) => s.row)
+      } else {
+        const result = await prisma.$transaction([
+          prisma.job.count({ where }),
+          prisma.job.findMany({
+            where,
+            orderBy: buildJobsOrderBy(filters.sort),
+            include: JOB_INCLUDE,
+            skip: (safePage - 1) * safeSize,
+            take: safeSize,
+          }),
+        ])
+        total = result[0]
+        rows = result[1] as PrismaJobWithRelations[]
+      }
     } catch {
       // db unreachable — fall through with empty result
     }

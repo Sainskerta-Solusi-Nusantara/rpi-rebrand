@@ -92,6 +92,7 @@ function buildUrl(current: FilterState, patch: FilterPatch): string {
 }
 
 const SORT_VALUES: JobSort[] = [
+  'relevance',
   'newest',
   'salary-high',
   'salary-low',
@@ -185,8 +186,13 @@ export default async function JobsListPage({
   const activeLevels = parseMulti(searchParams.level)
   const activeSalaryMin = parseSalary(searchParams.salaryMin)
   const activeSalaryMax = parseSalary(searchParams.salaryMax)
+  // Default to relevance ranking when there's a query, newest otherwise.
   const activeSort = sanitizeJobSort(
-    typeof searchParams.sort === 'string' ? searchParams.sort : undefined,
+    typeof searchParams.sort === 'string'
+      ? searchParams.sort
+      : activeQuery
+        ? 'relevance'
+        : undefined,
   )
   const pageParam =
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1

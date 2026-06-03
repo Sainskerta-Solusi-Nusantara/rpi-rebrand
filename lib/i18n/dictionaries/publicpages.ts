@@ -416,6 +416,7 @@ export const publicpages = {
       },
       sortLabel: 'Urutkan',
       sortOptions: {
+        relevance: 'Relevansi',
         newest: 'Terbaru',
         'salary-high': 'Gaji ↓',
         'salary-low': 'Gaji ↑',
@@ -1370,6 +1371,7 @@ export const publicpages = {
       },
       sortLabel: 'Sort by',
       sortOptions: {
+        relevance: 'Relevance',
         newest: 'Newest',
         'salary-high': 'Salary ↓',
         'salary-low': 'Salary ↑',
