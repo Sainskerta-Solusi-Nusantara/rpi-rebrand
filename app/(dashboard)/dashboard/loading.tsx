@@ -1,4 +1,7 @@
-export default function DashboardLoading() {
+import { getServerT } from '@/lib/i18n/server-dictionary'
+
+export default async function DashboardLoading() {
+  const t = await getServerT()
   return (
     <div
       role="status"
@@ -20,7 +23,7 @@ export default function DashboardLoading() {
           <div className="bg-muted h-48 animate-pulse rounded-xl" />
           <div className="bg-muted h-48 animate-pulse rounded-xl" />
         </div>
-        <span className="sr-only">Memuat dasbor…</span>
+        <span className="sr-only">{t.pagesDash.loading.srText}</span>
       </div>
     </div>
   )

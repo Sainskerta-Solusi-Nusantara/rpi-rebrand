@@ -23,6 +23,7 @@ import {
   groupReleasesByYear,
 } from '@/lib/press-data'
 import { cn } from '@/lib/utils'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = {
   title: 'Arsip Siaran Pers',
@@ -58,11 +59,12 @@ function buildArchiveUrl(
   return params.length ? `/press/archive?${params.join('&')}` : '/press/archive'
 }
 
-export default function PressArchivePage({
+export default async function PressArchivePage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getServerT()
   const allYears = getPressYears()
   const categoryCounts = getPressCategoryCounts()
 
@@ -128,7 +130,7 @@ export default function PressArchivePage({
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke press room
+            {t.pagesPress.common.backToPress}
           </Link>
         </div>
 
@@ -136,22 +138,21 @@ export default function PressArchivePage({
           <div className="mb-4 flex items-center gap-3">
             <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Arsip Press
+              {t.pagesPress.archive.eyebrow}
             </span>
           </div>
           <h1
             id="archive-heading"
             className="font-heading text-balance text-3xl font-semibold leading-[1.1] tracking-tight md:text-4xl lg:text-5xl"
           >
-            Arsip lengkap siaran pers
+            {t.pagesPress.archive.heading}
           </h1>
           <p className="text-muted-foreground mt-4 max-w-2xl text-base md:text-lg">
-            Cari dan akses semua{' '}
+            {t.pagesPress.archive.bodyPrefix}{' '}
             <strong className="text-foreground font-medium">
-              {PRESS_RELEASES.length} siaran pers
+              {t.pagesPress.archive.totalReleases.replace('{n}', String(PRESS_RELEASES.length))}
             </strong>{' '}
-            Rumah Pekerja Indonesia. Untuk wawancara atau permintaan kustom,
-            hubungi tim media kami.
+            {t.pagesPress.archive.bodySuffix}
           </p>
         </div>
       </section>
@@ -172,25 +173,25 @@ export default function PressArchivePage({
                       type="search"
                       name="q"
                       defaultValue={q}
-                      placeholder="Cari judul, ringkasan, atau topik…"
+                      placeholder={t.pagesPress.archive.searchPlaceholder}
                       className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
-                      aria-label="Cari siaran pers"
+                      aria-label={t.pagesPress.archive.searchAriaLabel}
                     />
                     {q && (
                       <Link
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         href={buildArchiveUrl(current, { q: null }) as any}
                         className="text-muted-foreground hover:text-foreground text-xs font-medium"
-                        aria-label="Hapus pencarian"
+                        aria-label={t.pagesPress.archive.clearSearchAria}
                       >
-                        Bersihkan
+                        {t.pagesPress.archive.clearSearch}
                       </Link>
                     )}
                     <button
                       type="submit"
                       className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
                     >
-                      Cari
+                      {t.pagesPress.archive.searchButton}
                     </button>
                   </div>
                   {/* Preserve filters when submitting search */}
@@ -206,7 +207,7 @@ export default function PressArchivePage({
                 <div className="border-border mt-4 flex flex-wrap items-center gap-2 border-t pt-4">
                   <span className="text-muted-foreground inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider">
                     <Filter className="h-3 w-3" aria-hidden />
-                    Kategori
+                    {t.pagesPress.archive.categoryLabel}
                   </span>
                   {PRESS_CATEGORIES.map((c) => {
                     const active = category === c
@@ -244,7 +245,7 @@ export default function PressArchivePage({
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <span className="text-muted-foreground inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider">
                     <Calendar className="h-3 w-3" aria-hidden />
-                    Tahun
+                    {t.pagesPress.archive.yearLabel}
                   </span>
                   <Link
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -257,7 +258,7 @@ export default function PressArchivePage({
                     )}
                     aria-current={year === undefined ? 'true' : undefined}
                   >
-                    Semua
+                    {t.pagesPress.archive.yearAll}
                   </Link>
                   {allYears.map((y) => {
                     const active = year === y
@@ -288,10 +289,10 @@ export default function PressArchivePage({
               {/* Result count */}
               <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="font-heading text-foreground text-lg font-semibold">
-                  {filtered.length} hasil
+                  {t.pagesPress.archive.resultCount.replace('{n}', String(filtered.length))}
                   {isFiltered && (
                     <span className="text-muted-foreground text-sm font-normal">
-                      {' '}dari {PRESS_RELEASES.length} siaran
+                      {' '}{t.pagesPress.archive.resultCountSuffix.replace('{total}', String(PRESS_RELEASES.length))}
                     </span>
                   )}
                 </h2>
@@ -301,7 +302,7 @@ export default function PressArchivePage({
                     className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
                   >
                     <ArrowLeft className="h-3 w-3" aria-hidden />
-                    Reset filter
+                    {t.pagesPress.archive.resetFilter}
                   </Link>
                 )}
               </div>
@@ -311,10 +312,10 @@ export default function PressArchivePage({
                 <div className="border-border bg-card rounded-2xl border p-12 text-center">
                   <Search className="text-muted-foreground mx-auto h-8 w-8" aria-hidden />
                   <h3 className="font-heading text-foreground mt-4 text-base font-semibold">
-                    Tidak ada siaran pers yang cocok
+                    {t.pagesPress.archive.emptyHeading}
                   </h3>
                   <p className="text-muted-foreground mt-2 text-sm">
-                    Coba ubah kata kunci atau pilih kategori lain.
+                    {t.pagesPress.archive.emptyBody}
                   </p>
                 </div>
               )}
@@ -323,14 +324,14 @@ export default function PressArchivePage({
               {groupedYears.map((y) => {
                 const list = grouped.get(y)!
                 return (
-                  <section key={y} className="mb-10" aria-label={`Tahun ${y}`}>
+                  <section key={y} className="mb-10" aria-label={`${y}`}>
                     <div className="mb-4 flex items-center gap-3">
                       <h3 className="font-heading text-foreground text-2xl font-semibold tracking-tight">
                         {y}
                       </h3>
                       <span className="bg-border h-px flex-1" aria-hidden />
                       <span className="text-muted-foreground text-xs uppercase tracking-wider">
-                        {list.length} siaran
+                        {t.pagesPress.archive.releasesPerYear.replace('{n}', String(list.length))}
                       </span>
                     </div>
                     <ol className="border-border bg-card divide-border overflow-hidden rounded-2xl border">
@@ -339,7 +340,7 @@ export default function PressArchivePage({
                           key={r.slug}
                           className="border-border [&:not(:last-child)]:border-b"
                         >
-                          <ReleaseRow release={r} />
+                          <ReleaseRow release={r} readLabel={t.pagesPress.archive.rowReadLabel} />
                         </li>
                       ))}
                     </ol>
@@ -353,23 +354,23 @@ export default function PressArchivePage({
               {/* Stats */}
               <div className="border-border bg-card rounded-2xl border p-6">
                 <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                  Arsip
+                  {t.pagesPress.archive.sidebarArchiveLabel}
                 </div>
                 <dl className="mt-4 space-y-3 text-sm">
-                  <StatLine label="Total siaran" value={PRESS_RELEASES.length.toString()} />
-                  <StatLine label="Tahun aktif" value={allYears.length.toString()} />
+                  <StatLine label={t.pagesPress.archive.sidebarTotal} value={PRESS_RELEASES.length.toString()} />
+                  <StatLine label={t.pagesPress.archive.sidebarActiveYears} value={allYears.length.toString()} />
                   <StatLine
-                    label="Kategori"
+                    label={t.pagesPress.archive.sidebarCategories}
                     value={(PRESS_CATEGORIES.length - 1).toString()}
                   />
-                  <StatLine label="Sejak" value={Math.min(...allYears).toString()} />
+                  <StatLine label={t.pagesPress.archive.sidebarSince} value={Math.min(...allYears).toString()} />
                 </dl>
               </div>
 
               {/* Categories overview */}
               <div className="border-border bg-card rounded-2xl border p-6">
                 <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                  Per Kategori
+                  {t.pagesPress.archive.sidebarPerCategory}
                 </div>
                 <ul className="mt-4 space-y-2">
                   {PRESS_CATEGORIES.filter((c) => c !== 'Semua').map((c) => {
@@ -424,11 +425,10 @@ export default function PressArchivePage({
               {/* Media contact */}
               <div className="border-border bg-card rounded-2xl border p-6">
                 <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                  Tim Media
+                  {t.pagesPress.archive.sidebarMediaTeam}
                 </div>
                 <p className="text-foreground/85 mt-3 text-sm leading-relaxed">
-                  Untuk wawancara, riset, atau permintaan kustom — tim
-                  komunikasi membalas dalam 4 jam kerja.
+                  {t.pagesPress.archive.sidebarMediaBody}
                 </p>
                 <div className="mt-4 space-y-2 text-sm">
                   <a
@@ -440,7 +440,7 @@ export default function PressArchivePage({
                   </a>
                 </div>
                 <Button asChild size="sm" className="mt-5 w-full">
-                  <Link href="/press#press-contact">Hubungi Tim Media</Link>
+                  <Link href="/press#press-contact">{t.pagesPress.archive.sidebarContactTeam}</Link>
                 </Button>
               </div>
 
@@ -450,13 +450,12 @@ export default function PressArchivePage({
                   <Newspaper className="h-3 w-3" aria-hidden /> Press Kit
                 </div>
                 <p className="text-foreground/85 mt-3 text-sm leading-relaxed">
-                  Logo pack, brand guidelines, foto eksekutif, fact sheet — semuanya
-                  dalam satu unduhan.
+                  {t.pagesPress.archive.sidebarPressKitBody}
                 </p>
                 <Button asChild size="sm" className="mt-4 w-full">
                   <a href="/press-kit/RPI-Press-Kit-Full.zip">
                     <Download className="mr-2 h-3.5 w-3.5" aria-hidden />
-                    Unduh (58 MB)
+                    {t.pagesPress.archive.sidebarDownload}
                   </a>
                 </Button>
               </div>
@@ -468,7 +467,7 @@ export default function PressArchivePage({
   )
 }
 
-function ReleaseRow({ release }: { release: PressRelease }) {
+function ReleaseRow({ release, readLabel }: { release: PressRelease; readLabel: string }) {
   const color = PRESS_CATEGORY_COLOR[release.category]
   return (
     <Link
@@ -504,7 +503,7 @@ function ReleaseRow({ release }: { release: PressRelease }) {
         </p>
       </div>
       <span className="text-foreground/80 group-hover:text-[color:var(--ring)] hidden shrink-0 items-center gap-1 self-start pt-1 text-sm font-medium transition sm:inline-flex">
-        Baca
+        {readLabel}
         <ArrowRight className="h-4 w-4" aria-hidden />
       </span>
     </Link>

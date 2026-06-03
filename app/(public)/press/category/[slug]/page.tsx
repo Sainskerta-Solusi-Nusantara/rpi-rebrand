@@ -10,6 +10,7 @@ import {
   releasesByCategory,
 } from '@/lib/press-facets'
 import { PRESS_CATEGORY_COLOR, type PressCategory } from '@/lib/press-data'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 type Params = { slug: string }
 
@@ -44,6 +45,7 @@ export default async function CategoryPage({
 }: {
   params: Params
 }) {
+  const t = await getServerT()
   const category = findCategoryBySlug(slug)
   if (!category) notFound()
 
@@ -84,7 +86,7 @@ export default async function CategoryPage({
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke press
+            {t.pagesPress.common.backToPressBrief}
           </Link>
         </div>
 
@@ -97,7 +99,7 @@ export default async function CategoryPage({
               {category}
             </span>
             <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-              Kategori Siaran Pers
+              {t.pagesPress.category.eyebrow}
             </span>
           </div>
           <h1
@@ -113,7 +115,7 @@ export default async function CategoryPage({
             <strong className="text-foreground font-medium">
               {releases.length}
             </strong>{' '}
-            siaran pers dalam kategori ini.
+            {t.pagesPress.category.releaseCountSuffix}
           </p>
         </div>
       </section>
@@ -128,13 +130,13 @@ export default async function CategoryPage({
                 aria-hidden
               />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada siaran pers dalam kategori ini
+                {t.pagesPress.category.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Jelajahi semua siaran pers RPI di halaman press.
+                {t.pagesPress.category.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/press">Lihat semua siaran pers</Link>
+                <Link href="/press">{t.pagesPress.category.emptyAction}</Link>
               </Button>
             </div>
           ) : (
@@ -179,13 +181,13 @@ export default async function CategoryPage({
       {otherCategories.length > 0 && (
         <section
           className="bg-muted/30 py-16 md:py-20"
-          aria-label="Kategori lainnya"
+          aria-label={t.pagesPress.category.ariaOtherCategories}
         >
           <div className="container mx-auto w-full max-w-5xl px-6">
             <div className="mb-8 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-                Jelajahi kategori lain
+                {t.pagesPress.category.otherEyebrow}
               </span>
             </div>
             <ul className="flex flex-wrap gap-2">

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Briefcase, Compass } from 'lucide-react'
 
 import { Button } from '@/components/atoms/button'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { CAREER_OPENINGS } from '@/lib/careers-data'
 import {
   CAREER_TEAM_META,
@@ -25,12 +26,13 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   }
 }
 
-export default function TeamPage({ params }: { params: Params }) {
+export default async function TeamPage({ params }: { params: Params }) {
+  const t = await getServerT()
   const team = findCareerTeam(params.slug)
   if (!team) notFound()
 
   const openings = CAREER_OPENINGS.filter((o) => o.team === team.name)
-  const otherTeams = CAREER_TEAM_META.filter((t) => t.slug !== team.slug)
+  const otherTeams = CAREER_TEAM_META.filter((tm) => tm.slug !== team.slug)
 
   return (
     <>
@@ -63,7 +65,7 @@ export default function TeamPage({ params }: { params: Params }) {
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke semua tim
+            {t.pagesCareers.team.back}
           </Link>
         </div>
 
@@ -76,7 +78,7 @@ export default function TeamPage({ params }: { params: Params }) {
                   className="h-px w-8 bg-[color:var(--ring)]"
                 />
                 <span className="text-[color:var(--ring)] text-xs font-medium uppercase tracking-[0.2em]">
-                  Tim Karier
+                  {t.pagesCareers.team.eyebrow}
                 </span>
               </div>
               <h1
@@ -100,7 +102,7 @@ export default function TeamPage({ params }: { params: Params }) {
                   <strong className="text-foreground font-medium">
                     {openings.length}
                   </strong>{' '}
-                  lowongan terbuka di tim ini
+                  {t.pagesCareers.team.openingsSuffix}
                 </span>
               </div>
             </div>
@@ -130,13 +132,13 @@ export default function TeamPage({ params }: { params: Params }) {
                 aria-hidden
               />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada lowongan terbuka di tim ini
+                {t.pagesCareers.team.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Cek kembali nanti — atau jelajahi tim lain di bawah.
+                {t.pagesCareers.team.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/careers#openings">Lihat semua lowongan</Link>
+                <Link href="/careers#openings">{t.pagesCareers.team.emptyButton}</Link>
               </Button>
             </div>
           ) : (
@@ -178,63 +180,64 @@ export default function TeamPage({ params }: { params: Params }) {
               <div className="mb-3 flex items-center gap-3">
                 <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
                 <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-                  <Compass className="inline h-3.5 w-3.5" aria-hidden /> Jelajahi
+                  <Compass className="inline h-3.5 w-3.5" aria-hidden />{' '}
+                  {t.pagesCareers.team.otherEyebrow}
                 </span>
               </div>
               <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
-                Tim lainnya di RPI
+                {t.pagesCareers.team.otherHeading}
               </h2>
             </div>
             <Link
               href="/careers#openings"
               className="text-foreground/80 hover:text-[color:var(--ring)] inline-flex items-center gap-1 text-sm font-medium transition"
             >
-              Semua lowongan
+              {t.pagesCareers.team.otherAllLink}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>
 
           <ul className="flex flex-wrap gap-2">
-            {otherTeams.map((t) => (
-              <li key={t.slug}>
+            {otherTeams.map((tm) => (
+              <li key={tm.slug}>
                 <Link
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={`/careers/team/${t.slug}` as any}
+                  href={`/careers/team/${tm.slug}` as any}
                   className="border-border bg-card hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] text-foreground/80 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition"
                 >
-                  <span aria-hidden>{t.emoji}</span>
-                  {t.name}
+                  <span aria-hidden>{tm.emoji}</span>
+                  {tm.name}
                 </Link>
               </li>
             ))}
           </ul>
 
           <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {otherTeams.map((t) => {
-              const count = CAREER_OPENINGS.filter((o) => o.team === t.name).length
+            {otherTeams.map((tm) => {
+              const count = CAREER_OPENINGS.filter((o) => o.team === tm.name).length
               return (
-                <li key={t.slug}>
+                <li key={tm.slug}>
                   <Link
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={`/careers/team/${t.slug}` as any}
+                    href={`/careers/team/${tm.slug}` as any}
                     className="border-border bg-card hover:border-[color:var(--ring)] group flex h-full items-start gap-4 rounded-2xl border p-5 transition"
                   >
                     <span
                       aria-hidden
                       className="grid size-12 shrink-0 place-items-center rounded-xl bg-[color:var(--ring)]/10 text-[color:var(--ring)] text-xl"
                     >
-                      {t.emoji}
+                      {tm.emoji}
                     </span>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] text-base font-semibold transition">
-                        {t.name}
+                        {tm.name}
                       </h3>
                       <p className="text-muted-foreground mt-1 line-clamp-2 text-xs leading-relaxed">
-                        {t.description}
+                        {tm.description}
                       </p>
                       <div className="text-muted-foreground mt-3 inline-flex items-center gap-1.5 text-xs">
                         <Briefcase className="h-3 w-3" aria-hidden />
-                        {count} lowongan
+                        {t.pagesCareers.team.otherCount.replace('{n}', String(count))}
                       </div>
                     </div>
                   </Link>

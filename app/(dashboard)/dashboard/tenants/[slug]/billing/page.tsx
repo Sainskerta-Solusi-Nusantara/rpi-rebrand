@@ -8,6 +8,7 @@ import { PlanSelectionForm } from '@/components/organisms/tenant-billing-form'
 import { StripeCheckoutButton } from '@/components/organisms/stripe-checkout-button'
 import { StripePortalButton } from '@/components/organisms/stripe-portal-button'
 import { isStripeConfigured } from '@/lib/billing/stripe'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import type { PlanTier } from '@prisma/client'
 
 export const metadata = { title: 'Billing Tenant — Dasbor' }
@@ -25,24 +26,6 @@ const planTone: Record<string, string> = {
   ENTERPRISE: 'bg-amber-100 text-amber-900',
 }
 
-function subscriptionStatusBadge(status: string): {
-  label: string
-  tone: string
-} {
-  switch (status) {
-    case 'active':
-      return { label: 'Aktif', tone: 'bg-green-100 text-green-800' }
-    case 'cancelled':
-      return { label: 'Dibatalkan', tone: 'bg-muted text-muted-foreground' }
-    case 'past_due':
-      return { label: 'Terlambat', tone: 'bg-red-100 text-red-800' }
-    case 'trialing':
-      return { label: 'Trial', tone: 'bg-amber-100 text-amber-900' }
-    default:
-      return { label: status, tone: 'bg-muted text-muted-foreground' }
-  }
-}
-
 export default async function TenantBillingPage({
   params,
   searchParams,
@@ -51,6 +34,7 @@ export default async function TenantBillingPage({
   searchParams?: { checkout?: string; session_id?: string }
 }) {
   const session = await requireAuth(`/dashboard/tenants/${params.slug}/billing`)
+  const t = await getServerT()
 
   const tenant = await prisma.tenant
     .findUnique({
@@ -91,6 +75,21 @@ export default async function TenantBillingPage({
     'billing.update',
   )
 
+  function subscriptionStatusLabel(status: string): { label: string; tone: string } {
+    switch (status) {
+      case 'active':
+        return { label: t.pagesTenant1.billing.statusActive, tone: 'bg-green-100 text-green-800' }
+      case 'cancelled':
+        return { label: t.pagesTenant1.billing.statusCancelled, tone: 'bg-muted text-muted-foreground' }
+      case 'past_due':
+        return { label: t.pagesTenant1.billing.statusPastDue, tone: 'bg-red-100 text-red-800' }
+      case 'trialing':
+        return { label: t.pagesTenant1.billing.statusTrialing, tone: 'bg-amber-100 text-amber-900' }
+      default:
+        return { label: status, tone: 'bg-muted text-muted-foreground' }
+    }
+  }
+
   const stripeReady = isStripeConfigured()
   const checkoutStatus = searchParams?.checkout
   const upgradablePlans: PlanTier[] = ['PRO', 'BUSINESS', 'ENTERPRISE']
@@ -111,18 +110,17 @@ export default async function TenantBillingPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke {tenant.name}
+          {t.pagesTenant1.billing.backLink.replace('{name}', tenant.name)}
         </Link>
       </div>
 
       <header>
         <div className="flex items-center gap-2">
           <CreditCard className="h-6 w-6" aria-hidden="true" />
-          <h1 className="font-heading text-2xl md:text-3xl">Billing & langganan</h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{t.pagesTenant1.billing.heading}</h1>
         </div>
         <p className="text-muted-foreground mt-1">
-          Kelola plan berlangganan tenant{' '}
-          <span className="text-foreground font-medium">{tenant.name}</span>.
+          {t.pagesTenant1.billing.subheading.replace('{name}', tenant.name)}
         </p>
       </header>
 
@@ -133,10 +131,8 @@ export default async function TenantBillingPage({
         >
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
-            <strong>Mode demo</strong> — set <code>STRIPE_SECRET_KEY</code> untuk
-            aktifkan billing live. Tombol Stripe Checkout dan Customer Portal di
-            bawah dinonaktifkan; perubahan plan masih tersedia via mock di
-            bawah.
+            <strong>{t.pagesTenant1.billing.demoBanner}</strong> &mdash;{' '}
+            {t.pagesTenant1.billing.demoBannerDesc.replace('{key}', 'STRIPE_SECRET_KEY')}
           </span>
         </div>
       )}
@@ -146,8 +142,7 @@ export default async function TenantBillingPage({
           role="status"
           className="border-success/30 bg-success/10 text-success rounded-md border px-3 py-2 text-sm"
         >
-          Pembayaran berhasil diproses. Status langganan akan diperbarui
-          beberapa saat setelah webhook Stripe diterima.
+          {t.pagesTenant1.billing.checkoutSuccess}
         </div>
       )}
       {checkoutStatus === 'cancelled' && (
@@ -155,7 +150,7 @@ export default async function TenantBillingPage({
           role="status"
           className="border-border bg-muted text-muted-foreground rounded-md border px-3 py-2 text-sm"
         >
-          Checkout dibatalkan. Anda dapat mencoba kembali kapan saja.
+          {t.pagesTenant1.billing.checkoutCancelled}
         </div>
       )}
 
@@ -165,7 +160,7 @@ export default async function TenantBillingPage({
       >
         <div className="mb-4 flex items-center gap-2">
           <Info className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Plan saat ini</h2>
+          <h2 className="font-heading text-lg">{t.pagesTenant1.billing.currentPlanHeading}</h2>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <span
@@ -176,23 +171,23 @@ export default async function TenantBillingPage({
           {activeSubscription ? (
             <>
               <span className="text-muted-foreground text-sm">
-                Periode aktif:{' '}
+                {t.pagesTenant1.billing.activePeriod}{' '}
                 <span className="text-foreground">
-                  {dateShort.format(activeSubscription.currentPeriodStart)} —{' '}
+                  {dateShort.format(activeSubscription.currentPeriodStart)} &mdash;{' '}
                   {dateShort.format(activeSubscription.currentPeriodEnd)}
                 </span>
               </span>
               <span
                 className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                  subscriptionStatusBadge(activeSubscription.status).tone
+                  subscriptionStatusLabel(activeSubscription.status).tone
                 }`}
               >
-                {subscriptionStatusBadge(activeSubscription.status).label}
+                {subscriptionStatusLabel(activeSubscription.status).label}
               </span>
             </>
           ) : (
             <span className="text-muted-foreground text-sm">
-              Belum ada langganan tercatat untuk plan ini.
+              {t.pagesTenant1.billing.noSubscription}
             </span>
           )}
         </div>
@@ -205,12 +200,10 @@ export default async function TenantBillingPage({
         >
           <div className="mb-4 flex items-center gap-2">
             <CreditCard className="h-5 w-5" aria-hidden="true" />
-            <h2 className="font-heading text-lg">Pembayaran via Stripe</h2>
+            <h2 className="font-heading text-lg">{t.pagesTenant1.billing.stripeHeading}</h2>
           </div>
           <p className="text-muted-foreground mb-4 text-sm">
-            Mulai berlangganan paket berbayar atau kelola metode pembayaran
-            melalui portal pelanggan Stripe. Status langganan disinkronkan
-            otomatis dari Stripe melalui webhook.
+            {t.pagesTenant1.billing.stripeDesc}
           </p>
           <div className="flex flex-wrap gap-3">
             {upgradablePlans.map((p) => (
@@ -218,7 +211,7 @@ export default async function TenantBillingPage({
                 key={p}
                 tenantSlug={tenant.slug}
                 plan={p}
-                label={`Langganan ${p}`}
+                label={t.pagesTenant1.billing.subscribeBtn.replace('{plan}', p)}
                 disabled={!canEdit || tenant.planTier === p}
                 variant={tenant.planTier === p ? 'secondary' : 'primary'}
               />
@@ -232,7 +225,7 @@ export default async function TenantBillingPage({
           </div>
           {!canEdit && (
             <p className="text-muted-foreground mt-3 text-xs">
-              Hanya OWNER yang dapat memulai checkout atau membuka portal.
+              {t.pagesTenant1.billing.ownerOnlyHint}
             </p>
           )}
         </section>
@@ -245,13 +238,13 @@ export default async function TenantBillingPage({
         <div className="mb-4 flex items-center gap-2">
           <CreditCard className="h-5 w-5" aria-hidden="true" />
           <h2 className="font-heading text-lg">
-            {stripeReady ? 'Plan (mode admin)' : 'Pilih plan'}
+            {stripeReady ? t.pagesTenant1.billing.selectPlanHeading : t.pagesTenant1.billing.selectPlanHeadingDemo}
           </h2>
         </div>
         <p className="text-muted-foreground mb-4 text-sm">
           {stripeReady
-            ? 'Ubah plan langsung tanpa lewat Stripe — gunakan hanya untuk koreksi admin atau testing.'
-            : 'Bandingkan paket dan pilih plan yang sesuai. Perubahan berlaku segera dan periode billing 30 hari baru akan dimulai.'}
+            ? t.pagesTenant1.billing.selectPlanDescAdmin
+            : t.pagesTenant1.billing.selectPlanDescDemo}
         </p>
         <PlanSelectionForm
           tenantSlug={tenant.slug}
@@ -267,29 +260,29 @@ export default async function TenantBillingPage({
         <div className="mb-4 flex items-center gap-2">
           <History className="h-5 w-5" aria-hidden="true" />
           <h2 className="font-heading text-lg">
-            Riwayat langganan ({history.length})
+            {t.pagesTenant1.billing.historyHeading.replace('{n}', String(history.length))}
           </h2>
         </div>
         {history.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Belum ada riwayat langganan untuk tenant ini.
+            {t.pagesTenant1.billing.historyEmpty}
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-                  <th className="py-2 pr-3 font-medium">Plan</th>
-                  <th className="py-2 pr-3 font-medium">Status</th>
-                  <th className="py-2 pr-3 font-medium">Periode</th>
-                  <th className="py-2 pr-3 font-medium">Dibuat</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.billing.tablePlan}</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.billing.tableStatus}</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.billing.tablePeriod}</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.billing.tableCreated}</th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((s) => {
                   const tone =
                     planTone[s.plan] ?? 'bg-muted text-muted-foreground'
-                  const badge = subscriptionStatusBadge(s.status)
+                  const badge = subscriptionStatusLabel(s.status)
                   return (
                     <tr
                       key={s.id}
@@ -310,7 +303,7 @@ export default async function TenantBillingPage({
                         </span>
                       </td>
                       <td className="py-2 pr-3 whitespace-nowrap text-xs">
-                        {dateShort.format(s.currentPeriodStart)} —{' '}
+                        {dateShort.format(s.currentPeriodStart)} &mdash;{' '}
                         {dateShort.format(s.currentPeriodEnd)}
                       </td>
                       <td className="py-2 pr-3 whitespace-nowrap text-xs">

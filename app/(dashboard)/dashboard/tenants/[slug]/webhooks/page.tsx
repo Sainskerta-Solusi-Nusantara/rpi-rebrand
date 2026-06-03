@@ -11,6 +11,7 @@ import {
 import { WebhookStatsCard } from '@/components/organisms/webhook-stats-card'
 import { getDeliveryStats } from '@/lib/webhooks/delivery-queries'
 import { WEBHOOK_EVENT_LABELS, type WebhookEvent } from '@/lib/webhooks/events'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Webhook Tenant — Dasbor' }
 
@@ -18,21 +19,6 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
   dateStyle: 'medium',
   timeStyle: 'short',
 })
-
-function statusBadge(status: string): { label: string; tone: string } {
-  switch (status) {
-    case 'success':
-      return { label: 'Berhasil', tone: 'bg-green-100 text-green-800' }
-    case 'failed':
-      return { label: 'Gagal', tone: 'bg-red-100 text-red-800' }
-    case 'pending':
-      return { label: 'Tertunda', tone: 'bg-amber-100 text-amber-800' }
-    case 'dead_letter':
-      return { label: 'Surat mati', tone: 'bg-zinc-200 text-zinc-800' }
-    default:
-      return { label: status, tone: 'bg-muted text-muted-foreground' }
-  }
-}
 
 function eventLabel(ev: string): string {
   if (ev in WEBHOOK_EVENT_LABELS) {
@@ -46,6 +32,9 @@ export default async function TenantWebhooksPage({
 }: {
   params: { slug: string }
 }) {
+  const t = await getServerT()
+  const w_ = t.pagesTenant4.webhooks
+
   const session = await requireAuth(`/dashboard/tenants/${params.slug}/webhooks`)
 
   const tenant = await prisma.tenant
@@ -115,6 +104,21 @@ export default async function TenantWebhooksPage({
     ),
   )
 
+  function statusBadge(status: string): { label: string; tone: string } {
+    switch (status) {
+      case 'success':
+        return { label: w_.statusSuccess, tone: 'bg-green-100 text-green-800' }
+      case 'failed':
+        return { label: w_.statusFailed, tone: 'bg-red-100 text-red-800' }
+      case 'pending':
+        return { label: w_.statusPending, tone: 'bg-amber-100 text-amber-800' }
+      case 'dead_letter':
+        return { label: w_.statusDeadLetter, tone: 'bg-zinc-200 text-zinc-800' }
+      default:
+        return { label: status, tone: 'bg-muted text-muted-foreground' }
+    }
+  }
+
   return (
     <div className="p-6 space-y-8 max-w-5xl">
       <div>
@@ -124,7 +128,7 @@ export default async function TenantWebhooksPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke {tenant.name}
+          {w_.backTo.replace('{name}', tenant.name)}
         </Link>
       </div>
 
@@ -132,14 +136,10 @@ export default async function TenantWebhooksPage({
         <div>
           <div className="flex items-center gap-2">
             <Webhook className="h-6 w-6" aria-hidden="true" />
-            <h1 className="font-heading text-2xl md:text-3xl">Webhook</h1>
+            <h1 className="font-heading text-2xl md:text-3xl">{w_.heading}</h1>
           </div>
           <p className="text-muted-foreground mt-1">
-            Kirim notifikasi otomatis ke sistem eksternal saat event terjadi di tenant{' '}
-            <span className="font-medium text-foreground">{tenant.name}</span>.
-            Setiap permintaan ditandatangani HMAC-SHA256 melalui header{' '}
-            <code className="bg-muted rounded px-1 text-xs">X-RPI-Signature</code>.
-            Pengiriman yang gagal otomatis dicoba ulang hingga 5 kali (1m, 5m, 30m, 2j).
+            {w_.description.replace('{name}', tenant.name)}
           </p>
         </div>
         <Link
@@ -148,18 +148,18 @@ export default async function TenantWebhooksPage({
           className="border-border bg-card hover:bg-muted/40 inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
         >
           <Skull className="h-4 w-4" aria-hidden="true" />
-          Surat mati ({deadLetterCount})
+          {w_.deadLetterBtn.replace('{count}', String(deadLetterCount))}
         </Link>
       </header>
 
       <section
-        aria-label="Daftar webhook"
+        aria-label={w_.sectionEndpoints}
         className="border-border bg-card rounded-2xl border p-6"
       >
         <div className="mb-4 flex items-center gap-2">
           <Webhook className="h-5 w-5" aria-hidden="true" />
           <h2 className="font-heading text-lg">
-            Endpoint terdaftar ({webhooks.length})
+            {w_.sectionEndpointsHeading.replace('{count}', String(webhooks.length))}
           </h2>
         </div>
 
@@ -167,33 +167,33 @@ export default async function TenantWebhooksPage({
 
         {webhooks.length > 0 && (
           <ul className="mt-6 space-y-3">
-            {webhooks.map((w, idx) => {
-              const last = w.deliveries[0]
+            {webhooks.map((wh, idx) => {
+              const last = wh.deliveries[0]
               const stats = statsByWebhook[idx]
               return (
                 <li
-                  key={w.id}
+                  key={wh.id}
                   className="border-border bg-background space-y-3 rounded-md border p-4"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium text-foreground">{w.name}</span>
+                        <span className="font-medium text-foreground">{wh.name}</span>
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            w.enabled
+                            wh.enabled
                               ? 'bg-green-100 text-green-800'
                               : 'bg-muted text-muted-foreground'
                           }`}
                         >
-                          {w.enabled ? 'Aktif' : 'Nonaktif'}
+                          {wh.enabled ? w_.statusActive : w_.statusInactive}
                         </span>
                       </div>
                       <div className="text-muted-foreground break-all font-mono text-xs">
-                        {w.url}
+                        {wh.url}
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {w.events.map((ev) => (
+                        {wh.events.map((ev) => (
                           <span
                             key={ev}
                             title={ev}
@@ -206,7 +206,7 @@ export default async function TenantWebhooksPage({
                       <div className="text-muted-foreground text-xs">
                         {last ? (
                           <>
-                            Pengiriman terakhir:{' '}
+                            {w_.lastDelivery}{' '}
                             <span className="text-foreground">
                               {dateFmt.format(last.createdAt)}
                             </span>
@@ -223,23 +223,23 @@ export default async function TenantWebhooksPage({
                             )}
                           </>
                         ) : (
-                          <>Belum ada pengiriman.</>
+                          <>{w_.noDelivery}</>
                         )}
                       </div>
                       <div>
                         <Link
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          href={`/dashboard/tenants/${tenant.slug}/webhooks/${w.id}/deliveries` as any}
+                          href={`/dashboard/tenants/${tenant.slug}/webhooks/${wh.id}/deliveries` as any}
                           className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
                         >
                           <History className="h-3 w-3" aria-hidden="true" />
-                          Lihat riwayat pengiriman
+                          {w_.viewHistory}
                         </Link>
                       </div>
                     </div>
                     <div className="shrink-0">
                       <WebhookRowActions
-                        webhook={{ id: w.id, name: w.name, enabled: w.enabled }}
+                        webhook={{ id: wh.id, name: wh.name, enabled: wh.enabled }}
                       />
                     </div>
                   </div>
@@ -256,29 +256,29 @@ export default async function TenantWebhooksPage({
       </section>
 
       <section
-        aria-label="Riwayat pengiriman"
+        aria-label={w_.sectionHistory}
         className="border-border bg-card rounded-2xl border p-6"
       >
         <div className="mb-4 flex items-center gap-2">
           <History className="h-5 w-5" aria-hidden="true" />
           <h2 className="font-heading text-lg">
-            Riwayat pengiriman terbaru ({deliveries.length})
+            {w_.sectionHistoryHeading.replace('{count}', String(deliveries.length))}
           </h2>
         </div>
         {deliveries.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Belum ada pengiriman tercatat untuk tenant ini.
+            {w_.emptyHistory}
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-                  <th className="py-2 pr-3 font-medium">Waktu</th>
-                  <th className="py-2 pr-3 font-medium">Webhook</th>
-                  <th className="py-2 pr-3 font-medium">Event</th>
-                  <th className="py-2 pr-3 font-medium">Status</th>
-                  <th className="py-2 font-medium">HTTP</th>
+                  <th className="py-2 pr-3 font-medium">{w_.thTime}</th>
+                  <th className="py-2 pr-3 font-medium">{w_.thWebhook}</th>
+                  <th className="py-2 pr-3 font-medium">{w_.thEvent}</th>
+                  <th className="py-2 pr-3 font-medium">{w_.thStatus}</th>
+                  <th className="py-2 font-medium">{w_.thHttp}</th>
                 </tr>
               </thead>
               <tbody>
@@ -311,13 +311,10 @@ export default async function TenantWebhooksPage({
       <section className="border-border bg-muted/40 rounded-2xl border p-6">
         <div className="mb-3 flex items-center gap-2">
           <Info className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Cara verifikasi tanda tangan</h2>
+          <h2 className="font-heading text-lg">{w_.sectionVerify}</h2>
         </div>
         <p className="text-muted-foreground mb-3 text-sm">
-          Tiap permintaan memuat header{' '}
-          <code className="bg-background rounded px-1">X-RPI-Signature: sha256=&lt;hex&gt;</code>
-          . Hitung HMAC-SHA256 dari raw body memakai signing secret, lalu bandingkan
-          dengan nilai header (constant-time compare). Tolak permintaan yang tidak cocok.
+          {w_.verifyDescription}
         </p>
         <pre className="bg-background border-border overflow-x-auto rounded-md border p-3 text-xs"><code>{`// Node.js
 import { createHmac, timingSafeEqual } from 'node:crypto'

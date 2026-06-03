@@ -12,6 +12,7 @@ import {
   sanitizeMitraPlan,
   sanitizeMitraSort,
 } from '@/lib/mitra-data'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata: Metadata = {
   title: 'Mitra Perekrut',
@@ -55,18 +56,21 @@ function buildUrl(
   return params.length ? `/mitra?${params.join('&')}` : '/mitra'
 }
 
-const SORT_OPTIONS: { value: MitraSort; label: string }[] = [
-  { value: 'newest', label: 'Terbaru' },
-  { value: 'alpha', label: 'A–Z' },
-  { value: 'jobs-high', label: 'Lowongan ↓' },
-  { value: 'jobs-low', label: 'Lowongan ↑' },
-]
-
 export default async function MitraPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getServerT()
+  const m = t.pagesPublicMisc.mitra
+
+  const SORT_OPTIONS: { value: MitraSort; label: string }[] = [
+    { value: 'newest', label: m.sortNewest },
+    { value: 'alpha', label: m.sortAlpha },
+    { value: 'jobs-high', label: m.sortJobsHigh },
+    { value: 'jobs-low', label: m.sortJobsLow },
+  ]
+
   const activeQuery =
     typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
   const activeIndustryRaw =
@@ -121,11 +125,11 @@ export default async function MitraPage({
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
       <header className="mb-8 text-center">
-        <h1 className="font-heading text-3xl md:text-5xl">Mitra Perekrut Kami</h1>
+        <h1 className="font-heading text-3xl md:text-5xl">{m.heading}</h1>
         <p className="text-muted-foreground mx-auto mt-3 max-w-2xl">
-          {stats.activeTenants.toLocaleString('id-ID')} perusahaan mempercayakan
-          rekrutmen mereka kepada Rumah Pekerja Indonesia, dengan{' '}
-          {stats.publishedJobs.toLocaleString('id-ID')} lowongan aktif.
+          {m.statsDesc
+            .replace('{activeTenants}', stats.activeTenants.toLocaleString('id-ID'))
+            .replace('{publishedJobs}', stats.publishedJobs.toLocaleString('id-ID'))}
         </p>
 
         <form method="get" action="/mitra" className="mx-auto mt-6 max-w-xl">
@@ -135,9 +139,8 @@ export default async function MitraPage({
               type="search"
               name="q"
               defaultValue={activeQuery}
-              placeholder="Cari nama mitra…"
+              placeholder={m.searchPlaceholder}
               className="placeholder:text-muted-foreground/70 text-foreground w-full bg-transparent text-sm outline-none"
-              aria-label="Cari mitra perekrut"
             />
             {activeQuery && (
               <Link
@@ -146,14 +149,14 @@ export default async function MitraPage({
                 className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
               >
                 <X className="h-3 w-3" aria-hidden />
-                Bersihkan
+                {m.clearSearch}
               </Link>
             )}
             <button
               type="submit"
               className="bg-[color:var(--ring)] text-[color:var(--primary-foreground)] inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium transition hover:opacity-90"
             >
-              Cari
+              {m.searchButton}
             </button>
           </div>
           {activeIndustry && (
@@ -193,7 +196,7 @@ export default async function MitraPage({
               className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs font-medium"
             >
               <X className="h-3 w-3" aria-hidden />
-              Bersihkan semua
+              {m.clearAll}
             </Link>
           </div>
         )}
@@ -201,9 +204,9 @@ export default async function MitraPage({
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
         <aside aria-label="Filter" className="space-y-8">
-          <FilterGroup title="Industri">
+          <FilterGroup title={m.filterIndustryTitle}>
             {industries.length === 0 ? (
-              <p className="text-muted-foreground text-xs">Belum ada data.</p>
+              <p className="text-muted-foreground text-xs">{m.noDataIndustry}</p>
             ) : (
               industries.map((i) => (
                 <ToggleRow
@@ -221,7 +224,7 @@ export default async function MitraPage({
             )}
           </FilterGroup>
 
-          <FilterGroup title="Plan Tier">
+          <FilterGroup title={m.filterPlanTitle}>
             {MITRA_PLAN_TIERS.map((t) => {
               const active = activePlan === t.value
               return (
@@ -243,19 +246,22 @@ export default async function MitraPage({
         <section aria-label="Daftar mitra">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <p className="text-muted-foreground text-sm">
-              {total.toLocaleString('id-ID')} mitra
+              {m.resultCount.replace('{total}', total.toLocaleString('id-ID'))}
               {totalPages > 1 && (
                 <>
-                  {' '}· halaman{' '}
-                  <strong className="text-foreground font-medium">{safePage}</strong>
-                  {' '}dari {totalPages}
+                  {' · '}
+                  <strong className="text-foreground font-medium">
+                    {m.pageInfo
+                      .replace('{page}', String(safePage))
+                      .replace('{totalPages}', String(totalPages))}
+                  </strong>
                 </>
               )}
             </p>
             {partners.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                  Urutkan
+                  {m.sortLabel}
                 </span>
                 {SORT_OPTIONS.map((o) => {
                   const active = activeSort === o.value
@@ -282,19 +288,17 @@ export default async function MitraPage({
           {partners.length === 0 ? (
             <div className="border-border bg-card rounded-2xl border p-12 text-center">
               <h2 className="font-heading text-foreground text-lg font-semibold">
-                Tidak ada mitra
+                {m.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                {hasAnyFilter
-                  ? 'Belum ada mitra yang cocok dengan filter saat ini.'
-                  : 'Belum ada mitra terdaftar.'}
+                {hasAnyFilter ? m.emptyFiltered : m.emptyAll}
               </p>
               {hasAnyFilter && (
                 <Link
                   href="/mitra"
                   className="text-foreground/80 hover:text-[color:var(--ring)] mt-4 inline-flex items-center gap-1 text-sm font-medium"
                 >
-                  Bersihkan filter
+                  {m.clearFilter}
                 </Link>
               )}
             </div>
@@ -321,7 +325,7 @@ export default async function MitraPage({
                       {p.industry}
                     </div>
                     <div className="text-muted-foreground mt-1 text-xs">
-                      {p.jobsCount} lowongan aktif
+                      {m.jobsActive.replace('{count}', String(p.jobsCount))}
                     </div>
                   </Link>
                 </li>
@@ -347,6 +351,7 @@ export default async function MitraPage({
                 }
                 if (link.kind === 'prev' || link.kind === 'next') {
                   const Icon = link.kind === 'prev' ? ChevronLeft : ChevronRight
+                  const label = link.kind === 'prev' ? m.prevPage : m.nextPage
                   return link.disabled ? (
                     <span
                       key={link.kind}
@@ -354,7 +359,7 @@ export default async function MitraPage({
                       aria-disabled="true"
                     >
                       <Icon className="h-3.5 w-3.5" aria-hidden />
-                      {link.kind === 'prev' ? 'Sebelumnya' : 'Berikutnya'}
+                      {label}
                     </span>
                   ) : (
                     <Link
@@ -364,7 +369,7 @@ export default async function MitraPage({
                       className="border-border hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs transition"
                     >
                       <Icon className="h-3.5 w-3.5" aria-hidden />
-                      {link.kind === 'prev' ? 'Sebelumnya' : 'Berikutnya'}
+                      {label}
                     </Link>
                   )
                 }
@@ -393,16 +398,15 @@ export default async function MitraPage({
       </div>
 
       <section className="border-border bg-muted/30 mt-16 rounded-2xl border p-10 text-center">
-        <h2 className="font-heading text-2xl md:text-3xl">Jadi Mitra Perekrut</h2>
+        <h2 className="font-heading text-2xl md:text-3xl">{m.ctaHeading}</h2>
         <p className="text-muted-foreground mx-auto mt-3 max-w-xl">
-          Pasang lowongan, kelola talent pool, dan bangun brand karier Anda di platform yang fokus
-          pada pekerja Indonesia.
+          {m.ctaBody}
         </p>
         <a
           href="/register?role=partner"
           className="bg-primary text-primary-foreground mt-6 inline-flex items-center rounded-md px-6 py-3 font-medium"
         >
-          Daftar Sebagai Mitra
+          {m.ctaButton}
         </a>
       </section>
     </div>

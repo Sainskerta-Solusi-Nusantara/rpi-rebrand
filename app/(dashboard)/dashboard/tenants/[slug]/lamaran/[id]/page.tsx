@@ -49,19 +49,9 @@ import type { MatchBreakdown } from '@/lib/match/match-scorer'
 import { scoreApplicationToJob } from '@/lib/match/match-scorer'
 import { ApplicationNotesSection } from '@/components/organisms/application-notes-section'
 import type { TenantMember } from '@/components/organisms/notes-composer'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Detail Lamaran — Dasbor' }
-
-const STATUS_LABELS: Record<ApplicationStatus, string> = {
-  APPLIED: 'Dilamar',
-  REVIEWED: 'Ditinjau',
-  SHORTLISTED: 'Shortlist',
-  INTERVIEW: 'Wawancara',
-  OFFERED: 'Penawaran',
-  HIRED: 'Diterima',
-  REJECTED: 'Ditolak',
-  WITHDRAWN: 'Dibatalkan',
-}
 
 const STATUS_TONE: Record<ApplicationStatus, string> = {
   APPLIED: 'bg-slate-100 text-slate-800',
@@ -74,65 +64,10 @@ const STATUS_TONE: Record<ApplicationStatus, string> = {
   WITHDRAWN: 'bg-zinc-100 text-zinc-800',
 }
 
-const SELECT_OPTIONS = (
-  [
-    'APPLIED',
-    'REVIEWED',
-    'SHORTLISTED',
-    'INTERVIEW',
-    'OFFERED',
-    'HIRED',
-    'REJECTED',
-  ] as const
-).map((v) => ({ value: v, label: STATUS_LABELS[v] }))
-
 const dateFmt = new Intl.DateTimeFormat('id-ID', {
   dateStyle: 'medium',
   timeStyle: 'short',
 })
-
-function formatAnswerValue(
-  value: string,
-  type: JobQuestionType,
-): React.ReactNode {
-  if (!value) return <span className="text-muted-foreground italic">—</span>
-  switch (type) {
-    case 'multi_choice': {
-      try {
-        const arr = JSON.parse(value)
-        if (Array.isArray(arr) && arr.length > 0) {
-          return (
-            <ul className="list-disc pl-5">
-              {arr.map((v: unknown, i: number) => (
-                <li key={i}>{typeof v === 'string' ? v : String(v)}</li>
-              ))}
-            </ul>
-          )
-        }
-        return <span className="text-muted-foreground italic">—</span>
-      } catch {
-        return value
-      }
-    }
-    case 'yes_no':
-      return value === 'yes' ? 'Ya' : value === 'no' ? 'Tidak' : value
-    case 'file_url':
-      return (
-        <a
-          href={value}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary underline"
-        >
-          Buka berkas
-        </a>
-      )
-    case 'long_text':
-      return <p className="whitespace-pre-line">{value}</p>
-    default:
-      return value
-  }
-}
 
 function metadataPreview(value: unknown): string {
   if (!value) return ''
@@ -148,6 +83,75 @@ export default async function TenantApplicationDetailPage({
 }: {
   params: { slug: string; id: string }
 }) {
+  const t = await getServerT()
+  const ad = t.pagesTenant3.applicationDetail
+
+  const STATUS_LABELS: Record<ApplicationStatus, string> = {
+    APPLIED: ad.statusApplied,
+    REVIEWED: ad.statusReviewed,
+    SHORTLISTED: ad.statusShortlisted,
+    INTERVIEW: ad.statusInterview,
+    OFFERED: ad.statusOffered,
+    HIRED: ad.statusHired,
+    REJECTED: ad.statusRejected,
+    WITHDRAWN: ad.statusWithdrawn,
+  }
+
+  const SELECT_OPTIONS = (
+    [
+      'APPLIED',
+      'REVIEWED',
+      'SHORTLISTED',
+      'INTERVIEW',
+      'OFFERED',
+      'HIRED',
+      'REJECTED',
+    ] as const
+  ).map((v) => ({ value: v, label: STATUS_LABELS[v] }))
+
+  function formatAnswerValue(
+    value: string,
+    type: JobQuestionType,
+  ): React.ReactNode {
+    if (!value) return <span className="text-muted-foreground italic">—</span>
+    switch (type) {
+      case 'multi_choice': {
+        try {
+          const arr = JSON.parse(value)
+          if (Array.isArray(arr) && arr.length > 0) {
+            return (
+              <ul className="list-disc pl-5">
+                {arr.map((v: unknown, i: number) => (
+                  <li key={i}>{typeof v === 'string' ? v : String(v)}</li>
+                ))}
+              </ul>
+            )
+          }
+          return <span className="text-muted-foreground italic">—</span>
+        } catch {
+          return value
+        }
+      }
+      case 'yes_no':
+        return value === 'yes' ? ad.answerYes : value === 'no' ? ad.answerNo : value
+      case 'file_url':
+        return (
+          <a
+            href={value}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-primary underline"
+          >
+            {ad.answerFileOpen}
+          </a>
+        )
+      case 'long_text':
+        return <p className="whitespace-pre-line">{value}</p>
+      default:
+        return value
+    }
+  }
+
   const session = await requireAuth(
     `/dashboard/tenants/${params.slug}/lamaran/${params.id}`,
   )
@@ -474,7 +478,7 @@ export default async function TenantApplicationDetailPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke daftar lamaran
+          {ad.backToList}
         </Link>
         <Link
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -484,10 +488,10 @@ export default async function TenantApplicationDetailPage({
           className="border-input bg-background text-foreground hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium"
         >
           <MessageSquare className="h-4 w-4" aria-hidden="true" />
-          Pesan
+          {ad.messages}
           {unreadForRecruiter > 0 && (
             <span
-              aria-label={`${unreadForRecruiter} pesan belum dibaca`}
+              aria-label={ad.unreadAriaLabel.replace('{count}', String(unreadForRecruiter))}
               className="bg-primary text-primary-foreground inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
             >
               {Math.min(99, unreadForRecruiter)}
@@ -516,8 +520,9 @@ export default async function TenantApplicationDetailPage({
               </p>
             )}
             <p className="text-muted-foreground mt-1 text-xs">
-              Dilamar {dateFmt.format(application.appliedAt)} · Diperbarui{' '}
-              {dateFmt.format(application.updatedAt)}
+              {ad.appliedUpdated
+                .replace('{applied}', dateFmt.format(application.appliedAt))
+                .replace('{updated}', dateFmt.format(application.updatedAt))}
             </p>
           </div>
         </div>
@@ -530,7 +535,7 @@ export default async function TenantApplicationDetailPage({
 
       {application.withdrawnAt && (
         <section
-          aria-label="Lamaran ditarik"
+          aria-label={ad.withdrawnHeading}
           className="border-destructive/40 bg-destructive/5 rounded-2xl border p-5"
         >
           <div className="flex items-start gap-3">
@@ -539,29 +544,27 @@ export default async function TenantApplicationDetailPage({
               aria-hidden="true"
             />
             <div className="flex-1">
-              <h2 className="text-destructive font-medium">Lamaran ditarik</h2>
+              <h2 className="text-destructive font-medium">{ad.withdrawnHeading}</h2>
               <p className="text-foreground/80 mt-1 text-sm">
-                Lamaran ditarik oleh kandidat pada{' '}
-                {dateFmt.format(application.withdrawnAt)}.
+                {ad.withdrawnBody.replace('{date}', dateFmt.format(application.withdrawnAt))}
                 {application.withdrawnBy &&
                 application.withdrawnBy.id !== application.user.id ? (
                   <>
                     {' '}
-                    Diproses oleh{' '}
-                    {application.withdrawnBy.name ??
-                      application.withdrawnBy.email}
-                    .
+                    {ad.withdrawnProcessedBy.replace(
+                      '{name}',
+                      application.withdrawnBy.name ?? application.withdrawnBy.email,
+                    )}
                   </>
                 ) : null}
               </p>
               {application.withdrawReason && (
                 <p className="text-muted-foreground mt-2 whitespace-pre-line text-sm">
-                  Alasan: {application.withdrawReason}
+                  {ad.withdrawnReason.replace('{reason}', application.withdrawReason)}
                 </p>
               )}
               <p className="text-muted-foreground mt-3 text-xs">
-                Kontrol perubahan status dinonaktifkan untuk lamaran yang sudah
-                ditarik.
+                {ad.withdrawnControlsDisabled}
               </p>
             </div>
           </div>
@@ -584,10 +587,9 @@ export default async function TenantApplicationDetailPage({
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="font-heading text-lg">AI Screening</h2>
+            <h2 className="font-heading text-lg">{ad.aiScreeningHeading}</h2>
             <p className="text-muted-foreground text-xs">
-              Skor otomatis berbasis aturan untuk memprioritaskan tinjauan.
-              Bukan pengganti penilaian rekruter.
+              {ad.aiScreeningSubtitle}
             </p>
           </div>
           {canManage ? (
@@ -636,10 +638,10 @@ export default async function TenantApplicationDetailPage({
       </section>
 
       <section
-        aria-label="Profil pelamar"
+        aria-label={ad.applicantProfileHeading}
         className="border-border bg-card rounded-2xl border p-6"
       >
-        <h2 className="font-heading mb-4 text-lg">Profil pelamar</h2>
+        <h2 className="font-heading mb-4 text-lg">{ad.applicantProfileHeading}</h2>
         <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           <div className="flex items-start gap-2">
             <Mail
@@ -647,7 +649,7 @@ export default async function TenantApplicationDetailPage({
               aria-hidden="true"
             />
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Email</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{ad.labelEmail}</dt>
               <dd>{application.user.email}</dd>
             </div>
           </div>
@@ -658,7 +660,7 @@ export default async function TenantApplicationDetailPage({
             />
             <div>
               <dt className="text-muted-foreground text-xs uppercase">
-                Telepon
+                {ad.labelPhone}
               </dt>
               <dd>{application.user.phone ?? '—'}</dd>
             </div>
@@ -670,7 +672,7 @@ export default async function TenantApplicationDetailPage({
             />
             <div>
               <dt className="text-muted-foreground text-xs uppercase">
-                Lokasi
+                {ad.labelLocation}
               </dt>
               <dd>{application.user.location ?? '—'}</dd>
             </div>
@@ -681,7 +683,7 @@ export default async function TenantApplicationDetailPage({
               aria-hidden="true"
             />
             <div>
-              <dt className="text-muted-foreground text-xs uppercase">Bio</dt>
+              <dt className="text-muted-foreground text-xs uppercase">{ad.labelBio}</dt>
               <dd className="whitespace-pre-line">
                 {application.user.bio ?? '—'}
               </dd>
@@ -691,17 +693,17 @@ export default async function TenantApplicationDetailPage({
       </section>
 
       <section
-        aria-label="Lowongan yang dilamar"
+        aria-label={ad.jobHeading}
         className="border-border bg-card rounded-2xl border p-6"
       >
         <div className="mb-4 flex items-center gap-2">
           <Briefcase className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Lowongan</h2>
+          <h2 className="font-heading text-lg">{ad.jobHeading}</h2>
         </div>
         <div className="space-y-2 text-sm">
           <div>
             <span className="text-muted-foreground text-xs uppercase block">
-              Judul
+              {ad.labelTitle}
             </span>
             <Link
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -716,7 +718,7 @@ export default async function TenantApplicationDetailPage({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <span className="text-muted-foreground text-xs uppercase block">
-                Lokasi
+                {ad.labelJobLocation}
               </span>
               <span>
                 {application.job.location} · {application.job.locationType}
@@ -724,7 +726,7 @@ export default async function TenantApplicationDetailPage({
             </div>
             <div>
               <span className="text-muted-foreground text-xs uppercase block">
-                Tipe kerja
+                {ad.labelWorkType}
               </span>
               <span>{application.job.employmentType}</span>
             </div>
@@ -734,12 +736,12 @@ export default async function TenantApplicationDetailPage({
 
       {customAnswers.length > 0 && (
         <section
-          aria-label="Jawaban kandidat"
+          aria-label={ad.candidateAnswersHeading}
           className="border-border bg-card rounded-2xl border p-6 space-y-4"
         >
-          <h2 className="font-heading text-lg">Jawaban kandidat</h2>
+          <h2 className="font-heading text-lg">{ad.candidateAnswersHeading}</h2>
           <p className="text-muted-foreground text-sm">
-            Jawaban atas pertanyaan kustom yang dikonfigurasi pada lowongan ini.
+            {ad.candidateAnswersSubtitle}
           </p>
           <dl className="space-y-4">
             {customAnswers.map((a) => (
@@ -763,14 +765,14 @@ export default async function TenantApplicationDetailPage({
 
       {(application.resumeUrl || application.coverLetter) && (
         <section
-          aria-label="Berkas lamaran"
+          aria-label={ad.applicationFilesHeading}
           className="border-border bg-card rounded-2xl border p-6 space-y-4"
         >
-          <h2 className="font-heading text-lg">Berkas lamaran</h2>
+          <h2 className="font-heading text-lg">{ad.applicationFilesHeading}</h2>
           {application.resumeUrl && (
             <div className="text-sm">
               <span className="text-muted-foreground text-xs uppercase block">
-                Resume
+                {ad.labelResume}
               </span>
               <a
                 href={application.resumeUrl}
@@ -779,14 +781,14 @@ export default async function TenantApplicationDetailPage({
                 className="text-foreground inline-flex items-center gap-2 hover:underline"
               >
                 <Download className="h-4 w-4" aria-hidden="true" />
-                Unduh resume
+                {ad.downloadResume}
               </a>
             </div>
           )}
           {application.coverLetter && (
             <div className="text-sm">
               <span className="text-muted-foreground text-xs uppercase block">
-                Cover letter
+                {ad.labelCoverLetter}
               </span>
               <p className="whitespace-pre-line">{application.coverLetter}</p>
             </div>
@@ -796,12 +798,12 @@ export default async function TenantApplicationDetailPage({
 
       {canManage && !application.withdrawnAt && (
         <section
-          aria-label="Ubah status"
+          aria-label={ad.applicationStatusHeading}
           className="border-border bg-card rounded-2xl border p-6 space-y-4"
         >
-          <h2 className="font-heading text-lg">Status lamaran</h2>
+          <h2 className="font-heading text-lg">{ad.applicationStatusHeading}</h2>
           <p className="text-muted-foreground text-sm">
-            Perubahan status akan tercatat di log audit tenant.
+            {ad.applicationStatusSubtitle}
           </p>
           <ApplicationStatusSelect
             applicationId={application.id}
@@ -814,10 +816,10 @@ export default async function TenantApplicationDetailPage({
 
       {canManage && (
         <section
-          aria-label="Catatan rekruter"
+          aria-label={ad.internalNotesHeading}
           className="border-border bg-card rounded-2xl border p-6 space-y-4"
         >
-          <h2 className="font-heading text-lg">Catatan internal</h2>
+          <h2 className="font-heading text-lg">{ad.internalNotesHeading}</h2>
           <ApplicationNoteForm
             applicationId={application.id}
             initial={application.notes}
@@ -840,38 +842,38 @@ export default async function TenantApplicationDetailPage({
       <InterviewPipelineView pipeline={pipelineSummary} />
 
       <section
-        aria-label="Wawancara"
+        aria-label={ad.interviewsHeading}
         className="border-border bg-card rounded-2xl border p-6 space-y-4"
       >
         <div className="flex items-center gap-2">
           <CalendarClock className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Wawancara</h2>
+          <h2 className="font-heading text-lg">{ad.interviewsHeading}</h2>
         </div>
 
         {interviews.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Belum ada wawancara dijadwalkan.
+            {ad.noInterviewsScheduled}
           </p>
         ) : (
           <ul className="divide-border divide-y text-sm">
             {interviews.map((iv) => {
               const typeLabel =
                 iv.type === 'video'
-                  ? 'Video call'
+                  ? ad.interviewTypeVideo
                   : iv.type === 'onsite'
-                    ? 'Onsite'
+                    ? ad.interviewTypeOnsite
                     : iv.type === 'phone'
-                      ? 'Telepon'
+                      ? ad.interviewTypePhone
                       : iv.type
               const statusLabel =
                 iv.status === 'scheduled'
-                  ? 'Terjadwal'
+                  ? ad.interviewStatusScheduled
                   : iv.status === 'completed'
-                    ? 'Selesai'
+                    ? ad.interviewStatusCompleted
                     : iv.status === 'cancelled'
-                      ? 'Dibatalkan'
+                      ? ad.interviewStatusCancelled
                       : iv.status === 'no_show'
-                        ? 'Tidak hadir'
+                        ? ad.interviewStatusNoShow
                         : iv.status
               const statusTone =
                 iv.status === 'scheduled'
@@ -891,7 +893,7 @@ export default async function TenantApplicationDetailPage({
                       {typeLabel}
                     </span>
                     <span className="text-muted-foreground text-xs">
-                      {iv.durationMin} menit
+                      {ad.durationMin.replace('{min}', String(iv.durationMin))}
                     </span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs ${statusTone}`}
@@ -901,7 +903,7 @@ export default async function TenantApplicationDetailPage({
                   </div>
                   {iv.type === 'video' && iv.meetingUrl && (
                     <p className="text-xs">
-                      <span className="text-muted-foreground">Tautan: </span>
+                      <span className="text-muted-foreground">{ad.linkLabel}</span>
                       <a
                         href={iv.meetingUrl}
                         target="_blank"
@@ -914,7 +916,7 @@ export default async function TenantApplicationDetailPage({
                   )}
                   {iv.type === 'onsite' && iv.location && (
                     <p className="text-xs">
-                      <span className="text-muted-foreground">Lokasi: </span>
+                      <span className="text-muted-foreground">{ad.locationLabel}</span>
                       {iv.location}
                     </p>
                   )}
@@ -933,7 +935,7 @@ export default async function TenantApplicationDetailPage({
                         className="border-input text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border bg-transparent px-3 py-1.5 text-xs"
                       >
                         <ClipboardList className="h-3.5 w-3.5" aria-hidden="true" />
-                        {iv.scorecard ? 'Ubah scorecard' : 'Buat scorecard'}
+                        {iv.scorecard ? ad.editScorecard : ad.createScorecard}
                       </Link>
                     </div>
                   )}
@@ -976,7 +978,7 @@ export default async function TenantApplicationDetailPage({
         {canManage && (
           <div className="border-border border-t pt-4">
             <h3 className="text-foreground mb-3 text-sm font-medium">
-              Jadwalkan wawancara baru
+              {ad.scheduleNewInterview}
             </h3>
             <InterviewScheduleForm
               applicationId={application.id}
@@ -1006,16 +1008,16 @@ export default async function TenantApplicationDetailPage({
       )}
 
       <section
-        aria-label="Aktivitas terbaru"
+        aria-label={ad.recentActivityHeading}
         className="border-border bg-card rounded-2xl border p-6"
       >
         <div className="mb-4 flex items-center gap-2">
           <Activity className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Aktivitas terbaru</h2>
+          <h2 className="font-heading text-lg">{ad.recentActivityHeading}</h2>
         </div>
         {auditEntries.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Belum ada catatan aktivitas untuk lamaran ini.
+            {ad.noActivityYet}
           </p>
         ) : (
           <ul className="divide-border divide-y text-sm">

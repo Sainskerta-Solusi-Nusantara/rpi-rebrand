@@ -26,6 +26,7 @@ import {
   findRelease,
   relatedReleases,
 } from '@/lib/press-data'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 type Params = { slug: string }
 
@@ -49,7 +50,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   }
 }
 
-export default function PressDetailPage({ params }: { params: Params }) {
+export default async function PressDetailPage({ params }: { params: Params }) {
+  const t = await getServerT()
   const release = findRelease(params.slug)
   if (!release) notFound()
 
@@ -110,7 +112,7 @@ export default function PressDetailPage({ params }: { params: Params }) {
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke press room
+            {t.pagesPress.common.backToPress}
           </Link>
         </div>
 
@@ -156,13 +158,13 @@ export default function PressDetailPage({ params }: { params: Params }) {
             <div className="text-muted-foreground inline-flex items-center gap-2 text-xs">
               <Newspaper className="text-[color:var(--ring)] h-4 w-4" aria-hidden />
               <span>
-                <strong className="text-foreground font-medium">UNTUK PUBLIKASI SEGERA</strong>{' '}
+                <strong className="text-foreground font-medium">{t.pagesPress.detail.forImmediateRelease}</strong>{' '}
                 · {release.dateline}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <PrintButton />
-              <CopyLinkButton slug={release.slug} />
+              <PrintButton label={t.pagesPress.detail.print} />
+              <CopyLinkButton slug={release.slug} label={t.pagesPress.detail.copyLink} />
               {release.downloads[0] && (
                 <Button asChild size="sm" variant="outline">
                   <a href={release.downloads[0].href}>
@@ -205,15 +207,15 @@ export default function PressDetailPage({ params }: { params: Params }) {
               {release.tags.length > 0 && (
                 <div className="border-border border-t pt-8">
                   <div className="text-muted-foreground mb-3 text-[10px] font-medium uppercase tracking-wider">
-                    Topik
+                    {t.pagesPress.detail.topicsLabel}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {release.tags.map((t) => (
+                    {release.tags.map((tag) => (
                       <span
-                        key={t}
+                        key={tag}
                         className="border-border bg-muted/40 inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
                       >
-                        {t}
+                        {tag}
                       </span>
                     ))}
                   </div>
@@ -226,7 +228,7 @@ export default function PressDetailPage({ params }: { params: Params }) {
               {/* Media contact */}
               <div className="border-border bg-card rounded-2xl border p-6">
                 <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                  Kontak Media
+                  {t.pagesPress.detail.mediaContact}
                 </div>
                 <div className="font-heading text-foreground mt-2 text-base font-semibold">
                   {release.contact.name}
@@ -236,7 +238,7 @@ export default function PressDetailPage({ params }: { params: Params }) {
                 </div>
                 <div className="text-muted-foreground mt-4 space-y-2 text-sm">
                   <a
-                    href={`mailto:${release.contact.email}?subject=Tanya: ${encodeURIComponent(release.title)}`}
+                    href={`mailto:${release.contact.email}?subject=${t.pagesPress.detail.emailSubjectAsk.replace('{title}', encodeURIComponent(release.title))}`}
                     className="hover:text-[color:var(--ring)] inline-flex items-center gap-2 transition"
                   >
                     <Mail className="text-[color:var(--ring)] h-3.5 w-3.5" aria-hidden />
@@ -252,9 +254,9 @@ export default function PressDetailPage({ params }: { params: Params }) {
                 </div>
                 <Button asChild size="sm" className="mt-5 w-full">
                   <a
-                    href={`mailto:${release.contact.email}?subject=Wawancara: ${encodeURIComponent(release.title)}`}
+                    href={`mailto:${release.contact.email}?subject=${t.pagesPress.detail.emailSubjectInterview.replace('{title}', encodeURIComponent(release.title))}`}
                   >
-                    Permintaan Wawancara
+                    {t.pagesPress.detail.requestInterview}
                   </a>
                 </Button>
               </div>
@@ -262,7 +264,7 @@ export default function PressDetailPage({ params }: { params: Params }) {
               {/* Downloads */}
               <div className="border-border bg-card rounded-2xl border p-6">
                 <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                  Materi Pengunduhan
+                  {t.pagesPress.detail.downloadsLabel}
                 </div>
                 <ul className="mt-4 space-y-2">
                   {release.downloads.map((d) => (
@@ -296,7 +298,7 @@ export default function PressDetailPage({ params }: { params: Params }) {
               {/* Share */}
               <div className="border-border bg-card rounded-2xl border p-6">
                 <div className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                  <Share2 className="inline h-3.5 w-3.5" aria-hidden /> Bagikan
+                  <Share2 className="inline h-3.5 w-3.5" aria-hidden /> {t.pagesPress.detail.shareLabel}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {(['LinkedIn', 'WhatsApp', 'Email', 'X / Twitter'] as const).map((s) => (
@@ -319,7 +321,7 @@ export default function PressDetailPage({ params }: { params: Params }) {
       {related.length > 0 && (
         <section
           className="bg-muted/30 py-20 md:py-24"
-          aria-label="Siaran pers terkait"
+          aria-label={t.pagesPress.detail.ariaRelated}
         >
           <div className="container mx-auto w-full max-w-6xl px-6">
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -327,18 +329,18 @@ export default function PressDetailPage({ params }: { params: Params }) {
                 <div className="mb-3 flex items-center gap-3">
                   <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
                   <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    Siaran Pers Lain
+                    {t.pagesPress.detail.relatedEyebrow}
                   </span>
                 </div>
                 <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
-                  Pengumuman terkait
+                  {t.pagesPress.detail.relatedHeading}
                 </h2>
               </div>
               <Link
                 href="/press"
                 className="text-foreground/80 hover:text-[color:var(--ring)] inline-flex items-center gap-1 text-sm font-medium transition"
               >
-                Lihat semua
+                {t.pagesPress.common.viewAll}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </div>
@@ -346,7 +348,7 @@ export default function PressDetailPage({ params }: { params: Params }) {
             <ul className="grid gap-4 md:grid-cols-3">
               {related.map((r) => (
                 <li key={r.slug}>
-                  <RelatedReleaseCard release={r} />
+                  <RelatedReleaseCard release={r} readMoreLabel={t.pagesPress.common.readMore} />
                 </li>
               ))}
             </ul>
@@ -369,11 +371,10 @@ export default function PressDetailPage({ params }: { params: Params }) {
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
-                  Butuh informasi lebih?
+                  {t.pagesPress.detail.ctaHeading}
                 </h2>
                 <p className="text-muted-foreground mt-3 max-w-xl text-sm">
-                  Akses arsip lengkap siaran pers, press kit, foto eksekutif, dan
-                  brand guidelines di press room kami.
+                  {t.pagesPress.detail.ctaBody}
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
@@ -478,31 +479,31 @@ function SectionRender({ section }: { section: PressSection }) {
 // Interactive bits
 // ---------------------------------------------------------------------------
 
-function PrintButton() {
+function PrintButton({ label }: { label: string }) {
   return (
     <a
       href="javascript:window.print()"
       className="border-border text-foreground/70 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition"
     >
       <Printer className="h-3.5 w-3.5" aria-hidden />
-      Cetak
+      {label}
     </a>
   )
 }
 
-function CopyLinkButton({ slug }: { slug: string }) {
+function CopyLinkButton({ slug, label }: { slug: string; label: string }) {
   return (
     <a
       href={`/press/${slug}`}
       className="border-border text-foreground/70 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition"
     >
       <Copy className="h-3.5 w-3.5" aria-hidden />
-      Salin link
+      {label}
     </a>
   )
 }
 
-function RelatedReleaseCard({ release }: { release: PressRelease }) {
+function RelatedReleaseCard({ release, readMoreLabel }: { release: PressRelease; readMoreLabel: string }) {
   const color = PRESS_CATEGORY_COLOR[release.category]
   return (
     <Link
@@ -533,7 +534,7 @@ function RelatedReleaseCard({ release }: { release: PressRelease }) {
         {release.excerpt}
       </p>
       <span className="text-foreground/80 group-hover:text-[color:var(--ring)] mt-auto inline-flex items-center gap-1 text-xs font-medium transition">
-        Baca selengkapnya
+        {readMoreLabel}
         <ArrowRight className="h-3 w-3" aria-hidden />
       </span>
     </Link>

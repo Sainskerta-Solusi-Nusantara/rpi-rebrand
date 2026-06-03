@@ -4,6 +4,7 @@ import { ChevronLeft, Archive, ShieldAlert } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
 import { TenantExportButton } from '@/components/organisms/tenant-export-button'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Ekspor data tenant — Dasbor' }
 
@@ -12,27 +13,14 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
   timeStyle: 'short',
 })
 
-const INCLUDED = [
-  'Profil tenant: id, slug, nama, plan, status, custom domain, tanggal',
-  'Branding lengkap (warna, font, logo)',
-  'Anggota tenant + email + peran (sensitif)',
-  'Semua lowongan beserta detailnya',
-  'Semua lamaran + email & nama kandidat + status & catatan',
-  'Jadwal interview & scorecard',
-  'Kursus, modul, dan pelajaran',
-  'Pendaftaran kursus (enrollments) + email pengguna',
-  'Konfigurasi webhook (TANPA nilai secret)',
-  'API keys (TANPA token hash) — hanya nama, prefix, scope, tanggal',
-  'Template email tenant',
-  '5.000 entri audit log terbaru milik tenant',
-  'Catatan moderasi yang terkait sumber daya tenant',
-]
-
 export default async function TenantDataExportPage({
   params,
 }: {
   params: { slug: string }
 }) {
+  const t = await getServerT()
+  const de = t.pagesTenant4.dataExport
+
   const session = await requireAuth(
     `/dashboard/tenants/${params.slug}/data-export`,
   )
@@ -81,7 +69,7 @@ export default async function TenantDataExportPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke {tenant.name}
+          {de.backTo.replace('{name}', tenant.name)}
         </Link>
       </div>
 
@@ -89,14 +77,11 @@ export default async function TenantDataExportPage({
         <div className="flex items-center gap-2">
           <Archive className="h-6 w-6" aria-hidden="true" />
           <h1 className="font-heading text-2xl md:text-3xl">
-            Ekspor data tenant
+            {de.heading}
           </h1>
         </div>
         <p className="text-muted-foreground text-sm">
-          Unduh seluruh data tenant{' '}
-          <span className="text-foreground font-medium">{tenant.name}</span>{' '}
-          dalam satu berkas JSON. Berguna untuk pemenuhan GDPR, audit
-          internal, atau migrasi.
+          {de.description.replace('{name}', tenant.name)}
         </p>
       </header>
 
@@ -109,11 +94,9 @@ export default async function TenantDataExportPage({
           aria-hidden="true"
         />
         <div className="text-sm">
-          <p className="font-medium">Catatan privasi</p>
+          <p className="font-medium">{de.privacyNoteHeading}</p>
           <p className="text-muted-foreground mt-1">
-            Data ekspor berisi PII anggota & kandidat. Simpan dengan aman dan
-            hapus jika tidak lagi diperlukan. Nilai webhook secret dan hash
-            API key tidak disertakan.
+            {de.privacyNoteBody}
           </p>
         </div>
       </section>
@@ -122,9 +105,9 @@ export default async function TenantDataExportPage({
         aria-label="Isi ekspor"
         className="border-border bg-card space-y-3 rounded-2xl border p-6"
       >
-        <h2 className="font-heading text-lg">Yang termasuk dalam ekspor</h2>
+        <h2 className="font-heading text-lg">{de.includedHeading}</h2>
         <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
-          {INCLUDED.map((item) => (
+          {de.includedItems.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
@@ -135,10 +118,9 @@ export default async function TenantDataExportPage({
         className="border-border bg-card space-y-4 rounded-2xl border p-6"
       >
         <div>
-          <h2 className="font-heading text-lg">Unduh berkas</h2>
+          <h2 className="font-heading text-lg">{de.downloadHeading}</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Proses pembuatan dapat memakan waktu beberapa saat untuk tenant
-            besar. Hanya OWNER yang dapat melakukan tindakan ini.
+            {de.downloadDescription}
           </p>
         </div>
         <TenantExportButton tenantSlug={tenant.slug} />
@@ -148,10 +130,10 @@ export default async function TenantDataExportPage({
         aria-label="Riwayat ekspor"
         className="border-border bg-card rounded-2xl border p-6"
       >
-        <h2 className="font-heading mb-3 text-lg">Riwayat ekspor terbaru</h2>
+        <h2 className="font-heading mb-3 text-lg">{de.historyHeading}</h2>
         {recentExports.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Belum ada ekspor tercatat.
+            {de.emptyHistory}
           </p>
         ) : (
           <ul className="space-y-2 text-sm">
@@ -174,11 +156,11 @@ export default async function TenantDataExportPage({
                     </span>
                     {sizeKb !== null ? (
                       <span className="text-muted-foreground text-xs">
-                        · {sizeKb.toLocaleString('id-ID')} KB
+                        {de.sizeKbSuffix.replace('{n}', sizeKb.toLocaleString('id-ID'))}
                       </span>
                     ) : meta?.requested ? (
                       <span className="text-muted-foreground text-xs">
-                        · permintaan
+                        {de.requestedLabel}
                       </span>
                     ) : null}
                   </div>

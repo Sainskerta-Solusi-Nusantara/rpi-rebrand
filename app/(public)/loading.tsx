@@ -1,4 +1,7 @@
-export default function PublicLoading() {
+import { getServerT } from '@/lib/i18n/server-dictionary'
+
+export default async function PublicLoading() {
+  const t = await getServerT()
   return (
     <div
       role="status"
@@ -27,7 +30,7 @@ export default function PublicLoading() {
           <div className="bg-muted h-48 animate-pulse rounded-xl" />
           <div className="bg-muted h-48 animate-pulse rounded-xl" />
         </div>
-        <span className="sr-only">Memuat…</span>
+        <span className="sr-only">{t.pagesPublicMisc.loading.srOnly}</span>
       </div>
     </div>
   )

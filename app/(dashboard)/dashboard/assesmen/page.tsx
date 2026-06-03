@@ -13,6 +13,7 @@ import {
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
 import { listPublishedAssessments } from '@/lib/assessments/queries'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Asesmen Keterampilan' }
 
@@ -37,6 +38,7 @@ export default async function CandidateAssessmentsPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getServerT()
   const session = await requireAuth('/dashboard/assesmen')
   const userId = session.user.id
 
@@ -96,15 +98,20 @@ export default async function CandidateAssessmentsPage({
     return s ? `/dashboard/assesmen?${s}` : '/dashboard/assesmen'
   }
 
+  const countLabel = category
+    ? t.pagesDash.assesmen.countLabelCategory
+        .replace('{total}', total.toLocaleString('id-ID'))
+        .replace('{category}', CATEGORY_LABELS[category] ?? category)
+    : t.pagesDash.assesmen.countLabel.replace('{total}', total.toLocaleString('id-ID'))
+
   return (
     <div className="space-y-6 p-6">
       <header>
         <h1 className="font-heading text-2xl md:text-3xl">
-          Asesmen Keterampilan
+          {t.pagesDash.assesmen.heading}
         </h1>
         <p className="text-muted-foreground mt-1">
-          Buktikan kemampuan Anda lewat tes singkat. Lencana muncul di profil
-          publik setelah Anda lulus.
+          {t.pagesDash.assesmen.subheading}
         </p>
       </header>
 
@@ -118,7 +125,7 @@ export default async function CandidateAssessmentsPage({
           <input
             name="q"
             defaultValue={query ?? ''}
-            placeholder="Cari asesmen…"
+            placeholder={t.pagesDash.assesmen.searchPlaceholder}
             className="h-9 w-full bg-transparent text-sm outline-none"
           />
         </label>
@@ -126,17 +133,17 @@ export default async function CandidateAssessmentsPage({
           type="submit"
           className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium"
         >
-          Cari
+          {t.pagesDash.assesmen.searchButton}
         </button>
       </form>
 
       <nav
-        aria-label="Filter kategori"
+        aria-label={t.pagesDash.assesmen.filterCategoryLabel}
         className="border-border flex flex-wrap gap-2 border-b pb-3"
       >
         {[undefined, ...Object.keys(CATEGORY_LABELS)].map((c) => {
           const active = (c ?? '') === (category ?? '')
-          const label = c ? CATEGORY_LABELS[c] : 'Semua kategori'
+          const label = c ? CATEGORY_LABELS[c] : t.pagesDash.assesmen.filterLabel
           return (
             <Link
               key={c ?? 'all'}
@@ -155,22 +162,19 @@ export default async function CandidateAssessmentsPage({
         })}
       </nav>
 
-      <p className="text-muted-foreground text-xs">
-        {total.toLocaleString('id-ID')} asesmen tersedia
-        {category ? ` di kategori "${CATEGORY_LABELS[category]}"` : ''}.
-      </p>
+      <p className="text-muted-foreground text-xs">{countLabel}</p>
 
       {items.length === 0 ? (
         <div className="border-border bg-card rounded-xl border p-10 text-center">
           <p className="text-foreground text-sm">
-            Belum ada asesmen yang cocok dengan filter Anda.
+            {t.pagesDash.assesmen.emptyTitle}
           </p>
           <Link
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href={'/dashboard/assesmen' as any}
             className="text-primary mt-2 inline-block text-sm underline"
           >
-            Reset filter
+            {t.pagesDash.assesmen.resetFilter}
           </Link>
         </div>
       ) : (
@@ -194,7 +198,7 @@ export default async function CandidateAssessmentsPage({
                           className="h-3 w-3"
                           aria-hidden="true"
                         />
-                        Sudah lulus
+                        {t.pagesDash.assesmen.passed}
                       </span>
                     )}
                   </div>
@@ -206,15 +210,15 @@ export default async function CandidateAssessmentsPage({
                   </p>
                   <dl className="text-muted-foreground mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
                     <div className="inline-flex items-center gap-1">
-                      <span className="font-medium">Kategori:</span>{' '}
+                      <span className="font-medium">{t.pagesDash.assesmen.categoryLabel}</span>{' '}
                       {CATEGORY_LABELS[a.category] ?? a.category}
                     </div>
                     <div className="inline-flex items-center gap-1">
                       <Timer className="h-3 w-3" aria-hidden="true" />
-                      {a.durationMin} mnt
+                      {a.durationMin} {t.pagesDash.assesmen.minutesSuffix}
                     </div>
-                    <div>{a.questionCount} pertanyaan</div>
-                    <div>Lulus ≥ {a.passingScore}</div>
+                    <div>{a.questionCount} {t.pagesDash.assesmen.questionsSuffix}</div>
+                    <div>{t.pagesDash.assesmen.passingScoreLabel.replace('{score}', String(a.passingScore))}</div>
                   </dl>
                   <div className="mt-4 flex-1" />
                   <Link
@@ -222,7 +226,7 @@ export default async function CandidateAssessmentsPage({
                     href={`/dashboard/assesmen/${a.slug}` as any}
                     className="bg-primary text-primary-foreground mt-3 inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition hover:opacity-90"
                   >
-                    {passed ? 'Coba lagi' : 'Coba'}
+                    {passed ? t.pagesDash.assesmen.tryAgain : t.pagesDash.assesmen.tryButton}
                     <ChevronRight
                       className="h-3.5 w-3.5"
                       aria-hidden="true"
@@ -237,7 +241,7 @@ export default async function CandidateAssessmentsPage({
 
       {totalPages > 1 && (
         <nav
-          aria-label="Paginasi"
+          aria-label={t.pagesDash.assesmen.paginationLabel}
           className="flex flex-wrap items-center justify-center gap-2 pt-4"
         >
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (

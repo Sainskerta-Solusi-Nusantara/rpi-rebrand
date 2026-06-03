@@ -11,6 +11,7 @@ import {
   TransferOwnershipForm,
 } from '@/components/organisms/tenant-member-actions'
 import { FeedUrlBlock } from '@/components/organisms/feed-url-block'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 const PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://rumahpekerja.id').replace(
   /\/+$/,
@@ -25,25 +26,13 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
 })
 const dateShort = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
 
-const statusLabels: Record<string, { label: string; tone: string }> = {
-  ACTIVE: { label: 'Aktif', tone: 'bg-green-100 text-green-800' },
-  SUSPENDED: { label: 'Ditangguhkan', tone: 'bg-red-100 text-red-800' },
-  PROVISIONING: { label: 'Provisioning', tone: 'bg-amber-100 text-amber-800' },
-}
-
-const roleLabels: Record<string, string> = {
-  OWNER: 'Owner',
-  ADMIN: 'Admin',
-  RECRUITER: 'Recruiter',
-  MEMBER: 'Member',
-}
-
 export default async function ManageTenantPage({
   params,
 }: {
   params: { slug: string }
 }) {
   const session = await requireAuth(`/dashboard/tenants/${params.slug}`)
+  const t = await getServerT()
 
   const tenant = await prisma.tenant
     .findUnique({
@@ -78,6 +67,12 @@ export default async function ManageTenantPage({
   const canManageJobs = hasTenantPermission(globalRole, tenants, tenant.id, 'job.view')
   const canManageCourses = hasTenantPermission(globalRole, tenants, tenant.id, 'course.view')
   const isOwner = tenant.ownerUserId === session.user.id
+
+  const statusLabels: Record<string, { label: string; tone: string }> = {
+    ACTIVE: { label: t.pagesTenant1.tenantsList.statusActive, tone: 'bg-green-100 text-green-800' },
+    SUSPENDED: { label: t.pagesTenant1.tenantsList.statusSuspended, tone: 'bg-red-100 text-red-800' },
+    PROVISIONING: { label: t.pagesTenant1.tenantsList.statusProvisioning, tone: 'bg-amber-100 text-amber-800' },
+  }
 
   const [members, invitations] = await Promise.all([
     prisma.userTenant.findMany({
@@ -114,7 +109,7 @@ export default async function ManageTenantPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke tenant saya
+          {t.pagesTenant1.tenantHome.backLink}
         </Link>
       </div>
 
@@ -149,7 +144,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Briefcase className="h-4 w-4" aria-hidden="true" />
-              Lowongan
+              {t.pagesTenant1.tenantHome.navJobs}
             </Link>
           )}
           {canManageJobs && (
@@ -159,7 +154,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <FileText className="h-4 w-4" aria-hidden="true" />
-              Lamaran
+              {t.pagesTenant1.tenantHome.navApplications}
             </Link>
           )}
           {canManageJobs && (
@@ -169,7 +164,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <BarChart3 className="h-4 w-4" aria-hidden="true" />
-              Analytics
+              {t.pagesTenant1.tenantHome.navAnalytics}
             </Link>
           )}
           {canManageCourses && (
@@ -179,7 +174,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <GraduationCap className="h-4 w-4" aria-hidden="true" />
-              Kursus
+              {t.pagesTenant1.tenantHome.navCourses}
             </Link>
           )}
           {canManageJobs && (
@@ -189,7 +184,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Rss className="h-4 w-4" aria-hidden="true" />
-              Feed XML
+              {t.pagesTenant1.tenantHome.navFeedXml}
             </Link>
           )}
           {canManageJobs && (
@@ -199,7 +194,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <MailQuestion className="h-4 w-4" aria-hidden="true" />
-              Email templates
+              {t.pagesTenant1.tenantHome.navEmailTemplates}
             </Link>
           )}
           {canManageJobs && (
@@ -209,7 +204,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Users className="h-4 w-4" aria-hidden="true" />
-              Talent pool
+              {t.pagesTenant1.tenantHome.navTalentPool}
             </Link>
           )}
           {canManageJobs && (
@@ -219,7 +214,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Code className="h-4 w-4" aria-hidden="true" />
-              Embed widget
+              {t.pagesTenant1.tenantHome.navEmbedWidget}
             </Link>
           )}
           {canManageJobs && (
@@ -229,7 +224,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <HelpCircle className="h-4 w-4" aria-hidden="true" />
-              Bank pertanyaan
+              {t.pagesTenant1.tenantHome.navInterviewQuestions}
             </Link>
           )}
           {canManageJobs && (
@@ -239,7 +234,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <TrendingUp className="h-4 w-4" aria-hidden="true" />
-              Benchmarks
+              {t.pagesTenant1.tenantHome.navBenchmarks}
             </Link>
           )}
           {isOwner && (
@@ -249,7 +244,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Archive className="h-4 w-4" aria-hidden="true" />
-              Data export
+              {t.pagesTenant1.tenantHome.navDataExport}
             </Link>
           )}
           {canEditBranding && (
@@ -259,7 +254,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Palette className="h-4 w-4" aria-hidden="true" />
-              Atur branding
+              {t.pagesTenant1.tenantHome.navBranding}
             </Link>
           )}
           {isOwner && (
@@ -269,7 +264,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-              Keamanan
+              {t.pagesTenant1.tenantHome.navSecurity}
             </Link>
           )}
           {canManageIntegrations && (
@@ -279,7 +274,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Webhook className="h-4 w-4" aria-hidden="true" />
-              Webhooks
+              {t.pagesTenant1.tenantHome.navWebhooks}
             </Link>
           )}
           {canManageIntegrations && (
@@ -289,7 +284,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Key className="h-4 w-4" aria-hidden="true" />
-              API keys
+              {t.pagesTenant1.tenantHome.navApiKeys}
             </Link>
           )}
           {canViewAudit && (
@@ -299,7 +294,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Activity className="h-4 w-4" aria-hidden="true" />
-              Audit log
+              {t.pagesTenant1.tenantHome.navAuditLog}
             </Link>
           )}
           {isOwner && (
@@ -309,7 +304,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <History className="h-4 w-4" aria-hidden="true" />
-              Retensi audit
+              {t.pagesTenant1.tenantHome.navAuditRetention}
             </Link>
           )}
           {canEditDomain && (
@@ -319,7 +314,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <Globe className="h-4 w-4" aria-hidden="true" />
-              Domain
+              {t.pagesTenant1.tenantHome.navDomain}
             </Link>
           )}
           {canViewBilling && (
@@ -329,7 +324,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <CreditCard className="h-4 w-4" aria-hidden="true" />
-              Billing
+              {t.pagesTenant1.tenantHome.navBilling}
             </Link>
           )}
         </nav>
@@ -343,12 +338,10 @@ export default async function ManageTenantPage({
         >
           <div className="flex items-center gap-2">
             <Rss className="h-5 w-5" aria-hidden="true" />
-            <h2 className="font-heading text-lg">Feed XML lowongan</h2>
+            <h2 className="font-heading text-lg">{t.pagesTenant1.tenantHome.feedXmlHeading}</h2>
           </div>
           <p className="text-muted-foreground text-sm">
-            Bagikan URL di bawah ini ke mitra ATS, agregator, atau LinkedIn /
-            Indeed agar mereka menarik lowongan tenant {tenant.name} secara
-            otomatis. Feed di-cache 10 menit di edge.
+            {t.pagesTenant1.tenantHome.feedXmlDesc.replace('{name}', tenant.name)}
           </p>
           <div className="space-y-3">
             <FeedUrlBlock
@@ -368,15 +361,15 @@ export default async function ManageTenantPage({
             />
           </div>
           <p className="text-muted-foreground text-xs">
-            Lihat{' '}
+            {t.pagesTenant1.tenantHome.feedXmlDocsPre}{' '}
             <Link
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               href={'/jobs/feed-info' as any}
               className="underline"
             >
-              dokumentasi feed publik
+              {t.pagesTenant1.tenantHome.feedXmlDocsLink}
             </Link>{' '}
-            untuk contoh curl dan rekomendasi polling.
+            {t.pagesTenant1.tenantHome.feedXmlDocsPost}
           </p>
         </section>
       )}
@@ -386,20 +379,22 @@ export default async function ManageTenantPage({
         className="border-border bg-card rounded-2xl border p-6"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-heading text-lg">Anggota ({members.length})</h2>
+          <h2 className="font-heading text-lg">
+            {t.pagesTenant1.tenantHome.membersHeading.replace('{n}', String(members.length))}
+          </h2>
         </div>
 
         {members.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Belum ada anggota.</p>
+          <p className="text-muted-foreground text-sm">{t.pagesTenant1.tenantHome.membersEmpty}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-                  <th className="py-2 pr-3 font-medium">Pengguna</th>
-                  <th className="py-2 pr-3 font-medium">Status</th>
-                  <th className="py-2 pr-3 font-medium">Bergabung</th>
-                  <th className="py-2 font-medium text-right">Peran / aksi</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.tenantHome.tableUser}</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.tenantHome.tableStatus}</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.tenantHome.tableJoined}</th>
+                  <th className="py-2 font-medium text-right">{t.pagesTenant1.tenantHome.tableRoleAction}</th>
                 </tr>
               </thead>
               <tbody>
@@ -425,7 +420,7 @@ export default async function ManageTenantPage({
                               {m.user.name ?? m.user.email}
                               {memberIsSelf && (
                                 <span className="text-muted-foreground ml-1 text-xs">
-                                  (Anda)
+                                  {t.pagesTenant1.tenantHome.selfLabel}
                                 </span>
                               )}
                             </div>
@@ -452,7 +447,7 @@ export default async function ManageTenantPage({
                           />
                         ) : (
                           <span className="text-sm">
-                            {roleLabels[m.role] ?? m.role}
+                            {m.role}
                           </span>
                         )}
                       </td>
@@ -473,7 +468,7 @@ export default async function ManageTenantPage({
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <UserPlus className="h-5 w-5" aria-hidden="true" />
-              <h2 className="font-heading text-lg">Undang anggota baru</h2>
+              <h2 className="font-heading text-lg">{t.pagesTenant1.tenantHome.inviteHeading}</h2>
             </div>
             <Link
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -481,7 +476,7 @@ export default async function ManageTenantPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition"
             >
               <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
-              Impor CSV
+              {t.pagesTenant1.tenantHome.importCsv}
             </Link>
           </div>
           <TenantInviteForm tenantSlug={tenant.slug} />
@@ -496,25 +491,25 @@ export default async function ManageTenantPage({
           <div className="mb-4 flex items-center gap-2">
             <Mail className="h-5 w-5" aria-hidden="true" />
             <h2 className="font-heading text-lg">
-              Undangan tertunda ({invitations.length})
+              {t.pagesTenant1.tenantHome.pendingInvitesHeading.replace('{n}', String(invitations.length))}
             </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-left text-xs uppercase">
-                  <th className="py-2 pr-3 font-medium">Email</th>
-                  <th className="py-2 pr-3 font-medium">Peran</th>
-                  <th className="py-2 pr-3 font-medium">Dikirim</th>
-                  <th className="py-2 pr-3 font-medium">Berlaku hingga</th>
-                  <th className="py-2 font-medium text-right">Aksi</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.tenantHome.tableEmail}</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.tenantHome.tableRole}</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.tenantHome.tableSent}</th>
+                  <th className="py-2 pr-3 font-medium">{t.pagesTenant1.tenantHome.tableValidUntil}</th>
+                  <th className="py-2 font-medium text-right">{t.pagesTenant1.tenantHome.tableAction}</th>
                 </tr>
               </thead>
               <tbody>
                 {invitations.map((inv) => (
                   <tr key={inv.id} className="border-border/60 border-b last:border-b-0">
                     <td className="py-2 pr-3 font-medium">{inv.email}</td>
-                    <td className="py-2 pr-3">{roleLabels[inv.role] ?? inv.role}</td>
+                    <td className="py-2 pr-3">{inv.role}</td>
                     <td className="py-2 pr-3 whitespace-nowrap text-xs">
                       {dateFmt.format(inv.createdAt)}
                     </td>
@@ -539,11 +534,10 @@ export default async function ManageTenantPage({
         >
           <div className="mb-4 flex items-center gap-2">
             <Crown className="h-5 w-5" aria-hidden="true" />
-            <h2 className="font-heading text-lg">Transfer kepemilikan</h2>
+            <h2 className="font-heading text-lg">{t.pagesTenant1.tenantHome.transferHeading}</h2>
           </div>
           <p className="text-muted-foreground mb-4 text-sm">
-            Pindahkan kepemilikan tenant ke anggota lain. Anda akan menjadi
-            ADMIN setelah transfer berhasil.
+            {t.pagesTenant1.tenantHome.transferDesc}
           </p>
           <TransferOwnershipForm
             tenantSlug={tenant.slug}
@@ -563,18 +557,17 @@ export default async function ManageTenantPage({
       >
         <div className="mb-4 flex items-center gap-2">
           <LogOut className="h-5 w-5" aria-hidden="true" />
-          <h2 className="font-heading text-lg">Keluar dari tenant</h2>
+          <h2 className="font-heading text-lg">{t.pagesTenant1.tenantHome.leaveHeading}</h2>
         </div>
         <p className="text-muted-foreground mb-4 text-sm">
-          Anda dapat keluar kapan saja. Untuk bergabung kembali, minta undangan
-          baru dari admin tenant.
+          {t.pagesTenant1.tenantHome.leaveDesc}
         </p>
         <LeaveTenantButton
           tenantSlug={tenant.slug}
           disabled={isOwner}
           disabledReason={
             isOwner
-              ? 'Anda adalah OWNER. Transfer kepemilikan terlebih dulu sebelum keluar.'
+              ? t.pagesTenant1.tenantHome.leaveOwnerReason
               : undefined
           }
         />

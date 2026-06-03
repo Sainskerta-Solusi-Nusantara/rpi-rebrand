@@ -11,16 +11,9 @@ import {
 import { WebhookDeliveryTable } from '@/components/organisms/webhook-delivery-table'
 import { WebhookStatsCard } from '@/components/organisms/webhook-stats-card'
 import { WEBHOOK_EVENTS, WEBHOOK_EVENT_LABELS } from '@/lib/webhooks/events'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Riwayat pengiriman webhook — Dasbor' }
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'Semua status' },
-  { value: 'success', label: 'Berhasil' },
-  { value: 'pending', label: 'Tertunda' },
-  { value: 'failed', label: 'Gagal' },
-  { value: 'dead_letter', label: 'Surat mati' },
-] as const
 
 function parseDate(value: string | undefined): Date | undefined {
   if (!value) return undefined
@@ -41,6 +34,17 @@ export default async function WebhookDeliveriesPage({
     page?: string
   }
 }) {
+  const t = await getServerT()
+  const wd = t.pagesTenant4.webhookDeliveries
+
+  const STATUS_OPTIONS = [
+    { value: '', label: wd.filterStatusAll },
+    { value: 'success', label: wd.filterStatusSuccess },
+    { value: 'pending', label: wd.filterStatusPending },
+    { value: 'failed', label: wd.filterStatusFailed },
+    { value: 'dead_letter', label: wd.filterStatusDeadLetter },
+  ] as const
+
   const session = await requireAuth(
     `/dashboard/tenants/${params.slug}/webhooks/${params.id}/deliveries`,
   )
@@ -105,6 +109,8 @@ export default async function WebhookDeliveriesPage({
         })()}`
       : null
 
+  void pageSize
+
   return (
     <div className="max-w-6xl space-y-8 p-6">
       <div>
@@ -114,7 +120,7 @@ export default async function WebhookDeliveriesPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke daftar webhook
+          {wd.backToList}
         </Link>
       </div>
 
@@ -122,7 +128,7 @@ export default async function WebhookDeliveriesPage({
         <div className="flex items-center gap-2">
           <History className="h-6 w-6" aria-hidden="true" />
           <h1 className="font-heading text-2xl md:text-3xl">
-            Riwayat pengiriman: {webhook.name}
+            {wd.heading.replace('{name}', webhook.name)}
           </h1>
         </div>
         <p className="text-muted-foreground mt-1">
@@ -131,7 +137,7 @@ export default async function WebhookDeliveriesPage({
           <code className="bg-muted rounded px-1 text-xs">{webhook.url}</code>
           {!webhook.enabled && (
             <span className="bg-muted text-muted-foreground ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
-              Nonaktif
+              {wd.statusInactive}
             </span>
           )}
         </p>
@@ -148,7 +154,7 @@ export default async function WebhookDeliveriesPage({
           className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
         >
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground text-xs">Status</span>
+            <span className="text-muted-foreground text-xs">{wd.labelStatus}</span>
             <select
               name="status"
               defaultValue={status ?? ''}
@@ -162,13 +168,13 @@ export default async function WebhookDeliveriesPage({
             </select>
           </label>
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground text-xs">Event</span>
+            <span className="text-muted-foreground text-xs">{wd.labelEvent}</span>
             <select
               name="event"
               defaultValue={event ?? ''}
               className="border-input bg-background block w-full rounded-md border px-2 py-1.5 text-sm"
             >
-              <option value="">Semua event</option>
+              <option value="">{wd.filterEventAll}</option>
               {WEBHOOK_EVENTS.map((ev) => (
                 <option key={ev} value={ev}>
                   {WEBHOOK_EVENT_LABELS[ev]}
@@ -177,7 +183,7 @@ export default async function WebhookDeliveriesPage({
             </select>
           </label>
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground text-xs">Dari</span>
+            <span className="text-muted-foreground text-xs">{wd.labelFrom}</span>
             <input
               type="date"
               name="from"
@@ -186,7 +192,7 @@ export default async function WebhookDeliveriesPage({
             />
           </label>
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground text-xs">Sampai</span>
+            <span className="text-muted-foreground text-xs">{wd.labelTo}</span>
             <input
               type="date"
               name="to"
@@ -199,14 +205,14 @@ export default async function WebhookDeliveriesPage({
               type="submit"
               className="inline-flex items-center justify-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-1.5 text-sm font-medium text-white"
             >
-              Terapkan
+              {wd.btnApply}
             </button>
             <Link
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               href={`/dashboard/tenants/${tenant.slug}/webhooks/${webhook.id}/deliveries` as any}
               className="text-muted-foreground hover:text-foreground text-sm"
             >
-              Reset
+              {wd.btnReset}
             </Link>
           </div>
         </form>
@@ -215,7 +221,10 @@ export default async function WebhookDeliveriesPage({
 
         <div className="text-muted-foreground mt-4 flex items-center justify-between text-xs">
           <span>
-            Halaman {page} dari {totalPages} • {total} total
+            {wd.pagination
+              .replace('{page}', String(page))
+              .replace('{totalPages}', String(totalPages))
+              .replace('{total}', String(total))}
           </span>
           <div className="flex gap-3">
             {prevHref ? (
@@ -224,10 +233,10 @@ export default async function WebhookDeliveriesPage({
                 href={prevHref as any}
                 className="hover:text-foreground"
               >
-                ← Sebelumnya
+                {wd.prevPage}
               </Link>
             ) : (
-              <span className="opacity-50">← Sebelumnya</span>
+              <span className="opacity-50">{wd.prevPage}</span>
             )}
             {nextHref ? (
               <Link
@@ -235,19 +244,17 @@ export default async function WebhookDeliveriesPage({
                 href={nextHref as any}
                 className="hover:text-foreground"
               >
-                Berikutnya →
+                {wd.nextPage}
               </Link>
             ) : (
-              <span className="opacity-50">Berikutnya →</span>
+              <span className="opacity-50">{wd.nextPage}</span>
             )}
           </div>
         </div>
       </section>
 
       <p className="text-muted-foreground text-xs">
-        Pengiriman gagal otomatis dicoba ulang menurut jadwal:
-        1m → 5m → 30m → 2j (maksimum 5 percobaan). Setelah itu pengiriman ditandai{' '}
-        <em>surat mati</em> dan dapat dikirim ulang manual.
+        {wd.footerNote}
       </p>
     </div>
   )

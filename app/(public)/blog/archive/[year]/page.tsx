@@ -9,6 +9,7 @@ import {
   getBlogYears,
   type BlogYearFacet,
 } from '@/lib/blog-facets'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 type Params = { year: string }
 
@@ -29,11 +30,12 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   }
 }
 
-export default function ArchivePage({
+export default async function ArchivePage({
   params: { year },
 }: {
   params: Params
 }) {
+  const t = await getServerT()
   const yearInt = Number.parseInt(year, 10)
   if (!Number.isFinite(yearInt)) notFound()
 
@@ -77,7 +79,7 @@ export default function ArchivePage({
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke blog
+            {t.pagesBlog.backToBlog}
           </Link>
         </div>
 
@@ -88,17 +90,17 @@ export default function ArchivePage({
               className="h-px w-8 bg-[color:var(--ring)]"
             />
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-[color:var(--ring)]">
-              Arsip Tahunan
+              {t.pagesBlog.archive.eyebrow}
             </span>
           </div>
           <h1
             id="archive-heading"
             className="font-heading text-balance text-3xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
           >
-            Arsip {yearInt}
+            {t.pagesBlog.archive.heading.replace('{year}', String(yearInt))}
           </h1>
           <p className="text-muted-foreground mt-5 text-balance text-lg leading-relaxed md:text-xl">
-            Semua artikel blog RPI yang terbit sepanjang tahun {yearInt}.
+            {t.pagesBlog.archive.subtitle.replace('{year}', String(yearInt))}
           </p>
           <div className="text-muted-foreground mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
             <span className="inline-flex items-center gap-1.5">
@@ -109,7 +111,7 @@ export default function ArchivePage({
               <strong className="text-foreground font-medium">
                 {current.count}
               </strong>{' '}
-              artikel di arsip ini
+              {t.pagesBlog.archive.articlesInArchive}
             </span>
           </div>
         </div>
@@ -125,13 +127,13 @@ export default function ArchivePage({
                 aria-hidden
               />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada artikel di arsip {yearInt}
+                {t.pagesBlog.archive.emptyHeading.replace('{year}', String(yearInt))}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Coba telusuri arsip lain atau kembali ke semua artikel.
+                {t.pagesBlog.archive.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/blog">Lihat semua artikel</Link>
+                <Link href="/blog">{t.pagesBlog.seeAllArticles}</Link>
               </Button>
             </div>
           ) : (
@@ -158,7 +160,7 @@ export default function ArchivePage({
                         <div className="text-muted-foreground mb-2 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider">
                           <span>{a.category}</span>
                           <span aria-hidden>·</span>
-                          <span>{a.readMin} min baca</span>
+                          <span>{t.pagesBlog.readMin.replace('{n}', String(a.readMin))}</span>
                         </div>
                         <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] mb-2 text-base font-semibold leading-snug transition line-clamp-2">
                           {a.title}
@@ -184,7 +186,7 @@ export default function ArchivePage({
       {otherYears.length > 0 && (
         <section
           className="bg-muted/30 py-16 md:py-20"
-          aria-label="Tahun lain"
+          aria-label={t.pagesBlog.archive.otherYearsAriaLabel}
         >
           <div className="container mx-auto w-full max-w-6xl px-6">
             <div className="mb-8 flex items-center gap-3">
@@ -193,7 +195,7 @@ export default function ArchivePage({
                 aria-hidden
               />
               <h2 className="font-heading text-foreground text-lg font-semibold tracking-tight md:text-xl">
-                Tahun lain
+                {t.pagesBlog.archive.otherYears}
               </h2>
             </div>
             <ul className="flex flex-wrap gap-3">
@@ -205,7 +207,7 @@ export default function ArchivePage({
                   >
                     <span className="text-foreground">{y.year}</span>
                     <span className="text-muted-foreground text-xs">
-                      {y.count} artikel
+                      {t.pagesBlog.articleCount.replace('{n}', String(y.count))}
                     </span>
                   </Link>
                 </li>

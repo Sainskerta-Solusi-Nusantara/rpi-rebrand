@@ -10,6 +10,7 @@ import {
   findBlogAuthor,
   getBlogAuthors,
 } from '@/lib/blog-facets'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 type Params = { slug: string }
 
@@ -26,7 +27,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   }
 }
 
-export default function AuthorPage({ params }: { params: Params }) {
+export default async function AuthorPage({ params }: { params: Params }) {
+  const t = await getServerT()
   const author = findBlogAuthor(params.slug)
   if (!author) notFound()
 
@@ -65,7 +67,7 @@ export default function AuthorPage({ params }: { params: Params }) {
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke blog
+            {t.pagesBlog.backToBlog}
           </Link>
         </div>
 
@@ -93,7 +95,7 @@ export default function AuthorPage({ params }: { params: Params }) {
                   className="text-xs font-medium uppercase tracking-[0.2em]"
                   style={{ color: author.color }}
                 >
-                  Penulis Blog
+                  {t.pagesBlog.author.eyebrow}
                 </span>
               </div>
               <h1
@@ -120,7 +122,7 @@ export default function AuthorPage({ params }: { params: Params }) {
                   <strong className="text-foreground font-medium">
                     {articles.length}
                   </strong>{' '}
-                  artikel
+                  {t.pagesBlog.author.articles}
                 </span>
               </div>
             </div>
@@ -138,13 +140,13 @@ export default function AuthorPage({ params }: { params: Params }) {
                 aria-hidden
               />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada artikel oleh penulis ini
+                {t.pagesBlog.author.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Cek kembali nanti — atau jelajahi penulis lain di bawah.
+                {t.pagesBlog.author.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/blog">Kembali ke blog</Link>
+                <Link href="/blog">{t.pagesBlog.author.backToBlog}</Link>
               </Button>
             </div>
           ) : (
@@ -170,7 +172,7 @@ export default function AuthorPage({ params }: { params: Params }) {
                         <div className="text-muted-foreground mb-2 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider">
                           <span>{a.category}</span>
                           <span aria-hidden>·</span>
-                          <span>{a.readMin} min baca</span>
+                          <span>{t.pagesBlog.readMin.replace('{n}', String(a.readMin))}</span>
                         </div>
                         <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] mb-2 line-clamp-2 text-base font-semibold leading-snug transition">
                           {a.title}
@@ -194,17 +196,17 @@ export default function AuthorPage({ params }: { params: Params }) {
 
       {/* Other authors rail */}
       {otherAuthors.length > 0 && (
-        <section className="bg-muted/30 py-20 md:py-24" aria-label="Penulis lain">
+        <section className="bg-muted/30 py-20 md:py-24" aria-label={t.pagesBlog.author.otherAuthorsAriaLabel}>
           <div className="container mx-auto w-full max-w-6xl px-6">
             <div className="mb-10">
               <div className="mb-3 flex items-center gap-3">
                 <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
                 <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-                  <Users className="inline h-3.5 w-3.5" aria-hidden /> Penulis lain
+                  <Users className="inline h-3.5 w-3.5" aria-hidden /> {t.pagesBlog.author.otherAuthorsEyebrow}
                 </span>
               </div>
               <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
-                Penulis lain di blog
+                {t.pagesBlog.author.otherAuthorsHeading}
               </h2>
             </div>
 
@@ -231,7 +233,7 @@ export default function AuthorPage({ params }: { params: Params }) {
                       </p>
                       <div className="text-muted-foreground mt-3 inline-flex items-center gap-1.5 text-xs">
                         <BookOpen className="h-3 w-3" aria-hidden />
-                        {a.count} artikel
+                        {t.pagesBlog.articleCount.replace('{n}', String(a.count))}
                       </div>
                     </div>
                   </Link>

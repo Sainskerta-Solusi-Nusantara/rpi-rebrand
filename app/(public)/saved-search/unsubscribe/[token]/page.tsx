@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { verifyUnsubscribeToken } from '@/lib/saved-search/unsubscribe-token'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,15 +20,17 @@ export default async function SavedSearchUnsubscribePage({
 }: {
   params: { token: string }
 }) {
+  const t = await getServerT()
+  const u = t.pagesPublicMisc.savedSearchUnsubscribe
+
   const decoded = verifyUnsubscribeToken(params.token)
 
   if (!decoded) {
     return (
       <div className="mx-auto w-full max-w-xl px-6 py-16">
-        <h1 className="font-heading text-2xl md:text-3xl">Tautan tidak valid</h1>
+        <h1 className="font-heading text-2xl md:text-3xl">{u.invalidHeading}</h1>
         <p className="text-muted-foreground mt-3 text-sm">
-          Tautan berhenti berlangganan tidak valid atau sudah kedaluwarsa. Anda
-          dapat mengelola alert Anda secara manual dari dasbor.
+          {u.invalidBody}
         </p>
         <p className="mt-6">
           <Link
@@ -35,7 +38,7 @@ export default async function SavedSearchUnsubscribePage({
             href={'/dashboard/pencarian-tersimpan' as any}
             className="inline-flex items-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
           >
-            Buka Pencarian Tersimpan
+            {u.openSaved}
           </Link>
         </p>
       </div>
@@ -54,11 +57,10 @@ export default async function SavedSearchUnsubscribePage({
     return (
       <div className="mx-auto w-full max-w-xl px-6 py-16">
         <h1 className="font-heading text-2xl md:text-3xl">
-          Pencarian tidak ditemukan
+          {u.notFoundHeading}
         </h1>
         <p className="text-muted-foreground mt-3 text-sm">
-          Pencarian tersimpan ini sudah tidak ada lagi. Tidak ada alert yang
-          dikirim untuk kriteria tersebut.
+          {u.notFoundBody}
         </p>
         <p className="mt-6">
           <Link
@@ -66,7 +68,7 @@ export default async function SavedSearchUnsubscribePage({
             href={'/dashboard/pencarian-tersimpan' as any}
             className="inline-flex items-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
           >
-            Buka Pencarian Tersimpan
+            {u.openSaved}
           </Link>
         </p>
       </div>
@@ -88,15 +90,13 @@ export default async function SavedSearchUnsubscribePage({
   return (
     <div className="mx-auto w-full max-w-xl px-6 py-16">
       <h1 className="font-heading text-2xl md:text-3xl">
-        Berhasil berhenti berlangganan
+        {u.successHeading}
       </h1>
       <p className="text-muted-foreground mt-3 text-sm">
-        Berhasil berhenti berlangganan alert untuk:{' '}
-        <strong className="text-foreground font-medium">{row.name}</strong>.
+        {u.successBody.replace('{name}', row.name)}{' '}
       </p>
       <p className="text-muted-foreground mt-2 text-sm">
-        Anda tidak akan menerima email mingguan untuk pencarian ini lagi. Anda
-        dapat mengaktifkan kembali kapan saja dari dasbor.
+        {u.successDetail}
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
@@ -104,13 +104,13 @@ export default async function SavedSearchUnsubscribePage({
           href={'/dashboard/pencarian-tersimpan' as any}
           className="inline-flex items-center rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
         >
-          Kelola alert
+          {u.manageAlerts}
         </Link>
         <Link
           href="/jobs"
           className="inline-flex items-center rounded-md border border-input px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
         >
-          Cari lowongan
+          {u.searchJobs}
         </Link>
       </div>
     </div>

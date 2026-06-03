@@ -9,6 +9,7 @@ import {
   findBlogTag,
   getBlogTags,
 } from '@/lib/blog-facets'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 type Params = { slug: string }
 
@@ -30,6 +31,7 @@ export default async function TagPage({
 }: {
   params: Params
 }) {
+  const t = await getServerT()
   const tag = findBlogTag(slug)
   if (!tag) notFound()
 
@@ -73,7 +75,7 @@ export default async function TagPage({
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke blog
+            {t.pagesBlog.backToBlog}
           </Link>
         </div>
 
@@ -85,7 +87,7 @@ export default async function TagPage({
             />
             <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
               <TagIcon className="mr-1 inline h-3.5 w-3.5" aria-hidden />
-              Tag Artikel
+              {t.pagesBlog.tag.eyebrow}
             </span>
           </div>
           <h1
@@ -98,23 +100,23 @@ export default async function TagPage({
             <strong className="text-foreground font-medium">
               {tag.count}
             </strong>{' '}
-            artikel dengan tag ini.
+            {t.pagesBlog.tag.articlesWith.replace('{n}', '').trimStart()}
           </p>
 
           {relatedTags.length > 0 && (
             <div className="mt-8 flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground mr-1 text-xs font-medium uppercase tracking-wider">
-                Tag lain:
+                {t.pagesBlog.tag.otherTags}
               </span>
-              {relatedTags.map((t) => (
+              {relatedTags.map((tag) => (
                 <Link
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={`/blog/tag/${t.slug}` as any}
-                  key={t.slug}
+                  href={`/blog/tag/${tag.slug}` as any}
+                  key={tag.slug}
                   className="border-border bg-card text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition"
                 >
-                  #{t.name}
-                  <span className="text-muted-foreground">{t.count}</span>
+                  #{tag.name}
+                  <span className="text-muted-foreground">{tag.count}</span>
                 </Link>
               ))}
             </div>
@@ -129,13 +131,13 @@ export default async function TagPage({
             <div className="border-border bg-card rounded-2xl border p-12 text-center">
               <BookOpen className="text-muted-foreground mx-auto h-8 w-8" aria-hidden />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada artikel dengan tag ini
+                {t.pagesBlog.tag.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Jelajahi semua artikel di blog RPI.
+                {t.pagesBlog.tag.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/blog">Lihat semua artikel</Link>
+                <Link href="/blog">{t.pagesBlog.seeAllArticles}</Link>
               </Button>
             </div>
           ) : (
@@ -165,7 +167,7 @@ export default async function TagPage({
                         <div className="text-muted-foreground mb-2 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider">
                           <span>{a.category}</span>
                           <span aria-hidden>·</span>
-                          <span>{a.readMin} min baca</span>
+                          <span>{t.pagesBlog.readMin.replace('{n}', String(a.readMin))}</span>
                         </div>
                         <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] mb-2 line-clamp-2 text-base font-semibold leading-snug transition">
                           {a.title}
@@ -191,26 +193,26 @@ export default async function TagPage({
       {otherTagsForRail.length > 0 && (
         <section
           className="bg-muted/30 py-16 md:py-20"
-          aria-label="Tag lainnya"
+          aria-label={t.pagesBlog.tag.exploreOtherTagsAriaLabel}
         >
           <div className="container mx-auto w-full max-w-6xl px-6">
             <div className="mb-8 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-                Jelajahi tag lain
+                {t.pagesBlog.tag.exploreOtherTags}
               </span>
             </div>
             <ul className="flex flex-wrap gap-2">
-              {otherTagsForRail.map((t) => (
-                <li key={t.slug}>
+              {otherTagsForRail.map((tag) => (
+                <li key={tag.slug}>
                   <Link
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={`/blog/tag/${t.slug}` as any}
+                    href={`/blog/tag/${tag.slug}` as any}
                     className="border-border bg-card hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] text-foreground/80 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition"
                   >
-                    #{t.name}
+                    #{tag.name}
                     <span className="text-muted-foreground text-xs">
-                      {t.count}
+                      {tag.count}
                     </span>
                   </Link>
                 </li>

@@ -55,7 +55,17 @@ import { formsMisc4 } from './dictionaries/forms-misc4'
 import { formsTenantAdmin2 } from './dictionaries/forms-tenantadmin2'
 import { formsMisc3 } from './dictionaries/forms-misc3'
 import { formsMarketing2 } from './dictionaries/forms-marketing2'
+import { pagesTenant2 } from './dictionaries/pages-tenant2'
+import { pagesPublicMisc } from './dictionaries/pages-publicmisc'
+import { pagesCareers } from './dictionaries/pages-careers'
+import { pagesDash } from './dictionaries/pages-dash'
+import { pagesRoot } from './dictionaries/pages-root'
+import { pagesTenant4 } from './dictionaries/pages-tenant4'
+import { pagesPress } from './dictionaries/pages-press'
+import { pagesTenant3 } from './dictionaries/pages-tenant3'
+import { pagesTenant1 } from './dictionaries/pages-tenant1'
 
+import { pagesBlog } from './dictionaries/pages-blog'
 export type Locale = 'id' | 'en'
 
 export const locales: Locale[] = ['id', 'en']
@@ -103,6 +113,16 @@ export const dictionary = {
     formsTenantAdmin2: formsTenantAdmin2.id,
     formsMisc3: formsMisc3.id,
     formsMarketing2: formsMarketing2.id,
+    pagesTenant2: pagesTenant2.id,
+    pagesDash: pagesDash.id,
+    pagesRoot: pagesRoot.id,
+    pagesTenant4: pagesTenant4.id,
+    pagesPress: pagesPress.id,
+    pagesPublicMisc: pagesPublicMisc.id,
+    pagesCareers: pagesCareers.id,
+    pagesTenant1: pagesTenant1.id,
+    pagesBlog: pagesBlog.id,
+    pagesTenant3: pagesTenant3.id,
   },
   en: {
     ...home.en,
@@ -145,6 +165,16 @@ export const dictionary = {
     formsTenantAdmin2: formsTenantAdmin2.en,
     formsMisc3: formsMisc3.en,
     formsMarketing2: formsMarketing2.en,
+    pagesTenant2: pagesTenant2.en,
+    pagesDash: pagesDash.en,
+    pagesRoot: pagesRoot.en,
+    pagesTenant4: pagesTenant4.en,
+    pagesPress: pagesPress.en,
+    pagesPublicMisc: pagesPublicMisc.en,
+    pagesCareers: pagesCareers.en,
+    pagesTenant1: pagesTenant1.en,
+    pagesBlog: pagesBlog.en,
+    pagesTenant3: pagesTenant3.en,
   },
 } as const
 

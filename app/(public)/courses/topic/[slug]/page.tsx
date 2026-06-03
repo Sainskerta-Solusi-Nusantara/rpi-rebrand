@@ -11,6 +11,7 @@ import {
 
 import { Button } from '@/components/atoms/button'
 import { CourseCard } from '@/components/molecules/course-card'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { getAllCourses } from '@/lib/courses-data'
 import {
   COURSE_TOPICS,
@@ -34,12 +35,13 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
 }
 
 export default async function TopicPage({ params }: { params: Params }) {
+  const t = await getServerT()
   const topic = findCourseTopic(params.slug)
   if (!topic) notFound()
 
   const allCourses = await getAllCourses()
   const courses = allCourses.filter((c) => matchesTopic(c, topic))
-  const otherTopics = COURSE_TOPICS.filter((t) => t.slug !== topic.slug)
+  const otherTopics = COURSE_TOPICS.filter((tp) => tp.slug !== topic.slug)
 
   return (
     <>
@@ -72,7 +74,7 @@ export default async function TopicPage({ params }: { params: Params }) {
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke semua kursus
+            {t.pagesCareers.coursesTopic.back}
           </Link>
         </div>
 
@@ -85,7 +87,7 @@ export default async function TopicPage({ params }: { params: Params }) {
                   className="h-px w-8 bg-[color:var(--ring)]"
                 />
                 <span className="text-[color:var(--ring)] text-xs font-medium uppercase tracking-[0.2em]">
-                  Topik Kursus
+                  {t.pagesCareers.coursesTopic.eyebrow}
                 </span>
               </div>
               <h1
@@ -106,7 +108,7 @@ export default async function TopicPage({ params }: { params: Params }) {
                   <strong className="text-foreground font-medium">
                     {courses.length}
                   </strong>{' '}
-                  kursus di topik ini
+                  {t.pagesCareers.coursesTopic.coursesSuffix}
                 </span>
               </div>
             </div>
@@ -136,13 +138,13 @@ export default async function TopicPage({ params }: { params: Params }) {
                 aria-hidden
               />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada kursus dalam topik ini
+                {t.pagesCareers.coursesTopic.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Cek kembali nanti — atau jelajahi topik lain di bawah.
+                {t.pagesCareers.coursesTopic.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/courses">Lihat semua kursus</Link>
+                <Link href="/courses">{t.pagesCareers.coursesTopic.emptyButton}</Link>
               </Button>
             </div>
           ) : (
@@ -177,63 +179,64 @@ export default async function TopicPage({ params }: { params: Params }) {
               <div className="mb-3 flex items-center gap-3">
                 <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
                 <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-                  <Compass className="inline h-3.5 w-3.5" aria-hidden /> Jelajahi
+                  <Compass className="inline h-3.5 w-3.5" aria-hidden />{' '}
+                  {t.pagesCareers.coursesTopic.otherEyebrow}
                 </span>
               </div>
               <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
-                Topik kursus lainnya
+                {t.pagesCareers.coursesTopic.otherHeading}
               </h2>
             </div>
             <Link
               href="/courses"
               className="text-foreground/80 hover:text-[color:var(--ring)] inline-flex items-center gap-1 text-sm font-medium transition"
             >
-              Semua kursus
+              {t.pagesCareers.coursesTopic.otherAllLink}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>
 
           <ul className="flex flex-wrap gap-2">
-            {otherTopics.map((t) => (
-              <li key={t.slug}>
+            {otherTopics.map((tp) => (
+              <li key={tp.slug}>
                 <Link
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={`/courses/topic/${t.slug}` as any}
+                  href={`/courses/topic/${tp.slug}` as any}
                   className="border-border bg-card hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] text-foreground/80 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition"
                 >
-                  <span aria-hidden>{t.emoji}</span>
-                  {t.name}
+                  <span aria-hidden>{tp.emoji}</span>
+                  {tp.name}
                 </Link>
               </li>
             ))}
           </ul>
 
           <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {otherTopics.map((t) => {
-              const count = allCourses.filter((c) => matchesTopic(c, t)).length
+            {otherTopics.map((tp) => {
+              const count = allCourses.filter((c) => matchesTopic(c, tp)).length
               return (
-                <li key={t.slug}>
+                <li key={tp.slug}>
                   <Link
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={`/courses/topic/${t.slug}` as any}
+                    href={`/courses/topic/${tp.slug}` as any}
                     className="border-border bg-card hover:border-[color:var(--ring)] group flex h-full items-start gap-4 rounded-2xl border p-5 transition"
                   >
                     <span
                       aria-hidden
                       className="grid size-12 shrink-0 place-items-center rounded-xl bg-[color:var(--ring)]/10 text-[color:var(--ring)] text-xl"
                     >
-                      {t.emoji}
+                      {tp.emoji}
                     </span>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] text-base font-semibold transition">
-                        {t.name}
+                        {tp.name}
                       </h3>
                       <p className="text-muted-foreground mt-1 line-clamp-2 text-xs leading-relaxed">
-                        {t.description}
+                        {tp.description}
                       </p>
                       <div className="text-muted-foreground mt-3 inline-flex items-center gap-1.5 text-xs">
                         <BookOpen className="h-3 w-3" aria-hidden />
-                        {count} kursus
+                        {t.pagesCareers.coursesTopic.otherCount.replace('{n}', String(count))}
                       </div>
                     </div>
                   </Link>

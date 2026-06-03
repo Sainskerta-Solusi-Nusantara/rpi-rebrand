@@ -2,19 +2,15 @@ import Link from 'next/link'
 import { Plus, Users, Building2 } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/db'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Tenant Saya — Dasbor' }
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
 
-const statusLabels: Record<string, { label: string; tone: string }> = {
-  ACTIVE: { label: 'Aktif', tone: 'bg-green-100 text-green-800' },
-  SUSPENDED: { label: 'Ditangguhkan', tone: 'bg-red-100 text-red-800' },
-  PROVISIONING: { label: 'Provisioning', tone: 'bg-amber-100 text-amber-800' },
-}
-
 export default async function MyTenantsPage() {
   const session = await requireAuth('/dashboard/tenants')
+  const t = await getServerT()
 
   const memberships = await prisma.userTenant
     .findMany({
@@ -37,15 +33,21 @@ export default async function MyTenantsPage() {
     })
     .catch(() => [])
 
+  const statusLabels: Record<string, { label: string; tone: string }> = {
+    ACTIVE: { label: t.pagesTenant1.tenantsList.statusActive, tone: 'bg-green-100 text-green-800' },
+    SUSPENDED: { label: t.pagesTenant1.tenantsList.statusSuspended, tone: 'bg-red-100 text-red-800' },
+    PROVISIONING: { label: t.pagesTenant1.tenantsList.statusProvisioning, tone: 'bg-amber-100 text-amber-800' },
+  }
+
   return (
     <div className="p-6 space-y-8 max-w-5xl">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl">Tenant Saya</h1>
+          <h1 className="font-heading text-2xl md:text-3xl">{t.pagesTenant1.tenantsList.heading}</h1>
           <p className="text-muted-foreground mt-1">
             {memberships.length === 0
-              ? 'Anda belum tergabung di tenant manapun.'
-              : `Anda anggota di ${memberships.length} tenant.`}
+              ? t.pagesTenant1.tenantsList.subtitleEmpty
+              : t.pagesTenant1.tenantsList.subtitleCount.replace('{n}', String(memberships.length))}
           </p>
         </div>
         <Link
@@ -53,7 +55,7 @@ export default async function MyTenantsPage() {
           className="inline-flex items-center justify-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          Buat tenant baru
+          {t.pagesTenant1.tenantsList.createBtn}
         </Link>
       </header>
 
@@ -62,17 +64,16 @@ export default async function MyTenantsPage() {
           <div className="bg-muted grid size-12 place-items-center rounded-full">
             <Building2 className="text-muted-foreground h-6 w-6" aria-hidden="true" />
           </div>
-          <h2 className="font-heading text-lg">Belum ada tenant</h2>
+          <h2 className="font-heading text-lg">{t.pagesTenant1.tenantsList.emptyTitle}</h2>
           <p className="text-muted-foreground max-w-md text-sm">
-            Buat tenant untuk mulai mengelola tim, lowongan, dan kursus Anda di
-            satu tempat.
+            {t.pagesTenant1.tenantsList.emptyDesc}
           </p>
           <Link
             href="/onboarding"
             className="inline-flex items-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Buat tenant pertama
+            {t.pagesTenant1.tenantsList.createFirstBtn}
           </Link>
         </div>
       ) : (
@@ -103,18 +104,19 @@ export default async function MyTenantsPage() {
                 <div className="text-muted-foreground mt-4 flex items-center gap-4 text-xs">
                   <span className="inline-flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" aria-hidden="true" />
-                    {m.tenant._count.users} anggota
+                    {t.pagesTenant1.tenantsList.memberCount.replace('{n}', String(m.tenant._count.users))}
                   </span>
                   <span>·</span>
-                  <span>{m.tenant._count.jobs} lowongan</span>
+                  <span>{t.pagesTenant1.tenantsList.jobCount.replace('{n}', String(m.tenant._count.jobs))}</span>
                   <span>·</span>
                   <span>{m.tenant.planTier}</span>
                 </div>
                 <div className="text-muted-foreground mt-3 flex items-center justify-between text-xs">
                   <span>
-                    Peran Anda: <span className="text-foreground font-medium">{m.role}</span>
+                    {t.pagesTenant1.tenantsList.yourRole}{' '}
+                    <span className="text-foreground font-medium">{m.role}</span>
                   </span>
-                  <span>Bergabung {dateFmt.format(m.joinedAt)}</span>
+                  <span>{t.pagesTenant1.tenantsList.joinedDate.replace('{date}', dateFmt.format(m.joinedAt))}</span>
                 </div>
               </Link>
             )

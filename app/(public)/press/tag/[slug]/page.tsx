@@ -10,6 +10,7 @@ import {
   releasesByTag,
 } from '@/lib/press-facets'
 import { PRESS_CATEGORY_COLOR } from '@/lib/press-data'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 type Params = { slug: string }
 
@@ -31,16 +32,17 @@ export default async function TagPage({
 }: {
   params: Params
 }) {
+  const t = await getServerT()
   const tag = findPressTag(slug)
   if (!tag) notFound()
 
   const releases = releasesByTag(slug)
   const allTags = getPressTags()
   const relatedTags = allTags
-    .filter((t) => t.slug !== slug)
+    .filter((tg) => tg.slug !== slug)
     .slice(0, 8)
   const otherTagsForRail = allTags
-    .filter((t) => t.slug !== slug)
+    .filter((tg) => tg.slug !== slug)
     .slice(0, 12)
 
   return (
@@ -74,7 +76,7 @@ export default async function TagPage({
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke press
+            {t.pagesPress.common.backToPressBrief}
           </Link>
         </div>
 
@@ -86,7 +88,7 @@ export default async function TagPage({
             />
             <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
               <TagIcon className="mr-1 inline h-3.5 w-3.5" aria-hidden />
-              Tag Siaran Pers
+              {t.pagesPress.tag.eyebrow}
             </span>
           </div>
           <h1
@@ -99,23 +101,23 @@ export default async function TagPage({
             <strong className="text-foreground font-medium">
               {tag.count}
             </strong>{' '}
-            siaran pers
+            {t.pagesPress.common.pressReleaseCount.replace('{n}', '').trim()}
           </p>
 
           {relatedTags.length > 0 && (
             <div className="mt-8 flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground mr-1 text-xs font-medium uppercase tracking-wider">
-                Tag lain:
+                {t.pagesPress.tag.otherTagsLabel}
               </span>
-              {relatedTags.map((t) => (
+              {relatedTags.map((tg) => (
                 <Link
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={`/press/tag/${t.slug}` as any}
-                  key={t.slug}
+                  href={`/press/tag/${tg.slug}` as any}
+                  key={tg.slug}
                   className="border-border bg-card text-foreground/80 hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition"
                 >
-                  #{t.name}
-                  <span className="text-muted-foreground">{t.count}</span>
+                  #{tg.name}
+                  <span className="text-muted-foreground">{tg.count}</span>
                 </Link>
               ))}
             </div>
@@ -130,13 +132,13 @@ export default async function TagPage({
             <div className="border-border bg-card rounded-2xl border p-12 text-center">
               <Newspaper className="text-muted-foreground mx-auto h-8 w-8" aria-hidden />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada siaran pers dengan tag ini
+                {t.pagesPress.tag.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Jelajahi semua siaran pers RPI.
+                {t.pagesPress.tag.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/press">Lihat semua siaran pers</Link>
+                <Link href="/press">{t.pagesPress.tag.emptyAction}</Link>
               </Button>
             </div>
           ) : (
@@ -175,26 +177,26 @@ export default async function TagPage({
       {otherTagsForRail.length > 0 && (
         <section
           className="bg-muted/30 py-16 md:py-20"
-          aria-label="Tag lainnya"
+          aria-label={t.pagesPress.tag.ariaOtherTags}
         >
           <div className="container mx-auto w-full max-w-6xl px-6">
             <div className="mb-8 flex items-center gap-3">
               <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
               <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
-                Jelajahi tag lain
+                {t.pagesPress.tag.otherEyebrow}
               </span>
             </div>
             <ul className="flex flex-wrap gap-2">
-              {otherTagsForRail.map((t) => (
-                <li key={t.slug}>
+              {otherTagsForRail.map((tg) => (
+                <li key={tg.slug}>
                   <Link
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={`/press/tag/${t.slug}` as any}
+                    href={`/press/tag/${tg.slug}` as any}
                     className="border-border bg-card hover:border-[color:var(--ring)] hover:text-[color:var(--ring)] text-foreground/80 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition"
                   >
-                    #{t.name}
+                    #{tg.name}
                     <span className="text-muted-foreground text-xs">
-                      {t.count}
+                      {tg.count}
                     </span>
                   </Link>
                 </li>

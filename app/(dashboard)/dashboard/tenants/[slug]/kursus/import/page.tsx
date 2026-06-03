@@ -5,45 +5,16 @@ import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
 import { TenantCoursesImportForm } from '@/components/organisms/tenant-courses-import-form'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Impor Kursus CSV — Dasbor' }
-
-const REQUIRED_COLUMNS: { name: string; desc: string }[] = [
-  { name: 'title', desc: 'Judul kursus (5–200 karakter).' },
-  {
-    name: 'description',
-    desc: 'Deskripsi lengkap kursus (minimal 50 karakter).',
-  },
-]
-
-const OPTIONAL_COLUMNS: { name: string; desc: string }[] = [
-  {
-    name: 'level',
-    desc: 'BEGINNER | INTERMEDIATE | ADVANCED. Default BEGINNER.',
-  },
-  {
-    name: 'durationHours',
-    desc: 'Durasi total dalam jam (bilangan bulat 1–1000). Default 8.',
-  },
-  {
-    name: 'instructorEmail',
-    desc: 'Email instruktur. Pengguna harus menjadi anggota aktif tenant ini; jika tidak, baris dilewati.',
-  },
-  {
-    name: 'thumbnail',
-    desc: 'URL gambar sampul kursus (opsional).',
-  },
-  {
-    name: 'status',
-    desc: 'DRAFT | PUBLISHED | ARCHIVED. Default DRAFT.',
-  },
-]
 
 export default async function TenantCoursesImportPage({
   params,
 }: {
   params: { slug: string }
 }) {
+  const t = await getServerT()
   const session = await requireAuth(
     `/dashboard/tenants/${params.slug}/kursus/import`,
   )
@@ -63,6 +34,19 @@ export default async function TenantCoursesImportPage({
 
   const templateHref = `/api/tenants/${tenant.slug}/kursus/template`
 
+  const REQUIRED_COLUMNS: { name: string; desc: string }[] = [
+    { name: 'title', desc: t.pagesTenant2.coursesImport.colTitleDesc },
+    { name: 'description', desc: t.pagesTenant2.coursesImport.colDescriptionDesc },
+  ]
+
+  const OPTIONAL_COLUMNS: { name: string; desc: string }[] = [
+    { name: 'level', desc: t.pagesTenant2.coursesImport.colLevelDesc },
+    { name: 'durationHours', desc: t.pagesTenant2.coursesImport.colDurationHoursDesc },
+    { name: 'instructorEmail', desc: t.pagesTenant2.coursesImport.colInstructorEmailDesc },
+    { name: 'thumbnail', desc: t.pagesTenant2.coursesImport.colThumbnailDesc },
+    { name: 'status', desc: t.pagesTenant2.coursesImport.colStatusDesc },
+  ]
+
   return (
     <div className="p-6 space-y-6 max-w-4xl">
       <div>
@@ -72,7 +56,7 @@ export default async function TenantCoursesImportPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke daftar kursus
+          {t.pagesTenant2.coursesImport.backToList}
         </Link>
       </div>
 
@@ -80,26 +64,25 @@ export default async function TenantCoursesImportPage({
         <div className="flex items-center gap-2">
           <FileSpreadsheet className="h-6 w-6" aria-hidden="true" />
           <h1 className="font-heading text-2xl md:text-3xl">
-            Impor kursus dari CSV
+            {t.pagesTenant2.coursesImport.heading}
           </h1>
         </div>
         <p className="text-muted-foreground mt-1">
-          Unggah hingga 100 baris kursus sekaligus untuk tenant{' '}
+          {t.pagesTenant2.coursesImport.subheading}{' '}
           <span className="font-medium text-foreground">{tenant.name}</span>.
         </p>
       </header>
 
       <section className="border-border bg-card space-y-4 rounded-2xl border p-6">
         <div>
-          <h2 className="font-heading text-lg">Format CSV</h2>
+          <h2 className="font-heading text-lg">{t.pagesTenant2.coursesImport.sectionFormatHeading}</h2>
           <p className="text-muted-foreground text-sm">
-            Baris pertama harus berisi nama kolom. Nama kolom tidak dibedakan
-            huruf besar/kecil.
+            {t.pagesTenant2.coursesImport.sectionFormatDesc}
           </p>
         </div>
 
         <div className="space-y-2">
-          <p className="text-foreground text-sm font-semibold">Kolom wajib</p>
+          <p className="text-foreground text-sm font-semibold">{t.pagesTenant2.coursesImport.requiredCols}</p>
           <ul className="space-y-1 text-sm">
             {REQUIRED_COLUMNS.map((c) => (
               <li key={c.name} className="flex gap-2">
@@ -113,7 +96,7 @@ export default async function TenantCoursesImportPage({
         </div>
 
         <div className="space-y-2">
-          <p className="text-foreground text-sm font-semibold">Kolom opsional</p>
+          <p className="text-foreground text-sm font-semibold">{t.pagesTenant2.coursesImport.optionalCols}</p>
           <ul className="space-y-1 text-sm">
             {OPTIONAL_COLUMNS.map((c) => (
               <li key={c.name} className="flex gap-2">
@@ -127,7 +110,7 @@ export default async function TenantCoursesImportPage({
         </div>
 
         <div className="space-y-2">
-          <p className="text-foreground text-sm font-semibold">Contoh baris</p>
+          <p className="text-foreground text-sm font-semibold">{t.pagesTenant2.coursesImport.exampleRow}</p>
           <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs leading-relaxed">
 {`title,description,level,durationHours,instructorEmail,status
 Pengantar React,"Pelajari dasar-dasar React dari nol — komponen, state, props, dan hooks dengan studi kasus nyata. Kursus ini cocok untuk pemula yang ingin masuk ke ekosistem front-end modern.",BEGINNER,12,instructor@example.com,DRAFT`}
@@ -141,13 +124,13 @@ Pengantar React,"Pelajari dasar-dasar React dari nol — komponen, state, props,
             className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium"
           >
             <Download className="h-4 w-4" aria-hidden="true" />
-            Unduh template CSV
+            {t.pagesTenant2.coursesImport.downloadTemplate}
           </a>
         </div>
       </section>
 
       <section className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="font-heading mb-4 text-lg">Unggah file</h2>
+        <h2 className="font-heading mb-4 text-lg">{t.pagesTenant2.coursesImport.uploadHeading}</h2>
         <TenantCoursesImportForm tenantSlug={tenant.slug} />
       </section>
     </div>

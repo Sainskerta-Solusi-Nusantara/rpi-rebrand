@@ -6,24 +6,14 @@ import { ChevronLeft } from 'lucide-react'
 import { getIncidentDetail } from '@/lib/status/status-queries'
 import { getComponentName } from '@/lib/status/components'
 import { StatusBadge, type StatusBadgeVariant } from '@/components/organisms/status-badge'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const revalidate = 30
 
-const SEVERITY_LABELS: Record<string, string> = {
-  minor: 'Ringan',
-  major: 'Berat',
-  critical: 'Kritis',
-}
 const SEVERITY_VARIANT: Record<string, StatusBadgeVariant> = {
   minor: 'degraded',
   major: 'degraded',
   critical: 'major_outage',
-}
-const STATUS_LABELS: Record<string, string> = {
-  investigating: 'Investigasi',
-  identified: 'Teridentifikasi',
-  monitoring: 'Pemantauan',
-  resolved: 'Selesai',
 }
 const STATUS_VARIANT: Record<string, StatusBadgeVariant> = {
   investigating: 'down',
@@ -51,6 +41,9 @@ export default async function IncidentDetailPage({
 }: {
   params: { id: string }
 }) {
+  const t = await getServerT()
+  const si = t.pagesRoot.statusIncident
+
   const incident = await getIncidentDetail(params.id)
   if (!incident) notFound()
 
@@ -62,7 +55,7 @@ export default async function IncidentDetailPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden />
-          Kembali ke status
+          {si.backToStatus}
         </Link>
 
         <header className="space-y-3">
@@ -70,27 +63,27 @@ export default async function IncidentDetailPage({
           <div className="flex flex-wrap gap-2">
             <StatusBadge
               variant={SEVERITY_VARIANT[incident.severity] ?? 'degraded'}
-              label={SEVERITY_LABELS[incident.severity] ?? incident.severity}
+              label={si.severity[incident.severity as keyof typeof si.severity] ?? incident.severity}
             />
             <StatusBadge
               variant={STATUS_VARIANT[incident.status] ?? 'degraded'}
-              label={STATUS_LABELS[incident.status] ?? incident.status}
+              label={si.incidentStatus[incident.status as keyof typeof si.incidentStatus] ?? incident.status}
             />
           </div>
           <dl className="text-muted-foreground grid gap-1 text-sm">
             <div>
-              <dt className="inline">Dimulai: </dt>
+              <dt className="inline">{si.startedAt}</dt>
               <dd className="text-foreground inline">{fmt(incident.startedAt)}</dd>
             </div>
             {incident.resolvedAt ? (
               <div>
-                <dt className="inline">Diselesaikan: </dt>
+                <dt className="inline">{si.resolvedAt}</dt>
                 <dd className="text-foreground inline">{fmt(incident.resolvedAt)}</dd>
               </div>
             ) : null}
             {incident.affectedServices.length > 0 ? (
               <div>
-                <dt className="inline">Layanan terdampak: </dt>
+                <dt className="inline">{si.affectedServices}</dt>
                 <dd className="text-foreground inline">
                   {incident.affectedServices.map(getComponentName).join(', ')}
                 </dd>
@@ -101,10 +94,10 @@ export default async function IncidentDetailPage({
 
         <section aria-labelledby="timeline-heading" className="space-y-3">
           <h2 id="timeline-heading" className="font-heading text-lg">
-            Linimasa pembaruan
+            {si.timelineHeading}
           </h2>
           {incident.updates.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Belum ada pembaruan.</p>
+            <p className="text-muted-foreground text-sm">{si.noUpdates}</p>
           ) : (
             <ol className="space-y-3">
               {incident.updates.map((u) => (
@@ -115,7 +108,7 @@ export default async function IncidentDetailPage({
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <StatusBadge
                       variant={STATUS_VARIANT[u.status] ?? 'degraded'}
-                      label={STATUS_LABELS[u.status] ?? u.status}
+                      label={si.incidentStatus[u.status as keyof typeof si.incidentStatus] ?? u.status}
                       size="sm"
                     />
                     <time className="text-muted-foreground text-xs">{fmt(u.postedAt)}</time>

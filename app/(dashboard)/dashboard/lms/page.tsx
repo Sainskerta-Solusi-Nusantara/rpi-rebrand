@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Pembelajaran' }
 
@@ -12,6 +13,7 @@ const statusLabels: Record<string, string> = {
 }
 
 export default async function LMSPage() {
+  const t = await getServerT()
   const session = await getServerSession(authOptions)
   if (!session?.user) redirect('/login?callbackUrl=/lms')
   const userId = session.user.id
@@ -51,20 +53,22 @@ export default async function LMSPage() {
   return (
     <div className="p-6 space-y-10">
       <header>
-        <h1 className="font-heading text-2xl md:text-3xl">Pembelajaran Saya</h1>
+        <h1 className="font-heading text-2xl md:text-3xl">{t.pagesDash.lms.heading}</h1>
         <p className="text-muted-foreground mt-1">
-          {inProgress.length} kursus aktif • {completed.length} selesai •{' '}
-          {certificates.length} sertifikat
+          {t.pagesDash.lms.subheading
+            .replace('{inProgress}', String(inProgress.length))
+            .replace('{completed}', String(completed.length))
+            .replace('{certificates}', String(certificates.length))}
         </p>
       </header>
 
       <section>
-        <h2 className="font-heading text-xl mb-4">Sedang Berjalan</h2>
+        <h2 className="font-heading text-xl mb-4">{t.pagesDash.lms.inProgressSection}</h2>
         {inProgress.length === 0 ? (
           <div className="border-border rounded-xl border p-8 text-center">
-            <p className="text-muted-foreground">Belum mendaftar kursus apa pun.</p>
+            <p className="text-muted-foreground">{t.pagesDash.lms.emptyInProgress}</p>
             <a href="/courses" className="text-primary mt-3 inline-block underline">
-              Jelajahi kursus
+              {t.pagesDash.lms.browseCoursesLink}
             </a>
           </div>
         ) : (
@@ -84,7 +88,9 @@ export default async function LMSPage() {
                 <div className="p-4">
                   <div className="font-medium">{e.course.title}</div>
                   <div className="text-muted-foreground mt-1 text-sm">
-                    {e.course.durationHours} jam • {e.course._count.modules} modul
+                    {t.pagesDash.lms.courseMeta
+                      .replace('{hours}', String(e.course.durationHours))
+                      .replace('{modules}', String(e.course._count.modules))}
                   </div>
                   <div className="bg-muted mt-3 h-2 overflow-hidden rounded-full">
                     <div
@@ -99,7 +105,7 @@ export default async function LMSPage() {
                     href={`/courses/${e.course.slug}`}
                     className="text-primary mt-3 inline-block text-sm underline"
                   >
-                    Lanjutkan belajar
+                    {t.pagesDash.lms.continueLink}
                   </a>
                 </div>
               </li>
@@ -109,18 +115,20 @@ export default async function LMSPage() {
       </section>
 
       <section>
-        <h2 className="font-heading text-xl mb-4">Selesai</h2>
+        <h2 className="font-heading text-xl mb-4">{t.pagesDash.lms.completedSection}</h2>
         {completed.length === 0 ? (
-          <p className="text-muted-foreground">Belum ada kursus yang diselesaikan.</p>
+          <p className="text-muted-foreground">{t.pagesDash.lms.emptyCompleted}</p>
         ) : (
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {completed.map((e) => (
               <li key={e.id} className="border-border rounded-xl border p-4">
                 <div className="font-medium">{e.course.title}</div>
                 <div className="text-muted-foreground mt-1 text-sm">
-                  Selesai{' '}
                   {e.completedAt
-                    ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(e.completedAt)
+                    ? t.pagesDash.lms.completedOn.replace(
+                        '{date}',
+                        new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(e.completedAt),
+                      )
                     : ''}
                 </div>
               </li>

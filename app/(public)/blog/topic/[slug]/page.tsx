@@ -17,6 +17,7 @@ import {
   findCategory,
   type BlogArticle,
 } from '@/lib/blog-data'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 type Params = { slug: string }
 
@@ -35,7 +36,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   }
 }
 
-export default function BlogTopicPage({ params }: { params: Params }) {
+export default async function BlogTopicPage({ params }: { params: Params }) {
+  const t = await getServerT()
   const cat = findCategory(params.slug)
   if (!cat || cat.slug === 'all') notFound()
 
@@ -74,7 +76,7 @@ export default function BlogTopicPage({ params }: { params: Params }) {
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke semua artikel
+            {t.pagesBlog.topic.backToBlog}
           </Link>
         </div>
 
@@ -87,7 +89,7 @@ export default function BlogTopicPage({ params }: { params: Params }) {
                   className="text-xs font-medium uppercase tracking-[0.2em]"
                   style={{ color: cat.color }}
                 >
-                  Topik
+                  {t.pagesBlog.topic.eyebrow}
                 </span>
               </div>
               <h1
@@ -107,7 +109,7 @@ export default function BlogTopicPage({ params }: { params: Params }) {
                   <strong className="text-foreground font-medium">
                     {articles.length}
                   </strong>{' '}
-                  artikel di topik ini
+                  {t.pagesBlog.topic.articlesInTopic}
                 </span>
               </div>
             </div>
@@ -133,20 +135,20 @@ export default function BlogTopicPage({ params }: { params: Params }) {
             <div className="border-border bg-card rounded-2xl border p-12 text-center">
               <BookOpen className="text-muted-foreground mx-auto h-8 w-8" aria-hidden />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada artikel di topik ini
+                {t.pagesBlog.topic.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Cek kembali nanti — atau jelajahi topik lain di bawah.
+                {t.pagesBlog.topic.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/blog">Lihat semua artikel</Link>
+                <Link href="/blog">{t.pagesBlog.seeAllArticles}</Link>
               </Button>
             </div>
           ) : (
             <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {articles.map((a, i) => (
                 <li key={a.slug}>
-                  <ArticleCard article={a} highlight={i === 0} />
+                  <ArticleCard article={a} highlight={i === 0} latest={t.pagesBlog.topic.latest} readMin={t.pagesBlog.readMin} />
                 </li>
               ))}
             </ul>
@@ -155,58 +157,58 @@ export default function BlogTopicPage({ params }: { params: Params }) {
       </section>
 
       {/* Other topics */}
-      <section className="bg-muted/30 py-20 md:py-24" aria-label="Topik lain">
+      <section className="bg-muted/30 py-20 md:py-24" aria-label={t.pagesBlog.topic.otherTopicsAriaLabel}>
         <div className="container mx-auto w-full max-w-6xl px-6">
           <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="mb-3 flex items-center gap-3">
                 <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
                 <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  <Compass className="inline h-3.5 w-3.5" aria-hidden /> Jelajahi
+                  <Compass className="inline h-3.5 w-3.5" aria-hidden /> {t.pagesBlog.topic.otherTopicsEyebrow}
                 </span>
               </div>
               <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
-                Topik lain di blog
+                {t.pagesBlog.topic.otherTopicsHeading}
               </h2>
             </div>
             <Link
               href="/blog"
               className="text-foreground/80 hover:text-[color:var(--ring)] inline-flex items-center gap-1 text-sm font-medium transition"
             >
-              Semua artikel
+              {t.pagesBlog.topic.allArticles}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>
 
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {otherTopics.map((t) => {
-              const count = articlesByCategory(t.slug).length
+            {otherTopics.map((topic) => {
+              const count = articlesByCategory(topic.slug).length
               return (
-                <li key={t.slug}>
+                <li key={topic.slug}>
                   <Link
-                    href={`/blog/topic/${t.slug}`}
+                    href={`/blog/topic/${topic.slug}`}
                     className="border-border bg-card hover:border-[color:var(--ring)] group flex h-full items-start gap-4 rounded-2xl border p-5 transition"
                   >
                     <span
                       aria-hidden
                       className="grid size-12 shrink-0 place-items-center rounded-xl text-xl"
                       style={{
-                        background: `color-mix(in oklab, ${t.color} 12%, transparent)`,
-                        color: t.color,
+                        background: `color-mix(in oklab, ${topic.color} 12%, transparent)`,
+                        color: topic.color,
                       }}
                     >
-                      {t.emoji ?? '📰'}
+                      {topic.emoji ?? '📰'}
                     </span>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-heading text-foreground group-hover:text-[color:var(--ring)] text-base font-semibold transition">
-                        {t.label}
+                        {topic.label}
                       </h3>
                       <p className="text-muted-foreground mt-1 line-clamp-2 text-xs leading-relaxed">
-                        {t.description ?? ''}
+                        {topic.description ?? ''}
                       </p>
                       <div className="text-muted-foreground mt-3 inline-flex items-center gap-1.5 text-xs">
                         <BookOpen className="h-3 w-3" aria-hidden />
-                        {count} artikel
+                        {t.pagesBlog.articleCount.replace('{n}', String(count))}
                       </div>
                     </div>
                   </Link>
@@ -230,9 +232,13 @@ export default function BlogTopicPage({ params }: { params: Params }) {
 function ArticleCard({
   article,
   highlight,
+  latest,
+  readMin,
 }: {
   article: BlogArticle
   highlight?: boolean
+  latest: string
+  readMin: string
 }) {
   const cat = findCategory(article.category)
   return (
@@ -253,7 +259,7 @@ function ArticleCard({
         {highlight && (
           <div className="absolute left-3 top-3">
             <span className="bg-background/90 text-foreground inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
-              Terbaru
+              {latest}
             </span>
           </div>
         )}
@@ -287,7 +293,7 @@ function ArticleCard({
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Clock className="h-3 w-3" aria-hidden />
-            {article.readMin} min
+            {readMin.replace('{n}', String(article.readMin))}
           </span>
         </div>
       </div>

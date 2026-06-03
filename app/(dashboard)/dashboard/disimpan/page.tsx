@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,6 +33,7 @@ const JobCard: any = safeRequire('@/components/molecules/job-card', 'JobCard')
 export const metadata = { title: 'Disimpan' }
 
 export default async function SavedJobsPage() {
+  const t = await getServerT()
   const session = await getServerSession(authOptions)
   if (!session?.user) redirect('/login?callbackUrl=/disimpan')
   const userId = session.user.id
@@ -64,17 +66,17 @@ export default async function SavedJobsPage() {
   return (
     <div className="p-6">
       <header className="mb-6">
-        <h1 className="font-heading text-2xl md:text-3xl">Lowongan Disimpan</h1>
+        <h1 className="font-heading text-2xl md:text-3xl">{t.pagesDash.disimpan.heading}</h1>
         <p className="text-muted-foreground mt-1">
-          {saved.length.toLocaleString('id-ID')} lowongan yang Anda simpan.
+          {t.pagesDash.disimpan.countLabel.replace('{count}', saved.length.toLocaleString('id-ID'))}
         </p>
       </header>
 
       {saved.length === 0 ? (
         <div className="border-border rounded-xl border p-8 text-center">
-          <p className="text-muted-foreground">Belum ada lowongan yang disimpan.</p>
+          <p className="text-muted-foreground">{t.pagesDash.disimpan.emptyText}</p>
           <a href="/jobs" className="text-primary mt-3 inline-block underline">
-            Jelajahi lowongan
+            {t.pagesDash.disimpan.browseLink}
           </a>
         </div>
       ) : (

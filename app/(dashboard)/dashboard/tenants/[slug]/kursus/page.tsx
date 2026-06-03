@@ -6,24 +6,13 @@ import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
 import { CourseRowActions } from '@/components/organisms/tenant-course-row-actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Kursus Tenant — Dasbor' }
 
 const PAGE_SIZE = 20
 
 const STATUSES: CourseStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED']
-
-const STATUS_LABELS: Record<CourseStatus, { label: string; tone: string }> = {
-  DRAFT: { label: 'Draft', tone: 'bg-muted text-muted-foreground' },
-  PUBLISHED: { label: 'Dipublikasikan', tone: 'bg-green-100 text-green-800' },
-  ARCHIVED: { label: 'Diarsipkan', tone: 'bg-stone-200 text-stone-700' },
-}
-
-const LEVEL_LABELS: Record<CourseLevel, string> = {
-  BEGINNER: 'Pemula',
-  INTERMEDIATE: 'Menengah',
-  ADVANCED: 'Lanjutan',
-}
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
 
@@ -48,6 +37,7 @@ export default async function TenantCoursesPage({
   params: { slug: string }
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getServerT()
   const session = await requireAuth(`/dashboard/tenants/${params.slug}/kursus`)
 
   const tenant = await prisma.tenant
@@ -96,6 +86,18 @@ export default async function TenantCoursesPage({
       : undefined
   const query = queryRaw && queryRaw.length > 0 ? queryRaw : undefined
 
+  const STATUS_LABELS: Record<CourseStatus, { label: string; tone: string }> = {
+    DRAFT: { label: t.pagesTenant2.coursesList.statusDraft, tone: 'bg-muted text-muted-foreground' },
+    PUBLISHED: { label: t.pagesTenant2.coursesList.statusPublished, tone: 'bg-green-100 text-green-800' },
+    ARCHIVED: { label: t.pagesTenant2.coursesList.statusArchived, tone: 'bg-stone-200 text-stone-700' },
+  }
+
+  const LEVEL_LABELS: Record<CourseLevel, string> = {
+    BEGINNER: t.pagesTenant2.coursesList.levelBeginner,
+    INTERMEDIATE: t.pagesTenant2.coursesList.levelIntermediate,
+    ADVANCED: t.pagesTenant2.coursesList.levelAdvanced,
+  }
+
   const where: Prisma.CourseWhereInput = {
     tenantId: tenant.id,
     ...(status ? { status } : {}),
@@ -142,7 +144,7 @@ export default async function TenantCoursesPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke {tenant.name}
+          {t.pagesTenant2.coursesList.backTo.replace('{name}', tenant.name)}
         </Link>
       </div>
 
@@ -150,10 +152,10 @@ export default async function TenantCoursesPage({
         <div>
           <div className="flex items-center gap-2">
             <GraduationCap className="h-6 w-6" aria-hidden="true" />
-            <h1 className="font-heading text-2xl md:text-3xl">Kursus</h1>
+            <h1 className="font-heading text-2xl md:text-3xl">{t.pagesTenant2.coursesList.heading}</h1>
           </div>
           <p className="text-muted-foreground mt-1">
-            {total.toLocaleString('id-ID')} kursus di{' '}
+            {t.pagesTenant2.coursesList.totalDesc.replace('{total}', total.toLocaleString('id-ID'))}{' '}
             <span className="font-medium text-foreground">{tenant.name}</span>.
           </p>
         </div>
@@ -165,7 +167,7 @@ export default async function TenantCoursesPage({
               className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-foreground shadow-sm transition"
             >
               <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
-              Impor CSV
+              {t.pagesTenant2.coursesList.importCsv}
             </Link>
             <Link
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -173,7 +175,7 @@ export default async function TenantCoursesPage({
               className="inline-flex items-center gap-2 rounded-md bg-[hsl(220,50%,14%)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(220,50%,18%)]"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
-              Buat kursus
+              {t.pagesTenant2.coursesList.createCourse}
             </Link>
           </div>
         )}
@@ -186,20 +188,20 @@ export default async function TenantCoursesPage({
       >
         <div className="space-y-1 sm:col-span-2">
           <label htmlFor="f-q" className="text-muted-foreground text-xs uppercase">
-            Cari judul
+            {t.pagesTenant2.coursesList.filterLabelSearch}
           </label>
           <input
             id="f-q"
             name="q"
             type="text"
             defaultValue={query ?? ''}
-            placeholder="contoh: next.js untuk pemula"
+            placeholder={t.pagesTenant2.coursesList.filterPlaceholder}
             className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
         <div className="space-y-1">
           <label htmlFor="f-status" className="text-muted-foreground text-xs uppercase">
-            Status
+            {t.pagesTenant2.coursesList.filterLabelStatus}
           </label>
           <select
             id="f-status"
@@ -207,7 +209,7 @@ export default async function TenantCoursesPage({
             defaultValue={status ?? ''}
             className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm"
           >
-            <option value="">Semua status</option>
+            <option value="">{t.pagesTenant2.coursesList.filterAllStatus}</option>
             {STATUSES.map((s) => (
               <option key={s} value={s}>
                 {STATUS_LABELS[s].label}
@@ -220,7 +222,7 @@ export default async function TenantCoursesPage({
             type="submit"
             className="bg-primary text-primary-foreground inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium"
           >
-            Filter
+            {t.pagesTenant2.coursesList.filterSubmit}
           </button>
           {(status || query) && (
             <Link
@@ -228,7 +230,7 @@ export default async function TenantCoursesPage({
               href={baseHref as any}
               className="text-muted-foreground hover:text-foreground text-sm font-medium"
             >
-              Reset
+              {t.pagesTenant2.coursesList.filterReset}
             </Link>
           )}
         </div>
@@ -238,14 +240,14 @@ export default async function TenantCoursesPage({
         <table className="min-w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="p-3 font-medium">Judul</th>
-              <th className="p-3 font-medium">Level</th>
-              <th className="p-3 font-medium">Durasi</th>
-              <th className="p-3 font-medium">Instruktur</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Peserta</th>
-              <th className="p-3 font-medium">Dipublikasi</th>
-              <th className="p-3 font-medium text-right">Aksi</th>
+              <th className="p-3 font-medium">{t.pagesTenant2.coursesList.colTitle}</th>
+              <th className="p-3 font-medium">{t.pagesTenant2.coursesList.colLevel}</th>
+              <th className="p-3 font-medium">{t.pagesTenant2.coursesList.colDuration}</th>
+              <th className="p-3 font-medium">{t.pagesTenant2.coursesList.colInstructor}</th>
+              <th className="p-3 font-medium">{t.pagesTenant2.coursesList.colStatus}</th>
+              <th className="p-3 font-medium">{t.pagesTenant2.coursesList.colEnrollments}</th>
+              <th className="p-3 font-medium">{t.pagesTenant2.coursesList.colPublished}</th>
+              <th className="p-3 font-medium text-right">{t.pagesTenant2.coursesList.colActions}</th>
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
@@ -272,7 +274,7 @@ export default async function TenantCoursesPage({
                   </td>
                   <td className="p-3 text-xs">{LEVEL_LABELS[c.level]}</td>
                   <td className="p-3 font-mono text-xs">
-                    {c.durationHours.toLocaleString('id-ID')} jam
+                    {c.durationHours.toLocaleString('id-ID')} {t.pagesTenant2.coursesList.durationUnit}
                   </td>
                   <td className="p-3 text-xs">
                     {c.instructor
@@ -312,7 +314,7 @@ export default async function TenantCoursesPage({
             {courses.length === 0 && (
               <tr>
                 <td className="text-muted-foreground p-6 text-center" colSpan={8}>
-                  Tidak ada kursus yang cocok.
+                  {t.pagesTenant2.coursesList.emptyState}
                 </td>
               </tr>
             )}
@@ -325,7 +327,9 @@ export default async function TenantCoursesPage({
         className="flex flex-wrap items-center justify-between gap-3 text-sm"
       >
         <p className="text-muted-foreground">
-          Halaman {page} dari {totalPages}
+          {t.pagesTenant2.coursesList.pageOf
+            .replace('{page}', String(page))
+            .replace('{totalPages}', String(totalPages))}
         </p>
         <div className="flex gap-2">
           {page > 1 && (
@@ -334,7 +338,7 @@ export default async function TenantCoursesPage({
               href={buildHref(baseHref, sp, { page: String(page - 1) }) as any}
               className="border-border bg-background hover:bg-muted rounded-md border px-3 py-1.5"
             >
-              ← Sebelumnya
+              {t.pagesTenant2.coursesList.prevPage}
             </Link>
           )}
           {page < totalPages && (
@@ -343,7 +347,7 @@ export default async function TenantCoursesPage({
               href={buildHref(baseHref, sp, { page: String(page + 1) }) as any}
               className="border-border bg-background hover:bg-muted rounded-md border px-3 py-1.5"
             >
-              Selanjutnya →
+              {t.pagesTenant2.coursesList.nextPage}
             </Link>
           )}
         </div>

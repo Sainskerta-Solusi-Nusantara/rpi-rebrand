@@ -8,18 +8,11 @@ import { listQuestions } from '@/lib/interview-questions/queries'
 import { QUESTION_CATEGORIES } from '@/lib/interview-questions/constants'
 import { InterviewQuestionCard } from '@/components/organisms/interview-question-card'
 import { QuestionForm } from '@/components/organisms/interview-question-form'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Bank Pertanyaan Wawancara — Dasbor' }
 
 const PAGE_SIZE = 25
-
-const CATEGORY_LABELS: Record<string, string> = {
-  technical: 'Teknis',
-  behavioral: 'Perilaku',
-  situational: 'Situasional',
-  culture: 'Budaya',
-  other: 'Lainnya',
-}
 
 function buildHref(
   base: string,
@@ -42,6 +35,17 @@ export default async function InterviewQuestionsPage({
   params: { slug: string }
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getServerT()
+  const iq = t.pagesTenant3.interviewQuestions
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    technical: iq.categoryTechnical,
+    behavioral: iq.categoryBehavioral,
+    situational: iq.categorySituational,
+    culture: iq.categoryCulture,
+    other: iq.categoryOther,
+  }
+
   const session = await requireAuth(
     `/dashboard/tenants/${params.slug}/interview-questions`,
   )
@@ -127,7 +131,7 @@ export default async function InterviewQuestionsPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke {tenant.name}
+          {iq.backTo.replace('{name}', tenant.name)}
         </Link>
       </div>
 
@@ -136,13 +140,13 @@ export default async function InterviewQuestionsPage({
           <div className="flex items-center gap-2">
             <ClipboardList className="h-6 w-6" aria-hidden="true" />
             <h1 className="font-heading text-2xl md:text-3xl">
-              Bank Pertanyaan Wawancara
+              {iq.pageHeading}
             </h1>
           </div>
           <p className="text-muted-foreground mt-1">
-            {total.toLocaleString('id-ID')} pertanyaan tersimpan untuk{' '}
-            <span className="font-medium text-foreground">{tenant.name}</span>.
-            Gunakan saat menjadwalkan wawancara.
+            {iq.totalCount
+              .replace('{count}', total.toLocaleString('id-ID'))
+              .replace('{tenant}', tenant.name)}
           </p>
         </div>
         <Link
@@ -155,16 +159,16 @@ export default async function InterviewQuestionsPage({
           className="bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          {showForm ? 'Tutup form' : 'Tambah pertanyaan'}
+          {showForm ? iq.closeForm : iq.addQuestion}
         </Link>
       </header>
 
       {showForm && (
         <section
-          aria-label="Tambah pertanyaan"
+          aria-label={iq.addSectionHeading}
           className="border-border bg-card rounded-2xl border p-5"
         >
-          <h2 className="font-heading mb-3 text-lg">Pertanyaan baru</h2>
+          <h2 className="font-heading mb-3 text-lg">{iq.newQuestionHeading}</h2>
           <QuestionForm tenantSlug={tenant.slug} />
         </section>
       )}
@@ -176,7 +180,7 @@ export default async function InterviewQuestionsPage({
       >
         <div className="space-y-1">
           <label htmlFor="f-category" className="text-muted-foreground text-xs uppercase">
-            Kategori
+            {iq.filterLabelCategory}
           </label>
           <select
             id="f-category"
@@ -184,7 +188,7 @@ export default async function InterviewQuestionsPage({
             defaultValue={category ?? ''}
             className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm"
           >
-            <option value="">Semua kategori</option>
+            <option value="">{iq.filterAllCategories}</option>
             {QUESTION_CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {CATEGORY_LABELS[c] ?? c}
@@ -194,7 +198,7 @@ export default async function InterviewQuestionsPage({
         </div>
         <div className="space-y-1">
           <label htmlFor="f-difficulty" className="text-muted-foreground text-xs uppercase">
-            Kesulitan
+            {iq.filterLabelDifficulty}
           </label>
           <select
             id="f-difficulty"
@@ -202,7 +206,7 @@ export default async function InterviewQuestionsPage({
             defaultValue={difficulty ? String(difficulty) : ''}
             className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm"
           >
-            <option value="">Semua tingkat</option>
+            <option value="">{iq.filterAllLevels}</option>
             {[1, 2, 3, 4, 5].map((n) => (
               <option key={n} value={n}>
                 {n} ★
@@ -212,27 +216,27 @@ export default async function InterviewQuestionsPage({
         </div>
         <div className="space-y-1">
           <label htmlFor="f-q" className="text-muted-foreground text-xs uppercase">
-            Cari teks
+            {iq.filterLabelSearch}
           </label>
           <input
             id="f-q"
             name="q"
             type="text"
             defaultValue={query ?? ''}
-            placeholder="Kata kunci di pertanyaan"
+            placeholder={iq.filterSearchPlaceholder}
             className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
         <div className="space-y-1">
           <label htmlFor="f-tags" className="text-muted-foreground text-xs uppercase">
-            Tag (dipisah koma)
+            {iq.filterLabelTags}
           </label>
           <input
             id="f-tags"
             name="tags"
             type="text"
             defaultValue={tags?.join(', ') ?? ''}
-            placeholder="react, leadership"
+            placeholder={iq.filterTagsPlaceholder}
             className="border-border bg-background block w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
@@ -241,7 +245,7 @@ export default async function InterviewQuestionsPage({
             type="submit"
             className="bg-primary text-primary-foreground inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium"
           >
-            Filter
+            {iq.filterBtn}
           </button>
           {hasFilters && (
             <Link
@@ -249,7 +253,7 @@ export default async function InterviewQuestionsPage({
               href={baseHref as any}
               className="text-muted-foreground hover:text-foreground text-sm font-medium"
             >
-              Reset
+              {iq.filterReset}
             </Link>
           )}
         </div>
@@ -257,12 +261,10 @@ export default async function InterviewQuestionsPage({
 
       {items.length === 0 ? (
         <div className="border-border bg-muted/30 text-muted-foreground rounded-2xl border p-10 text-center text-sm">
-          {hasFilters
-            ? 'Tidak ada pertanyaan yang cocok dengan filter.'
-            : 'Belum ada pertanyaan. Tambah pertanyaan pertama dengan tombol di atas.'}
+          {hasFilters ? iq.emptyFiltered : iq.emptyBlank}
         </div>
       ) : (
-        <ul className="space-y-3" aria-label="Daftar pertanyaan">
+        <ul className="space-y-3" aria-label={iq.listAriaLabel}>
           {items.map((q) => (
             <li key={q.id}>
               <InterviewQuestionCard
@@ -290,7 +292,9 @@ export default async function InterviewQuestionsPage({
         className="flex flex-wrap items-center justify-between gap-3 text-sm"
       >
         <p className="text-muted-foreground">
-          Halaman {page} dari {totalPages}
+          {iq.paginationPage
+            .replace('{page}', String(page))
+            .replace('{total}', String(totalPages))}
         </p>
         <div className="flex gap-2">
           {page > 1 && (
@@ -299,7 +303,7 @@ export default async function InterviewQuestionsPage({
               href={buildHref(baseHref, sp, { page: String(page - 1) }) as any}
               className="border-border bg-background hover:bg-muted rounded-md border px-3 py-1.5"
             >
-              ← Sebelumnya
+              {iq.prevPage}
             </Link>
           )}
           {page < totalPages && (
@@ -308,7 +312,7 @@ export default async function InterviewQuestionsPage({
               href={buildHref(baseHref, sp, { page: String(page + 1) }) as any}
               className="border-border bg-background hover:bg-muted rounded-md border px-3 py-1.5"
             >
-              Selanjutnya →
+              {iq.nextPage}
             </Link>
           )}
         </div>

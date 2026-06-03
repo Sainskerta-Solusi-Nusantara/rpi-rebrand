@@ -5,29 +5,16 @@ import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
 import { TenantMembersImportForm } from '@/components/organisms/tenant-members-import-form'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = { title: 'Impor Anggota CSV — Dasbor' }
-
-const REQUIRED_COLUMNS: { name: string; desc: string }[] = [
-  { name: 'email', desc: 'Email anggota yang akan diundang. Akan dinormalisasi ke huruf kecil.' },
-  {
-    name: 'role',
-    desc: 'Peran di tenant: ADMIN | RECRUITER | MEMBER. Tidak case-sensitive.',
-  },
-]
-
-const OPTIONAL_COLUMNS: { name: string; desc: string }[] = [
-  {
-    name: 'name',
-    desc: 'Nama tampilan (hanya untuk preview; tidak ikut ke undangan).',
-  },
-]
 
 export default async function TenantMembersImportPage({
   params,
 }: {
   params: { slug: string }
 }) {
+  const t = await getServerT()
   const session = await requireAuth(
     `/dashboard/tenants/${params.slug}/anggota/import`,
   )
@@ -47,6 +34,15 @@ export default async function TenantMembersImportPage({
 
   const templateHref = `/api/tenants/${tenant.slug}/members/template`
 
+  const REQUIRED_COLUMNS: { name: string; desc: string }[] = [
+    { name: 'email', desc: t.pagesTenant2.membersImport.colEmailDesc },
+    { name: 'role', desc: t.pagesTenant2.membersImport.colRoleDesc },
+  ]
+
+  const OPTIONAL_COLUMNS: { name: string; desc: string }[] = [
+    { name: 'name', desc: t.pagesTenant2.membersImport.colNameDesc },
+  ]
+
   return (
     <div className="p-6 space-y-6 max-w-4xl">
       <div>
@@ -56,7 +52,7 @@ export default async function TenantMembersImportPage({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali ke tenant
+          {t.pagesTenant2.membersImport.backToTenant}
         </Link>
       </div>
 
@@ -64,28 +60,25 @@ export default async function TenantMembersImportPage({
         <div className="flex items-center gap-2">
           <FileSpreadsheet className="h-6 w-6" aria-hidden="true" />
           <h1 className="font-heading text-2xl md:text-3xl">
-            Impor anggota dari CSV
+            {t.pagesTenant2.membersImport.heading}
           </h1>
         </div>
         <p className="text-muted-foreground mt-1">
-          Kirim hingga 50 undangan anggota sekaligus untuk tenant{' '}
+          {t.pagesTenant2.membersImport.subheading}{' '}
           <span className="font-medium text-foreground">{tenant.name}</span>.
         </p>
       </header>
 
       <section className="border-border bg-card space-y-4 rounded-2xl border p-6">
         <div>
-          <h2 className="font-heading text-lg">Format CSV</h2>
+          <h2 className="font-heading text-lg">{t.pagesTenant2.membersImport.sectionFormatHeading}</h2>
           <p className="text-muted-foreground text-sm">
-            Baris pertama harus berisi nama kolom. Nama kolom tidak dibedakan
-            huruf besar/kecil. Email duplikat di dalam CSV akan diproses sekali
-            (baris pertama menang). Email yang sudah menjadi anggota tenant atau
-            sudah punya undangan aktif akan dilewati.
+            {t.pagesTenant2.membersImport.sectionFormatDesc}
           </p>
         </div>
 
         <div className="space-y-2">
-          <p className="text-foreground text-sm font-semibold">Kolom wajib</p>
+          <p className="text-foreground text-sm font-semibold">{t.pagesTenant2.membersImport.requiredCols}</p>
           <ul className="space-y-1 text-sm">
             {REQUIRED_COLUMNS.map((c) => (
               <li key={c.name} className="flex gap-2">
@@ -99,7 +92,7 @@ export default async function TenantMembersImportPage({
         </div>
 
         <div className="space-y-2">
-          <p className="text-foreground text-sm font-semibold">Kolom opsional</p>
+          <p className="text-foreground text-sm font-semibold">{t.pagesTenant2.membersImport.optionalCols}</p>
           <ul className="space-y-1 text-sm">
             {OPTIONAL_COLUMNS.map((c) => (
               <li key={c.name} className="flex gap-2">
@@ -113,7 +106,7 @@ export default async function TenantMembersImportPage({
         </div>
 
         <div className="space-y-2">
-          <p className="text-foreground text-sm font-semibold">Contoh baris</p>
+          <p className="text-foreground text-sm font-semibold">{t.pagesTenant2.membersImport.exampleRow}</p>
           <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs leading-relaxed">
 {`email,role,name
 budi@example.com,ADMIN,Budi
@@ -129,13 +122,13 @@ agus@example.com,MEMBER,`}
             className="border-border bg-background hover:bg-muted inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium"
           >
             <Download className="h-4 w-4" aria-hidden="true" />
-            Unduh template CSV
+            {t.pagesTenant2.membersImport.downloadTemplate}
           </a>
         </div>
       </section>
 
       <section className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="font-heading mb-4 text-lg">Unggah file</h2>
+        <h2 className="font-heading mb-4 text-lg">{t.pagesTenant2.membersImport.uploadHeading}</h2>
         <TenantMembersImportForm tenantSlug={tenant.slug} />
       </section>
     </div>

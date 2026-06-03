@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Briefcase, Compass, MapPin } from 'lucide-react'
 
 import { Button } from '@/components/atoms/button'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { CAREER_OPENINGS } from '@/lib/careers-data'
 import {
   CAREER_LOCATIONS_META,
@@ -26,7 +27,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   }
 }
 
-export default function LocationPage({ params }: { params: Params }) {
+export default async function LocationPage({ params }: { params: Params }) {
+  const t = await getServerT()
   const location = findCareerLocation(params.slug)
   if (!location) notFound()
 
@@ -66,7 +68,7 @@ export default function LocationPage({ params }: { params: Params }) {
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Kembali ke semua karier
+            {t.pagesCareers.location.back}
           </Link>
         </div>
 
@@ -79,7 +81,7 @@ export default function LocationPage({ params }: { params: Params }) {
                   className="h-px w-8 bg-[color:var(--ring)]"
                 />
                 <span className="text-[color:var(--ring)] text-xs font-medium uppercase tracking-[0.2em]">
-                  Lokasi Karier
+                  {t.pagesCareers.location.eyebrow}
                 </span>
               </div>
               <h1
@@ -100,7 +102,7 @@ export default function LocationPage({ params }: { params: Params }) {
                   <strong className="text-foreground font-medium">
                     {openings.length}
                   </strong>{' '}
-                  lowongan di lokasi ini
+                  {t.pagesCareers.location.openingsSuffix}
                 </span>
               </div>
             </div>
@@ -130,13 +132,13 @@ export default function LocationPage({ params }: { params: Params }) {
                 aria-hidden
               />
               <h2 className="font-heading text-foreground mt-4 text-lg font-semibold">
-                Belum ada lowongan di lokasi ini
+                {t.pagesCareers.location.emptyHeading}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm">
-                Cek kembali nanti — atau jelajahi lokasi lain di bawah.
+                {t.pagesCareers.location.emptyBody}
               </p>
               <Button asChild variant="outline" className="mt-5">
-                <Link href="/careers#openings">Lihat semua lowongan</Link>
+                <Link href="/careers#openings">{t.pagesCareers.location.emptyButton}</Link>
               </Button>
             </div>
           ) : (
@@ -179,18 +181,18 @@ export default function LocationPage({ params }: { params: Params }) {
                 <span aria-hidden className="h-px w-8 bg-[color:var(--ring)]" />
                 <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.2em]">
                   <Compass className="inline h-3.5 w-3.5" aria-hidden />{' '}
-                  Jelajahi
+                  {t.pagesCareers.location.otherEyebrow}
                 </span>
               </div>
               <h2 className="font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
-                Lokasi lainnya
+                {t.pagesCareers.location.otherHeading}
               </h2>
             </div>
             <Link
               href="/careers#openings"
               className="text-foreground/80 hover:text-[color:var(--ring)] inline-flex items-center gap-1 text-sm font-medium transition"
             >
-              Semua lowongan
+              {t.pagesCareers.location.otherAllLink}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>
@@ -237,7 +239,7 @@ export default function LocationPage({ params }: { params: Params }) {
                       </p>
                       <div className="text-muted-foreground mt-3 inline-flex items-center gap-1.5 text-xs">
                         <MapPin className="h-3 w-3" aria-hidden />
-                        {count} lowongan
+                        {t.pagesCareers.location.otherCount.replace('{n}', String(count))}
                       </div>
                     </div>
                   </Link>

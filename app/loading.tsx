@@ -1,4 +1,8 @@
-export default function Loading() {
+import { getServerT } from '@/lib/i18n/server-dictionary'
+
+export default async function Loading() {
+  const t = await getServerT()
+
   return (
     <div
       role="status"
@@ -18,7 +22,7 @@ export default function Loading() {
           <div className="bg-muted h-24 animate-pulse rounded-lg" />
           <div className="bg-muted h-24 animate-pulse rounded-lg" />
         </div>
-        <span className="sr-only">Memuat…</span>
+        <span className="sr-only">{t.pagesRoot.loading.srOnly}</span>
       </div>
     </div>
   )
