@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { prisma } from '@/lib/db'
+import { parseQueryTerms, scoreRelevance, recencyBoost } from '@/lib/search/relevance'
 
 export type CourseLevel = 'beginner' | 'intermediate' | 'advanced'
 
@@ -219,7 +220,7 @@ const COURSE_INCLUDE = {
 } as const
 
 export type CourseDuration = 'short' | 'medium' | 'long'
-export type CourseSort = 'newest' | 'popular' | 'alpha'
+export type CourseSort = 'relevance' | 'newest' | 'popular' | 'alpha'
 
 export const DURATION_BUCKETS: Record<
   CourseDuration,
@@ -231,7 +232,7 @@ export const DURATION_BUCKETS: Record<
 }
 
 const VALID_DURATIONS = new Set<CourseDuration>(['short', 'medium', 'long'])
-const VALID_SORTS = new Set<CourseSort>(['newest', 'popular', 'alpha'])
+const VALID_SORTS = new Set<CourseSort>(['relevance', 'newest', 'popular', 'alpha'])
 
 export type CourseFilters = {
   level?: CourseLevel
@@ -275,33 +276,34 @@ function buildCoursesWhere(filters: CourseFilters): any {
   const dbLevel = filters.level
     ? Object.entries(LEVEL_FROM_DB).find(([, v]) => v === filters.level)?.[0]
     : undefined
-  const q = filters.q?.trim()
   const durations = sanitizeDurations(filters.durations)
+  const terms = parseQueryTerms(filters.q)
+
+  // All AND clauses accumulate into one array so duration + per-term filters
+  // don't collide on the `AND` key.
+  const and: object[] = []
+
+  // Duration multi-select: a course matches if it fits any selected bucket.
+  if (durations.length) and.push({ OR: durations.map(durationClause) })
+
+  // Multi-term AND: every term must match somewhere (title/description/
+  // instructor name). More precise than treating the whole query as one substring.
+  for (const term of terms) {
+    and.push({
+      OR: [
+        { title: { contains: term, mode: 'insensitive' as const } },
+        { description: { contains: term, mode: 'insensitive' as const } },
+        { instructor: { name: { contains: term, mode: 'insensitive' as const } } },
+      ],
+    })
+  }
+
   return {
     status: 'PUBLISHED',
     ...(dbLevel ? { level: dbLevel } : {}),
     ...(filters.tenantSlug ? { tenant: { slug: filters.tenantSlug } } : {}),
     ...(filters.instructorId ? { instructorId: filters.instructorId } : {}),
-    ...(durations.length
-      ? { OR: durations.map(durationClause) }
-      : {}),
-    ...(q
-      ? {
-          AND: [
-            {
-              OR: [
-                { title: { contains: q, mode: 'insensitive' as const } },
-                { description: { contains: q, mode: 'insensitive' as const } },
-                {
-                  instructor: {
-                    name: { contains: q, mode: 'insensitive' as const },
-                  },
-                },
-              ],
-            },
-          ],
-        }
-      : {}),
+    ...(and.length ? { AND: and } : {}),
   }
 }
 
@@ -312,9 +314,30 @@ function buildCoursesOrderBy(sort: CourseSort | undefined): any {
       return { enrollments: { _count: 'desc' as const } }
     case 'alpha':
       return { title: 'asc' as const }
+    // 'relevance' and 'newest' both use recency as the DB ordering;
+    // relevance re-sorts the pool in app code.
     default:
       return { publishedAt: 'desc' as const }
   }
+}
+
+/** Relevance score for a course row against the parsed query terms. */
+function courseRelevanceScore(
+  row: PrismaCourseWithRelations,
+  terms: string[],
+  fullQuery: string,
+): number {
+  return (
+    scoreRelevance(
+      [
+        { text: row.title, weight: 3 },
+        { text: row.instructor?.name, weight: 2 },
+        { text: row.description, weight: 1 },
+      ],
+      terms,
+      fullQuery,
+    ) + recencyBoost(row.publishedAt, 0.5)
+  )
 }
 
 export const getAllCourses = cache(
@@ -349,22 +372,52 @@ export const getCoursesPage = cache(
     const safePage = Math.max(1, Math.floor(page))
     const safeSize = Math.min(60, Math.max(1, Math.floor(pageSize)))
     const where = buildCoursesWhere(filters)
+    const q = filters.q?.trim() ?? ''
+    const terms = parseQueryTerms(q)
+    const useRelevance = sanitizeSort(filters.sort) === 'relevance' && terms.length > 0
 
     let total = 0
     let rows: PrismaCourseWithRelations[] = []
     try {
-      const result = await prisma.$transaction([
-        prisma.course.count({ where }),
-        prisma.course.findMany({
-          where,
-          orderBy: buildCoursesOrderBy(filters.sort),
-          include: COURSE_INCLUDE,
-          skip: (safePage - 1) * safeSize,
-          take: safeSize,
-        }),
-      ])
-      total = result[0]
-      rows = result[1] as PrismaCourseWithRelations[]
+      if (useRelevance) {
+        // Relevance can't be expressed in Prisma orderBy, so rank a bounded
+        // candidate pool in app code. The pool is ordered by recency first so
+        // the most relevant of the freshest courses surface on early pages.
+        const RELEVANCE_POOL = 200
+        const result = await prisma.$transaction([
+          prisma.course.count({ where }),
+          prisma.course.findMany({
+            where,
+            orderBy: { publishedAt: 'desc' },
+            include: COURSE_INCLUDE,
+            take: RELEVANCE_POOL,
+          }),
+        ])
+        total = result[0]
+        const ranked = (result[1] as PrismaCourseWithRelations[])
+          .map((row) => ({ row, score: courseRelevanceScore(row, terms, q) }))
+          .sort(
+            (a, b) =>
+              b.score - a.score ||
+              (b.row.publishedAt?.getTime() ?? 0) - (a.row.publishedAt?.getTime() ?? 0),
+          )
+        rows = ranked
+          .slice((safePage - 1) * safeSize, safePage * safeSize)
+          .map((s) => s.row)
+      } else {
+        const result = await prisma.$transaction([
+          prisma.course.count({ where }),
+          prisma.course.findMany({
+            where,
+            orderBy: buildCoursesOrderBy(filters.sort),
+            include: COURSE_INCLUDE,
+            skip: (safePage - 1) * safeSize,
+            take: safeSize,
+          }),
+        ])
+        total = result[0]
+        rows = result[1] as PrismaCourseWithRelations[]
+      }
     } catch {
       // db unreachable
     }

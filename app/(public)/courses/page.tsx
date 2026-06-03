@@ -109,8 +109,13 @@ export default async function CoursesPage({
   const activeDurations = parseMulti(searchParams.duration).filter(
     (v): v is CourseDuration => v === 'short' || v === 'medium' || v === 'long',
   )
+  // Default to relevance ranking when there's a query, newest otherwise.
   const activeSort = sanitizeSort(
-    typeof searchParams.sort === 'string' ? searchParams.sort : undefined,
+    typeof searchParams.sort === 'string'
+      ? searchParams.sort
+      : activeQuery
+        ? 'relevance'
+        : undefined,
   )
   const pageParam =
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1

@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 const DEFAULT_PAGE_SIZE = 12
 
@@ -39,15 +40,18 @@ export const listPublishedAssessments = cache(
     const page = Math.max(1, params.page ?? 1)
     const pageSize = Math.max(1, Math.min(50, params.pageSize ?? DEFAULT_PAGE_SIZE))
 
+    const terms = parseQueryTerms(params.query)
     const where: Prisma.AssessmentWhereInput = {
       status: 'PUBLISHED',
       ...(params.category ? { category: params.category } : {}),
-      ...(params.query
+      ...(terms.length
         ? {
-            OR: [
-              { title: { contains: params.query, mode: 'insensitive' } },
-              { description: { contains: params.query, mode: 'insensitive' } },
-            ],
+            AND: terms.map((term) => ({
+              OR: [
+                { title: { contains: term, mode: 'insensitive' as const } },
+                { description: { contains: term, mode: 'insensitive' as const } },
+              ],
+            })),
           }
         : {}),
     }
@@ -289,17 +293,22 @@ export async function listAdminAssessments(params: {
   const page = Math.max(1, params.page ?? 1)
   const pageSize = Math.max(1, Math.min(50, params.pageSize ?? 20))
 
+  const terms = parseQueryTerms(params.query)
+  const and: Prisma.AssessmentWhereInput[] = []
+  for (const term of terms) {
+    and.push({
+      OR: [
+        { title: { contains: term, mode: 'insensitive' } },
+        { description: { contains: term, mode: 'insensitive' } },
+        { slug: { contains: term, mode: 'insensitive' } },
+      ],
+    })
+  }
+
   const where: Prisma.AssessmentWhereInput = {
     ...(params.status ? { status: params.status } : {}),
     ...(params.category ? { category: params.category } : {}),
-    ...(params.query
-      ? {
-          OR: [
-            { title: { contains: params.query, mode: 'insensitive' } },
-            { description: { contains: params.query, mode: 'insensitive' } },
-          ],
-        }
-      : {}),
+    ...(and.length ? { AND: and } : {}),
   }
 
   const [rows, total] = await Promise.all([

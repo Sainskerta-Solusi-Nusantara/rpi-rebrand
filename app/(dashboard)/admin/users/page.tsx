@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client'
 import { AdminUsersTableSelector } from '@/components/organisms/admin-users-table-selector'
 import { getServerT, getServerLocale } from '@/lib/i18n/server-dictionary'
 import { formatNumber } from '@/lib/i18n/format'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 function makeFallback(label: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,15 +49,16 @@ export default async function AdminUsersPage({
   const pageRaw = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1
   const page = Math.max(1, Number.isFinite(pageRaw) ? pageRaw : 1)
 
+  const terms = parseQueryTerms(q)
+  const termClauses: Prisma.UserWhereInput[] = terms.map((term) => ({
+    OR: [
+      { email: { contains: term, mode: 'insensitive' } },
+      { name: { contains: term, mode: 'insensitive' } },
+    ],
+  }))
+
   const where: Prisma.UserWhereInput = {
-    ...(q
-      ? {
-          OR: [
-            { email: { contains: q, mode: 'insensitive' } },
-            { name: { contains: q, mode: 'insensitive' } },
-          ],
-        }
-      : {}),
+    ...(termClauses.length ? { AND: termClauses } : {}),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(role ? ({ globalRole: role as any } as Prisma.UserWhereInput) : {}),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

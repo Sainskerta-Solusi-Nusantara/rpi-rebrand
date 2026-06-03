@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { ApplicationStatus, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 /**
  * Card shown on the recruiter kanban board.
@@ -122,15 +123,16 @@ export const getKanbanData = cache(
     if (!tenantId) return EMPTY
 
     const q = searchQuery?.trim()
+    const terms = parseQueryTerms(q)
     const baseWhere: Prisma.ApplicationWhereInput = { tenantId }
     if (jobId) baseWhere.jobId = jobId
-    if (q) {
-      baseWhere.user = {
+    if (terms.length > 0) {
+      baseWhere.AND = terms.map((term) => ({
         OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { email: { contains: q, mode: 'insensitive' } },
+          { user: { name: { contains: term, mode: 'insensitive' } } },
+          { user: { email: { contains: term, mode: 'insensitive' } } },
         ],
-      }
+      }))
     }
 
     const SELECT = {

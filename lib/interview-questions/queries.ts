@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 export type QuestionSummary = {
   id: string
@@ -64,8 +65,15 @@ export const listQuestions = cache(
       if (typeof difficulty === 'number' && Number.isFinite(difficulty)) {
         where.difficulty = difficulty
       }
-      if (query && query.trim()) {
-        where.text = { contains: query.trim(), mode: 'insensitive' }
+      const terms = parseQueryTerms(query)
+      if (terms.length > 0) {
+        const and: Prisma.InterviewQuestionWhereInput[] = terms.map((term) => ({
+          OR: [
+            { text: { contains: term, mode: 'insensitive' as const } },
+            { tags: { has: term } },
+          ],
+        }))
+        where.AND = and
       }
       if (tags && tags.length > 0) {
         // Match any of the requested tags (OR semantics is friendlier for

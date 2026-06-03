@@ -11,6 +11,7 @@
 import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
+import { parseQueryTerms, scoreRelevance, recencyBoost } from '@/lib/search/relevance'
 
 export type ArticleStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 
@@ -71,12 +72,67 @@ export const listPublishedArticles = cache(async function listPublishedArticles(
   if (input.tag && input.tag.length > 0) {
     where.tags = { has: input.tag.toLowerCase() }
   }
-  if (input.query && input.query.length > 0) {
-    const q = input.query.trim()
-    where.OR = [
-      { title: { contains: q, mode: 'insensitive' } },
-      { summary: { contains: q, mode: 'insensitive' } },
-    ]
+
+  const q = input.query?.trim() ?? ''
+  const terms = parseQueryTerms(q)
+
+  if (terms.length > 0) {
+    // Multi-term AND: every term must appear somewhere (title / summary / body / tags).
+    const and: Prisma.ArticleWhereInput[] = terms.map((term) => ({
+      OR: [
+        { title: { contains: term, mode: 'insensitive' as const } },
+        { summary: { contains: term, mode: 'insensitive' as const } },
+        { body: { contains: term, mode: 'insensitive' as const } },
+        { tags: { has: term } },
+      ],
+    }))
+    where.AND = and
+  }
+
+  if (terms.length > 0) {
+    // Relevance ranking: pool up to 200 candidates, score in app code,
+    // then slice for the requested page.
+    const POOL = 200
+    const [total, pool] = await Promise.all([
+      prisma.article.count({ where }),
+      prisma.article.findMany({
+        where,
+        select: { ...LIST_SELECT, body: true },
+        orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+        take: POOL,
+      }),
+    ])
+
+    const ranked = pool
+      .map((row) => ({
+        row,
+        score:
+          scoreRelevance(
+            [
+              { text: row.title, weight: 3 },
+              { text: row.tags, weight: 2 },
+              { text: row.summary, weight: 1.5 },
+              { text: row.body, weight: 1 },
+            ],
+            terms,
+            q,
+          ) + recencyBoost(row.publishedAt, 0.5),
+      }))
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          (b.row.publishedAt?.getTime() ?? 0) - (a.row.publishedAt?.getTime() ?? 0),
+      )
+
+    const items: ArticleListItem[] = ranked
+      .slice((page - 1) * pageSize, page * pageSize)
+      .map(({ row }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { body: _body, ...rest } = row
+        return rest as ArticleListItem
+      })
+
+    return { items, total }
   }
 
   const [items, total] = await Promise.all([
@@ -153,12 +209,19 @@ export const listAdminArticles = cache(async function listAdminArticles(input: {
 
   if (input.status) where.status = input.status
   if (input.query && input.query.length > 0) {
-    const q = input.query.trim()
-    where.OR = [
-      { title: { contains: q, mode: 'insensitive' } },
-      { summary: { contains: q, mode: 'insensitive' } },
-      { slug: { contains: q, mode: 'insensitive' } },
-    ]
+    const terms = parseQueryTerms(input.query)
+    if (terms.length > 0) {
+      // Multi-term AND: every term must appear somewhere (title / summary / slug / body / tags).
+      where.AND = terms.map((term) => ({
+        OR: [
+          { title: { contains: term, mode: 'insensitive' as const } },
+          { summary: { contains: term, mode: 'insensitive' as const } },
+          { slug: { contains: term, mode: 'insensitive' as const } },
+          { body: { contains: term, mode: 'insensitive' as const } },
+          { tags: { has: term } },
+        ],
+      }))
+    }
   }
 
   const [items, total] = await Promise.all([

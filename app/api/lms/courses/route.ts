@@ -18,6 +18,7 @@ import {
   paginated,
   parsePagination,
 } from '@/lib/api-helpers'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 const courseCreateSchema = z.object({
   title: z.string().min(2).max(200),
@@ -47,11 +48,15 @@ export async function GET(req: NextRequest) {
       const tenant = await prisma.tenant.findUnique({ where: { slug }, select: { id: true } })
       where.tenantId = tenant?.id ?? '__none__'
     }
-    if (q) {
-      where.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-      ]
+    const terms = parseQueryTerms(q)
+    if (terms.length > 0) {
+      const and: object[] = terms.map((term) => ({
+        OR: [
+          { title: { contains: term, mode: 'insensitive' } },
+          { description: { contains: term, mode: 'insensitive' } },
+        ],
+      }))
+      where.AND = and
     }
     if (['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(level)) {
       where.level = level as Prisma.CourseWhereInput['level']

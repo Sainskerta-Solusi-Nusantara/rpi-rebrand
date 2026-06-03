@@ -17,6 +17,7 @@ import {
   paginated,
   parsePagination,
 } from '@/lib/api-helpers'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/
 const RESERVED_SLUGS = new Set(['www', 'app', 'api', 'admin', 'auth', 'static', 'public', 'dashboard'])
@@ -38,10 +39,14 @@ export async function GET(req: NextRequest) {
 
     const where: Prisma.TenantWhereInput = { status: 'ACTIVE' }
     if (q) {
-      where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { slug: { contains: q, mode: 'insensitive' } },
-      ]
+      const terms = parseQueryTerms(q)
+      // Multi-term AND: every term must match in name or slug.
+      where.AND = terms.map((term) => ({
+        OR: [
+          { name: { contains: term, mode: 'insensitive' } },
+          { slug: { contains: term, mode: 'insensitive' } },
+        ],
+      }))
     }
 
     const [items, total] = await Promise.all([

@@ -532,6 +532,7 @@ export const publicpages = {
         advanced: 'Lanjutan',
       },
       sortLabels: {
+        relevance: 'Relevansi',
         newest: 'Terbaru',
         popular: 'Terpopuler',
         alpha: 'A–Z',
@@ -1481,6 +1482,7 @@ export const publicpages = {
         advanced: 'Advanced',
       },
       sortLabels: {
+        relevance: 'Relevance',
         newest: 'Newest',
         popular: 'Most popular',
         alpha: 'A–Z',

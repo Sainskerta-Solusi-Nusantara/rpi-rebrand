@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 export type FlagStatus = 'pending' | 'reviewing' | 'resolved' | 'dismissed'
 export type FlagResourceType =
@@ -48,18 +49,19 @@ export async function listFlags(opts: {
   const page = Math.max(1, opts.page ?? 1)
   const pageSize = Math.max(1, Math.min(100, opts.pageSize ?? DEFAULT_PAGE_SIZE))
 
+  const terms = parseQueryTerms(opts.query)
+  const and: Prisma.ModerationFlagWhereInput[] = terms.map((term) => ({
+    OR: [
+      { resourceId: { contains: term, mode: 'insensitive' } },
+      { description: { contains: term, mode: 'insensitive' } },
+      { reason: { contains: term, mode: 'insensitive' } },
+    ],
+  }))
+
   const where: Prisma.ModerationFlagWhereInput = {
     ...(opts.status ? { status: opts.status } : {}),
     ...(opts.resourceType ? { resourceType: opts.resourceType } : {}),
-    ...(opts.query
-      ? {
-          OR: [
-            { resourceId: { contains: opts.query, mode: 'insensitive' } },
-            { description: { contains: opts.query, mode: 'insensitive' } },
-            { reason: { contains: opts.query, mode: 'insensitive' } },
-          ],
-        }
-      : {}),
+    ...(and.length ? { AND: and } : {}),
   }
 
   try {

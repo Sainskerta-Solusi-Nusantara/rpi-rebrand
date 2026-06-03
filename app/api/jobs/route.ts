@@ -23,6 +23,7 @@ import {
   paginated,
   parsePagination,
 } from '@/lib/api-helpers'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 const employmentTypes = ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'] as const
 const experienceLevels = ['ENTRY', 'JUNIOR', 'MID', 'SENIOR', 'LEAD', 'EXECUTIVE'] as const
@@ -73,12 +74,16 @@ export async function GET(req: NextRequest) {
       else where.tenantId = '__none__' // No results for unknown slug.
     }
 
-    if (q) {
-      where.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-        { tags: { has: q } },
-      ]
+    const terms = parseQueryTerms(q)
+    if (terms.length > 0) {
+      const and: object[] = terms.map((term) => ({
+        OR: [
+          { title: { contains: term, mode: 'insensitive' } },
+          { description: { contains: term, mode: 'insensitive' } },
+          { tags: { has: term } },
+        ],
+      }))
+      where.AND = and
     }
     if (category) {
       where.category = { slug: category }

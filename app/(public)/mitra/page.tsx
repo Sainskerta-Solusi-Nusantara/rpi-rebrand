@@ -65,6 +65,7 @@ export default async function MitraPage({
   const m = t.pagesPublicMisc.mitra
 
   const SORT_OPTIONS: { value: MitraSort; label: string }[] = [
+    { value: 'relevance', label: m.sortRelevance },
     { value: 'newest', label: m.sortNewest },
     { value: 'alpha', label: m.sortAlpha },
     { value: 'jobs-high', label: m.sortJobsHigh },
@@ -78,8 +79,13 @@ export default async function MitraPage({
   const activePlan = sanitizeMitraPlan(
     typeof searchParams.plan === 'string' ? searchParams.plan : undefined,
   )
+  // Default to relevance ranking when there is a query, newest otherwise.
   const activeSort = sanitizeMitraSort(
-    typeof searchParams.sort === 'string' ? searchParams.sort : undefined,
+    typeof searchParams.sort === 'string'
+      ? searchParams.sort
+      : activeQuery
+        ? 'relevance'
+        : undefined,
   )
   const pageParam =
     typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1

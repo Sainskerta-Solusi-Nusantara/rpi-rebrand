@@ -16,6 +16,7 @@ import {
   paginated,
   parsePagination,
 } from '@/lib/api-helpers'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,13 +32,22 @@ export async function GET(req: NextRequest) {
     const status = sp.get('status')?.trim().toUpperCase() ?? ''
     const pagination = parsePagination(sp, 25, 100)
 
-    const where: Prisma.TenantWhereInput = {}
+    const and: Prisma.TenantWhereInput[] = []
     if (q) {
-      where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { slug: { contains: q, mode: 'insensitive' } },
-        { customDomain: { contains: q, mode: 'insensitive' } },
-      ]
+      const terms = parseQueryTerms(q)
+      for (const term of terms) {
+        and.push({
+          OR: [
+            { name: { contains: term, mode: 'insensitive' } },
+            { slug: { contains: term, mode: 'insensitive' } },
+            { customDomain: { contains: term, mode: 'insensitive' } },
+          ],
+        })
+      }
+    }
+
+    const where: Prisma.TenantWhereInput = {
+      ...(and.length ? { AND: and } : {}),
     }
     if (['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE'].includes(plan)) {
       where.planTier = plan as Prisma.TenantWhereInput['planTier']

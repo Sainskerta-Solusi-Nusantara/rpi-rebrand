@@ -15,7 +15,7 @@
 import { cache } from 'react'
 import type { ExperienceLevel } from '@prisma/client'
 import { prisma } from '@/lib/db'
-import { tokenize } from '@/lib/recommendations/stopwords'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 /** Hard cap on data points pulled per call (most-recent first). */
 const SAMPLE_CAP = 5000
@@ -266,18 +266,22 @@ export const getSalaryForRole = cache(
     location,
   }: SalaryForRoleParams): Promise<SalaryStats> => {
     try {
-      const tokens = tokenize(title)
-      if (tokens.length === 0) {
+      const terms = parseQueryTerms(title)
+      if (terms.length === 0) {
         return { ...EMPTY_STATS, lastUpdated: new Date() }
       }
+
+      const and = terms.map((term) => ({
+        OR: [
+          { title: { contains: term, mode: 'insensitive' as const } },
+        ],
+      }))
 
       const where = {
         status: 'PUBLISHED' as const,
         salaryMin: { gt: 0 },
         salaryMax: { gt: 0 },
-        AND: tokens.map((tok) => ({
-          title: { contains: tok, mode: 'insensitive' as const },
-        })),
+        AND: and,
         ...(experienceLevel ? { experienceLevel } : {}),
         ...(location
           ? { location: { contains: location, mode: 'insensitive' as const } }

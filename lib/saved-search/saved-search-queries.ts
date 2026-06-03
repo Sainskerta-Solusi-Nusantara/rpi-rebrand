@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { JobStatus, type EmploymentType, type SavedSearch } from '@prisma/client'
 import { prisma } from '@/lib/db'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 /**
  * Queries module for the saved-search / weekly digest feature
@@ -90,30 +91,36 @@ export async function matchJobsForSearch(
   search: Pick<SavedSearch, 'query' | 'categorySlug' | 'location' | 'employmentType'>,
   since: Date,
 ): Promise<MatchingJob[]> {
-  const where: Record<string, unknown> = {
-    status: JobStatus.PUBLISHED,
-    publishedAt: { gte: since },
-  }
+  const and: object[] = [
+    { status: JobStatus.PUBLISHED },
+    { publishedAt: { gte: since } },
+  ]
 
-  if (search.query && search.query.trim()) {
-    const q = search.query.trim()
-    where.OR = [
-      { title: { contains: q, mode: 'insensitive' } },
-      { description: { contains: q, mode: 'insensitive' } },
-    ]
+  const terms = parseQueryTerms(search.query ?? '')
+  for (const term of terms) {
+    and.push({
+      OR: [
+        { title: { contains: term, mode: 'insensitive' } },
+        { description: { contains: term, mode: 'insensitive' } },
+        { tags: { has: term } },
+        { tenant: { name: { contains: term, mode: 'insensitive' } } },
+      ],
+    })
   }
 
   if (search.categorySlug && search.categorySlug.trim()) {
-    where.category = { is: { slug: search.categorySlug.trim() } }
+    and.push({ category: { is: { slug: search.categorySlug.trim() } } })
   }
 
   if (search.location && search.location.trim()) {
-    where.location = { contains: search.location.trim(), mode: 'insensitive' }
+    and.push({ location: { contains: search.location.trim(), mode: 'insensitive' } })
   }
 
   if (search.employmentType && VALID_EMPLOYMENT_TYPES.has(search.employmentType)) {
-    where.employmentType = search.employmentType as EmploymentType
+    and.push({ employmentType: search.employmentType as EmploymentType })
   }
+
+  const where = { AND: and }
 
   try {
     const jobs = await prisma.job.findMany({

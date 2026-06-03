@@ -6,6 +6,7 @@ import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
 import { JobRowActions } from '@/components/organisms/tenant-job-row-actions'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 export const metadata = { title: 'Lowongan Tenant — Dasbor' }
 
@@ -97,12 +98,19 @@ export default async function TenantJobsPage({
       : undefined
   const query = queryRaw && queryRaw.length > 0 ? queryRaw : undefined
 
+  const terms = parseQueryTerms(query)
+  const termFilters: Prisma.JobWhereInput[] = terms.map((term) => ({
+    OR: [
+      { title: { contains: term, mode: 'insensitive' as const } },
+      { location: { contains: term, mode: 'insensitive' as const } },
+      { tags: { has: term } },
+    ],
+  }))
+
   const where: Prisma.JobWhereInput = {
     tenantId: tenant.id,
     ...(status ? { status } : {}),
-    ...(query
-      ? { title: { contains: query, mode: 'insensitive' as const } }
-      : {}),
+    ...(termFilters.length ? { AND: termFilters } : {}),
   }
 
   const [jobs, total] = await Promise.all([

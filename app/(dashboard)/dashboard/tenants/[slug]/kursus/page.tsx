@@ -7,6 +7,7 @@ import { hasTenantPermission } from '@/lib/auth/rbac'
 import { prisma } from '@/lib/db'
 import { CourseRowActions } from '@/components/organisms/tenant-course-row-actions'
 import { getServerT } from '@/lib/i18n/server-dictionary'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 export const metadata = { title: 'Kursus Tenant — Dasbor' }
 
@@ -98,12 +99,19 @@ export default async function TenantCoursesPage({
     ADVANCED: t.pagesTenant2.coursesList.levelAdvanced,
   }
 
+  const terms = parseQueryTerms(query)
+
+  const courseAnd: Prisma.CourseWhereInput[] = terms.map((term) => ({
+    OR: [
+      { title: { contains: term, mode: 'insensitive' as const } },
+      { description: { contains: term, mode: 'insensitive' as const } },
+    ],
+  }))
+
   const where: Prisma.CourseWhereInput = {
     tenantId: tenant.id,
     ...(status ? { status } : {}),
-    ...(query
-      ? { title: { contains: query, mode: 'insensitive' as const } }
-      : {}),
+    ...(courseAnd.length ? { AND: courseAnd } : {}),
   }
 
   const [courses, total] = await Promise.all([

@@ -10,6 +10,7 @@ import {
   ApplicationsCheckboxList,
   type ApplicationRow,
 } from '@/components/organisms/applications-checkbox-list'
+import { parseQueryTerms } from '@/lib/search/relevance'
 
 export const metadata = { title: 'Lamaran Tenant — Dasbor' }
 
@@ -121,17 +122,21 @@ export default async function TenantApplicationsPage({
     typeof searchParams.page === 'string' ? Number(searchParams.page) : 1
   const page = Math.max(1, Number.isFinite(pageRaw) ? pageRaw : 1)
 
+  const searchTerms = parseQueryTerms(search)
+
   const where: Prisma.ApplicationWhereInput = { tenantId: tenant.id }
   if (statusFilter) where.status = statusFilter
   if (jobIdFilter) where.jobId = jobIdFilter
   if (typeof minScore === 'number') where.aiScore = { gte: minScore }
-  if (search) {
-    where.user = {
-      OR: [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ],
-    }
+  if (searchTerms.length > 0) {
+    where.AND = searchTerms.map((term) => ({
+      user: {
+        OR: [
+          { name: { contains: term, mode: 'insensitive' as const } },
+          { email: { contains: term, mode: 'insensitive' as const } },
+        ],
+      },
+    }))
   }
 
   // Sort priority — recruiters care most about REVIEWED/SHORTLISTED, then HIRED,

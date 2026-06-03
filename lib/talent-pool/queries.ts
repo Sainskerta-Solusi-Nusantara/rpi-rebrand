@@ -35,6 +35,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import type { GlobalRole, TenantMembership } from '@/types/next-auth'
+import { parseQueryTerms, scoreRelevance, recencyBoost } from '@/lib/search/relevance'
 
 const CANDIDATE_POOL_LIMIT = 200
 const TOP_SKILLS_PER_CANDIDATE = 8
@@ -205,37 +206,38 @@ export const searchCandidates = cache(
     const trimmedQuery = typeof query === 'string' ? query.trim() : ''
     const trimmedLocation =
       typeof location === 'string' ? location.trim() : ''
+    const terms = parseQueryTerms(trimmedQuery)
 
     // --- Build SQL-level prefilter -----------------------------------------
-    // We can cheaply restrict by profilePublic + ACTIVE + (location substring)
-    // + (headline match) at the DB layer. The remaining JSON filters
-    // (skills, summary text, experience years) are applied in JS after we
-    // fetch the candidate pool.
+    // Restrict by profilePublic + ACTIVE + optional location at the DB layer.
+    // Multi-term AND: each term must appear in name OR headline. Skills,
+    // summary, and experience titles are matched per-row in JS below (they
+    // live in JSON), so the DB clause is a liberal prefilter — the JS pass
+    // is the authoritative filter gate.
+    const and: Prisma.UserWhereInput[] = []
+
+    if (trimmedLocation) {
+      and.push({
+        location: { contains: trimmedLocation, mode: 'insensitive' as const },
+      })
+    }
+
+    // One AND clause per term: term must hit name OR headline at the DB layer.
+    // The JS pass widens this to also accept summary / experience title hits,
+    // so rows that only match in JSON are re-admitted after fetch.
+    for (const term of terms) {
+      and.push({
+        OR: [
+          { name: { contains: term, mode: 'insensitive' as const } },
+          { headline: { contains: term, mode: 'insensitive' as const } },
+        ],
+      })
+    }
+
     const where: Prisma.UserWhereInput = {
       profilePublic: true,
       status: 'ACTIVE',
-      ...(trimmedLocation
-        ? {
-            location: {
-              contains: trimmedLocation,
-              mode: 'insensitive' as const,
-            },
-          }
-        : {}),
-    }
-
-    // `query` can match headline OR resume summary OR experience.title.
-    // Headline match is the only one we can express in SQL cheaply; the rest
-    // we evaluate per-row in JS below.
-    if (trimmedQuery) {
-      where.OR = [
-        {
-          headline: { contains: trimmedQuery, mode: 'insensitive' as const },
-        },
-        // We also match name as a UX nicety — recruiter-side search expects
-        // "search by name" to work even when headline is empty.
-        { name: { contains: trimmedQuery, mode: 'insensitive' as const } },
-      ]
+      ...(and.length ? { AND: and } : {}),
     }
 
     let rows: {
@@ -285,8 +287,6 @@ export const searchCandidates = cache(
       return { items: [], total: 0 }
     }
 
-    const lowerQuery = trimmedQuery.toLowerCase()
-
     type Scored = TalentPoolCandidate & { _score: number }
     const scored: Scored[] = []
 
@@ -325,22 +325,24 @@ export const searchCandidates = cache(
         if (skillMatches === 0) continue
       }
 
-      // Free-text query: if not yet matched by headline/name (SQL OR), try
-      // summary and experience titles in JS.
-      if (trimmedQuery) {
-        const headlineHit = (u.headline ?? '').toLowerCase().includes(lowerQuery)
-        const nameHit = (u.name ?? '').toLowerCase().includes(lowerQuery)
-        if (!headlineHit && !nameHit) {
-          const summaryHit = summary.toLowerCase().includes(lowerQuery)
-          const expHit = experiences.some((e) =>
-            (asString(e.title) ?? '').toLowerCase().includes(lowerQuery),
-          )
-          // The SQL prefilter may have already let this row through via
-          // headline/name; if neither matches and JSON has no match either,
-          // skip it. (SQL match dominates; if SQL didn't match, Prisma
-          // wouldn't have returned the row in the first place.)
-          if (!summaryHit && !expHit) continue
-        }
+      // Multi-term AND: every term must match in at least one of
+      // name / headline / skills / summary / experience titles.
+      // The DB prefilter only checked name + headline, so terms that only
+      // appear in JSON fields are authorised here.
+      if (terms.length > 0) {
+        const expTitles = experiences
+          .map((e) => asString(e.title) ?? '')
+          .join(' ')
+        const candidateText = [
+          u.name ?? '',
+          u.headline ?? '',
+          allSkills.join(' '),
+          summary,
+          expTitles,
+        ].join(' ').toLowerCase()
+
+        const allTermsMatch = terms.every((term) => candidateText.includes(term))
+        if (!allTermsMatch) continue
       }
 
       const experienceYears = computeExperienceYears(experiences)
@@ -359,9 +361,23 @@ export const searchCandidates = cache(
         continue
       }
 
-      // Relevance score: matched skills count, with tiebreak on updatedAt
-      // (handled via array order — rows were already updatedAt-desc).
-      const score = skillMatches
+      // Relevance score: weighted field match (name/headline 3, skills 2,
+      // location/summary 1) + recency boost on updatedAt as tiebreaker.
+      const score =
+        scoreRelevance(
+          [
+            { text: u.name, weight: 3 },
+            { text: u.headline, weight: 3 },
+            { text: allSkills, weight: 2 },
+            { text: u.location, weight: 1 },
+            { text: summary, weight: 1 },
+          ],
+          terms,
+          trimmedQuery,
+        ) +
+        recencyBoost(u.updatedAt, 0.5) +
+        // Preserve skill-filter signal as a sub-component of the score.
+        skillMatches * 0.1
 
       scored.push({
         userId: u.id,
@@ -379,8 +395,8 @@ export const searchCandidates = cache(
       })
     }
 
-    // Stable sort: score desc, then updatedAt desc (already in updatedAt order
-    // from SQL, so a stable sort by -score preserves the tiebreak).
+    // Sort by relevance desc; updatedAt desc is the implicit tiebreaker
+    // (rows arrived from DB in updatedAt desc order; stable JS sort preserves it).
     scored.sort((a, b) => b._score - a._score)
 
     const total = scored.length
