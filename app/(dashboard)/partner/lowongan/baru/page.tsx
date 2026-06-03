@@ -1,38 +1,30 @@
+import { getServerSession } from 'next-auth'
+import { headers } from 'next/headers'
+import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db'
 import { getServerT } from '@/lib/i18n/server-dictionary'
-
-function makeFallback(label: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function Fallback(_props: any) {
-    return (
-      <div
-        role="status"
-        aria-busy="true"
-        className="bg-muted my-4 h-72 w-full animate-pulse rounded-xl"
-        data-todo={`component:${label}`}
-      />
-    )
-  }
-}
-function safeRequire<T = unknown>(path: string, exportName: string): T {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require(path)
-    return (mod?.[exportName] ?? makeFallback(`${path}#${exportName}`)) as T
-  } catch {
-    return makeFallback(`${path}#${exportName}`) as unknown as T
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const JobForm: any = safeRequire('@/components/organisms/job-form', 'JobForm')
+import { JobForm } from '@/components/organisms/job-form'
 
 export const metadata = { title: 'Buat Lowongan Baru' }
 
+async function resolveTenantSlug(userId: string): Promise<string | null> {
+  const hSlug = headers().get('x-tenant-slug')
+  if (hSlug) return hSlug
+  const ut = await prisma.userTenant
+    .findFirst({
+      where: { userId },
+      select: { tenant: { select: { slug: true } } },
+    })
+    .catch(() => null)
+  return ut?.tenant?.slug ?? null
+}
+
 export default async function NewJobPage() {
   const t = await getServerT()
+  const session = await getServerSession(authOptions)
+  const slug = session?.user ? await resolveTenantSlug(session.user.id) : null
   const categories = await prisma.jobCategory
-    .findMany({ orderBy: { name: 'asc' } })
+    .findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } })
     .catch(() => [])
 
   return (
@@ -42,7 +34,11 @@ export default async function NewJobPage() {
         <p className="text-muted-foreground mt-1">{t.partner.newJob.subtitle}</p>
       </header>
 
-      <JobForm mode="create" categories={categories} />
+      {slug ? (
+        <JobForm tenantSlug={slug} categories={categories} />
+      ) : (
+        <p className="text-muted-foreground">{t.partner.newJob.noTenant}</p>
+      )}
     </div>
   )
 }

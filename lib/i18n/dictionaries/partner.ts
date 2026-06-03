@@ -58,6 +58,8 @@ export const partner = {
       title: 'Buat Lowongan Baru',
       subtitle:
         'Isi detail lowongan. Anda dapat menyimpan sebagai draf atau langsung mempublikasikan.',
+      noTenant:
+        'Anda belum tergabung di tenant manapun, jadi belum bisa membuat lowongan.',
     },
     talent: {
       metaTitle: 'Talent Pool',
@@ -158,6 +160,8 @@ export const partner = {
       title: 'Create New Job',
       subtitle:
         'Fill in the job details. You can save it as a draft or publish it right away.',
+      noTenant:
+        "You're not a member of any tenant yet, so you can't create a job.",
     },
     talent: {
       metaTitle: 'Talent Pool',

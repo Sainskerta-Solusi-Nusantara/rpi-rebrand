@@ -33,16 +33,23 @@ const InviteForm: any = safeRequire('@/components/molecules/invite-form', 'Invit
 
 export const metadata = { title: 'Tim Saya' }
 
-async function resolveTenantId(userId: string): Promise<string | null> {
+async function resolveTenant(
+  userId: string,
+): Promise<{ id: string; slug: string } | null> {
   const hSlug = headers().get('x-tenant-slug')
   if (hSlug) {
-    const t = await prisma.tenant.findUnique({ where: { slug: hSlug }, select: { id: true } }).catch(() => null)
-    if (t?.id) return t.id
+    const t = await prisma.tenant
+      .findUnique({ where: { slug: hSlug }, select: { id: true, slug: true } })
+      .catch(() => null)
+    if (t) return t
   }
   const ut = await prisma.userTenant
-    .findFirst({ where: { userId }, select: { tenantId: true } })
+    .findFirst({
+      where: { userId },
+      select: { tenant: { select: { id: true, slug: true } } },
+    })
     .catch(() => null)
-  return ut?.tenantId ?? null
+  return ut?.tenant ?? null
 }
 
 export default async function PartnerTeamPage() {
@@ -50,13 +57,13 @@ export default async function PartnerTeamPage() {
   const tp = t.partner
   const roleLabels: Record<string, string> = tp.roles
   const session = await getServerSession(authOptions)
-  const tenantId = await resolveTenantId(session!.user.id)
+  const tenant = await resolveTenant(session!.user.id)
 
   const [members, invitations] = await Promise.all([
-    tenantId
+    tenant
       ? prisma.userTenant
           .findMany({
-            where: { tenantId },
+            where: { tenantId: tenant.id },
             orderBy: { joinedAt: 'desc' },
             include: {
               user: { select: { id: true, name: true, email: true, image: true } },
@@ -64,10 +71,10 @@ export default async function PartnerTeamPage() {
           })
           .catch(() => [])
       : Promise.resolve([]),
-    tenantId
+    tenant
       ? prisma.invitation
           .findMany({
-            where: { tenantId, acceptedAt: null },
+            where: { tenantId: tenant.id, acceptedAt: null },
             orderBy: { createdAt: 'desc' },
           })
           .catch(() => [])
@@ -85,7 +92,7 @@ export default async function PartnerTeamPage() {
         </p>
       </header>
 
-      <InviteForm />
+      {tenant ? <InviteForm tenantSlug={tenant.slug} /> : null}
 
       <section>
         <h2 className="font-heading text-xl mb-4">{tp.team.membersHeading}</h2>
