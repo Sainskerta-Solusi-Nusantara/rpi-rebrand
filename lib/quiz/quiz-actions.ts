@@ -12,6 +12,7 @@ import {
   type StartAttemptResult,
   type SubmitAttemptResult,
 } from '@/lib/quiz/quiz-constants'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 // -----------------------------------------------------------------------------
 // Helpers
@@ -51,11 +52,12 @@ function setsEqual(a: Set<string>, b: Set<string>): boolean {
  * are NOT counted against the cap — they will be the natural reuse target.
  */
 export async function startQuizAttempt(quizId: string): Promise<string> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) throw new Error('Anda harus masuk.')
+  if (!session?.user?.id) throw new Error(t.srvAssessments.quiz.auth.mustLogin)
   const userId = session.user.id
 
-  if (!quizId) throw new Error('ID kuis tidak valid.')
+  if (!quizId) throw new Error(t.srvAssessments.quiz.validation.invalidQuizId)
 
   const quiz = await prisma.quiz.findUnique({
     where: { id: quizId },
@@ -70,14 +72,14 @@ export async function startQuizAttempt(quizId: string): Promise<string> {
       },
     },
   })
-  if (!quiz) throw new Error('Kuis tidak ditemukan.')
-  if (quiz.questions.length === 0) throw new Error('Kuis belum siap')
+  if (!quiz) throw new Error(t.srvAssessments.quiz.validation.quizNotFound)
+  if (quiz.questions.length === 0) throw new Error(t.srvAssessments.quiz.validation.quizNotReady)
 
   const completedCount = await prisma.quizAttempt.count({
     where: { userId, quizId, completedAt: { not: null } },
   })
   if (completedCount >= MAX_ATTEMPTS_PER_QUIZ) {
-    throw new Error('Batas percobaan tercapai')
+    throw new Error(t.srvAssessments.quiz.validation.attemptLimitReached)
   }
 
   const attempt = await prisma.quizAttempt.create({
@@ -141,15 +143,16 @@ export async function submitQuizAttempt(
   attemptId: string,
   answersJson: unknown,
 ): Promise<SubmitAttemptResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAssessments.quiz.auth.mustLogin }
   const userId = session.user.id
 
-  if (!attemptId) return { ok: false, error: 'ID percobaan tidak valid.' }
+  if (!attemptId) return { ok: false, error: t.srvAssessments.quiz.validation.invalidAttemptId }
 
   const parsedAnswers = answersJsonSchema.safeParse(answersJson)
   if (!parsedAnswers.success) {
-    return { ok: false, error: 'Format jawaban tidak valid.' }
+    return { ok: false, error: t.srvAssessments.quiz.validation.invalidAnswerFormat }
   }
   const answers = parsedAnswers.data
 
@@ -194,18 +197,18 @@ export async function submitQuizAttempt(
         },
       },
     })
-    if (!attempt) return { ok: false, error: 'Percobaan tidak ditemukan.' }
+    if (!attempt) return { ok: false, error: t.srvAssessments.quiz.validation.attemptNotFound }
     if (attempt.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak mengubah percobaan ini.' }
+      return { ok: false, error: t.srvAssessments.quiz.validation.notOwner }
     }
     if (attempt.completedAt) {
-      return { ok: false, error: 'Percobaan ini sudah selesai.' }
+      return { ok: false, error: t.srvAssessments.quiz.validation.alreadyCompleted }
     }
 
     const questions = attempt.quiz.questions
     const totalCount = questions.length
     if (totalCount === 0) {
-      return { ok: false, error: 'Kuis belum siap' }
+      return { ok: false, error: t.srvAssessments.quiz.validation.quizNotReady }
     }
 
     // Score: each question = 100 / totalCount points. Sum, then round at end.
@@ -401,6 +404,6 @@ export async function submitQuizAttempt(
     }
   } catch (err) {
     console.error('[submitQuizAttempt] failed', err)
-    return { ok: false, error: 'Gagal menyimpan jawaban. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.quiz.errors.failedSave }
   }
 }

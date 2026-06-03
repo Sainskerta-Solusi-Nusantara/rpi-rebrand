@@ -13,6 +13,7 @@ import {
   resolveEmailTemplate,
   renderTemplate,
 } from '@/lib/tenants/email-template-resolver'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function escapeHtmlForTemplate(s: string): string {
   return s
@@ -85,9 +86,10 @@ type LoadCtx =
  * record + tenant slug. Gates on `job.update` (recruiter scope).
  */
 async function loadTenantForApplication(applicationId: string): Promise<LoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant1.application.mustLogin }
   }
   const application = await prisma.application
     .findUnique({
@@ -101,11 +103,11 @@ async function loadTenantForApplication(applicationId: string): Promise<LoadCtx>
       },
     })
     .catch(() => null)
-  if (!application) return { error: 'Lamaran tidak ditemukan.' }
+  if (!application) return { error: t.srvTenant1.application.applicationNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, application.tenantId, 'job.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant1.application.noPermission }
   }
   return { actorId, application }
 }
@@ -114,12 +116,13 @@ export async function updateApplicationStatus(input: {
   applicationId: string
   status: ApplicationStatus | string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = statusSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant1.application.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -128,12 +131,12 @@ export async function updateApplicationStatus(input: {
   if (status === ApplicationStatus.WITHDRAWN) {
     return {
       ok: false,
-      error: 'Status WITHDRAWN hanya dapat diatur oleh pelamar.',
+      error: t.srvTenant1.application.withdrawnForbidden,
       field: 'status',
     }
   }
   if (!MANAGEABLE_STATUSES.includes(status as (typeof MANAGEABLE_STATUSES)[number])) {
-    return { ok: false, error: 'Status tidak valid', field: 'status' }
+    return { ok: false, error: t.srvTenant1.application.statusInvalid, field: 'status' }
   }
 
   const ctx = await loadTenantForApplication(applicationId)
@@ -311,8 +314,11 @@ export async function updateApplicationStatus(input: {
           },
         })
         if (detail?.userId && detail.job && detail.tenant) {
-          const title = 'Status lamaran diperbarui'
-          const body = `Lamaran Anda untuk ${detail.job.title} di ${detail.tenant.name} sekarang: ${newStatus}`
+          const title = t.srvTenant1.application.pushTitle
+          const body = t.srvTenant1.application.pushBody
+            .replace('{jobTitle}', detail.job.title)
+            .replace('{tenantName}', detail.tenant.name)
+            .replace('{newStatus}', newStatus)
           const url = `/dashboard/lamaran/${applicationId}`
           void import('@/lib/push/dispatch')
             .then((m) =>
@@ -329,7 +335,7 @@ export async function updateApplicationStatus(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateApplicationStatus] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.application.updateFailed }
   }
 }
 
@@ -337,12 +343,13 @@ export async function updateApplicationNote(input: {
   applicationId: string
   notes: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = noteSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant1.application.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -378,6 +385,6 @@ export async function updateApplicationNote(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateApplicationNote] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.application.noteFailed }
   }
 }

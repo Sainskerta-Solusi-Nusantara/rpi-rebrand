@@ -13,6 +13,7 @@ import {
   type ActionResult,
   type JobQuestionType,
 } from '@/lib/jobs/question-constants'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 // =============================================================================
 // Helpers
@@ -170,11 +171,12 @@ type JobCtx =
     }
 
 async function loadJobForQuestionMgmt(jobId: string): Promise<JobCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvInterview.jobQuestions.mustLogin }
   }
-  if (!jobId) return { error: 'ID lowongan tidak valid.' }
+  if (!jobId) return { error: t.srvInterview.jobQuestions.jobIdInvalid }
 
   const job = await prisma.job.findUnique({
     where: { id: jobId },
@@ -186,11 +188,11 @@ async function loadJobForQuestionMgmt(jobId: string): Promise<JobCtx> {
       tenant: { select: { id: true, slug: true } },
     },
   })
-  if (!job) return { error: 'Lowongan tidak ditemukan.' }
+  if (!job) return { error: t.srvInterview.jobQuestions.jobNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, job.tenantId, 'job.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvInterview.jobQuestions.noPermission }
   }
   return {
     job: {
@@ -221,11 +223,12 @@ type QuestionCtx =
     }
 
 async function loadQuestionForMgmt(questionId: string): Promise<QuestionCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvInterview.jobQuestions.mustLogin }
   }
-  if (!questionId) return { error: 'ID pertanyaan tidak valid.' }
+  if (!questionId) return { error: t.srvInterview.jobQuestions.questionIdInvalid }
 
   const question = await prisma.jobQuestion.findUnique({
     where: { id: questionId },
@@ -247,7 +250,7 @@ async function loadQuestionForMgmt(questionId: string): Promise<QuestionCtx> {
       },
     },
   })
-  if (!question) return { error: 'Pertanyaan tidak ditemukan.' }
+  if (!question) return { error: t.srvInterview.jobQuestions.questionNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -258,7 +261,7 @@ async function loadQuestionForMgmt(questionId: string): Promise<QuestionCtx> {
       'job.update',
     )
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvInterview.jobQuestions.noPermission }
   }
   return {
     question: {
@@ -297,12 +300,13 @@ export async function addJobQuestion(input: {
   options?: string[]
   helpText?: string
 }): Promise<ActionResult<{ id: string }>> {
+  const t = await getServerT()
   const parsed = addSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.jobQuestions.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -356,7 +360,7 @@ export async function addJobQuestion(input: {
     return { ok: true, data: { id: created.id } }
   } catch (err) {
     console.error('[addJobQuestion] failed', err)
-    return { ok: false, error: 'Gagal menambah pertanyaan. Coba lagi.' }
+    return { ok: false, error: t.srvInterview.jobQuestions.addFailed }
   }
 }
 
@@ -372,12 +376,13 @@ export async function updateJobQuestion(input: {
   options?: string[]
   helpText?: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.jobQuestions.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -409,8 +414,7 @@ export async function updateJobQuestion(input: {
       if (cleaned.length < 2) {
         return {
           ok: false,
-          error:
-            'Tipe pilihan membutuhkan minimal 2 opsi (1-200 karakter masing-masing).',
+          error: t.srvInterview.jobQuestions.choiceMinOptions,
           field: 'options',
         }
       }
@@ -453,7 +457,7 @@ export async function updateJobQuestion(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateJobQuestion] failed', err)
-    return { ok: false, error: 'Gagal menyimpan perubahan. Coba lagi.' }
+    return { ok: false, error: t.srvInterview.jobQuestions.updateFailed }
   }
 }
 
@@ -465,11 +469,12 @@ export async function reorderJobQuestion(input: {
   questionId: string
   direction: 'up' | 'down'
 }): Promise<ActionResult> {
+  const t = await getServerT()
   if (!input.questionId) {
-    return { ok: false, error: 'ID pertanyaan tidak valid.' }
+    return { ok: false, error: t.srvInterview.jobQuestions.questionIdInvalid }
   }
   if (input.direction !== 'up' && input.direction !== 'down') {
-    return { ok: false, error: 'Arah pemindahan tidak valid.' }
+    return { ok: false, error: t.srvInterview.jobQuestions.directionInvalid }
   }
 
   const ctx = await loadQuestionForMgmt(input.questionId)
@@ -527,7 +532,7 @@ export async function reorderJobQuestion(input: {
     return { ok: true }
   } catch (err) {
     console.error('[reorderJobQuestion] failed', err)
-    return { ok: false, error: 'Gagal memindah urutan. Coba lagi.' }
+    return { ok: false, error: t.srvInterview.jobQuestions.reorderFailed }
   }
 }
 
@@ -538,6 +543,7 @@ export async function reorderJobQuestion(input: {
 export async function deleteJobQuestion(
   questionId: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await loadQuestionForMgmt(questionId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -566,6 +572,6 @@ export async function deleteJobQuestion(
     return { ok: true }
   } catch (err) {
     console.error('[deleteJobQuestion] failed', err)
-    return { ok: false, error: 'Gagal menghapus pertanyaan. Coba lagi.' }
+    return { ok: false, error: t.srvInterview.jobQuestions.deleteFailed }
   }
 }

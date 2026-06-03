@@ -9,6 +9,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { WEBHOOK_EVENTS, type WebhookEvent } from '@/lib/webhooks/events'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -84,18 +85,19 @@ type TenantCtx =
   | { tenant: { id: string; slug: string }; actorId: string }
 
 async function loadTenantForWebhook(tenantSlug: string): Promise<TenantCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvSavedSearch.tenantWebhook.mustLogin }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvSavedSearch.tenantWebhook.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'team.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvSavedSearch.tenantWebhook.noPermission }
   }
   return { tenant, actorId }
 }
@@ -116,11 +118,12 @@ type WebhookCtx =
     }
 
 async function loadWebhookForUpdate(webhookId: string): Promise<WebhookCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvSavedSearch.tenantWebhook.mustLogin }
   }
-  if (!webhookId) return { error: 'ID webhook tidak valid.' }
+  if (!webhookId) return { error: t.srvSavedSearch.tenantWebhook.webhookIdInvalid }
 
   const webhook = await prisma.tenantWebhook.findUnique({
     where: { id: webhookId },
@@ -134,11 +137,11 @@ async function loadWebhookForUpdate(webhookId: string): Promise<WebhookCtx> {
       tenant: { select: { id: true, slug: true } },
     },
   })
-  if (!webhook) return { error: 'Webhook tidak ditemukan.' }
+  if (!webhook) return { error: t.srvSavedSearch.tenantWebhook.webhookNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, webhook.tenantId, 'team.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvSavedSearch.tenantWebhook.noPermission }
   }
 
   return {
@@ -166,12 +169,13 @@ export async function createTenantWebhook(input: {
   url: string
   events: string[]
 }): Promise<ActionResult<{ id: string; secret: string }>> {
+  const t = await getServerT()
   const parsed = createSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvSavedSearch.tenantWebhook.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -187,7 +191,7 @@ export async function createTenantWebhook(input: {
     if (count >= MAX_WEBHOOKS_PER_TENANT) {
       return {
         ok: false,
-        error: `Batas ${MAX_WEBHOOKS_PER_TENANT} webhook tercapai. Hapus yang lama dulu.`,
+        error: t.srvSavedSearch.tenantWebhook.limitReached,
       }
     }
 
@@ -226,7 +230,7 @@ export async function createTenantWebhook(input: {
     return { ok: true, data: { id: created.id, secret } }
   } catch (err) {
     console.error('[createTenantWebhook] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvSavedSearch.tenantWebhook.genericFailed }
   }
 }
 
@@ -237,12 +241,13 @@ export async function updateTenantWebhook(input: {
   events: string[]
   enabled: boolean
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvSavedSearch.tenantWebhook.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -291,7 +296,7 @@ export async function updateTenantWebhook(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateTenantWebhook] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvSavedSearch.tenantWebhook.genericFailed }
   }
 }
 
@@ -303,7 +308,8 @@ export async function toggleTenantWebhook(input: {
   webhookId: string
   enabled: boolean
 }): Promise<ActionResult> {
-  if (!input.webhookId) return { ok: false, error: 'ID webhook tidak valid.' }
+  const t = await getServerT()
+  if (!input.webhookId) return { ok: false, error: t.srvSavedSearch.tenantWebhook.webhookIdInvalid }
   const ctx = await loadWebhookForUpdate(input.webhookId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -333,7 +339,7 @@ export async function toggleTenantWebhook(input: {
     return { ok: true }
   } catch (err) {
     console.error('[toggleTenantWebhook] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvSavedSearch.tenantWebhook.genericFailed }
   }
 }
 
@@ -345,7 +351,8 @@ export async function toggleTenantWebhook(input: {
  * Delivery rows cascade via the schema relation.
  */
 export async function revokeTenantWebhook(webhookId: string): Promise<ActionResult> {
-  if (!webhookId) return { ok: false, error: 'ID webhook tidak valid.' }
+  const t = await getServerT()
+  if (!webhookId) return { ok: false, error: t.srvSavedSearch.tenantWebhook.webhookIdInvalid }
   const ctx = await loadWebhookForUpdate(webhookId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -375,7 +382,7 @@ export async function revokeTenantWebhook(webhookId: string): Promise<ActionResu
     return { ok: true }
   } catch (err) {
     console.error('[revokeTenantWebhook] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvSavedSearch.tenantWebhook.genericFailed }
   }
 }
 
@@ -387,7 +394,8 @@ export async function revokeTenantWebhook(webhookId: string): Promise<ActionResu
 export async function rotateTenantWebhookSecret(
   webhookId: string,
 ): Promise<ActionResult<{ secret: string }>> {
-  if (!webhookId) return { ok: false, error: 'ID webhook tidak valid.' }
+  const t = await getServerT()
+  if (!webhookId) return { ok: false, error: t.srvSavedSearch.tenantWebhook.webhookIdInvalid }
   const ctx = await loadWebhookForUpdate(webhookId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -416,6 +424,6 @@ export async function rotateTenantWebhookSecret(
     return { ok: true, data: { secret } }
   } catch (err) {
     console.error('[rotateTenantWebhookSecret] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvSavedSearch.tenantWebhook.genericFailed }
   }
 }

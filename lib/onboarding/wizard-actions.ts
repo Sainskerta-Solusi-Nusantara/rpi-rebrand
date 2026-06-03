@@ -7,6 +7,7 @@ import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
 import { MAX_WIZARD_STEP_INDEX } from '@/lib/onboarding/wizard-config'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -42,6 +43,7 @@ const advanceSchema = z.object({
 export async function advanceOnboardingStep(input: {
   step: number
 }): Promise<ActionResult<{ step: number; completed: boolean }>> {
+  const t = await getServerT()
   const session = await requireAuth()
 
   const parsed = advanceSchema.safeParse(input)
@@ -49,7 +51,7 @@ export async function advanceOnboardingStep(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvAuth4.onboarding.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -84,7 +86,7 @@ export async function advanceOnboardingStep(input: {
     return { ok: true, data: { step, completed } }
   } catch (err) {
     console.error('[advanceOnboardingStep] failed', err)
-    return { ok: false, error: 'Gagal menyimpan progres onboarding. Coba lagi.' }
+    return { ok: false, error: t.srvAuth4.onboarding.saveError }
   }
 }
 
@@ -93,6 +95,7 @@ export async function advanceOnboardingStep(input: {
  * "past the last screen") and onboardingCompleted = true.
  */
 export async function completeOnboarding(): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
 
   try {
@@ -121,7 +124,7 @@ export async function completeOnboarding(): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[completeOnboarding] failed', err)
-    return { ok: false, error: 'Gagal menyelesaikan onboarding. Coba lagi.' }
+    return { ok: false, error: t.srvAuth4.onboarding.completeError }
   }
 }
 
@@ -130,6 +133,7 @@ export async function completeOnboarding(): Promise<ActionResult> {
  * onboardingStep as-is so resuming later restarts from where the user was.
  */
 export async function skipOnboarding(): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
 
   try {
@@ -155,6 +159,6 @@ export async function skipOnboarding(): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[skipOnboarding] failed', err)
-    return { ok: false, error: 'Gagal melewati onboarding. Coba lagi.' }
+    return { ok: false, error: t.srvAuth4.onboarding.skipError }
   }
 }

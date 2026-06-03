@@ -16,6 +16,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { parseCsv } from '@/lib/csv'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 // =============================================================================
 // Types
@@ -232,18 +233,19 @@ async function loadTenantForJobImport(
   tenantSlug: string,
   permission: Permission,
 ): Promise<TenantLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant3.jobImport.mustBeLoggedIn }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant3.jobImport.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant3.jobImport.noPermission }
   }
   const canPublish = hasTenantPermission(
     globalRole,
@@ -277,15 +279,22 @@ type ParseOutcome =
       dataRows: { lineNum: number; raw: string[] }[]
     }
 
-function parseCsvToRows(csvText: string): ParseOutcome {
+type CsvMessages = {
+  csvEmpty: string
+  requiredColumnMissing: string
+  csvNoDataRows: string
+  maxRowsExceeded: string
+}
+
+function parseCsvToRows(csvText: string, msgs: CsvMessages): ParseOutcome {
   if (!csvText || csvText.trim().length === 0) {
-    return { kind: 'fatal', error: 'CSV kosong.' }
+    return { kind: 'fatal', error: msgs.csvEmpty }
   }
 
   const rows = parseCsv(csvText)
   const headerRow = rows[0]
   if (!headerRow) {
-    return { kind: 'fatal', error: 'CSV kosong.' }
+    return { kind: 'fatal', error: msgs.csvEmpty }
   }
 
   const headerMap = headerRow.map(normalizeHeaderKey)
@@ -297,7 +306,7 @@ function parseCsvToRows(csvText: string): ParseOutcome {
     if (!headerKeys.has(req)) {
       return {
         kind: 'fatal',
-        error: `Kolom wajib "${req}" tidak ditemukan di baris header.`,
+        error: msgs.requiredColumnMissing.replace('{col}', req),
       }
     }
   }
@@ -308,12 +317,14 @@ function parseCsvToRows(csvText: string): ParseOutcome {
   }))
 
   if (dataRows.length === 0) {
-    return { kind: 'fatal', error: 'CSV tidak memiliki baris data.' }
+    return { kind: 'fatal', error: msgs.csvNoDataRows }
   }
   if (dataRows.length > MAX_ROWS) {
     return {
       kind: 'fatal',
-      error: `Maksimum ${MAX_ROWS} baris per impor. Saat ini: ${dataRows.length}.`,
+      error: msgs.maxRowsExceeded
+        .replace('{max}', String(MAX_ROWS))
+        .replace('{count}', String(dataRows.length)),
     }
   }
 
@@ -361,10 +372,11 @@ export async function parseAndValidateJobsCsv(input: {
   tenantSlug: string
   csvText: string
 }): Promise<ActionResult<PreviewResult>> {
+  const t = await getServerT()
   const ctx = await loadTenantForJobImport(input.tenantSlug, 'job.create')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = parseCsvToRows(input.csvText)
+  const parsed = parseCsvToRows(input.csvText, t.srvTenant3.jobImport)
   if (parsed.kind === 'fatal') {
     return { ok: false, error: parsed.error }
   }
@@ -395,14 +407,12 @@ export async function parseAndValidateJobsCsv(input: {
 
     if (pr && pr.categorySlug && !knownCategorySlugs.has(pr.categorySlug)) {
       errors.push(
-        `categorySlug: kategori "${pr.categorySlug}" tidak ditemukan`,
+        `categorySlug: ${t.srvTenant3.jobImport.categoryNotFoundInRow.replace('{slug}', pr.categorySlug)}`,
       )
     }
 
     if (pr && pr.status === JobStatus.PUBLISHED && !ctx.canPublish) {
-      errors.push(
-        'status: Anda tidak memiliki izin job.publish untuk status PUBLISHED',
-      )
+      errors.push(t.srvTenant3.jobImport.noPublishPermissionPreview)
     }
 
     const hasErrors = errors.length > 0
@@ -440,10 +450,11 @@ export async function bulkImportJobs(input: {
   tenantSlug: string
   csvText: string
 }): Promise<ActionResult<ImportResult>> {
+  const t = await getServerT()
   const ctx = await loadTenantForJobImport(input.tenantSlug, 'job.create')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = parseCsvToRows(input.csvText)
+  const parsed = parseCsvToRows(input.csvText, t.srvTenant3.jobImport)
   if (parsed.kind === 'fatal') {
     return { ok: false, error: parsed.error }
   }
@@ -479,7 +490,7 @@ export async function bulkImportJobs(input: {
           return {
             kind: 'skipped',
             lineNum: dr.lineNum,
-            error: errors[0] ?? 'Data tidak valid',
+            error: errors[0] ?? t.srvTenant3.jobImport.invalidData,
           }
         }
 
@@ -491,7 +502,7 @@ export async function bulkImportJobs(input: {
             return {
               kind: 'skipped',
               lineNum: dr.lineNum,
-              error: `Kategori "${pr.categorySlug}" tidak ditemukan`,
+              error: t.srvTenant3.jobImport.categoryNotFoundImport.replace('{slug}', pr.categorySlug),
             }
           }
           categoryId = resolvedId
@@ -501,7 +512,7 @@ export async function bulkImportJobs(input: {
           return {
             kind: 'skipped',
             lineNum: dr.lineNum,
-            error: 'Tidak ada izin job.publish untuk status PUBLISHED',
+            error: t.srvTenant3.jobImport.noPublishPermissionImport,
           }
         }
 
@@ -560,7 +571,7 @@ export async function bulkImportJobs(input: {
         return {
           kind: 'skipped',
           lineNum: dr.lineNum,
-          error: 'Kesalahan internal saat menyimpan baris',
+          error: t.srvTenant3.jobImport.rowSaveError,
         }
       }
     }),

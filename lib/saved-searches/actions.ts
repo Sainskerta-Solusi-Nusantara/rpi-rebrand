@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -72,8 +73,9 @@ export type SavedSearchUpdateInput = Partial<SavedSearchInput> & { id: string }
  * cap per user. Returns ActionResult; revalidates the management page.
  */
 export async function createSavedSearch(input: SavedSearchInput): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearches.mustLogin }
 
   const parsed = createSchema.safeParse({
     name: input.name,
@@ -87,7 +89,7 @@ export async function createSavedSearch(input: SavedSearchInput): Promise<Action
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvSavedSearch.savedSearches.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -99,7 +101,7 @@ export async function createSavedSearch(input: SavedSearchInput): Promise<Action
     if (count >= MAX_PER_USER) {
       return {
         ok: false,
-        error: `Maksimal ${MAX_PER_USER} pencarian tersimpan per akun. Hapus yang lama dulu.`,
+        error: t.srvSavedSearch.savedSearches.limitReached,
       }
     }
 
@@ -120,7 +122,7 @@ export async function createSavedSearch(input: SavedSearchInput): Promise<Action
     return { ok: true }
   } catch (err) {
     console.error('[createSavedSearch] failed', err)
-    return { ok: false, error: 'Gagal menyimpan pencarian. Coba lagi.' }
+    return { ok: false, error: t.srvSavedSearch.savedSearches.createFailed }
   }
 }
 
@@ -129,8 +131,9 @@ export async function createSavedSearch(input: SavedSearchInput): Promise<Action
  * untouched. Returns ActionResult; revalidates the management page.
  */
 export async function updateSavedSearch(input: SavedSearchUpdateInput): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearches.mustLogin }
 
   const parsed = updateSchema.safeParse({
     id: input.id,
@@ -145,7 +148,7 @@ export async function updateSavedSearch(input: SavedSearchUpdateInput): Promise<
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvSavedSearch.savedSearches.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -156,7 +159,7 @@ export async function updateSavedSearch(input: SavedSearchUpdateInput): Promise<
       select: { userId: true },
     })
     if (!existing || existing.userId !== session.user.id) {
-      return { ok: false, error: 'Pencarian tidak ditemukan.' }
+      return { ok: false, error: t.srvSavedSearch.savedSearches.notFound }
     }
 
     const data: Record<string, unknown> = {}
@@ -179,7 +182,7 @@ export async function updateSavedSearch(input: SavedSearchUpdateInput): Promise<
     return { ok: true }
   } catch (err) {
     console.error('[updateSavedSearch] failed', err)
-    return { ok: false, error: 'Gagal memperbarui pencarian. Coba lagi.' }
+    return { ok: false, error: t.srvSavedSearch.savedSearches.updateFailed }
   }
 }
 
@@ -187,9 +190,10 @@ export async function updateSavedSearch(input: SavedSearchUpdateInput): Promise<
  * Delete a SavedSearch the caller owns. Ownership is enforced server-side.
  */
 export async function deleteSavedSearch(id: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
-  if (!id || typeof id !== 'string') return { ok: false, error: 'ID tidak valid.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearches.mustLogin }
+  if (!id || typeof id !== 'string') return { ok: false, error: t.srvSavedSearch.savedSearches.idInvalid }
 
   try {
     const existing = await prisma.savedSearch.findUnique({
@@ -197,14 +201,14 @@ export async function deleteSavedSearch(id: string): Promise<ActionResult> {
       select: { userId: true },
     })
     if (!existing || existing.userId !== session.user.id) {
-      return { ok: false, error: 'Pencarian tidak ditemukan.' }
+      return { ok: false, error: t.srvSavedSearch.savedSearches.notFound }
     }
     await prisma.savedSearch.delete({ where: { id } })
     revalidatePath('/dashboard/lowongan-disimpan')
     return { ok: true }
   } catch (err) {
     console.error('[deleteSavedSearch] failed', err)
-    return { ok: false, error: 'Gagal menghapus pencarian. Coba lagi.' }
+    return { ok: false, error: t.srvSavedSearch.savedSearches.deleteFailed }
   }
 }
 
@@ -213,9 +217,10 @@ export async function deleteSavedSearch(id: string): Promise<ActionResult> {
  * UI without re-submitting the whole form.
  */
 export async function toggleSavedSearchAlerts(id: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
-  if (!id || typeof id !== 'string') return { ok: false, error: 'ID tidak valid.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearches.mustLogin }
+  if (!id || typeof id !== 'string') return { ok: false, error: t.srvSavedSearch.savedSearches.idInvalid }
 
   try {
     const existing = await prisma.savedSearch.findUnique({
@@ -223,7 +228,7 @@ export async function toggleSavedSearchAlerts(id: string): Promise<ActionResult>
       select: { userId: true, emailAlerts: true },
     })
     if (!existing || existing.userId !== session.user.id) {
-      return { ok: false, error: 'Pencarian tidak ditemukan.' }
+      return { ok: false, error: t.srvSavedSearch.savedSearches.notFound }
     }
     await prisma.savedSearch.update({
       where: { id },
@@ -233,6 +238,6 @@ export async function toggleSavedSearchAlerts(id: string): Promise<ActionResult>
     return { ok: true }
   } catch (err) {
     console.error('[toggleSavedSearchAlerts] failed', err)
-    return { ok: false, error: 'Gagal mengubah alert. Coba lagi.' }
+    return { ok: false, error: t.srvSavedSearch.savedSearches.alertFailed }
   }
 }

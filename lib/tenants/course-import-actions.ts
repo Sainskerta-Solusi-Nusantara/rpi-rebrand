@@ -14,6 +14,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { parseCsv } from '@/lib/csv'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 // =============================================================================
 // Types
@@ -192,19 +193,20 @@ type TenantLoadCtx =
 async function loadTenantForCourseImport(
   tenantSlug: string,
   permission: Permission,
+  t: Awaited<ReturnType<typeof getServerT>>,
 ): Promise<TenantLoadCtx> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant2.courseImport.mustSignIn }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant2.courseImport.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant2.courseImport.noPermission }
   }
   return { tenant, actorId }
 }
@@ -232,15 +234,18 @@ type ParseOutcome =
       dataRows: { lineNum: number; raw: string[] }[]
     }
 
-function parseCsvToRows(csvText: string): ParseOutcome {
+function parseCsvToRows(
+  csvText: string,
+  t: Awaited<ReturnType<typeof getServerT>>,
+): ParseOutcome {
   if (!csvText || csvText.trim().length === 0) {
-    return { kind: 'fatal', error: 'CSV kosong.' }
+    return { kind: 'fatal', error: t.srvTenant2.courseImport.csvEmpty }
   }
 
   const rows = parseCsv(csvText)
   const headerRow = rows[0]
   if (!headerRow) {
-    return { kind: 'fatal', error: 'CSV kosong.' }
+    return { kind: 'fatal', error: t.srvTenant2.courseImport.csvEmpty }
   }
 
   const headerMap = headerRow.map(normalizeHeaderKey)
@@ -252,7 +257,7 @@ function parseCsvToRows(csvText: string): ParseOutcome {
     if (!headerKeys.has(req)) {
       return {
         kind: 'fatal',
-        error: `Kolom wajib "${req}" tidak ditemukan di baris header.`,
+        error: t.srvTenant2.courseImport.missingHeader.replace('{col}', req),
       }
     }
   }
@@ -263,12 +268,14 @@ function parseCsvToRows(csvText: string): ParseOutcome {
   }))
 
   if (dataRows.length === 0) {
-    return { kind: 'fatal', error: 'CSV tidak memiliki baris data.' }
+    return { kind: 'fatal', error: t.srvTenant2.courseImport.csvNoData }
   }
   if (dataRows.length > MAX_ROWS) {
     return {
       kind: 'fatal',
-      error: `Maksimum ${MAX_ROWS} baris per impor. Saat ini: ${dataRows.length}.`,
+      error: t.srvTenant2.courseImport.csvTooManyRows
+        .replace('{max}', String(MAX_ROWS))
+        .replace('{count}', String(dataRows.length)),
     }
   }
 
@@ -343,10 +350,11 @@ export async function parseAndValidateCoursesCsv(input: {
   tenantSlug: string
   csvText: string
 }): Promise<ActionResult<PreviewResult>> {
-  const ctx = await loadTenantForCourseImport(input.tenantSlug, 'course.create')
+  const t = await getServerT()
+  const ctx = await loadTenantForCourseImport(input.tenantSlug, 'course.create', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = parseCsvToRows(input.csvText)
+  const parsed = parseCsvToRows(input.csvText, t)
   if (parsed.kind === 'fatal') {
     return { ok: false, error: parsed.error }
   }
@@ -372,7 +380,7 @@ export async function parseAndValidateCoursesCsv(input: {
     const { parsed: pr, errors } = validateRow(raw)
 
     if (pr && pr.instructorEmail && !emailToUserId.has(pr.instructorEmail)) {
-      errors.push('instructorEmail: Instruktur tidak ditemukan di tenant')
+      errors.push(`instructorEmail: ${t.srvTenant2.courseImport.instructorNotFound}`)
     }
 
     const hasErrors = errors.length > 0
@@ -410,10 +418,11 @@ export async function bulkImportCourses(input: {
   tenantSlug: string
   csvText: string
 }): Promise<ActionResult<ImportResult>> {
-  const ctx = await loadTenantForCourseImport(input.tenantSlug, 'course.create')
+  const t = await getServerT()
+  const ctx = await loadTenantForCourseImport(input.tenantSlug, 'course.create', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = parseCsvToRows(input.csvText)
+  const parsed = parseCsvToRows(input.csvText, t)
   if (parsed.kind === 'fatal') {
     return { ok: false, error: parsed.error }
   }
@@ -445,7 +454,7 @@ export async function bulkImportCourses(input: {
           return {
             kind: 'skipped',
             lineNum: dr.lineNum,
-            error: errors[0] ?? 'Data tidak valid',
+            error: errors[0] ?? t.srvTenant2.courseImport.dataInvalid,
           }
         }
 
@@ -457,7 +466,7 @@ export async function bulkImportCourses(input: {
             return {
               kind: 'skipped',
               lineNum: dr.lineNum,
-              error: 'Instruktur tidak ditemukan di tenant',
+              error: t.srvTenant2.courseImport.instructorNotFound,
             }
           }
           instructorId = resolved
@@ -509,7 +518,7 @@ export async function bulkImportCourses(input: {
         return {
           kind: 'skipped',
           lineNum: dr.lineNum,
-          error: 'Kesalahan internal saat menyimpan baris',
+          error: t.srvTenant2.courseImport.rowSaveFailed,
         }
       }
     }),
@@ -532,7 +541,7 @@ export async function bulkImportCourses(input: {
       const lineNum = parsed.dataRows[i]?.lineNum ?? 0
       errors.push({
         lineNum,
-        error: 'Kesalahan internal saat memproses baris',
+        error: t.srvTenant2.courseImport.rowProcessFailed,
       })
     }
   })

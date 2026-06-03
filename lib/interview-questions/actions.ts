@@ -13,6 +13,7 @@ import {
   type ActionResult,
   type QuestionCategory,
 } from '@/lib/interview-questions/constants'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function getRequestMeta() {
   try {
@@ -105,18 +106,19 @@ type TenantLoadCtx =
   | { tenant: { id: string; slug: string }; actorId: string }
 
 async function loadTenantForSlug(tenantSlug: string): Promise<TenantLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvInterview.interviewQuestions.mustLogin }
   const tenant = await prisma.tenant
     .findUnique({
       where: { slug: tenantSlug },
       select: { id: true, slug: true },
     })
     .catch(() => null)
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvInterview.interviewQuestions.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'job.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvInterview.interviewQuestions.noPermission }
   }
   return { tenant, actorId }
 }
@@ -137,8 +139,9 @@ type QuestionLoadCtx =
     }
 
 async function loadQuestion(questionId: string): Promise<QuestionLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvInterview.interviewQuestions.mustLogin }
   const question = await prisma.interviewQuestion
     .findUnique({
       where: { id: questionId },
@@ -153,10 +156,10 @@ async function loadQuestion(questionId: string): Promise<QuestionLoadCtx> {
       },
     })
     .catch(() => null)
-  if (!question) return { error: 'Pertanyaan tidak ditemukan.' }
+  if (!question) return { error: t.srvInterview.interviewQuestions.questionNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, question.tenantId, 'job.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvInterview.interviewQuestions.noPermission }
   }
   return { actorId, question }
 }
@@ -177,12 +180,13 @@ export async function createQuestion(input: {
   difficulty: number
   tags?: string[]
 }): Promise<ActionResult<{ questionId: string }>> {
+  const t = await getServerT()
   const parsed = createSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.interviewQuestions.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -228,7 +232,7 @@ export async function createQuestion(input: {
     return { ok: true, data: { questionId: created.id } }
   } catch (err) {
     console.error('[createQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.interviewQuestions.genericError }
   }
 }
 
@@ -239,12 +243,13 @@ export async function updateQuestion(input: {
   difficulty?: number
   tags?: string[]
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.interviewQuestions.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -308,14 +313,15 @@ export async function updateQuestion(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.interviewQuestions.genericError }
   }
 }
 
 export async function deleteQuestion(
   questionId: string,
 ): Promise<ActionResult> {
-  if (!questionId) return { ok: false, error: 'ID pertanyaan tidak valid.' }
+  const t = await getServerT()
+  if (!questionId) return { ok: false, error: t.srvInterview.interviewQuestions.questionIdInvalid }
 
   const ctx = await loadQuestion(questionId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
@@ -346,6 +352,6 @@ export async function deleteQuestion(
     return { ok: true }
   } catch (err) {
     console.error('[deleteQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.interviewQuestions.genericError }
   }
 }

@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -43,13 +44,14 @@ function getRequestMeta() {
 export async function requestTenantExport(input: {
   tenantSlug: string
 }): Promise<ActionResult<{ downloadHref: string }>> {
+  const t = await getServerT()
   if (!input.tenantSlug) {
-    return { ok: false, error: 'Data tidak valid.' }
+    return { ok: false, error: t.srvTenant2.dataExport.dataInvalid }
   }
 
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvTenant2.dataExport.mustSignIn }
   }
   const actorId = session.user.id
 
@@ -60,12 +62,12 @@ export async function requestTenantExport(input: {
     })
     .catch(() => null)
   if (!tenant) {
-    return { ok: false, error: 'Tenant tidak ditemukan.' }
+    return { ok: false, error: t.srvTenant2.dataExport.tenantNotFound }
   }
   if (tenant.ownerUserId !== actorId) {
     return {
       ok: false,
-      error: 'Hanya OWNER tenant yang dapat mengunduh ekspor data.',
+      error: t.srvTenant2.dataExport.ownerOnly,
     }
   }
 

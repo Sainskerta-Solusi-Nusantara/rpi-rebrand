@@ -12,6 +12,7 @@
 
 import { headers } from 'next/headers'
 import { z } from 'zod'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { AuditAction, PlanTier, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
@@ -65,8 +66,9 @@ function appUrl(): string {
 
 /** Start a Stripe Checkout session; returns the hosted Checkout URL to redirect to. */
 export async function startStripeCheckout(formData: FormData): Promise<ActionResult<{ url: string }>> {
+  const t = await getServerT()
   if (!isStripeConfigured()) {
-    return { ok: false, error: 'Mode demo — STRIPE_SECRET_KEY belum dikonfigurasi.' }
+    return { ok: false, error: t.srvBilling.stripe.demoMode }
   }
 
   const parsed = checkoutSchema.safeParse({
@@ -74,31 +76,31 @@ export async function startStripeCheckout(formData: FormData): Promise<ActionRes
     plan: formData.get('plan'),
   })
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data tidak valid.' }
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t.srvBilling.stripe.dataInvalid }
   }
   const { tenantSlug, plan } = parsed.data
 
   if (plan === 'FREE') {
-    return { ok: false, error: 'Plan Free tidak memerlukan checkout.' }
+    return { ok: false, error: t.srvBilling.stripe.freePlanNoCheckout }
   }
 
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvBilling.stripe.mustSignIn }
 
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true, name: true, stripeCustomerId: true },
   })
-  if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { ok: false, error: t.srvBilling.stripe.tenantNotFound }
 
   const { globalRole, tenants, id: actorId, email, name } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'billing.update')) {
-    return { ok: false, error: 'Anda tidak memiliki izin billing.' }
+    return { ok: false, error: t.srvBilling.stripe.noBillingPermission }
   }
 
   const priceId = priceIdForPlan(plan)
   if (!priceId) {
-    return { ok: false, error: 'Plan ini tidak tersedia untuk checkout.' }
+    return { ok: false, error: t.srvBilling.stripe.planUnavailable }
   }
 
   try {
@@ -119,7 +121,7 @@ export async function startStripeCheckout(formData: FormData): Promise<ActionRes
     })
 
     if (!checkoutSession.url) {
-      return { ok: false, error: 'Stripe tidak mengembalikan URL checkout.' }
+      return { ok: false, error: t.srvBilling.stripe.stripeNoUrl }
     }
 
     const meta = getRequestMeta()
@@ -143,36 +145,37 @@ export async function startStripeCheckout(formData: FormData): Promise<ActionRes
     return { ok: true, data: { url: checkoutSession.url } }
   } catch (err) {
     console.error('[startStripeCheckout] failed', err)
-    const msg = err instanceof Error ? err.message : 'Gagal memulai checkout.'
+    const msg = err instanceof Error ? err.message : t.srvBilling.stripe.checkoutFailed
     return { ok: false, error: msg }
   }
 }
 
 /** Open the Stripe Customer Portal; returns the portal URL. */
 export async function openBillingPortal(formData: FormData): Promise<ActionResult<{ url: string }>> {
+  const t = await getServerT()
   if (!isStripeConfigured()) {
-    return { ok: false, error: 'Mode demo — STRIPE_SECRET_KEY belum dikonfigurasi.' }
+    return { ok: false, error: t.srvBilling.stripe.demoMode }
   }
 
   const parsed = portalSchema.safeParse({
     tenantSlug: formData.get('tenantSlug'),
   })
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data tidak valid.' }
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t.srvBilling.stripe.dataInvalid }
   }
 
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvBilling.stripe.mustSignIn }
 
   const tenant = await prisma.tenant.findUnique({
     where: { slug: parsed.data.tenantSlug },
     select: { id: true, slug: true, name: true, stripeCustomerId: true, planTier: true },
   })
-  if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { ok: false, error: t.srvBilling.stripe.tenantNotFound }
 
   const { globalRole, tenants, id: actorId, email, name } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'billing.update')) {
-    return { ok: false, error: 'Anda tidak memiliki izin billing.' }
+    return { ok: false, error: t.srvBilling.stripe.noBillingPermission }
   }
 
   try {
@@ -209,7 +212,7 @@ export async function openBillingPortal(formData: FormData): Promise<ActionResul
     return { ok: true, data: { url: portal.url } }
   } catch (err) {
     console.error('[openBillingPortal] failed', err)
-    const msg = err instanceof Error ? err.message : 'Gagal membuka portal.'
+    const msg = err instanceof Error ? err.message : t.srvBilling.stripe.portalFailed
     return { ok: false, error: msg }
   }
 }

@@ -12,6 +12,8 @@ import {
   hashApiToken,
   type ApiTokenScope,
 } from '@/lib/auth/api-token'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvAuth1 } from '@/lib/i18n/dictionaries/srv-auth1'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -62,8 +64,10 @@ function getRequestMeta() {
 export async function createApiToken(formData: FormData): Promise<
   ActionResult<{ plain: string; prefix: string; expiresAt: Date | null }>
 > {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].apiToken
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.mustLogin }
 
   const scopesRaw = formData.getAll('scopes').map((v) => String(v))
   const parsed = createSchema.safeParse({
@@ -75,7 +79,7 @@ export async function createApiToken(formData: FormData): Promise<
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -88,7 +92,7 @@ export async function createApiToken(formData: FormData): Promise<
     if (activeCount >= MAX_TOKENS_PER_USER) {
       return {
         ok: false,
-        error: `Batas ${MAX_TOKENS_PER_USER} token aktif tercapai. Cabut token lama dulu.`,
+        error: t.tokenLimitReached.replace('{max}', String(MAX_TOKENS_PER_USER)),
       }
     }
 
@@ -125,23 +129,25 @@ export async function createApiToken(formData: FormData): Promise<
     return { ok: true, data: { plain, prefix, expiresAt } }
   } catch (err) {
     console.error('[createApiToken] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.genericError }
   }
 }
 
 export async function revokeApiToken(tokenId: string): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].apiToken
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
-  if (!tokenId) return { ok: false, error: 'ID token tidak valid.' }
+  if (!session?.user?.id) return { ok: false, error: t.mustLogin }
+  if (!tokenId) return { ok: false, error: t.invalidTokenId }
 
   try {
     const token = await prisma.personalAccessToken.findUnique({
       where: { id: tokenId },
       select: { id: true, userId: true, revokedAt: true, name: true },
     })
-    if (!token) return { ok: false, error: 'Token tidak ditemukan.' }
+    if (!token) return { ok: false, error: t.tokenNotFound }
     if (token.userId !== session.user.id) {
-      return { ok: false, error: 'Token bukan milik Anda.' }
+      return { ok: false, error: t.tokenNotOwned }
     }
     if (token.revokedAt) return { ok: true }
 
@@ -168,6 +174,6 @@ export async function revokeApiToken(tokenId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[revokeApiToken] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.genericError }
   }
 }

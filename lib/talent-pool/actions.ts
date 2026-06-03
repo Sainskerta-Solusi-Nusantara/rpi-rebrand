@@ -7,6 +7,7 @@ import { AuditAction, NotificationType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -82,9 +83,10 @@ type LoadCtx =
     }
 
 async function loadTenantForOutreach(tenantSlug: string): Promise<LoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvApplications2.talentPool.mustLogin }
   }
   const tenant = await prisma.tenant
     .findUnique({
@@ -92,10 +94,10 @@ async function loadTenantForOutreach(tenantSlug: string): Promise<LoadCtx> {
       select: { id: true, slug: true, name: true },
     })
     .catch(() => null)
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvApplications2.talentPool.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'job.view')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvApplications2.talentPool.noPermission }
   }
   return { tenant, actorId }
 }
@@ -120,12 +122,13 @@ export async function sendOutreach(input: {
   candidateUserId: string
   body: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = sendOutreachSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvApplications2.talentPool.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -146,16 +149,16 @@ export async function sendOutreach(input: {
       },
     })
     .catch(() => null)
-  if (!candidate) return { ok: false, error: 'Kandidat tidak ditemukan.' }
+  if (!candidate) return { ok: false, error: t.srvApplications2.talentPool.candidateNotFound }
   if (!candidate.profilePublic || candidate.status !== 'ACTIVE') {
     return {
       ok: false,
-      error: 'Kandidat tidak menerima tawaran saat ini.',
+      error: t.srvApplications2.talentPool.candidateUnavailable,
     }
   }
 
   if (candidate.id === ctx.actorId) {
-    return { ok: false, error: 'Tidak dapat mengirim tawaran ke diri sendiri.' }
+    return { ok: false, error: t.srvApplications2.talentPool.cannotSelfOutreach }
   }
 
   try {
@@ -166,7 +169,7 @@ export async function sendOutreach(input: {
       data: {
         userId: candidate.id,
         type: NotificationType.APPLICATION_UPDATE,
-        title: `Tawaran dari ${ctx.tenant.name}`,
+        title: `${t.srvApplications2.talentPool.outreachNotifTitlePrefix} ${ctx.tenant.name}`,
         body: preview,
         link,
       },
@@ -197,6 +200,6 @@ export async function sendOutreach(input: {
     return { ok: true }
   } catch (err) {
     console.error('[sendOutreach] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvApplications2.talentPool.genericError }
   }
 }

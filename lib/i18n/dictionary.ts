@@ -66,6 +66,21 @@ import { pagesTenant3 } from './dictionaries/pages-tenant3'
 import { pagesTenant1 } from './dictionaries/pages-tenant1'
 
 import { pagesBlog } from './dictionaries/pages-blog'
+import { srvInterview } from './dictionaries/srv-interview'
+import { srvApplications2 } from './dictionaries/srv-applications2'
+import { srvMessaging } from './dictionaries/srv-messaging'
+import { srvScoring } from './dictionaries/srv-scoring'
+import { srvCalendar } from './dictionaries/srv-calendar'
+import { srvSavedSearch } from './dictionaries/srv-savedsearch'
+import { srvAdmin } from './dictionaries/srv-admin'
+import { srvTenant1 } from './dictionaries/srv-tenant1'
+import { srvTenant3 } from './dictionaries/srv-tenant3'
+import { srvAssessments } from './dictionaries/srv-assessments'
+import { srvTenant2fa } from './dictionaries/srv-tenant2fa'
+import { srvAuth2 } from './dictionaries/srv-auth2'
+import { srvAuth4 } from './dictionaries/srv-auth4'
+import { srvBilling } from './dictionaries/srv-billing'
+import { srvTenant2 } from './dictionaries/srv-tenant2'
 export type Locale = 'id' | 'en'
 
 export const locales: Locale[] = ['id', 'en']
@@ -123,6 +138,21 @@ export const dictionary = {
     pagesTenant1: pagesTenant1.id,
     pagesBlog: pagesBlog.id,
     pagesTenant3: pagesTenant3.id,
+    srvInterview: srvInterview.id,
+    srvApplications2: srvApplications2.id,
+    srvMessaging: srvMessaging.id,
+    srvScoring: srvScoring.id,
+    srvCalendar: srvCalendar.id,
+    srvSavedSearch: srvSavedSearch.id,
+    srvAdmin: srvAdmin.id,
+    srvTenant1: srvTenant1.id,
+    srvTenant3: srvTenant3.id,
+    srvAssessments: srvAssessments.id,
+    srvTenant2fa: srvTenant2fa.id,
+    srvAuth2: srvAuth2.id,
+    srvAuth4: srvAuth4.id,
+    srvBilling: srvBilling.id,
+    srvTenant2: srvTenant2.id,
   },
   en: {
     ...home.en,
@@ -175,6 +205,21 @@ export const dictionary = {
     pagesTenant1: pagesTenant1.en,
     pagesBlog: pagesBlog.en,
     pagesTenant3: pagesTenant3.en,
+    srvInterview: srvInterview.en,
+    srvApplications2: srvApplications2.en,
+    srvMessaging: srvMessaging.en,
+    srvScoring: srvScoring.en,
+    srvCalendar: srvCalendar.en,
+    srvSavedSearch: srvSavedSearch.en,
+    srvAdmin: srvAdmin.en,
+    srvTenant1: srvTenant1.en,
+    srvTenant3: srvTenant3.en,
+    srvAssessments: srvAssessments.en,
+    srvTenant2fa: srvTenant2fa.en,
+    srvAuth2: srvAuth2.en,
+    srvAuth4: srvAuth4.en,
+    srvBilling: srvBilling.en,
+    srvTenant2: srvTenant2.en,
   },
 } as const
 

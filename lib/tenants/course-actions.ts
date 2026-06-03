@@ -14,6 +14,7 @@ import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -165,19 +166,20 @@ type TenantLoadCtx =
 async function loadTenantForCourse(
   tenantSlug: string,
   permission: Permission,
+  t: Awaited<ReturnType<typeof getServerT>>,
 ): Promise<TenantLoadCtx> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant2.course.mustSignIn }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant2.course.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant2.course.noPermission }
   }
   return { tenant, actorId }
 }
@@ -200,12 +202,13 @@ type CourseLoadCtx =
 async function loadCourseForAction(
   courseId: string,
   permission: Permission,
+  t: Awaited<ReturnType<typeof getServerT>>,
 ): Promise<CourseLoadCtx> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant2.course.mustSignIn }
   }
-  if (!courseId) return { error: 'ID kursus tidak valid.' }
+  if (!courseId) return { error: t.srvTenant2.course.courseIdInvalid }
 
   const course = await prisma.course.findUnique({
     where: { id: courseId },
@@ -219,11 +222,11 @@ async function loadCourseForAction(
       tenant: { select: { id: true, slug: true } },
     },
   })
-  if (!course) return { error: 'Kursus tidak ditemukan.' }
+  if (!course) return { error: t.srvTenant2.course.courseNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, course.tenantId, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant2.course.noPermission }
   }
   return {
     course: {
@@ -251,12 +254,13 @@ type ModuleLoadCtx =
 async function loadModuleForAction(
   moduleId: string,
   permission: Permission,
+  t: Awaited<ReturnType<typeof getServerT>>,
 ): Promise<ModuleLoadCtx> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant2.course.mustSignIn }
   }
-  if (!moduleId) return { error: 'ID modul tidak valid.' }
+  if (!moduleId) return { error: t.srvTenant2.course.moduleIdInvalid }
 
   const mod = await prisma.module.findUnique({
     where: { id: moduleId },
@@ -276,13 +280,13 @@ async function loadModuleForAction(
       },
     },
   })
-  if (!mod) return { error: 'Modul tidak ditemukan.' }
+  if (!mod) return { error: t.srvTenant2.course.moduleNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
     !hasTenantPermission(globalRole, tenants, mod.course.tenantId, permission)
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant2.course.noPermission }
   }
   return {
     module: {
@@ -320,12 +324,13 @@ type LessonLoadCtx =
 async function loadLessonForAction(
   lessonId: string,
   permission: Permission,
+  t: Awaited<ReturnType<typeof getServerT>>,
 ): Promise<LessonLoadCtx> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant2.course.mustSignIn }
   }
-  if (!lessonId) return { error: 'ID pelajaran tidak valid.' }
+  if (!lessonId) return { error: t.srvTenant2.course.lessonIdInvalid }
 
   const lesson = await prisma.lesson.findUnique({
     where: { id: lessonId },
@@ -350,7 +355,7 @@ async function loadLessonForAction(
       },
     },
   })
-  if (!lesson) return { error: 'Pelajaran tidak ditemukan.' }
+  if (!lesson) return { error: t.srvTenant2.course.lessonNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -361,7 +366,7 @@ async function loadLessonForAction(
       permission,
     )
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant2.course.noPermission }
   }
   return {
     lesson: {
@@ -405,7 +410,8 @@ export async function createCourse(input: {
   tenantSlug: string
   values: FormData
 }): Promise<ActionResult<{ id: string; slug: string }>> {
-  const ctx = await loadTenantForCourse(input.tenantSlug, 'course.create')
+  const t = await getServerT()
+  const ctx = await loadTenantForCourse(input.tenantSlug, 'course.create', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const parsed = baseCourseSchema.safeParse(readCourseFormData(input.values))
@@ -413,7 +419,7 @@ export async function createCourse(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant2.course.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -425,7 +431,7 @@ export async function createCourse(input: {
       if (!ok) {
         return {
           ok: false,
-          error: 'Instruktur harus anggota tenant ini.',
+          error: t.srvTenant2.course.instructorNotMember,
           field: 'instructorId',
         }
       }
@@ -473,7 +479,7 @@ export async function createCourse(input: {
     return { ok: true, data: { id: created.id, slug: created.slug } }
   } catch (err) {
     console.error('[createCourse] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
@@ -485,7 +491,8 @@ export async function updateCourse(input: {
   courseId: string
   values: FormData
 }): Promise<ActionResult> {
-  const ctx = await loadCourseForAction(input.courseId, 'course.update')
+  const t = await getServerT()
+  const ctx = await loadCourseForAction(input.courseId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const parsed = baseCourseSchema.safeParse(readCourseFormData(input.values))
@@ -493,7 +500,7 @@ export async function updateCourse(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant2.course.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -505,7 +512,7 @@ export async function updateCourse(input: {
       if (!ok) {
         return {
           ok: false,
-          error: 'Instruktur harus anggota tenant ini.',
+          error: t.srvTenant2.course.instructorNotMember,
           field: 'instructorId',
         }
       }
@@ -561,7 +568,7 @@ export async function updateCourse(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateCourse] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
@@ -573,13 +580,14 @@ export async function changeCourseStatus(input: {
   courseId: string
   status: CourseStatus
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const statusParse = courseStatusSchema.safeParse(input.status)
   if (!statusParse.success) {
-    return { ok: false, error: 'Status tidak valid.' }
+    return { ok: false, error: t.srvTenant2.course.statusInvalid }
   }
   const nextStatus = statusParse.data
 
-  const ctx = await loadCourseForAction(input.courseId, 'course.update')
+  const ctx = await loadCourseForAction(input.courseId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   if (ctx.course.status === nextStatus) {
@@ -621,7 +629,7 @@ export async function changeCourseStatus(input: {
     return { ok: true }
   } catch (err) {
     console.error('[changeCourseStatus] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
@@ -630,7 +638,8 @@ export async function changeCourseStatus(input: {
 // =============================================================================
 
 export async function deleteCourse(courseId: string): Promise<ActionResult> {
-  const ctx = await loadCourseForAction(courseId, 'course.delete')
+  const t = await getServerT()
+  const ctx = await loadCourseForAction(courseId, 'course.delete', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   try {
@@ -659,7 +668,7 @@ export async function deleteCourse(courseId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteCourse] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
@@ -672,14 +681,15 @@ export async function createModule(input: {
   title: string
   order: number
 }): Promise<ActionResult<{ id: string }>> {
-  const ctx = await loadCourseForAction(input.courseId, 'course.update')
+  const t = await getServerT()
+  const ctx = await loadCourseForAction(input.courseId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const titleParse = moduleTitleSchema.safeParse(input.title)
   if (!titleParse.success) {
     return {
       ok: false,
-      error: titleParse.error.issues[0]?.message ?? 'Judul tidak valid',
+      error: titleParse.error.issues[0]?.message ?? t.srvTenant2.course.titleInvalid,
       field: 'title',
     }
   }
@@ -687,7 +697,7 @@ export async function createModule(input: {
   if (!orderParse.success) {
     return {
       ok: false,
-      error: orderParse.error.issues[0]?.message ?? 'Urutan tidak valid',
+      error: orderParse.error.issues[0]?.message ?? t.srvTenant2.course.orderInvalid,
       field: 'order',
     }
   }
@@ -727,7 +737,7 @@ export async function createModule(input: {
     return { ok: true, data: { id: created.id } }
   } catch (err) {
     console.error('[createModule] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
@@ -736,7 +746,8 @@ export async function updateModule(input: {
   title?: string
   order?: number
 }): Promise<ActionResult> {
-  const ctx = await loadModuleForAction(input.moduleId, 'course.update')
+  const t = await getServerT()
+  const ctx = await loadModuleForAction(input.moduleId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const data: Prisma.ModuleUpdateInput = {}
@@ -745,7 +756,7 @@ export async function updateModule(input: {
     if (!titleParse.success) {
       return {
         ok: false,
-        error: titleParse.error.issues[0]?.message ?? 'Judul tidak valid',
+        error: titleParse.error.issues[0]?.message ?? t.srvTenant2.course.titleInvalid,
         field: 'title',
       }
     }
@@ -756,7 +767,7 @@ export async function updateModule(input: {
     if (!orderParse.success) {
       return {
         ok: false,
-        error: orderParse.error.issues[0]?.message ?? 'Urutan tidak valid',
+        error: orderParse.error.issues[0]?.message ?? t.srvTenant2.course.orderInvalid,
         field: 'order',
       }
     }
@@ -805,12 +816,13 @@ export async function updateModule(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateModule] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
 export async function deleteModule(moduleId: string): Promise<ActionResult> {
-  const ctx = await loadModuleForAction(moduleId, 'course.update')
+  const t = await getServerT()
+  const ctx = await loadModuleForAction(moduleId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   try {
@@ -841,7 +853,7 @@ export async function deleteModule(moduleId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteModule] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
@@ -858,14 +870,15 @@ export async function createLesson(input: {
   order: number
   durationMin: number
 }): Promise<ActionResult<{ id: string }>> {
-  const ctx = await loadModuleForAction(input.moduleId, 'course.update')
+  const t = await getServerT()
+  const ctx = await loadModuleForAction(input.moduleId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const titleParse = lessonTitleSchema.safeParse(input.title)
   if (!titleParse.success) {
     return {
       ok: false,
-      error: titleParse.error.issues[0]?.message ?? 'Judul tidak valid',
+      error: titleParse.error.issues[0]?.message ?? t.srvTenant2.course.titleInvalid,
       field: 'title',
     }
   }
@@ -873,7 +886,7 @@ export async function createLesson(input: {
   if (!contentTypeParse.success) {
     return {
       ok: false,
-      error: 'Tipe konten tidak valid',
+      error: t.srvTenant2.course.contentTypeInvalid,
       field: 'contentType',
     }
   }
@@ -881,7 +894,7 @@ export async function createLesson(input: {
   if (!orderParse.success) {
     return {
       ok: false,
-      error: orderParse.error.issues[0]?.message ?? 'Urutan tidak valid',
+      error: orderParse.error.issues[0]?.message ?? t.srvTenant2.course.orderInvalid,
       field: 'order',
     }
   }
@@ -889,14 +902,14 @@ export async function createLesson(input: {
   if (!durationParse.success) {
     return {
       ok: false,
-      error: durationParse.error.issues[0]?.message ?? 'Durasi tidak valid',
+      error: durationParse.error.issues[0]?.message ?? t.srvTenant2.course.durationInvalid,
       field: 'durationMin',
     }
   }
   const contentUrlParse = optionalShortText.safeParse(input.contentUrl ?? '')
   const contentBodyParse = optionalText.safeParse(input.contentBody ?? '')
   if (!contentUrlParse.success || !contentBodyParse.success) {
-    return { ok: false, error: 'Konten pelajaran tidak valid.' }
+    return { ok: false, error: t.srvTenant2.course.lessonContentInvalid }
   }
 
   try {
@@ -940,7 +953,7 @@ export async function createLesson(input: {
     return { ok: true, data: { id: created.id } }
   } catch (err) {
     console.error('[createLesson] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
@@ -953,7 +966,8 @@ export async function updateLesson(input: {
   order?: number
   durationMin?: number
 }): Promise<ActionResult> {
-  const ctx = await loadLessonForAction(input.lessonId, 'course.update')
+  const t = await getServerT()
+  const ctx = await loadLessonForAction(input.lessonId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const data: Prisma.LessonUpdateInput = {}
@@ -963,7 +977,7 @@ export async function updateLesson(input: {
     if (!p.success) {
       return {
         ok: false,
-        error: p.error.issues[0]?.message ?? 'Judul tidak valid',
+        error: p.error.issues[0]?.message ?? t.srvTenant2.course.titleInvalid,
         field: 'title',
       }
     }
@@ -972,21 +986,21 @@ export async function updateLesson(input: {
   if (input.contentType !== undefined) {
     const p = lessonContentTypeSchema.safeParse(input.contentType)
     if (!p.success) {
-      return { ok: false, error: 'Tipe konten tidak valid', field: 'contentType' }
+      return { ok: false, error: t.srvTenant2.course.contentTypeInvalid, field: 'contentType' }
     }
     data.contentType = p.data
   }
   if (input.contentUrl !== undefined) {
     const p = optionalShortText.safeParse(input.contentUrl)
     if (!p.success) {
-      return { ok: false, error: 'URL konten tidak valid', field: 'contentUrl' }
+      return { ok: false, error: t.srvTenant2.course.contentUrlInvalid, field: 'contentUrl' }
     }
     data.contentUrl = p.data ?? null
   }
   if (input.contentBody !== undefined) {
     const p = optionalText.safeParse(input.contentBody)
     if (!p.success) {
-      return { ok: false, error: 'Isi konten tidak valid', field: 'contentBody' }
+      return { ok: false, error: t.srvTenant2.course.contentBodyInvalid, field: 'contentBody' }
     }
     data.contentBody = p.data ?? null
   }
@@ -995,7 +1009,7 @@ export async function updateLesson(input: {
     if (!p.success) {
       return {
         ok: false,
-        error: p.error.issues[0]?.message ?? 'Urutan tidak valid',
+        error: p.error.issues[0]?.message ?? t.srvTenant2.course.orderInvalid,
         field: 'order',
       }
     }
@@ -1006,7 +1020,7 @@ export async function updateLesson(input: {
     if (!p.success) {
       return {
         ok: false,
-        error: p.error.issues[0]?.message ?? 'Durasi tidak valid',
+        error: p.error.issues[0]?.message ?? t.srvTenant2.course.durationInvalid,
         field: 'durationMin',
       }
     }
@@ -1048,12 +1062,13 @@ export async function updateLesson(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateLesson] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }
 
 export async function deleteLesson(lessonId: string): Promise<ActionResult> {
-  const ctx = await loadLessonForAction(lessonId, 'course.update')
+  const t = await getServerT()
+  const ctx = await loadLessonForAction(lessonId, 'course.update', t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   try {
@@ -1086,6 +1101,6 @@ export async function deleteLesson(lessonId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteLesson] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.course.genericError }
   }
 }

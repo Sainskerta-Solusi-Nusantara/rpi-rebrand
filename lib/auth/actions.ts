@@ -7,6 +7,8 @@ import { prisma } from '@/lib/db'
 import { env } from '@/lib/env'
 import { hashPassword } from '@/lib/auth/password'
 import { emailVerificationEmail, passwordResetEmail, sendEmail } from '@/lib/mailer'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvAuth1 } from '@/lib/i18n/dictionaries/srv-auth1'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -90,6 +92,8 @@ const registerSchema = z.object({
  * Returns a discriminated result; caller decides redirect.
  */
 export async function registerUser(formData: FormData): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].auth
   const raw = {
     name: formData.get('name'),
     email: formData.get('email'),
@@ -99,14 +103,14 @@ export async function registerUser(formData: FormData): Promise<ActionResult> {
   const parsed = registerSchema.safeParse(raw)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
-    return { ok: false, error: issue?.message ?? 'Data tidak valid', field: issue?.path[0] as string | undefined }
+    return { ok: false, error: issue?.message ?? t.dataInvalid, field: issue?.path[0] as string | undefined }
   }
   const { name, email, password } = parsed.data
 
   try {
     const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } })
     if (existing) {
-      return { ok: false, error: 'Email sudah terdaftar', field: 'email' }
+      return { ok: false, error: t.emailTaken, field: 'email' }
     }
 
     const passwordHash = await hashPassword(password)
@@ -153,7 +157,7 @@ export async function registerUser(formData: FormData): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[registerUser] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.genericError }
   }
 }
 
@@ -167,9 +171,11 @@ const forgotSchema = z.object({
  * single-use token (1h TTL) is stored hashed and a reset link is emailed.
  */
 export async function requestPasswordReset(formData: FormData): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].auth
   const parsed = forgotSchema.safeParse({ email: formData.get('email') })
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Email tidak valid', field: 'email' }
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t.emailInvalid, field: 'email' }
   }
   const { email } = parsed.data
 
@@ -231,6 +237,8 @@ const resetSchema = z
  * the password change succeeds (defense in depth).
  */
 export async function resetPassword(formData: FormData): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].auth
   const raw = {
     token: formData.get('token'),
     password: formData.get('password'),
@@ -241,7 +249,7 @@ export async function resetPassword(formData: FormData): Promise<ActionResult> {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -257,7 +265,7 @@ export async function resetPassword(formData: FormData): Promise<ActionResult> {
     if (!record || record.usedAt || record.expiresAt.getTime() < Date.now()) {
       return {
         ok: false,
-        error: 'Tautan reset tidak valid atau sudah kedaluwarsa. Minta tautan baru.',
+        error: t.resetLinkInvalid,
       }
     }
 
@@ -276,7 +284,7 @@ export async function resetPassword(formData: FormData): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[resetPassword] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.genericError }
   }
 }
 
@@ -412,18 +420,20 @@ export async function checkVerificationToken(token: string): Promise<
  * (so the UI doesn't reveal exact send timestamps).
  */
 export async function requestEmailVerification(): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].auth
   try {
     const { auth } = await import('@/lib/auth/session')
     const session = await auth()
     if (!session?.user?.id) {
-      return { ok: false, error: 'Anda perlu masuk untuk meminta verifikasi.' }
+      return { ok: false, error: t.mustLoginVerify }
     }
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { id: true, email: true, name: true, emailVerified: true },
     })
-    if (!user) return { ok: false, error: 'Akun tidak ditemukan.' }
-    if (user.emailVerified) return { ok: false, error: 'Email Anda sudah terverifikasi.' }
+    if (!user) return { ok: false, error: t.accountNotFound }
+    if (user.emailVerified) return { ok: false, error: t.alreadyVerified }
 
     // Cooldown — find most recent active token, refuse if within window.
     const latest = await prisma.emailVerificationToken.findFirst({
@@ -434,7 +444,7 @@ export async function requestEmailVerification(): Promise<ActionResult> {
     if (latest && Date.now() - latest.createdAt.getTime() < VERIFY_RESEND_COOLDOWN_MS) {
       return {
         ok: false,
-        error: 'Tunggu sebentar sebelum meminta tautan baru.',
+        error: t.waitBeforeResend,
       }
     }
 
@@ -442,6 +452,6 @@ export async function requestEmailVerification(): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[requestEmailVerification] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.genericError }
   }
 }

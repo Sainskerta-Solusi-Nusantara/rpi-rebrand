@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -65,8 +66,9 @@ export type StartAssessmentAttemptPayload = {
 export async function startAssessmentAttempt(input: {
   assessmentId: string
 }): Promise<ActionResult<StartAssessmentAttemptPayload>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAssessments.attempt.auth.mustLogin }
   const userId = session.user.id
 
   const parsed = startSchema.safeParse(input)
@@ -74,7 +76,7 @@ export async function startAssessmentAttempt(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? t.srvAssessments.attempt.validation.invalidInput,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -104,15 +106,15 @@ export async function startAssessmentAttempt(input: {
         },
       },
     })
-    if (!assessment) return { ok: false, error: 'Asesmen tidak ditemukan.' }
+    if (!assessment) return { ok: false, error: t.srvAssessments.attempt.validation.assessmentNotFound }
     if (assessment.status !== 'PUBLISHED') {
       return {
         ok: false,
-        error: 'Asesmen ini belum dipublikasikan.',
+        error: t.srvAssessments.attempt.validation.notPublished,
       }
     }
     if (assessment.questions.length === 0) {
-      return { ok: false, error: 'Asesmen ini belum memiliki pertanyaan.' }
+      return { ok: false, error: t.srvAssessments.attempt.validation.noQuestions }
     }
 
     const attempt = await prisma.assessmentAttempt.create({
@@ -157,7 +159,7 @@ export async function startAssessmentAttempt(input: {
     }
   } catch (err) {
     console.error('[startAssessmentAttempt] failed', err)
-    return { ok: false, error: 'Gagal memulai asesmen. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.attempt.errors.failedStart }
   }
 }
 
@@ -193,8 +195,9 @@ export async function submitAssessmentAttempt(input: {
   attemptId: string
   answers: Array<{ questionId: string; choiceIds: string[] }>
 }): Promise<ActionResult<SubmitAssessmentAttemptResult>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAssessments.attempt.auth.mustLogin }
   const userId = session.user.id
 
   const parsed = submitSchema.safeParse(input)
@@ -202,7 +205,7 @@ export async function submitAssessmentAttempt(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? t.srvAssessments.attempt.validation.invalidInput,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -235,12 +238,12 @@ export async function submitAssessmentAttempt(input: {
         },
       },
     })
-    if (!attempt) return { ok: false, error: 'Percobaan tidak ditemukan.' }
+    if (!attempt) return { ok: false, error: t.srvAssessments.attempt.validation.attemptNotFound }
     if (attempt.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak mengubah percobaan ini.' }
+      return { ok: false, error: t.srvAssessments.attempt.validation.notOwner }
     }
     if (attempt.completedAt) {
-      return { ok: false, error: 'Percobaan ini sudah selesai.' }
+      return { ok: false, error: t.srvAssessments.attempt.validation.alreadyCompleted }
     }
 
     const questions = attempt.assessment.questions
@@ -312,7 +315,7 @@ export async function submitAssessmentAttempt(input: {
     }
   } catch (err) {
     console.error('[submitAssessmentAttempt] failed', err)
-    return { ok: false, error: 'Gagal menyimpan jawaban. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.attempt.errors.failedSave }
   }
 }
 

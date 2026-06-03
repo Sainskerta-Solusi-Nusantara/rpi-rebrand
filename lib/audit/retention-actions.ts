@@ -6,6 +6,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; data: T })
@@ -53,6 +54,7 @@ const upsertSchema = z.object({
 export async function upsertRetentionPolicy(
   formData: FormData,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
 
   const raw = {
@@ -68,7 +70,7 @@ export async function upsertRetentionPolicy(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvAdmin.retentionActions.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -79,14 +81,14 @@ export async function upsertRetentionPolicy(
 
   if (scope === 'global') {
     if (globalRole !== 'SUPERADMIN') {
-      return { ok: false, error: 'Hanya SUPERADMIN yang dapat mengubah kebijakan global.' }
+      return { ok: false, error: t.srvAdmin.retentionActions.globalPolicyRequiresSuperadmin }
     }
   } else {
     if (!tenantId) {
-      return { ok: false, error: 'Tenant wajib dipilih.', field: 'tenantId' }
+      return { ok: false, error: t.srvAdmin.retentionActions.tenantRequired, field: 'tenantId' }
     }
     if (!hasTenantPermission(globalRole, tenants, tenantId, 'audit.view')) {
-      return { ok: false, error: 'Tidak ada izin untuk mengelola kebijakan retensi tenant ini.' }
+      return { ok: false, error: t.srvAdmin.retentionActions.noPermissionManageRetention }
     }
   }
 
@@ -153,12 +155,12 @@ export async function upsertRetentionPolicy(
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
       return {
         ok: false,
-        error: 'Kebijakan untuk tipe sumber daya ini sudah ada.',
+        error: t.srvAdmin.retentionActions.policyAlreadyExists,
         field: 'resourceType',
       }
     }
     console.error('[upsertRetentionPolicy] failed', err)
-    return { ok: false, error: 'Gagal menyimpan kebijakan. Coba lagi.' }
+    return { ok: false, error: t.srvAdmin.retentionActions.savePolicyFailed }
   }
 }
 
@@ -168,26 +170,27 @@ export async function upsertRetentionPolicy(
 export async function deleteRetentionPolicy(
   id: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
 
   const policy = await prisma.auditRetentionPolicy
     .findUnique({ where: { id } })
     .catch(() => null)
   if (!policy) {
-    return { ok: false, error: 'Kebijakan tidak ditemukan.' }
+    return { ok: false, error: t.srvAdmin.retentionActions.policyNotFound }
   }
 
   const { globalRole, tenants } = session.user
   if (policy.scope === 'global') {
     if (globalRole !== 'SUPERADMIN') {
-      return { ok: false, error: 'Hanya SUPERADMIN yang dapat menghapus kebijakan global.' }
+      return { ok: false, error: t.srvAdmin.retentionActions.deletePolicyRequiresSuperadmin }
     }
   } else {
     if (!policy.tenantId) {
-      return { ok: false, error: 'Kebijakan tenant tidak valid (tenantId hilang).' }
+      return { ok: false, error: t.srvAdmin.retentionActions.tenantPolicyInvalid }
     }
     if (!hasTenantPermission(globalRole, tenants, policy.tenantId, 'audit.view')) {
-      return { ok: false, error: 'Tidak ada izin untuk menghapus kebijakan ini.' }
+      return { ok: false, error: t.srvAdmin.retentionActions.noPermissionDeletePolicy }
     }
   }
 
@@ -221,7 +224,7 @@ export async function deleteRetentionPolicy(
     return { ok: true }
   } catch (err) {
     console.error('[deleteRetentionPolicy] failed', err)
-    return { ok: false, error: 'Gagal menghapus kebijakan. Coba lagi.' }
+    return { ok: false, error: t.srvAdmin.retentionActions.deletePolicyFailed }
   }
 }
 
@@ -240,10 +243,11 @@ export type RetentionImpactRow = {
 export async function previewRetentionImpact(
   tenantId: string,
 ): Promise<ActionResult<RetentionImpactRow[]>> {
+  const t = await getServerT()
   const session = await requireAuth()
   const { globalRole, tenants } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenantId, 'audit.view')) {
-    return { ok: false, error: 'Tidak ada izin untuk meninjau dampak retensi.' }
+    return { ok: false, error: t.srvAdmin.retentionActions.noPermissionPreviewRetention }
   }
 
   let policies
@@ -253,7 +257,7 @@ export async function previewRetentionImpact(
     })
   } catch (err) {
     console.error('[previewRetentionImpact] policy load failed', err)
-    return { ok: false, error: 'Gagal memuat kebijakan.' }
+    return { ok: false, error: t.srvAdmin.retentionActions.loadPoliciesFailed }
   }
 
   const now = Date.now()

@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; data: T })
@@ -17,9 +18,9 @@ const SEGMENT_OPS = ['in', 'equals', 'starts_with'] as const
 const emptyToUndefined = (v: unknown) =>
   typeof v === 'string' && v.trim() === '' ? undefined : v
 
-function requireSuperadmin(globalRole: string | undefined): string | null {
+function requireSuperadmin(globalRole: string | undefined): true | null {
   if (globalRole !== 'SUPERADMIN') {
-    return 'Hanya SUPERADMIN yang dapat mengelola feature flag.'
+    return true
   }
   return null
 }
@@ -116,9 +117,10 @@ function revalidateAll(id?: string) {
  * toggle it after configuring rollout.
  */
 export async function createFlag(formData: FormData): Promise<ActionResult<{ id: string }>> {
+  const t = await getServerT()
   const session = await requireAuth()
   const denied = requireSuperadmin(session.user.globalRole)
-  if (denied) return { ok: false, error: denied }
+  if (denied) return { ok: false, error: t.srvAdmin.flagActions.superadminOnly }
 
   const raw = {
     key: formData.get('key'),
@@ -134,7 +136,7 @@ export async function createFlag(formData: FormData): Promise<ActionResult<{ id:
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvAdmin.flagActions.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -164,10 +166,10 @@ export async function createFlag(formData: FormData): Promise<ActionResult<{ id:
     return { ok: true, data: { id: flag.id } }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-      return { ok: false, error: 'Key sudah digunakan oleh flag lain.', field: 'key' }
+      return { ok: false, error: t.srvAdmin.flagActions.keyAlreadyUsed, field: 'key' }
     }
     console.error('[createFlag] failed', err)
-    return { ok: false, error: 'Gagal membuat flag. Coba lagi.' }
+    return { ok: false, error: t.srvAdmin.flagActions.createFlagFailed }
   }
 }
 
@@ -176,9 +178,10 @@ export async function createFlag(formData: FormData): Promise<ActionResult<{ id:
  * that so audit logs are unambiguous.
  */
 export async function updateFlag(id: string, formData: FormData): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
   const denied = requireSuperadmin(session.user.globalRole)
-  if (denied) return { ok: false, error: denied }
+  if (denied) return { ok: false, error: t.srvAdmin.flagActions.superadminOnly }
 
   const raw = {
     key: formData.get('key'),
@@ -194,7 +197,7 @@ export async function updateFlag(id: string, formData: FormData): Promise<Action
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvAdmin.flagActions.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -224,14 +227,14 @@ export async function updateFlag(id: string, formData: FormData): Promise<Action
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === 'P2002') {
-        return { ok: false, error: 'Key sudah digunakan oleh flag lain.', field: 'key' }
+        return { ok: false, error: t.srvAdmin.flagActions.keyAlreadyUsed, field: 'key' }
       }
       if (err.code === 'P2025') {
-        return { ok: false, error: 'Flag tidak ditemukan.' }
+        return { ok: false, error: t.srvAdmin.flagActions.flagNotFound }
       }
     }
     console.error('[updateFlag] failed', err)
-    return { ok: false, error: 'Gagal menyimpan flag. Coba lagi.' }
+    return { ok: false, error: t.srvAdmin.flagActions.saveFlagFailed }
   }
 }
 
@@ -240,9 +243,10 @@ export async function updateFlag(id: string, formData: FormData): Promise<Action
  * flag was flipped.
  */
 export async function toggleFlag(id: string, enabled: boolean): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
   const denied = requireSuperadmin(session.user.globalRole)
-  if (denied) return { ok: false, error: denied }
+  if (denied) return { ok: false, error: t.srvAdmin.flagActions.superadminOnly }
 
   try {
     const flag = await prisma.featureFlag.update({
@@ -258,10 +262,10 @@ export async function toggleFlag(id: string, enabled: boolean): Promise<ActionRe
     return { ok: true }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      return { ok: false, error: 'Flag tidak ditemukan.' }
+      return { ok: false, error: t.srvAdmin.flagActions.flagNotFound }
     }
     console.error('[toggleFlag] failed', err)
-    return { ok: false, error: 'Gagal mengubah status flag.' }
+    return { ok: false, error: t.srvAdmin.flagActions.toggleFlagFailed }
   }
 }
 
@@ -269,9 +273,10 @@ export async function toggleFlag(id: string, enabled: boolean): Promise<ActionRe
  * Delete a flag. Overrides cascade via the FK in the Prisma schema.
  */
 export async function deleteFlag(id: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
   const denied = requireSuperadmin(session.user.globalRole)
-  if (denied) return { ok: false, error: denied }
+  if (denied) return { ok: false, error: t.srvAdmin.flagActions.superadminOnly }
 
   try {
     const flag = await prisma.featureFlag.delete({
@@ -285,10 +290,10 @@ export async function deleteFlag(id: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      return { ok: false, error: 'Flag tidak ditemukan.' }
+      return { ok: false, error: t.srvAdmin.flagActions.flagNotFound }
     }
     console.error('[deleteFlag] failed', err)
-    return { ok: false, error: 'Gagal menghapus flag.' }
+    return { ok: false, error: t.srvAdmin.flagActions.deleteFlagFailed }
   }
 }
 
@@ -324,9 +329,10 @@ export async function addOverride(
   flagId: string,
   formData: FormData,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
   const denied = requireSuperadmin(session.user.globalRole)
-  if (denied) return { ok: false, error: denied }
+  if (denied) return { ok: false, error: t.srvAdmin.flagActions.superadminOnly }
 
   const raw = {
     scope: formData.get('scope'),
@@ -340,7 +346,7 @@ export async function addOverride(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvAdmin.flagActions.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -350,12 +356,12 @@ export async function addOverride(
   const tenantId = data.scope === 'user' ? null : data.tenantId ?? null
 
   if (!userId && !tenantId) {
-    return { ok: false, error: 'Override harus menargetkan minimal satu: user atau tenant.' }
+    return { ok: false, error: t.srvAdmin.flagActions.overrideTargetRequired }
   }
 
   try {
     const flag = await prisma.featureFlag.findUnique({ where: { id: flagId }, select: { id: true, key: true } })
-    if (!flag) return { ok: false, error: 'Flag tidak ditemukan.' }
+    if (!flag) return { ok: false, error: t.srvAdmin.flagActions.flagNotFound }
 
     const override = await prisma.featureFlagOverride.upsert({
       where: {
@@ -389,7 +395,7 @@ export async function addOverride(
     return { ok: true }
   } catch (err) {
     console.error('[addOverride] failed', err)
-    return { ok: false, error: 'Gagal menyimpan override.' }
+    return { ok: false, error: t.srvAdmin.flagActions.saveOverrideFailed }
   }
 }
 
@@ -397,9 +403,10 @@ export async function addOverride(
  * Delete a single override by id. Audited.
  */
 export async function removeOverride(overrideId: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
   const denied = requireSuperadmin(session.user.globalRole)
-  if (denied) return { ok: false, error: denied }
+  if (denied) return { ok: false, error: t.srvAdmin.flagActions.superadminOnly }
 
   try {
     const override = await prisma.featureFlagOverride.delete({
@@ -415,9 +422,9 @@ export async function removeOverride(overrideId: string): Promise<ActionResult> 
     return { ok: true }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      return { ok: false, error: 'Override tidak ditemukan.' }
+      return { ok: false, error: t.srvAdmin.flagActions.overrideNotFound }
     }
     console.error('[removeOverride] failed', err)
-    return { ok: false, error: 'Gagal menghapus override.' }
+    return { ok: false, error: t.srvAdmin.flagActions.deleteOverrideFailed }
   }
 }

@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { AuditAction, type Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -147,6 +148,7 @@ const setUsernameSchema = z.object({ username: usernameSchema })
 export async function setUsername(input: {
   username: string
 }): Promise<ActionResult<{ username: string }>> {
+  const t = await getServerT()
   const session = await requireAuth()
   const userId = session.user.id
 
@@ -155,7 +157,7 @@ export async function setUsername(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Username tidak valid',
+      error: issue?.message ?? t.srvMessaging.publicProfile.usernameInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -165,7 +167,7 @@ export async function setUsername(input: {
   if (RESERVED_USERNAMES.has(next)) {
     return {
       ok: false,
-      error: 'Username tersebut tidak tersedia',
+      error: t.srvMessaging.publicProfile.usernameUnavailable,
       field: 'username',
     }
   }
@@ -189,7 +191,7 @@ export async function setUsername(input: {
     if (taken) {
       return {
         ok: false,
-        error: 'Username sudah dipakai',
+        error: t.srvMessaging.publicProfile.usernameTaken,
         field: 'username',
       }
     }
@@ -213,7 +215,7 @@ export async function setUsername(input: {
     return { ok: true, data: { username: next } }
   } catch (err) {
     console.error('[setUsername] failed', err)
-    return { ok: false, error: 'Gagal menyimpan username. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.publicProfile.saveFailed }
   }
 }
 
@@ -230,12 +232,13 @@ const setVisibilitySchema = z.object({ profilePublic: z.boolean() })
 export async function setProfileVisibility(input: {
   profilePublic: boolean
 }): Promise<ActionResult<{ profilePublic: boolean }>> {
+  const t = await getServerT()
   const session = await requireAuth()
   const userId = session.user.id
 
   const parsed = setVisibilitySchema.safeParse(input)
   if (!parsed.success) {
-    return { ok: false, error: 'Permintaan tidak valid' }
+    return { ok: false, error: t.srvMessaging.publicProfile.requestInvalid }
   }
 
   const next = parsed.data.profilePublic
@@ -269,6 +272,6 @@ export async function setProfileVisibility(input: {
     return { ok: true, data: { profilePublic: next } }
   } catch (err) {
     console.error('[setProfileVisibility] failed', err)
-    return { ok: false, error: 'Gagal memperbarui visibilitas. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.publicProfile.visibilityFailed }
   }
 }

@@ -12,6 +12,7 @@ import {
   deleteLocalResumeFile,
   saveResumeFile,
 } from '@/lib/storage'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -125,8 +126,9 @@ export async function createResume(input: {
   name: string
   content?: ResumeContent
 }): Promise<ActionResult<{ id: string }>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumes.mustLogin }
   const userId = session.user.id
 
   const parsed = createSchema.safeParse(input)
@@ -134,7 +136,7 @@ export async function createResume(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvMessaging.resumes.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -144,7 +146,7 @@ export async function createResume(input: {
     if (count >= MAX_RESUMES_PER_USER) {
       return {
         ok: false,
-        error: `Maksimal ${MAX_RESUMES_PER_USER} CV per akun.`,
+        error: t.srvMessaging.resumes.maxResumes.replace('{max}', String(MAX_RESUMES_PER_USER)),
       }
     }
 
@@ -165,7 +167,7 @@ export async function createResume(input: {
     return { ok: true, data: { id: created.id } }
   } catch (err) {
     console.error('[createResume] failed', err)
-    return { ok: false, error: 'Gagal membuat CV. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.resumes.createFailed }
   }
 }
 
@@ -186,8 +188,9 @@ export async function updateResume(input: {
   content?: ResumeContent
   isPrimary?: boolean
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumes.mustLogin }
   const userId = session.user.id
 
   const parsed = updateSchema.safeParse(input)
@@ -195,7 +198,7 @@ export async function updateResume(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvMessaging.resumes.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -208,7 +211,7 @@ export async function updateResume(input: {
       select: { id: true, userId: true, isPrimary: true },
     })
     if (!existing || existing.userId !== userId) {
-      return { ok: false, error: 'CV tidak ditemukan.' }
+      return { ok: false, error: t.srvMessaging.resumes.resumeNotFound }
     }
 
     const data: Prisma.ResumeUpdateInput = {}
@@ -251,7 +254,7 @@ export async function updateResume(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateResume] failed', err)
-    return { ok: false, error: 'Gagal menyimpan. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.resumes.saveFailed }
   }
 }
 
@@ -262,25 +265,26 @@ export async function updateResume(input: {
 export async function uploadResumeFile(
   formData: FormData,
 ): Promise<ActionResult<{ url: string }>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumes.mustLogin }
   const userId = session.user.id
 
   const id = formData.get('id')
   if (typeof id !== 'string' || id.length === 0) {
-    return { ok: false, error: 'ID CV tidak valid.' }
+    return { ok: false, error: t.srvMessaging.resumes.resumeIdInvalid }
   }
   const file = formData.get('file')
   if (!(file instanceof Blob)) {
-    return { ok: false, error: 'Berkas tidak ditemukan.' }
+    return { ok: false, error: t.srvMessaging.resumes.fileNotFound }
   }
-  if (file.size === 0) return { ok: false, error: 'Berkas kosong.' }
+  if (file.size === 0) return { ok: false, error: t.srvMessaging.resumes.fileEmpty }
   if (file.size > MAX_RESUME_BYTES) {
-    return { ok: false, error: 'Ukuran dokumen melebihi 10 MB.' }
+    return { ok: false, error: t.srvMessaging.resumes.fileTooLarge }
   }
   const mime = file.type
   if (!ALLOWED_RESUME_MIME.includes(mime)) {
-    return { ok: false, error: 'Format dokumen harus PDF, DOC, atau DOCX.' }
+    return { ok: false, error: t.srvMessaging.resumes.fileFormatInvalid }
   }
 
   try {
@@ -289,7 +293,7 @@ export async function uploadResumeFile(
       select: { id: true, userId: true, fileUrl: true },
     })
     if (!existing || existing.userId !== userId) {
-      return { ok: false, error: 'CV tidak ditemukan.' }
+      return { ok: false, error: t.srvMessaging.resumes.resumeNotFound }
     }
 
     const buf = Buffer.from(await file.arrayBuffer())
@@ -315,7 +319,7 @@ export async function uploadResumeFile(
     return { ok: true, data: { url: save.url } }
   } catch (err) {
     console.error('[uploadResumeFile] failed', err)
-    return { ok: false, error: 'Gagal mengunggah dokumen. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.resumes.uploadFailed }
   }
 }
 
@@ -324,12 +328,13 @@ export async function uploadResumeFile(
 // ---------------------------------------------------------------------------
 
 export async function removeResumeFile(id: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumes.mustLogin }
   const userId = session.user.id
 
   if (typeof id !== 'string' || id.length === 0) {
-    return { ok: false, error: 'ID CV tidak valid.' }
+    return { ok: false, error: t.srvMessaging.resumes.resumeIdInvalid }
   }
 
   try {
@@ -338,7 +343,7 @@ export async function removeResumeFile(id: string): Promise<ActionResult> {
       select: { id: true, userId: true, fileUrl: true },
     })
     if (!existing || existing.userId !== userId) {
-      return { ok: false, error: 'CV tidak ditemukan.' }
+      return { ok: false, error: t.srvMessaging.resumes.resumeNotFound }
     }
     if (!existing.fileUrl) return { ok: true }
 
@@ -359,7 +364,7 @@ export async function removeResumeFile(id: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[removeResumeFile] failed', err)
-    return { ok: false, error: 'Gagal menghapus dokumen. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.resumes.removeFileFailed }
   }
 }
 
@@ -368,12 +373,13 @@ export async function removeResumeFile(id: string): Promise<ActionResult> {
 // ---------------------------------------------------------------------------
 
 export async function deleteResume(id: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumes.mustLogin }
   const userId = session.user.id
 
   if (typeof id !== 'string' || id.length === 0) {
-    return { ok: false, error: 'ID CV tidak valid.' }
+    return { ok: false, error: t.srvMessaging.resumes.resumeIdInvalid }
   }
 
   try {
@@ -382,7 +388,7 @@ export async function deleteResume(id: string): Promise<ActionResult> {
       select: { id: true, userId: true, fileUrl: true, isPrimary: true },
     })
     if (!existing || existing.userId !== userId) {
-      return { ok: false, error: 'CV tidak ditemukan.' }
+      return { ok: false, error: t.srvMessaging.resumes.resumeNotFound }
     }
 
     await prisma.resume.delete({ where: { id } })
@@ -419,6 +425,6 @@ export async function deleteResume(id: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteResume] failed', err)
-    return { ok: false, error: 'Gagal menghapus CV. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.resumes.deleteFailed }
   }
 }

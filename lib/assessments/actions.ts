@@ -8,6 +8,7 @@ import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasPermission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -106,18 +107,18 @@ function buildAssessmentSlug(title: string): string {
 async function requireAssessmentAuthor(): Promise<
   { error: string } | { actorId: string }
 > {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvAssessments.assessments.auth.mustLogin }
   const { globalRole, id: actorId } = session.user
   if (globalRole !== 'SUPERADMIN' && globalRole !== 'ADMIN') {
     return {
-      error:
-        'Hanya SUPERADMIN/ADMIN yang dapat mengelola asesmen di tahap MVP.',
+      error: t.srvAssessments.assessments.auth.adminOnly,
     }
   }
   // Belt-and-suspenders: also verify the permission is wired up correctly.
   if (!hasPermission(globalRole, 'course.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvAssessments.assessments.auth.noPermission }
   }
   return { actorId }
 }
@@ -128,38 +129,40 @@ async function requireAssessmentAuthor(): Promise<
  *   - multiple_choice: ≥2 choices, exactly 1 correct
  *   - multi_select: ≥2 choices, ≥1 correct
  */
-function validateChoicesForType(
+async function validateChoicesForType(
   type: AssessmentQuestionType,
   choices: Array<{ text: string; isCorrect: boolean }>,
-): string | null {
+): Promise<string | null> {
+  const t = await getServerT()
+  const v = t.srvAssessments.assessments.validation
   if (!Array.isArray(choices) || choices.length === 0) {
-    return 'Pilihan jawaban wajib diisi.'
+    return v.choicesRequired
   }
   const correctCount = choices.filter((c) => c.isCorrect).length
 
   if (type === 'true_false') {
     if (choices.length !== 2) {
-      return 'Tipe Benar/Salah harus memiliki tepat 2 pilihan.'
+      return v.trueFalseExact2
     }
     if (correctCount !== 1) {
-      return 'Tipe Benar/Salah harus memiliki tepat 1 jawaban benar.'
+      return v.trueFalseExact1Correct
     }
     return null
   }
   if (type === 'multiple_choice') {
     if (choices.length < 2) {
-      return 'Pilihan ganda minimal 2 pilihan.'
+      return v.multipleChoiceMin2
     }
     if (correctCount !== 1) {
-      return 'Pilihan ganda harus memiliki tepat 1 jawaban benar.'
+      return v.multipleChoiceExact1Correct
     }
     return null
   }
   if (choices.length < 2) {
-    return 'Pilihan jamak minimal 2 pilihan.'
+    return v.multiSelectMin2
   }
   if (correctCount < 1) {
-    return 'Pilihan jamak harus memiliki minimal 1 jawaban benar.'
+    return v.multiSelectMin1Correct
   }
   return null
 }
@@ -201,12 +204,13 @@ export async function createAssessment(input: {
   durationMin?: number
   passingScore?: number
 }): Promise<ActionResult<{ id: string; slug: string }>> {
+  const t = await getServerT()
   const parsed = createSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid.',
+      error: issue?.message ?? t.srvAssessments.assessments.validation.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -263,7 +267,7 @@ export async function createAssessment(input: {
     return { ok: true, data: { id: assessment.id, slug: assessment.slug } }
   } catch (err) {
     console.error('[createAssessment] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.assessments.errors.genericRetry }
   }
 }
 
@@ -288,12 +292,13 @@ export async function updateAssessment(input: {
   durationMin?: number
   passingScore?: number
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid.',
+      error: issue?.message ?? t.srvAssessments.assessments.validation.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -306,7 +311,7 @@ export async function updateAssessment(input: {
       where: { id: parsed.data.assessmentId },
       select: { id: true, slug: true },
     })
-    if (!existing) return { ok: false, error: 'Asesmen tidak ditemukan.' }
+    if (!existing) return { ok: false, error: t.srvAssessments.assessments.validation.assessmentNotFound }
 
     await prisma.assessment.update({
       where: { id: existing.id },
@@ -355,7 +360,7 @@ export async function updateAssessment(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateAssessment] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.assessments.errors.genericRetry }
   }
 }
 
@@ -367,7 +372,8 @@ async function setAssessmentStatus(
   assessmentId: string,
   status: 'PUBLISHED' | 'ARCHIVED' | 'DRAFT',
 ): Promise<ActionResult> {
-  if (!assessmentId) return { ok: false, error: 'ID asesmen wajib diisi.' }
+  const t = await getServerT()
+  if (!assessmentId) return { ok: false, error: t.srvAssessments.assessments.validation.assessmentIdRequired }
   const auth = await requireAssessmentAuthor()
   if ('error' in auth) return { ok: false, error: auth.error }
 
@@ -376,7 +382,7 @@ async function setAssessmentStatus(
       where: { id: assessmentId },
       select: { id: true, slug: true, status: true },
     })
-    if (!existing) return { ok: false, error: 'Asesmen tidak ditemukan.' }
+    if (!existing) return { ok: false, error: t.srvAssessments.assessments.validation.assessmentNotFound }
 
     if (status === 'PUBLISHED') {
       // Sanity check: don't publish empty assessments.
@@ -386,7 +392,7 @@ async function setAssessmentStatus(
       if (qCount === 0) {
         return {
           ok: false,
-          error: 'Tambahkan minimal satu pertanyaan sebelum mempublikasikan.',
+          error: t.srvAssessments.assessments.validation.addQuestionFirst,
         }
       }
     }
@@ -420,7 +426,7 @@ async function setAssessmentStatus(
     return { ok: true }
   } catch (err) {
     console.error('[setAssessmentStatus] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.assessments.errors.genericRetry }
   }
 }
 
@@ -459,17 +465,18 @@ export async function addQuestion(input: {
   type: AssessmentQuestionType
   choices: Array<{ text: string; isCorrect: boolean }>
 }): Promise<ActionResult<{ id: string }>> {
+  const t = await getServerT()
   const parsed = addQuestionSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid.',
+      error: issue?.message ?? t.srvAssessments.assessments.validation.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
 
-  const typeErr = validateChoicesForType(parsed.data.type, parsed.data.choices)
+  const typeErr = await validateChoicesForType(parsed.data.type, parsed.data.choices)
   if (typeErr) return { ok: false, error: typeErr, field: 'choices' }
 
   const auth = await requireAssessmentAuthor()
@@ -480,7 +487,7 @@ export async function addQuestion(input: {
       where: { id: parsed.data.assessmentId },
       select: { id: true, slug: true },
     })
-    if (!assessment) return { ok: false, error: 'Asesmen tidak ditemukan.' }
+    if (!assessment) return { ok: false, error: t.srvAssessments.assessments.validation.assessmentNotFound }
 
     const last = await prisma.assessmentQuestion.findFirst({
       where: { assessmentId: assessment.id },
@@ -532,7 +539,7 @@ export async function addQuestion(input: {
     return { ok: true, data: { id: question.id } }
   } catch (err) {
     console.error('[addQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.assessments.errors.genericRetry }
   }
 }
 
@@ -551,12 +558,13 @@ export async function updateQuestion(input: {
   text?: string
   choices?: Array<{ text: string; isCorrect: boolean }>
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateQuestionSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid.',
+      error: issue?.message ?? t.srvAssessments.assessments.validation.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -569,10 +577,10 @@ export async function updateQuestion(input: {
       where: { id: parsed.data.questionId },
       select: { id: true, type: true, assessmentId: true },
     })
-    if (!current) return { ok: false, error: 'Pertanyaan tidak ditemukan.' }
+    if (!current) return { ok: false, error: t.srvAssessments.assessments.validation.questionNotFound }
 
     if (parsed.data.choices !== undefined) {
-      const typeErr = validateChoicesForType(
+      const typeErr = await validateChoicesForType(
         current.type as AssessmentQuestionType,
         parsed.data.choices,
       )
@@ -625,7 +633,7 @@ export async function updateQuestion(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.assessments.errors.genericRetry }
   }
 }
 
@@ -637,11 +645,12 @@ export async function reorderQuestion(input: {
   questionId: string
   direction: 'up' | 'down'
 }): Promise<ActionResult> {
+  const t = await getServerT()
   if (!input.questionId) {
-    return { ok: false, error: 'ID pertanyaan wajib diisi.' }
+    return { ok: false, error: t.srvAssessments.assessments.validation.questionIdRequired }
   }
   if (input.direction !== 'up' && input.direction !== 'down') {
-    return { ok: false, error: 'Arah perpindahan tidak valid.' }
+    return { ok: false, error: t.srvAssessments.assessments.validation.invalidDirection }
   }
 
   const auth = await requireAssessmentAuthor()
@@ -652,7 +661,7 @@ export async function reorderQuestion(input: {
       where: { id: input.questionId },
       select: { id: true, assessmentId: true, order: true },
     })
-    if (!current) return { ok: false, error: 'Pertanyaan tidak ditemukan.' }
+    if (!current) return { ok: false, error: t.srvAssessments.assessments.validation.questionNotFound }
 
     const all = await prisma.assessmentQuestion.findMany({
       where: { assessmentId: current.assessmentId },
@@ -660,7 +669,7 @@ export async function reorderQuestion(input: {
       select: { id: true, order: true },
     })
     const idx = all.findIndex((q) => q.id === current.id)
-    if (idx === -1) return { ok: false, error: 'Pertanyaan tidak ditemukan.' }
+    if (idx === -1) return { ok: false, error: t.srvAssessments.assessments.validation.questionNotFound }
     const swapIdx = input.direction === 'up' ? idx - 1 : idx + 1
     if (swapIdx < 0 || swapIdx >= all.length) {
       return { ok: true }
@@ -700,7 +709,7 @@ export async function reorderQuestion(input: {
     return { ok: true }
   } catch (err) {
     console.error('[reorderQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.assessments.errors.genericRetry }
   }
 }
 
@@ -711,7 +720,8 @@ export async function reorderQuestion(input: {
 export async function deleteQuestion(
   questionId: string,
 ): Promise<ActionResult> {
-  if (!questionId) return { ok: false, error: 'ID pertanyaan wajib diisi.' }
+  const t = await getServerT()
+  if (!questionId) return { ok: false, error: t.srvAssessments.assessments.validation.questionIdRequired }
   const auth = await requireAssessmentAuthor()
   if ('error' in auth) return { ok: false, error: auth.error }
 
@@ -720,7 +730,7 @@ export async function deleteQuestion(
       where: { id: questionId },
       select: { id: true, assessmentId: true },
     })
-    if (!current) return { ok: false, error: 'Pertanyaan tidak ditemukan.' }
+    if (!current) return { ok: false, error: t.srvAssessments.assessments.validation.questionNotFound }
 
     const meta = getRequestMeta()
     await prisma.$transaction([
@@ -745,7 +755,7 @@ export async function deleteQuestion(
     return { ok: true }
   } catch (err) {
     console.error('[deleteQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.assessments.errors.genericRetry }
   }
 }
 
@@ -779,6 +789,7 @@ export type FetchedAssessmentEditor = {
 export async function fetchAssessmentForEditor(input: {
   assessmentId: string
 }): Promise<ActionResult<{ assessment: FetchedAssessmentEditor }>> {
+  const t = await getServerT()
   const auth = await requireAssessmentAuthor()
   if ('error' in auth) return { ok: false, error: auth.error }
 
@@ -817,7 +828,7 @@ export async function fetchAssessmentForEditor(input: {
     return { ok: true, data: { assessment } }
   } catch (err) {
     console.error('[fetchAssessmentForEditor] failed', err)
-    return { ok: false, error: 'Gagal memuat asesmen.' }
+    return { ok: false, error: t.srvAssessments.assessments.errors.failedLoadAssessment }
   }
 }
 

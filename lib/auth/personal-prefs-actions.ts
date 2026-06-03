@@ -7,6 +7,8 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { locales } from '@/lib/i18n/dictionary'
 import { SUPPORTED_TIMEZONES } from '@/lib/auth/personal-prefs'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvAuth3 } from '@/lib/i18n/dictionaries/srv-auth3'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -32,8 +34,9 @@ const schema = z.object({
 })
 
 export async function updatePersonalPrefs(formData: FormData): Promise<ActionResult> {
+  const t = { srvAuth3: srvAuth3[await getServerLocale()] }
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAuth3.personalPrefs.mustLogin }
 
   const parsed = schema.safeParse({
     locale: String(formData.get('locale') ?? ''),
@@ -43,7 +46,7 @@ export async function updatePersonalPrefs(formData: FormData): Promise<ActionRes
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvAuth3.personalPrefs.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -71,7 +74,7 @@ export async function updatePersonalPrefs(formData: FormData): Promise<ActionRes
     return { ok: true }
   } catch (err) {
     console.error('[updatePersonalPrefs] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth3.personalPrefs.saveFailed }
   }
 }
 

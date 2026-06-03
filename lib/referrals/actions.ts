@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -56,8 +57,9 @@ function getRequestMeta() {
  * retries on the rare unique-collision. Audit logs CREATE on insertion.
  */
 export async function getOrCreateMyReferral(): Promise<ActionResult<ReferralRow>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvCalendar.referrals.mustLogin }
   const userId = session.user.id
 
   try {
@@ -107,10 +109,10 @@ export async function getOrCreateMyReferral(): Promise<ActionResult<ReferralRow>
     }
 
     console.error('[getOrCreateMyReferral] exhausted attempts', lastErr)
-    return { ok: false, error: 'Gagal membuat kode referral. Coba lagi.' }
+    return { ok: false, error: t.srvCalendar.referrals.createCodeFailed }
   } catch (err) {
     console.error('[getOrCreateMyReferral] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvCalendar.referrals.genericError }
   }
 }
 
@@ -130,8 +132,9 @@ const applySchema = z.object({
 export async function applyReferralCode(input: {
   code: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvCalendar.referrals.mustLogin }
   const userId = session.user.id
 
   const parsed = applySchema.safeParse(input)
@@ -139,7 +142,7 @@ export async function applyReferralCode(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Kode referral tidak valid',
+      error: issue?.message ?? t.srvCalendar.referrals.codeInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -157,10 +160,11 @@ export async function _applyReferralForUser(input: {
   userId: string
   code: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const userId = input.userId
   const rawCode = (input.code ?? '').trim()
-  if (!userId) return { ok: false, error: 'User tidak ditemukan.' }
-  if (!rawCode) return { ok: false, error: 'Kode referral wajib diisi.' }
+  if (!userId) return { ok: false, error: t.srvCalendar.referrals.userNotFound }
+  if (!rawCode) return { ok: false, error: t.srvCalendar.referrals.codeRequired }
 
   try {
     const referral = await prisma.referral.findFirst({
@@ -168,21 +172,21 @@ export async function _applyReferralForUser(input: {
       select: { id: true, code: true, userId: true },
     })
     if (!referral) {
-      return { ok: false, error: 'Kode referral tidak ditemukan.' }
+      return { ok: false, error: t.srvCalendar.referrals.codeNotFound }
     }
     if (referral.userId === userId) {
-      return { ok: false, error: 'Anda tidak dapat menggunakan kode sendiri.' }
+      return { ok: false, error: t.srvCalendar.referrals.selfReferral }
     }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, referredByCode: true },
     })
-    if (!user) return { ok: false, error: 'User tidak ditemukan.' }
+    if (!user) return { ok: false, error: t.srvCalendar.referrals.userNotFound }
     if (user.referredByCode) {
       return {
         ok: false,
-        error: 'Akun Anda sudah memakai kode referral lain.',
+        error: t.srvCalendar.referrals.alreadyUsedCode,
       }
     }
 
@@ -248,7 +252,7 @@ export async function _applyReferralForUser(input: {
     return { ok: true }
   } catch (err) {
     console.error('[_applyReferralForUser] failed', err)
-    return { ok: false, error: 'Gagal menerapkan kode referral.' }
+    return { ok: false, error: t.srvCalendar.referrals.applyFailed }
   }
 }
 
@@ -265,13 +269,14 @@ const recordSchema = z.object({
 export async function recordReferralApplication(input: {
   applicationId: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvCalendar.referrals.mustLogin }
   const userId = session.user.id
 
   const parsed = recordSchema.safeParse(input)
   if (!parsed.success) {
-    return { ok: false, error: 'Input tidak valid.' }
+    return { ok: false, error: t.srvCalendar.referrals.inputInvalid }
   }
 
   try {
@@ -280,7 +285,7 @@ export async function recordReferralApplication(input: {
       select: { id: true, userId: true, jobId: true },
     })
     if (!application || application.userId !== userId) {
-      return { ok: false, error: 'Lamaran tidak ditemukan.' }
+      return { ok: false, error: t.srvCalendar.referrals.applicationNotFound }
     }
 
     const user = await prisma.user.findUnique({
@@ -331,6 +336,6 @@ export async function recordReferralApplication(input: {
     return { ok: true }
   } catch (err) {
     console.error('[recordReferralApplication] failed', err)
-    return { ok: false, error: 'Gagal mencatat referral.' }
+    return { ok: false, error: t.srvCalendar.referrals.recordFailed }
   }
 }

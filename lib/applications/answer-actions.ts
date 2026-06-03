@@ -10,6 +10,8 @@ import {
   MAX_JOB_ATTACHMENT_BYTES,
   saveJobAttachment,
 } from '@/lib/storage'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -44,6 +46,8 @@ function readOptions(raw: unknown): string[] {
   return out
 }
 
+type AnswerMessages = (typeof srvApplications)['id' | 'en']['answerActions']
+
 /**
  * Validate one (questionId,value) pair against the canonical question type
  * rules. Returns either an `error` description (with the offending questionId)
@@ -58,12 +62,13 @@ function validateAnswer(opts: {
     options: unknown
   }
   value: string
+  m: AnswerMessages
 }): { error: string } | { value: string } {
-  const { question } = opts
+  const { question, m } = opts
   const trimmed = typeof opts.value === 'string' ? opts.value.trim() : ''
 
   if (question.required && trimmed.length === 0) {
-    return { error: `Pertanyaan "${question.label}" wajib diisi.` }
+    return { error: m.validateRequired.replace('{label}', question.label) }
   }
   // Optional + empty → store empty string (acts as "no answer"). We still
   // persist the row so audit trails remain consistent per question shown.
@@ -77,7 +82,7 @@ function validateAnswer(opts: {
     case 'short_text': {
       if (trimmed.length > 500) {
         return {
-          error: `Jawaban untuk "${question.label}" terlalu panjang (maks 500 karakter).`,
+          error: m.validateShortTooLong.replace('{label}', question.label),
         }
       }
       return { value: trimmed }
@@ -85,7 +90,7 @@ function validateAnswer(opts: {
     case 'long_text': {
       if (trimmed.length > 5000) {
         return {
-          error: `Jawaban untuk "${question.label}" terlalu panjang (maks 5000 karakter).`,
+          error: m.validateLongTooLong.replace('{label}', question.label),
         }
       }
       return { value: trimmed }
@@ -94,7 +99,7 @@ function validateAnswer(opts: {
       const opts = readOptions(question.options)
       if (!opts.includes(trimmed)) {
         return {
-          error: `Pilihan untuk "${question.label}" tidak valid.`,
+          error: m.validateSingleInvalid.replace('{label}', question.label),
         }
       }
       return { value: trimmed }
@@ -106,12 +111,12 @@ function validateAnswer(opts: {
         parsed = JSON.parse(trimmed)
       } catch {
         return {
-          error: `Jawaban untuk "${question.label}" tidak valid.`,
+          error: m.validateMultiInvalid.replace('{label}', question.label),
         }
       }
       if (!Array.isArray(parsed)) {
         return {
-          error: `Jawaban untuk "${question.label}" tidak valid.`,
+          error: m.validateMultiInvalid.replace('{label}', question.label),
         }
       }
       const cleaned: string[] = []
@@ -120,7 +125,7 @@ function validateAnswer(opts: {
         if (typeof item !== 'string') continue
         if (!opts.includes(item)) {
           return {
-            error: `Pilihan untuk "${question.label}" tidak valid.`,
+            error: m.validateMultiChoiceInvalid.replace('{label}', question.label),
           }
         }
         if (seen.has(item)) continue
@@ -129,7 +134,7 @@ function validateAnswer(opts: {
       }
       if (question.required && cleaned.length === 0) {
         return {
-          error: `Pertanyaan "${question.label}" wajib diisi.`,
+          error: m.validateMultiRequired.replace('{label}', question.label),
         }
       }
       return { value: JSON.stringify(cleaned) }
@@ -142,7 +147,7 @@ function validateAnswer(opts: {
         trimmed.length > 1000
       ) {
         return {
-          error: `URL berkas untuk "${question.label}" tidak valid.`,
+          error: m.validateFileUrlInvalid.replace('{label}', question.label),
         }
       }
       return { value: trimmed }
@@ -151,13 +156,13 @@ function validateAnswer(opts: {
       const v = trimmed.toLowerCase()
       if (v !== 'yes' && v !== 'no') {
         return {
-          error: `Jawaban untuk "${question.label}" harus "yes" atau "no".`,
+          error: m.validateYesNoInvalid.replace('{label}', question.label),
         }
       }
       return { value: v }
     }
     default:
-      return { error: `Tipe pertanyaan tidak didukung pada "${question.label}".` }
+      return { error: m.validateTypeUnsupported.replace('{label}', question.label) }
   }
 }
 
@@ -177,14 +182,16 @@ export async function saveApplicationAnswers(input: {
   applicationId: string
   answers: AnswerInput[]
 }): Promise<ActionResult<{ saved: number }>> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].answerActions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
   const userId = session.user.id
 
   if (!input.applicationId) {
-    return { ok: false, error: 'ID lamaran tidak valid.' }
+    return { ok: false, error: m.applicationIdInvalid }
   }
   const answers = Array.isArray(input.answers) ? input.answers : []
   if (answers.length === 0) {
@@ -202,10 +209,10 @@ export async function saveApplicationAnswers(input: {
       },
     })
     if (!application) {
-      return { ok: false, error: 'Lamaran tidak ditemukan.' }
+      return { ok: false, error: m.applicationNotFound }
     }
     if (application.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak mengubah lamaran ini.' }
+      return { ok: false, error: m.notOwner }
     }
 
     // Pull all questions for the job once; we'll filter to the supplied IDs
@@ -229,12 +236,13 @@ export async function saveApplicationAnswers(input: {
       if (!q) {
         return {
           ok: false,
-          error: 'Pertanyaan tidak ditemukan untuk lowongan ini.',
+          error: m.questionNotFound,
         }
       }
       const result = validateAnswer({
         question: q,
         value: typeof a.value === 'string' ? a.value : '',
+        m,
       })
       if ('error' in result) {
         return { ok: false, error: result.error }
@@ -290,7 +298,7 @@ export async function saveApplicationAnswers(input: {
     return { ok: true, data: { saved: normalised.length } }
   } catch (err) {
     console.error('[saveApplicationAnswers] failed', err)
-    return { ok: false, error: 'Gagal menyimpan jawaban. Coba lagi.' }
+    return { ok: false, error: m.saveFailed }
   }
 }
 
@@ -302,23 +310,25 @@ export async function saveApplicationAnswers(input: {
 export async function uploadJobAnswerAttachment(
   formData: FormData,
 ): Promise<ActionResult<{ url: string }>> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].answerActions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
   const userId = session.user.id
 
   const file = formData.get('file')
   if (!(file instanceof Blob)) {
-    return { ok: false, error: 'Berkas tidak ditemukan.' }
+    return { ok: false, error: m.fileNotFound }
   }
-  if (file.size === 0) return { ok: false, error: 'Berkas kosong.' }
+  if (file.size === 0) return { ok: false, error: m.fileEmpty }
   if (file.size > MAX_JOB_ATTACHMENT_BYTES) {
-    return { ok: false, error: 'Ukuran berkas melebihi 10 MB.' }
+    return { ok: false, error: m.fileTooLarge }
   }
   const mime = file.type
   if (!ALLOWED_JOB_ATTACHMENT_MIME.includes(mime)) {
-    return { ok: false, error: 'Format berkas tidak didukung.' }
+    return { ok: false, error: m.fileFormatUnsupported }
   }
 
   try {
@@ -328,6 +338,6 @@ export async function uploadJobAnswerAttachment(
     return { ok: true, data: { url: save.url } }
   } catch (err) {
     console.error('[uploadJobAnswerAttachment] failed', err)
-    return { ok: false, error: 'Gagal mengunggah berkas. Coba lagi.' }
+    return { ok: false, error: m.uploadFailed }
   }
 }

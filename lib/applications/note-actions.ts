@@ -8,6 +8,8 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { parseMentions } from '@/lib/applications/mention-parser'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -104,9 +106,11 @@ export async function createNote(
     | FormData
     | { applicationId: string; body: string; parentNoteId?: string },
 ): Promise<ActionResult<{ noteId: string; mentionCount: number }>> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].noteActions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
   const actorId = session.user.id
   const { globalRole, tenants: viewerTenants } = session.user
@@ -128,7 +132,7 @@ export async function createNote(
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? m.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -144,7 +148,7 @@ export async function createNote(
       },
     })
     if (!application) {
-      return { ok: false, error: 'Lamaran tidak ditemukan.' }
+      return { ok: false, error: m.applicationNotFound }
     }
     if (
       !hasTenantPermission(
@@ -154,7 +158,7 @@ export async function createNote(
         'job.view',
       )
     ) {
-      return { ok: false, error: 'Anda tidak memiliki akses.' }
+      return { ok: false, error: m.noAccess }
     }
 
     // If a parent is supplied, verify it belongs to the SAME application.
@@ -165,13 +169,13 @@ export async function createNote(
         select: { id: true, applicationId: true, parentNoteId: true },
       })
       if (!parent || parent.applicationId !== applicationId) {
-        return { ok: false, error: 'Catatan induk tidak valid.' }
+        return { ok: false, error: m.parentNoteInvalid }
       }
       // Disallow nested replies past depth 1 — keep threads flat for UX.
       if (parent.parentNoteId) {
         return {
           ok: false,
-          error: 'Balasan hanya bisa pada catatan utama.',
+          error: m.noNestedReplies,
         }
       }
     }
@@ -245,7 +249,7 @@ export async function createNote(
     const authorName = session.user.name ?? session.user.email ?? 'Rekruter'
     const link = `/dashboard/tenants/${application.tenant.slug}/lamaran/${applicationId}#note-${result.noteId}`
     const bodyPreview =
-      body.length > 200 ? body.slice(0, 200) + '…' : body
+      body.length > 200 ? body.slice(0, 200) + '...' : body
     for (const u of result.mentioned) {
       if (u.id === actorId) continue // never notify yourself
       try {
@@ -253,7 +257,7 @@ export async function createNote(
           data: {
             userId: u.id,
             type: NotificationType.APPLICATION_UPDATE,
-            title: `${authorName} menyebut Anda di catatan`,
+            title: m.mentionNotifTitle.replace('{authorName}', authorName),
             body: bodyPreview,
             link,
           },
@@ -270,7 +274,7 @@ export async function createNote(
     }
   } catch (err) {
     console.error('[createNote] failed', err)
-    return { ok: false, error: 'Gagal menyimpan catatan. Coba lagi sebentar.' }
+    return { ok: false, error: m.saveFailed }
   }
 }
 
@@ -286,9 +290,11 @@ export async function updateNote(
   noteId: string,
   body: string,
 ): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].noteActions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
   const actorId = session.user.id
 
@@ -297,7 +303,7 @@ export async function updateNote(
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? m.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -323,14 +329,14 @@ export async function updateNote(
         },
       },
     })
-    if (!note) return { ok: false, error: 'Catatan tidak ditemukan.' }
+    if (!note) return { ok: false, error: m.noteNotFound }
     if (note.authorId !== actorId) {
-      return { ok: false, error: 'Hanya penulis yang dapat mengedit.' }
+      return { ok: false, error: m.notAuthor }
     }
     if (Date.now() - note.createdAt.getTime() > EDIT_WINDOW_MS) {
       return {
         ok: false,
-        error: 'Catatan tidak dapat diedit setelah 15 menit.',
+        error: m.editWindowExpired,
       }
     }
 
@@ -412,7 +418,7 @@ export async function updateNote(
     return { ok: true }
   } catch (err) {
     console.error('[updateNote] failed', err)
-    return { ok: false, error: 'Gagal memperbarui catatan.' }
+    return { ok: false, error: m.updateFailed }
   }
 }
 
@@ -421,14 +427,16 @@ export async function updateNote(
  * Cascades to replies and mentions via the schema's onDelete: Cascade.
  */
 export async function deleteNote(noteId: string): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].noteActions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
   const actorId = session.user.id
   const { globalRole, tenants: viewerTenants } = session.user
 
-  if (!noteId) return { ok: false, error: 'ID catatan tidak valid.' }
+  if (!noteId) return { ok: false, error: m.noteIdInvalid }
 
   try {
     const note = await prisma.applicationNote.findUnique({
@@ -443,7 +451,7 @@ export async function deleteNote(noteId: string): Promise<ActionResult> {
         },
       },
     })
-    if (!note) return { ok: false, error: 'Catatan tidak ditemukan.' }
+    if (!note) return { ok: false, error: m.noteNotFound }
 
     const isAuthor = note.authorId === actorId
     const isTenantAdmin = hasTenantPermission(
@@ -453,7 +461,7 @@ export async function deleteNote(noteId: string): Promise<ActionResult> {
       'team.remove',
     )
     if (!isAuthor && !isTenantAdmin) {
-      return { ok: false, error: 'Anda tidak berhak menghapus catatan ini.' }
+      return { ok: false, error: m.notAllowedDelete }
     }
 
     const meta = getRequestMeta()
@@ -483,7 +491,7 @@ export async function deleteNote(noteId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteNote] failed', err)
-    return { ok: false, error: 'Gagal menghapus catatan.' }
+    return { ok: false, error: m.deleteFailed }
   }
 }
 
@@ -494,14 +502,16 @@ export async function deleteNote(noteId: string): Promise<ActionResult> {
  * doesn't make sense for the surfaced list.
  */
 export async function togglePinNote(noteId: string): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].noteActions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
   const actorId = session.user.id
   const { globalRole, tenants: viewerTenants } = session.user
 
-  if (!noteId) return { ok: false, error: 'ID catatan tidak valid.' }
+  if (!noteId) return { ok: false, error: m.noteIdInvalid }
 
   try {
     const note = await prisma.applicationNote.findUnique({
@@ -516,9 +526,9 @@ export async function togglePinNote(noteId: string): Promise<ActionResult> {
         },
       },
     })
-    if (!note) return { ok: false, error: 'Catatan tidak ditemukan.' }
+    if (!note) return { ok: false, error: m.noteNotFound }
     if (note.parentNoteId) {
-      return { ok: false, error: 'Hanya catatan utama yang dapat disematkan.' }
+      return { ok: false, error: m.replyOnlyTopLevel }
     }
     if (
       !hasTenantPermission(
@@ -528,7 +538,7 @@ export async function togglePinNote(noteId: string): Promise<ActionResult> {
         'job.update',
       )
     ) {
-      return { ok: false, error: 'Anda tidak memiliki akses.' }
+      return { ok: false, error: m.noAccess }
     }
 
     const meta = getRequestMeta()
@@ -561,7 +571,7 @@ export async function togglePinNote(noteId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[togglePinNote] failed', err)
-    return { ok: false, error: 'Gagal mengubah status sematan.' }
+    return { ok: false, error: m.togglePinFailed }
   }
 }
 
@@ -572,20 +582,22 @@ export async function togglePinNote(noteId: string): Promise<ActionResult> {
 export async function markMentionAsRead(
   mentionId: string,
 ): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].noteActions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
-  if (!mentionId) return { ok: false, error: 'ID tidak valid.' }
+  if (!mentionId) return { ok: false, error: m.mentionIdInvalid }
 
   try {
     const mention = await prisma.applicationNoteMention.findUnique({
       where: { id: mentionId },
       select: { id: true, mentionedUserId: true, notifiedAt: true },
     })
-    if (!mention) return { ok: false, error: 'Mention tidak ditemukan.' }
+    if (!mention) return { ok: false, error: m.mentionNotFound }
     if (mention.mentionedUserId !== session.user.id) {
-      return { ok: false, error: 'Anda tidak memiliki akses.' }
+      return { ok: false, error: m.noAccess }
     }
     if (mention.notifiedAt) {
       // Already marked — no-op success.
@@ -604,7 +616,7 @@ export async function markMentionAsRead(
     return { ok: true }
   } catch (err) {
     console.error('[markMentionAsRead] failed', err)
-    return { ok: false, error: 'Gagal memperbarui mention.' }
+    return { ok: false, error: m.markMentionFailed }
   }
 }
 
@@ -612,9 +624,11 @@ export async function markMentionAsRead(
  * Bulk-mark every unread mention for the current user as read.
  */
 export async function markAllMentionsAsRead(): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].noteActions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
   try {
     await prisma.applicationNoteMention.updateMany({
@@ -630,6 +644,6 @@ export async function markAllMentionsAsRead(): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[markAllMentionsAsRead] failed', err)
-    return { ok: false, error: 'Gagal menandai semua mention.' }
+    return { ok: false, error: m.markAllMentionsFailed }
   }
 }

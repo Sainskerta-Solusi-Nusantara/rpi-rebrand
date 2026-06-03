@@ -7,6 +7,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -84,9 +85,10 @@ async function loadLessonForAction(
   lessonId: string,
   permission: Permission,
 ): Promise<LessonLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
-  if (!lessonId) return { error: 'ID pelajaran tidak valid.' }
+  if (!session?.user?.id) return { error: t.srvAssessments.quizzes.auth.mustLogin }
+  if (!lessonId) return { error: t.srvAssessments.quizzes.validation.invalidLessonId }
 
   const lesson = await prisma.lesson.findUnique({
     where: { id: lessonId },
@@ -105,7 +107,7 @@ async function loadLessonForAction(
       },
     },
   })
-  if (!lesson) return { error: 'Pelajaran tidak ditemukan.' }
+  if (!lesson) return { error: t.srvAssessments.quizzes.validation.lessonNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -116,7 +118,7 @@ async function loadLessonForAction(
       permission,
     )
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvAssessments.quizzes.auth.noPermission }
   }
   return {
     lesson: {
@@ -146,9 +148,10 @@ async function loadQuizForAction(
   quizId: string,
   permission: Permission,
 ): Promise<QuizLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
-  if (!quizId) return { error: 'ID kuis tidak valid.' }
+  if (!session?.user?.id) return { error: t.srvAssessments.quizzes.auth.mustLogin }
+  if (!quizId) return { error: t.srvAssessments.quizzes.validation.invalidQuizId }
 
   const quiz = await prisma.quiz.findUnique({
     where: { id: quizId },
@@ -172,7 +175,7 @@ async function loadQuizForAction(
       },
     },
   })
-  if (!quiz) return { error: 'Kuis tidak ditemukan.' }
+  if (!quiz) return { error: t.srvAssessments.quizzes.validation.quizNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -183,7 +186,7 @@ async function loadQuizForAction(
       permission,
     )
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvAssessments.quizzes.auth.noPermission }
   }
   return {
     quiz: {
@@ -219,9 +222,10 @@ async function loadQuestionForAction(
   questionId: string,
   permission: Permission,
 ): Promise<QuestionLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
-  if (!questionId) return { error: 'ID pertanyaan tidak valid.' }
+  if (!session?.user?.id) return { error: t.srvAssessments.quizzes.auth.mustLogin }
+  if (!questionId) return { error: t.srvAssessments.quizzes.validation.invalidQuestionId }
 
   const question = await prisma.quizQuestion.findUnique({
     where: { id: questionId },
@@ -252,7 +256,7 @@ async function loadQuestionForAction(
       },
     },
   })
-  if (!question) return { error: 'Pertanyaan tidak ditemukan.' }
+  if (!question) return { error: t.srvAssessments.quizzes.validation.questionNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -263,7 +267,7 @@ async function loadQuestionForAction(
       permission,
     )
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvAssessments.quizzes.auth.noPermission }
   }
   return {
     question: {
@@ -292,39 +296,41 @@ async function loadQuestionForAction(
  * have 2+ choices with exactly one correct. multi_select must have 2+ choices
  * with 1+ correct.
  */
-function validateChoicesForType(
+async function validateChoicesForType(
   type: QuizQuestionType,
   choices: Array<{ text: string; isCorrect: boolean }>,
-): string | null {
+): Promise<string | null> {
+  const t = await getServerT()
+  const v = t.srvAssessments.quizzes.validation
   if (!Array.isArray(choices) || choices.length === 0) {
-    return 'Pilihan jawaban wajib diisi.'
+    return v.choicesRequired
   }
   const correctCount = choices.filter((c) => c.isCorrect).length
 
   if (type === 'true_false') {
     if (choices.length !== 2) {
-      return 'Tipe Benar/Salah harus memiliki tepat 2 pilihan.'
+      return v.trueFalseExact2
     }
     if (correctCount !== 1) {
-      return 'Tipe Benar/Salah harus memiliki tepat 1 jawaban benar.'
+      return v.trueFalseExact1Correct
     }
     return null
   }
   if (type === 'multiple_choice') {
     if (choices.length < 2) {
-      return 'Pilihan ganda minimal 2 pilihan.'
+      return v.multipleChoiceMin2
     }
     if (correctCount !== 1) {
-      return 'Pilihan ganda harus memiliki tepat 1 jawaban benar.'
+      return v.multipleChoiceExact1Correct
     }
     return null
   }
   // multi_select
   if (choices.length < 2) {
-    return 'Pilihan jamak minimal 2 pilihan.'
+    return v.multiSelectMin2
   }
   if (correctCount < 1) {
-    return 'Pilihan jamak harus memiliki minimal 1 jawaban benar.'
+    return v.multiSelectMin1Correct
   }
   return null
 }
@@ -344,12 +350,13 @@ export async function upsertQuiz(input: {
   passingScore?: number
   shuffle?: boolean
 }): Promise<ActionResult<{ id: string }>> {
+  const t = await getServerT()
   const parsed = upsertQuizSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid.',
+      error: issue?.message ?? t.srvAssessments.quizzes.validation.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -400,7 +407,7 @@ export async function upsertQuiz(input: {
     return { ok: true, data: { id: quiz.id } }
   } catch (err) {
     console.error('[upsertQuiz] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.quizzes.errors.genericRetry }
   }
 }
 
@@ -421,17 +428,18 @@ export async function addQuestion(input: {
   type: QuizQuestionType
   choices: Array<{ text: string; isCorrect: boolean }>
 }): Promise<ActionResult<{ id: string }>> {
+  const t = await getServerT()
   const parsed = addQuestionSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid.',
+      error: issue?.message ?? t.srvAssessments.quizzes.validation.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
 
-  const typeErr = validateChoicesForType(parsed.data.type, parsed.data.choices)
+  const typeErr = await validateChoicesForType(parsed.data.type, parsed.data.choices)
   if (typeErr) return { ok: false, error: typeErr, field: 'choices' }
 
   const ctx = await loadQuizForAction(parsed.data.quizId, 'course.update')
@@ -491,7 +499,7 @@ export async function addQuestion(input: {
     return { ok: true, data: { id: question.id } }
   } catch (err) {
     console.error('[addQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.quizzes.errors.genericRetry }
   }
 }
 
@@ -510,12 +518,13 @@ export async function updateQuestion(input: {
   text?: string
   choices?: Array<{ text: string; isCorrect: boolean }>
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateQuestionSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid.',
+      error: issue?.message ?? t.srvAssessments.quizzes.validation.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -532,10 +541,10 @@ export async function updateQuestion(input: {
       where: { id: ctx.question.id },
       select: { type: true },
     })
-    if (!current) return { ok: false, error: 'Pertanyaan tidak ditemukan.' }
+    if (!current) return { ok: false, error: t.srvAssessments.quizzes.validation.questionNotFound }
 
     if (parsed.data.choices !== undefined) {
-      const typeErr = validateChoicesForType(
+      const typeErr = await validateChoicesForType(
         current.type as QuizQuestionType,
         parsed.data.choices,
       )
@@ -590,7 +599,7 @@ export async function updateQuestion(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.quizzes.errors.genericRetry }
   }
 }
 
@@ -602,11 +611,12 @@ export async function reorderQuestion(input: {
   questionId: string
   direction: 'up' | 'down'
 }): Promise<ActionResult> {
+  const t = await getServerT()
   if (!input.questionId) {
-    return { ok: false, error: 'ID pertanyaan wajib diisi.' }
+    return { ok: false, error: t.srvAssessments.quizzes.validation.questionIdRequired }
   }
   if (input.direction !== 'up' && input.direction !== 'down') {
-    return { ok: false, error: 'Arah perpindahan tidak valid.' }
+    return { ok: false, error: t.srvAssessments.quizzes.validation.invalidDirection }
   }
 
   const ctx = await loadQuestionForAction(input.questionId, 'course.update')
@@ -619,7 +629,7 @@ export async function reorderQuestion(input: {
       select: { id: true, order: true },
     })
     const idx = all.findIndex((q) => q.id === ctx.question.id)
-    if (idx === -1) return { ok: false, error: 'Pertanyaan tidak ditemukan.' }
+    if (idx === -1) return { ok: false, error: t.srvAssessments.quizzes.validation.questionNotFound }
     const swapIdx = input.direction === 'up' ? idx - 1 : idx + 1
     if (swapIdx < 0 || swapIdx >= all.length) {
       return { ok: true }
@@ -661,7 +671,7 @@ export async function reorderQuestion(input: {
     return { ok: true }
   } catch (err) {
     console.error('[reorderQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.quizzes.errors.genericRetry }
   }
 }
 
@@ -672,6 +682,7 @@ export async function reorderQuestion(input: {
 export async function deleteQuestion(
   questionId: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await loadQuestionForAction(questionId, 'course.update')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -702,7 +713,7 @@ export async function deleteQuestion(
     return { ok: true }
   } catch (err) {
     console.error('[deleteQuestion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.quizzes.errors.genericRetry }
   }
 }
 
@@ -711,6 +722,7 @@ export async function deleteQuestion(
 // =============================================================================
 
 export async function deleteQuiz(lessonId: string): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await loadLessonForAction(lessonId, 'course.update')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -746,7 +758,7 @@ export async function deleteQuiz(lessonId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteQuiz] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAssessments.quizzes.errors.genericRetry }
   }
 }
 
@@ -782,6 +794,7 @@ export type FetchedQuiz = {
 export async function fetchQuizForEditor(input: {
   lessonId: string
 }): Promise<ActionResult<{ quiz: FetchedQuiz }>> {
+  const t = await getServerT()
   const ctx = await loadLessonForAction(input.lessonId, 'course.update')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -815,6 +828,6 @@ export async function fetchQuizForEditor(input: {
     return { ok: true, data: { quiz } }
   } catch (err) {
     console.error('[fetchQuizForEditor] failed', err)
-    return { ok: false, error: 'Gagal memuat kuis.' }
+    return { ok: false, error: t.srvAssessments.quizzes.errors.failedLoadQuiz }
   }
 }

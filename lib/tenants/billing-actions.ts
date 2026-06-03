@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { AuditAction, PlanTier, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
@@ -54,18 +55,19 @@ async function loadTenantForBilling(
   tenantSlug: string,
   permission: Permission,
 ): Promise<LoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvBilling.tenantBilling.mustSignIn }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true, planTier: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvBilling.tenantBilling.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvBilling.tenantBilling.noPermission }
   }
   return { tenant, actorId }
 }
@@ -87,12 +89,13 @@ export async function updateTenantPlan(input: {
   tenantSlug: string
   plan: PlanTier
 }): Promise<ActionResult<{ plan: PlanTier }>> {
+  const t = await getServerT()
   const parsed = planSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvBilling.tenantBilling.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -102,7 +105,7 @@ export async function updateTenantPlan(input: {
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   if (ctx.tenant.planTier === plan) {
-    return { ok: false, error: 'Tenant sudah berada pada plan tersebut.' }
+    return { ok: false, error: t.srvBilling.tenantBilling.alreadyOnPlan }
   }
 
   const fromPlan = ctx.tenant.planTier
@@ -155,7 +158,7 @@ export async function updateTenantPlan(input: {
     return { ok: true, data: { plan } }
   } catch (err) {
     console.error('[updateTenantPlan] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvBilling.tenantBilling.genericError }
   }
 }
 
@@ -167,12 +170,13 @@ export async function updateTenantPlan(input: {
 export async function cancelSubscription(
   tenantSlug: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = cancelSchema.safeParse({ tenantSlug })
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvBilling.tenantBilling.dataInvalid,
     }
   }
 
@@ -189,7 +193,7 @@ export async function cancelSubscription(
     })
 
     if (!active) {
-      return { ok: false, error: 'Tidak ada langganan aktif untuk dibatalkan.' }
+      return { ok: false, error: t.srvBilling.tenantBilling.noActiveSubscription }
     }
 
     await prisma.$transaction(async (tx) => {
@@ -220,6 +224,6 @@ export async function cancelSubscription(
     return { ok: true }
   } catch (err) {
     console.error('[cancelSubscription] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvBilling.tenantBilling.genericError }
   }
 }

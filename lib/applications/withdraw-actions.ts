@@ -1,5 +1,7 @@
 'use server'
 
+import { getServerT } from '@/lib/i18n/server-dictionary'
+
 /**
  * Candidate-facing withdraw + reopen actions.
  *
@@ -84,9 +86,10 @@ function readInput(input: WithdrawInput | FormData): WithdrawInput {
 export async function withdrawApplication(
   input: WithdrawInput | FormData,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvApplications2.withdraw.mustLogin }
   }
   const userId = session.user.id
 
@@ -95,7 +98,7 @@ export async function withdrawApplication(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Input tidak valid.',
+      error: issue?.message ?? t.srvApplications2.withdraw.invalidInput,
       field: issue?.path[0]?.toString(),
     }
   }
@@ -115,18 +118,18 @@ export async function withdrawApplication(
       },
     })
     if (!application) {
-      return { ok: false, error: 'Lamaran tidak ditemukan.' }
+      return { ok: false, error: t.srvApplications2.withdraw.applicationNotFound }
     }
     if (application.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak menarik lamaran ini.' }
+      return { ok: false, error: t.srvApplications2.withdraw.notOwner }
     }
     if (application.status === ApplicationStatus.WITHDRAWN || application.withdrawnAt) {
-      return { ok: false, error: 'Lamaran sudah ditarik sebelumnya.' }
+      return { ok: false, error: t.srvApplications2.withdraw.alreadyWithdrawn }
     }
     if (TERMINAL_STATUSES.includes(application.status)) {
       return {
         ok: false,
-        error: 'Lamaran ini tidak dapat ditarik pada tahap saat ini.',
+        error: t.srvApplications2.withdraw.terminalStatus,
       }
     }
 
@@ -191,14 +194,14 @@ export async function withdrawApplication(
           })
           .catch(() => null)
         const candidateLabel =
-          candidate?.name ?? candidate?.email ?? 'Kandidat'
-        const jobTitle = application.job?.title ?? 'lowongan'
+          candidate?.name ?? candidate?.email ?? t.srvApplications2.withdraw.notifCandidateFallback
+        const jobTitle = application.job?.title ?? t.srvApplications2.withdraw.notifJobFallback
         await prisma.notification.createMany({
           data: recruiters.map((r) => ({
             userId: r.userId,
             type: NotificationType.APPLICATION_UPDATE,
-            title: 'Lamaran ditarik',
-            body: `${candidateLabel} menarik lamaran untuk ${jobTitle}.`,
+            title: t.srvApplications2.withdraw.notifTitle,
+            body: `${candidateLabel} ${t.srvApplications2.withdraw.notifBodyVerb} ${jobTitle}.`,
             link: `/dashboard/tenants`,
           })),
           skipDuplicates: true,
@@ -216,10 +219,10 @@ export async function withdrawApplication(
     return { ok: true }
   } catch (err) {
     if (err instanceof Error && err.message === 'IDEMPOTENT_NOOP') {
-      return { ok: false, error: 'Lamaran sudah ditarik sebelumnya.' }
+      return { ok: false, error: t.srvApplications2.withdraw.alreadyWithdrawn }
     }
     console.error('[withdrawApplication] failed', err)
-    return { ok: false, error: 'Gagal menarik lamaran. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvApplications2.withdraw.withdrawFailed }
   }
 }
 
@@ -233,14 +236,15 @@ export async function withdrawApplication(
 export async function reopenApplication(
   applicationId: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvApplications2.withdraw.mustLogin }
   }
   const userId = session.user.id
 
   if (!applicationId || typeof applicationId !== 'string') {
-    return { ok: false, error: 'ID lamaran tidak valid.' }
+    return { ok: false, error: t.srvApplications2.withdraw.invalidId }
   }
 
   try {
@@ -257,23 +261,23 @@ export async function reopenApplication(
       },
     })
     if (!application) {
-      return { ok: false, error: 'Lamaran tidak ditemukan.' }
+      return { ok: false, error: t.srvApplications2.withdraw.applicationNotFound }
     }
     if (application.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak mengembalikan lamaran ini.' }
+      return { ok: false, error: t.srvApplications2.withdraw.notOwnerReopen }
     }
     if (application.status !== ApplicationStatus.WITHDRAWN) {
-      return { ok: false, error: 'Lamaran ini tidak dalam keadaan ditarik.' }
+      return { ok: false, error: t.srvApplications2.withdraw.notWithdrawn }
     }
     if (!application.withdrawnAt) {
       // Defensive: shouldn't happen given the status check, but guard anyway.
-      return { ok: false, error: 'Riwayat penarikan tidak tersedia.' }
+      return { ok: false, error: t.srvApplications2.withdraw.noWithdrawHistory }
     }
     const elapsed = Date.now() - application.withdrawnAt.getTime()
     if (elapsed > REOPEN_WINDOW_MS) {
       return {
         ok: false,
-        error: 'Penarikan tidak dapat dibatalkan setelah 7 hari.',
+        error: t.srvApplications2.withdraw.reopenWindowExpired,
       }
     }
 
@@ -314,6 +318,6 @@ export async function reopenApplication(
     return { ok: true }
   } catch (err) {
     console.error('[reopenApplication] failed', err)
-    return { ok: false, error: 'Gagal mengembalikan lamaran. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvApplications2.withdraw.reopenFailed }
   }
 }

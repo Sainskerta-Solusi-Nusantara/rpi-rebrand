@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
 import { hashPassword, verifyPassword } from '@/lib/auth/password'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -33,6 +34,7 @@ const schema = z
  * Verifies the current password before persisting the new bcrypt hash.
  */
 export async function changePassword(formData: FormData): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
 
   const raw = {
@@ -45,7 +47,7 @@ export async function changePassword(formData: FormData): Promise<ActionResult> 
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvAuth2.password.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -59,13 +61,13 @@ export async function changePassword(formData: FormData): Promise<ActionResult> 
   if (!user?.passwordHash) {
     return {
       ok: false,
-      error: 'Akun Anda menggunakan Google. Hubungi support untuk mengatur password.',
+      error: t.srvAuth2.password.oauthAccount,
     }
   }
 
   const valid = await verifyPassword(currentPassword, user.passwordHash)
   if (!valid) {
-    return { ok: false, error: 'Password saat ini salah', field: 'currentPassword' }
+    return { ok: false, error: t.srvAuth2.password.currentPasswordWrong, field: 'currentPassword' }
   }
 
   try {
@@ -77,6 +79,6 @@ export async function changePassword(formData: FormData): Promise<ActionResult> 
     return { ok: true }
   } catch (err) {
     console.error('[changePassword] failed', err)
-    return { ok: false, error: 'Gagal mengganti password. Coba lagi.' }
+    return { ok: false, error: t.srvAuth2.password.changeFailed }
   }
 }

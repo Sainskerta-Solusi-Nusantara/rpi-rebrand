@@ -23,6 +23,7 @@
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import { AuditAction, Prisma } from '@prisma/client'
 import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/db'
@@ -73,11 +74,12 @@ async function requireAdminActor(): Promise<
   | { error: string }
   | { actorId: string; actorName: string | null }
 > {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvBilling.blog.mustSignIn }
   const role = session.user.globalRole
   if (role !== 'SUPERADMIN' && role !== 'ADMIN') {
-    return { error: 'Akses ditolak.' }
+    return { error: t.srvBilling.blog.accessDenied }
   }
   return { actorId: session.user.id, actorName: session.user.name ?? null }
 }
@@ -152,9 +154,10 @@ async function loadArticleForAction(articleId: string): Promise<
       actorId: string
     }
 > {
+  const t = await getServerT()
   const actor = await requireAdminActor()
   if ('error' in actor) return { error: actor.error }
-  if (!articleId) return { error: 'ID artikel tidak valid.' }
+  if (!articleId) return { error: t.srvBilling.blog.articleIdInvalid }
   const article = await prisma.article.findUnique({
     where: { id: articleId },
     select: {
@@ -165,7 +168,7 @@ async function loadArticleForAction(articleId: string): Promise<
       publishedAt: true,
     },
   })
-  if (!article) return { error: 'Artikel tidak ditemukan.' }
+  if (!article) return { error: t.srvBilling.blog.articleNotFound }
   return { article, actorId: actor.actorId }
 }
 
@@ -190,6 +193,7 @@ export async function createArticle(input: {
   coverImage?: string
   tags?: string[]
 }): Promise<ActionResult<{ id: string; slug: string }>> {
+  const t = await getServerT()
   const actor = await requireAdminActor()
   if ('error' in actor) return { ok: false, error: actor.error }
 
@@ -198,7 +202,7 @@ export async function createArticle(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvBilling.blog.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -241,7 +245,7 @@ export async function createArticle(input: {
     return { ok: true, data: { id: created.id, slug: created.slug } }
   } catch (err) {
     console.error('[createArticle] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvBilling.blog.genericError }
   }
 }
 
@@ -258,12 +262,13 @@ export async function updateArticle(input: {
   tags?: string[]
   status?: ArticleStatus
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateArticleSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvBilling.blog.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -338,7 +343,7 @@ export async function updateArticle(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateArticle] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvBilling.blog.genericError }
   }
 }
 
@@ -347,6 +352,7 @@ export async function updateArticle(input: {
 // ---------------------------------------------------------------------------
 
 export async function publishArticle(articleId: string): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await loadArticleForAction(articleId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -383,11 +389,12 @@ export async function publishArticle(articleId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[publishArticle] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvBilling.blog.genericError }
   }
 }
 
 export async function archiveArticle(articleId: string): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await loadArticleForAction(articleId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -419,7 +426,7 @@ export async function archiveArticle(articleId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[archiveArticle] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvBilling.blog.genericError }
   }
 }
 
@@ -428,6 +435,7 @@ export async function archiveArticle(articleId: string): Promise<ActionResult> {
 // ---------------------------------------------------------------------------
 
 export async function deleteArticle(articleId: string): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await loadArticleForAction(articleId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -456,6 +464,6 @@ export async function deleteArticle(articleId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteArticle] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvBilling.blog.genericError }
   }
 }

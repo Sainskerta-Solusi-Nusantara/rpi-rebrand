@@ -13,6 +13,7 @@ import {
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { buildCertificateSvg } from '@/lib/enrollments/certificate-svg'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 /**
  * Result envelope used by every action in this file. The generic T merges
@@ -56,9 +57,10 @@ const enrollSchema = z.object({
 export async function enrollInCourse(input: {
   courseSlug: string
 }): Promise<ActionResult<{ enrollmentId: string }>> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk untuk mendaftar kursus.' }
+    return { ok: false, error: t.srvScoring.enrollments.mustLoginEnroll }
   }
   const userId = session.user.id
 
@@ -67,7 +69,7 @@ export async function enrollInCourse(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? t.srvScoring.enrollments.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -85,12 +87,12 @@ export async function enrollInCourse(input: {
       },
     })
     if (!course) {
-      return { ok: false, error: 'Kursus tidak ditemukan.' }
+      return { ok: false, error: t.srvScoring.enrollments.courseNotFound }
     }
     if (course.status !== CourseStatus.PUBLISHED) {
       return {
         ok: false,
-        error: 'Kursus ini belum dipublikasikan.',
+        error: t.srvScoring.enrollments.courseNotPublished,
       }
     }
 
@@ -136,7 +138,7 @@ export async function enrollInCourse(input: {
     return { ok: true, enrollmentId: enrollment.id }
   } catch (err) {
     console.error('[enrollInCourse] failed', err)
-    return { ok: false, error: 'Gagal mendaftar kursus. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvScoring.enrollments.enrollFailed }
   }
 }
 
@@ -168,9 +170,10 @@ export async function markLessonComplete(input: {
     certificateId?: string
   }>
 > {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvScoring.enrollments.mustLogin }
   }
   const userId = session.user.id
 
@@ -179,7 +182,7 @@ export async function markLessonComplete(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? t.srvScoring.enrollments.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -205,10 +208,10 @@ export async function markLessonComplete(input: {
       },
     })
     if (!enrollment) {
-      return { ok: false, error: 'Pendaftaran tidak ditemukan.' }
+      return { ok: false, error: t.srvScoring.enrollments.enrollmentNotFound }
     }
     if (enrollment.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak mengubah pendaftaran ini.' }
+      return { ok: false, error: t.srvScoring.enrollments.enrollmentForbidden }
     }
 
     // Verify the lesson belongs to a module of this enrollment's course.
@@ -222,7 +225,7 @@ export async function markLessonComplete(input: {
     if (!lesson || lesson.module.courseId !== enrollment.courseId) {
       return {
         ok: false,
-        error: 'Pelajaran tidak ditemukan di kursus ini.',
+        error: t.srvScoring.enrollments.lessonNotInCourse,
       }
     }
 
@@ -324,7 +327,7 @@ export async function markLessonComplete(input: {
     console.error('[markLessonComplete] failed', err)
     return {
       ok: false,
-      error: 'Gagal menyimpan progres pelajaran. Coba lagi sebentar.',
+      error: t.srvScoring.enrollments.progressFailed,
     }
   }
 }
@@ -348,9 +351,10 @@ const issueSchema = z.object({
 export async function issueCertificate(input: {
   enrollmentId: string
 }): Promise<ActionResult<{ certificateId: string }>> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvScoring.enrollments.mustLogin }
   }
   const userId = session.user.id
 
@@ -359,7 +363,7 @@ export async function issueCertificate(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? t.srvScoring.enrollments.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -375,15 +379,15 @@ export async function issueCertificate(input: {
     },
   })
   if (!enrollment) {
-    return { ok: false, error: 'Pendaftaran tidak ditemukan.' }
+    return { ok: false, error: t.srvScoring.enrollments.enrollmentNotFound }
   }
   if (enrollment.userId !== userId) {
-    return { ok: false, error: 'Anda tidak berhak menerbitkan sertifikat ini.' }
+    return { ok: false, error: t.srvScoring.enrollments.certForbidden }
   }
   if (enrollment.status !== EnrollmentStatus.COMPLETED) {
     return {
       ok: false,
-      error: 'Selesaikan kursus terlebih dahulu untuk klaim sertifikat.',
+      error: t.srvScoring.enrollments.certRequiresComplete,
     }
   }
 
@@ -414,6 +418,7 @@ async function issueCertificateInternal(opts: {
   | { ok: true; certificateId: string }
   | { ok: false; error: string }
 > {
+  const t = await getServerT()
   try {
     const enrollment = await prisma.enrollment.findUnique({
       where: { id: opts.enrollmentId },
@@ -432,7 +437,7 @@ async function issueCertificateInternal(opts: {
       },
     })
     if (!enrollment) {
-      return { ok: false, error: 'Pendaftaran tidak ditemukan.' }
+      return { ok: false, error: t.srvScoring.enrollments.enrollmentNotFound }
     }
 
     const recipientName =
@@ -500,7 +505,7 @@ async function issueCertificateInternal(opts: {
     return { ok: true, certificateId: certificate.id }
   } catch (err) {
     console.error('[issueCertificateInternal] failed', err)
-    return { ok: false, error: 'Gagal menerbitkan sertifikat.' }
+    return { ok: false, error: t.srvScoring.enrollments.certIssueFailed }
   }
 }
 
@@ -522,9 +527,10 @@ const unenrollSchema = z.object({
 export async function unenroll(input: {
   enrollmentId: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvScoring.enrollments.mustLogin }
   }
   const userId = session.user.id
 
@@ -533,7 +539,7 @@ export async function unenroll(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? t.srvScoring.enrollments.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -551,15 +557,15 @@ export async function unenroll(input: {
       },
     })
     if (!enrollment) {
-      return { ok: false, error: 'Pendaftaran tidak ditemukan.' }
+      return { ok: false, error: t.srvScoring.enrollments.enrollmentNotFound }
     }
     if (enrollment.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak membatalkan pendaftaran ini.' }
+      return { ok: false, error: t.srvScoring.enrollments.unenrollForbidden }
     }
     if (enrollment.status === EnrollmentStatus.COMPLETED) {
       return {
         ok: false,
-        error: 'Kursus yang sudah selesai tidak dapat dibatalkan.',
+        error: t.srvScoring.enrollments.unenrollCompleted,
       }
     }
 
@@ -591,6 +597,6 @@ export async function unenroll(input: {
     return { ok: true }
   } catch (err) {
     console.error('[unenroll] failed', err)
-    return { ok: false, error: 'Gagal membatalkan pendaftaran.' }
+    return { ok: false, error: t.srvScoring.enrollments.unenrollFailed }
   }
 }

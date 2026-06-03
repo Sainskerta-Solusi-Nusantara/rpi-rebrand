@@ -6,6 +6,8 @@ import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { verifyPassword } from '@/lib/auth/password'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvAuth3 } from '@/lib/i18n/dictionaries/srv-auth3'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -31,18 +33,19 @@ function getRequestMeta() {
  * (JWT sessions are stateless — see signOutAllDevices for the global kill).
  */
 export async function revokeDevice(deviceId: string): Promise<ActionResult> {
+  const t = { srvAuth3: srvAuth3[await getServerLocale()] }
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
-  if (!deviceId) return { ok: false, error: 'ID perangkat tidak valid.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAuth3.session.mustLogin }
+  if (!deviceId) return { ok: false, error: t.srvAuth3.session.invalidDeviceId }
 
   try {
     const device = await prisma.userDevice.findUnique({
       where: { id: deviceId },
       select: { id: true, userId: true, userAgent: true, revokedAt: true },
     })
-    if (!device) return { ok: false, error: 'Perangkat tidak ditemukan.' }
+    if (!device) return { ok: false, error: t.srvAuth3.session.deviceNotFound }
     if (device.userId !== session.user.id) {
-      return { ok: false, error: 'Perangkat bukan milik Anda.' }
+      return { ok: false, error: t.srvAuth3.session.deviceNotOwned }
     }
     if (device.revokedAt) return { ok: true }
 
@@ -69,7 +72,7 @@ export async function revokeDevice(deviceId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[revokeDevice] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth3.session.saveFailed }
   }
 }
 
@@ -80,12 +83,13 @@ export async function revokeDevice(deviceId: string): Promise<ActionResult> {
  * Requires the current password (refused for OAuth-only users).
  */
 export async function signOutAllDevices(formData: FormData): Promise<ActionResult> {
+  const t = { srvAuth3: srvAuth3[await getServerLocale()] }
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAuth3.session.mustLogin }
 
   const password = String(formData.get('password') ?? '')
   if (!password) {
-    return { ok: false, error: 'Masukkan password Anda.', field: 'password' }
+    return { ok: false, error: t.srvAuth3.session.passwordRequired, field: 'password' }
   }
 
   try {
@@ -93,18 +97,17 @@ export async function signOutAllDevices(formData: FormData): Promise<ActionResul
       where: { id: session.user.id },
       select: { passwordHash: true },
     })
-    if (!user) return { ok: false, error: 'Akun tidak ditemukan.' }
+    if (!user) return { ok: false, error: t.srvAuth3.session.accountNotFound }
     if (!user.passwordHash) {
       return {
         ok: false,
-        error:
-          'Akun OAuth tidak dapat menggunakan aksi ini. Atur password terlebih dulu.',
+        error: t.srvAuth3.session.oauthNoPassword,
         field: 'password',
       }
     }
 
     const ok = await verifyPassword(password, user.passwordHash)
-    if (!ok) return { ok: false, error: 'Password salah.', field: 'password' }
+    if (!ok) return { ok: false, error: t.srvAuth3.session.wrongPassword, field: 'password' }
 
     const meta = getRequestMeta()
     const now = new Date()
@@ -134,6 +137,6 @@ export async function signOutAllDevices(formData: FormData): Promise<ActionResul
     return { ok: true }
   } catch (err) {
     console.error('[signOutAllDevices] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth3.session.saveFailed }
   }
 }

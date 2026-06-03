@@ -6,6 +6,7 @@ import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { sendWebPush } from './web-push-client'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 export type TestPushResult =
@@ -50,12 +51,13 @@ export async function subscribeToPush(input: {
   keys: { p256dh: string; auth: string }
   userAgent?: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAuth4.push.mustSignIn }
 
   const parsed = subscribeSchema.safeParse(input)
   if (!parsed.success) {
-    const msg = parsed.error.issues[0]?.message ?? 'Data tidak valid.'
+    const msg = parsed.error.issues[0]?.message ?? t.srvAuth4.push.invalidData
     return { ok: false, error: msg }
   }
   const { endpoint, keys, userAgent } = parsed.data
@@ -122,7 +124,7 @@ export async function subscribeToPush(input: {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('[subscribeToPush] failed', err)
-    return { ok: false, error: 'Gagal menyimpan langganan notifikasi.' }
+    return { ok: false, error: t.srvAuth4.push.subscribeError }
   }
 }
 
@@ -132,12 +134,13 @@ export async function subscribeToPush(input: {
 export async function unsubscribeFromPush(input: {
   endpoint: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAuth4.push.mustSignIn }
 
   const parsed = unsubscribeSchema.safeParse(input)
   if (!parsed.success) {
-    const msg = parsed.error.issues[0]?.message ?? 'Data tidak valid.'
+    const msg = parsed.error.issues[0]?.message ?? t.srvAuth4.push.invalidData
     return { ok: false, error: msg }
   }
   const { endpoint } = parsed.data
@@ -150,7 +153,7 @@ export async function unsubscribeFromPush(input: {
     })
     if (!existing) return { ok: true }
     if (existing.userId !== session.user.id) {
-      return { ok: false, error: 'Langganan ini bukan milik Anda.' }
+      return { ok: false, error: t.srvAuth4.push.notYours }
     }
 
     await prisma.pushSubscription.delete({ where: { id: existing.id } })
@@ -176,7 +179,7 @@ export async function unsubscribeFromPush(input: {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('[unsubscribeFromPush] failed', err)
-    return { ok: false, error: 'Gagal menghapus langganan notifikasi.' }
+    return { ok: false, error: t.srvAuth4.push.unsubscribeError }
   }
 }
 
@@ -185,8 +188,9 @@ export async function unsubscribeFromPush(input: {
  * Returns a summary. Prunes any endpoints that come back 404/410.
  */
 export async function sendTestPush(): Promise<TestPushResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAuth4.push.mustSignIn }
 
   try {
     const subs = await prisma.pushSubscription.findMany({
@@ -194,12 +198,12 @@ export async function sendTestPush(): Promise<TestPushResult> {
       select: { id: true, endpoint: true, keys: true },
     })
     if (subs.length === 0) {
-      return { ok: false, error: 'Belum ada langganan push aktif.' }
+      return { ok: false, error: t.srvAuth4.push.noActiveSubs }
     }
 
     const payload = {
-      title: 'Tes notifikasi RPI',
-      body: 'Notifikasi push Anda sudah aktif. Selamat!',
+      title: t.srvAuth4.push.testTitle,
+      body: t.srvAuth4.push.testBody,
       url: '/dashboard/notifikasi',
       tag: 'rpi-test',
     }
@@ -264,6 +268,6 @@ export async function sendTestPush(): Promise<TestPushResult> {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('[sendTestPush] failed', err)
-    return { ok: false, error: 'Gagal mengirim notifikasi tes.' }
+    return { ok: false, error: t.srvAuth4.push.sendTestError }
   }
 }

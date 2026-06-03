@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -74,9 +75,10 @@ export type StartAttemptPayload = {
 export async function startAttempt(input: {
   quizId: string
 }): Promise<ActionResult<StartAttemptPayload>> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvScoring.quizzesAttempt.mustLogin }
   }
   const userId = session.user.id
 
@@ -85,7 +87,7 @@ export async function startAttempt(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? t.srvScoring.quizzesAttempt.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -124,7 +126,7 @@ export async function startAttempt(input: {
         },
       },
     })
-    if (!quiz) return { ok: false, error: 'Kuis tidak ditemukan.' }
+    if (!quiz) return { ok: false, error: t.srvScoring.quizzesAttempt.quizNotFound }
 
     // Candidate-side guard: must be enrolled in the parent course.
     const enrollment = await prisma.enrollment.findUnique({
@@ -139,7 +141,7 @@ export async function startAttempt(input: {
     if (!enrollment) {
       return {
         ok: false,
-        error: 'Anda harus terdaftar di kursus ini untuk mengerjakan kuis.',
+        error: t.srvScoring.quizzesAttempt.notEnrolled,
       }
     }
 
@@ -194,7 +196,7 @@ export async function startAttempt(input: {
     }
   } catch (err) {
     console.error('[startAttempt] failed', err)
-    return { ok: false, error: 'Gagal memulai kuis. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvScoring.quizzesAttempt.startFailed }
   }
 }
 
@@ -242,8 +244,9 @@ export async function submitAttempt(input: {
   attemptId: string
   answers: Array<{ questionId: string; choiceIds: string[] }>
 }): Promise<ActionResult<SubmitAttemptResult>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvScoring.quizzesAttempt.mustLogin }
   const userId = session.user.id
 
   const parsed = submitSchema.safeParse(input)
@@ -251,7 +254,7 @@ export async function submitAttempt(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? t.srvScoring.quizzesAttempt.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -296,12 +299,12 @@ export async function submitAttempt(input: {
         },
       },
     })
-    if (!attempt) return { ok: false, error: 'Percobaan tidak ditemukan.' }
+    if (!attempt) return { ok: false, error: t.srvScoring.quizzesAttempt.attemptNotFound }
     if (attempt.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak mengubah percobaan ini.' }
+      return { ok: false, error: t.srvScoring.quizzesAttempt.attemptForbidden }
     }
     if (attempt.completedAt) {
-      return { ok: false, error: 'Percobaan ini sudah selesai.' }
+      return { ok: false, error: t.srvScoring.quizzesAttempt.attemptAlreadyDone }
     }
 
     const questions = attempt.quiz.questions
@@ -403,6 +406,6 @@ export async function submitAttempt(input: {
     }
   } catch (err) {
     console.error('[submitAttempt] failed', err)
-    return { ok: false, error: 'Gagal menyimpan jawaban. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvScoring.quizzesAttempt.submitFailed }
   }
 }

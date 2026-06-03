@@ -6,6 +6,7 @@ import { AuditAction, NotificationType } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -47,17 +48,18 @@ export async function setTenantTwoFactorRequirement(
   tenantSlug: string,
   required: boolean,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user) return { ok: false, error: t.srvTenant2fa.tenant2fa.mustLogin }
 
   const tenant = await loadTenantByOwner(tenantSlug)
-  if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { ok: false, error: t.srvTenant2fa.tenant2fa.tenantNotFound }
 
   const isOwner =
     tenant.ownerUserId === session.user.id ||
     session.user.globalRole === 'SUPERADMIN'
   if (!isOwner) {
-    return { ok: false, error: 'Hanya OWNER tenant yang dapat mengubah kebijakan ini.' }
+    return { ok: false, error: t.srvTenant2fa.tenant2fa.ownerOnly }
   }
 
   try {
@@ -65,7 +67,7 @@ export async function setTenantTwoFactorRequirement(
       where: { id: tenant.id },
       select: { requireTwoFactor: true },
     })
-    if (!current) return { ok: false, error: 'Tenant tidak ditemukan.' }
+    if (!current) return { ok: false, error: t.srvTenant2fa.tenant2fa.tenantNotFound }
 
     const meta = getRequestMeta()
     await prisma.$transaction([
@@ -95,7 +97,7 @@ export async function setTenantTwoFactorRequirement(
     return { ok: true }
   } catch (err) {
     console.error('[setTenantTwoFactorRequirement] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2fa.tenant2fa.genericError }
   }
 }
 
@@ -108,12 +110,13 @@ export async function nudgeUserToEnrollTwoFactor(
   tenantSlug: string,
   userId: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user) return { ok: false, error: 'Anda harus masuk.' }
-  if (!userId) return { ok: false, error: 'Pengguna tidak ditemukan.' }
+  if (!session?.user) return { ok: false, error: t.srvTenant2fa.tenant2fa.mustLogin }
+  if (!userId) return { ok: false, error: t.srvTenant2fa.tenant2fa.userNotFound }
 
   const tenant = await loadTenantByOwner(tenantSlug)
-  if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { ok: false, error: t.srvTenant2fa.tenant2fa.tenantNotFound }
 
   const canNudge = hasTenantPermission(
     session.user.globalRole,
@@ -122,7 +125,7 @@ export async function nudgeUserToEnrollTwoFactor(
     'team.update',
   )
   if (!canNudge) {
-    return { ok: false, error: 'Anda tidak punya akses untuk tindakan ini.' }
+    return { ok: false, error: t.srvTenant2fa.tenant2fa.noAccess }
   }
 
   try {
@@ -137,7 +140,7 @@ export async function nudgeUserToEnrollTwoFactor(
       }),
     ])
     if (!target || !membership) {
-      return { ok: false, error: 'Pengguna bukan anggota tenant ini.' }
+      return { ok: false, error: t.srvTenant2fa.tenant2fa.notMember }
     }
     if (target.totpEnabledAt) {
       // Compliant already — silently succeed.
@@ -150,8 +153,8 @@ export async function nudgeUserToEnrollTwoFactor(
         data: {
           userId: target.id,
           type: NotificationType.SYSTEM,
-          title: `Aktifkan 2FA untuk ${tenant.name}`,
-          body: `Tenant ${tenant.name} mewajibkan two-factor authentication. Aktifkan sekarang agar akses dasbor tetap lancar.`,
+          title: t.srvTenant2fa.tenant2fa.nudgeTitle.replace('{tenantName}', tenant.name),
+          body: t.srvTenant2fa.tenant2fa.nudgeBody.replace('{tenantName}', tenant.name),
           link: '/dashboard/keamanan/2fa',
         },
       }),
@@ -173,7 +176,7 @@ export async function nudgeUserToEnrollTwoFactor(
     return { ok: true }
   } catch (err) {
     console.error('[nudgeUserToEnrollTwoFactor] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2fa.tenant2fa.genericError }
   }
 }
 
@@ -184,11 +187,12 @@ export async function nudgeUserToEnrollTwoFactor(
 export async function bulkNudgeTwoFactor(
   tenantSlug: string,
 ): Promise<ActionResult<{ nudged: number }>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user) return { ok: false, error: t.srvTenant2fa.tenant2fa.mustLogin }
 
   const tenant = await loadTenantByOwner(tenantSlug)
-  if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { ok: false, error: t.srvTenant2fa.tenant2fa.tenantNotFound }
 
   const canNudge = hasTenantPermission(
     session.user.globalRole,
@@ -197,7 +201,7 @@ export async function bulkNudgeTwoFactor(
     'team.update',
   )
   if (!canNudge) {
-    return { ok: false, error: 'Anda tidak punya akses untuk tindakan ini.' }
+    return { ok: false, error: t.srvTenant2fa.tenant2fa.noAccess }
   }
 
   try {
@@ -220,6 +224,6 @@ export async function bulkNudgeTwoFactor(
     return { ok: true, data: { nudged } }
   } catch (err) {
     console.error('[bulkNudgeTwoFactor] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2fa.tenant2fa.genericError }
   }
 }

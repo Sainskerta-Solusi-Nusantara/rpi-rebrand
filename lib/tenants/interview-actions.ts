@@ -13,6 +13,7 @@ import {
   interviewScheduledEmail,
   interviewCancelledEmail,
 } from '@/lib/mailer'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -172,8 +173,9 @@ type LoadAppCtx =
 async function loadTenantForApplication(
   applicationId: string,
 ): Promise<LoadAppCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvInterview.tenantInterview.mustLogin }
   const application = await prisma.application
     .findUnique({
       where: { id: applicationId },
@@ -188,13 +190,13 @@ async function loadTenantForApplication(
       },
     })
     .catch(() => null)
-  if (!application) return { error: 'Lamaran tidak ditemukan.' }
+  if (!application) return { error: t.srvInterview.tenantInterview.applicationNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
     !hasTenantPermission(globalRole, tenants, application.tenantId, 'job.update')
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvInterview.tenantInterview.noPermission }
   }
   return { actorId, application }
 }
@@ -230,8 +232,9 @@ type LoadInterviewCtx =
 async function loadTenantForInterview(
   interviewId: string,
 ): Promise<LoadInterviewCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvInterview.tenantInterview.mustLogin }
   const interview = await prisma.interviewSchedule
     .findUnique({
       where: { id: interviewId },
@@ -261,7 +264,7 @@ async function loadTenantForInterview(
       },
     })
     .catch(() => null)
-  if (!interview) return { error: 'Wawancara tidak ditemukan.' }
+  if (!interview) return { error: t.srvInterview.tenantInterview.interviewNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -272,7 +275,7 @@ async function loadTenantForInterview(
       'job.update',
     )
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvInterview.tenantInterview.noPermission }
   }
   return { actorId, interview }
 }
@@ -295,12 +298,13 @@ export async function scheduleInterview(input: {
   stageOrder?: number
   stageName?: string
 }): Promise<ActionResult<{ interviewId: string }>> {
+  const t = await getServerT()
   const parsed = scheduleSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.tenantInterview.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -430,8 +434,11 @@ export async function scheduleInterview(input: {
           dateStyle: 'medium',
           timeStyle: 'short',
         })
-        const pushTitle = 'Wawancara dijadwalkan'
-        const pushBody = `Wawancara untuk ${ctx.application.job.title} pada ${whenStr} (${type})`
+        const pushTitle = t.srvInterview.tenantInterview.pushScheduledTitle
+        const pushBody = t.srvInterview.tenantInterview.pushScheduledBody
+          .replace('{jobTitle}', ctx.application.job.title)
+          .replace('{whenStr}', whenStr)
+          .replace('{type}', type)
         const pushUrl = `/dashboard/lamaran/${applicationId}/wawancara`
         void import('@/lib/push/dispatch')
           .then((m) =>
@@ -452,7 +459,7 @@ export async function scheduleInterview(input: {
     return { ok: true, data: { interviewId: interview.id } }
   } catch (err) {
     console.error('[scheduleInterview] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.tenantInterview.genericError }
   }
 }
 
@@ -467,12 +474,13 @@ export async function updateInterview(input: {
   stageOrder?: number
   stageName?: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.tenantInterview.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -494,7 +502,7 @@ export async function updateInterview(input: {
   if (ctx.interview.status === 'cancelled') {
     return {
       ok: false,
-      error: 'Wawancara yang sudah dibatalkan tidak dapat diubah.',
+      error: t.srvInterview.tenantInterview.cancelledCannotUpdate,
     }
   }
 
@@ -572,8 +580,11 @@ export async function updateInterview(input: {
             dateStyle: 'medium',
             timeStyle: 'short',
           })
-          const pushTitle = 'Wawancara diperbarui'
-          const pushBody = `Wawancara untuk ${ctx.interview.application.job.title} pada ${whenStr} (${type})`
+          const pushTitle = t.srvInterview.tenantInterview.pushUpdatedTitle
+          const pushBody = t.srvInterview.tenantInterview.pushUpdatedBody
+            .replace('{jobTitle}', ctx.interview.application.job.title)
+            .replace('{whenStr}', whenStr)
+            .replace('{type}', type)
           const pushUrl = `/dashboard/lamaran/${ctx.interview.application.id}/wawancara`
           void import('@/lib/push/dispatch')
             .then((m) =>
@@ -598,14 +609,15 @@ export async function updateInterview(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateInterview] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.tenantInterview.genericError }
   }
 }
 
 export async function cancelInterview(
   interviewId: string,
 ): Promise<ActionResult> {
-  if (!interviewId) return { ok: false, error: 'ID wawancara tidak valid.' }
+  const t = await getServerT()
+  if (!interviewId) return { ok: false, error: t.srvInterview.tenantInterview.interviewIdInvalid }
 
   const ctx = await loadTenantForInterview(interviewId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
@@ -666,8 +678,10 @@ export async function cancelInterview(
           dateStyle: 'medium',
           timeStyle: 'short',
         })
-        const pushTitle = 'Wawancara dibatalkan'
-        const pushBody = `Wawancara untuk ${ctx.interview.application.job.title} pada ${whenStr} telah dibatalkan`
+        const pushTitle = t.srvInterview.tenantInterview.pushCancelledTitle
+        const pushBody = t.srvInterview.tenantInterview.pushCancelledBody
+          .replace('{jobTitle}', ctx.interview.application.job.title)
+          .replace('{whenStr}', whenStr)
         const pushUrl = `/dashboard/lamaran/${ctx.interview.application.id}/wawancara`
         void import('@/lib/push/dispatch')
           .then((m) =>
@@ -691,14 +705,15 @@ export async function cancelInterview(
     return { ok: true }
   } catch (err) {
     console.error('[cancelInterview] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.tenantInterview.genericError }
   }
 }
 
 export async function markInterviewCompleted(
   interviewId: string,
 ): Promise<ActionResult> {
-  if (!interviewId) return { ok: false, error: 'ID wawancara tidak valid.' }
+  const t = await getServerT()
+  if (!interviewId) return { ok: false, error: t.srvInterview.tenantInterview.interviewIdInvalid }
 
   const ctx = await loadTenantForInterview(interviewId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
@@ -709,7 +724,7 @@ export async function markInterviewCompleted(
   if (ctx.interview.status === 'cancelled') {
     return {
       ok: false,
-      error: 'Wawancara yang sudah dibatalkan tidak dapat ditandai selesai.',
+      error: t.srvInterview.tenantInterview.cancelledCannotComplete,
     }
   }
 
@@ -742,6 +757,6 @@ export async function markInterviewCompleted(
     return { ok: true }
   } catch (err) {
     console.error('[markInterviewCompleted] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.tenantInterview.genericError }
   }
 }

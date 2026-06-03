@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { AuditAction, type GlobalRole, type PlanTier, type TenantStatus, type UserStatus } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -49,20 +50,21 @@ const userRoleSchema = z.object({
  * Refuses to change the actor's own role.
  */
 export async function updateUserRole(input: { userId: string; role: GlobalRole }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = userRoleSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Input tidak valid.' }
+  if (!parsed.success) return { ok: false, error: t.srvAdmin.adminActions.invalidInput }
   const { userId, role } = parsed.data
 
   const actor = await requireAdmin('SUPERADMIN')
-  if (!actor) return { ok: false, error: 'Akses ditolak.' }
-  if (actor.id === userId) return { ok: false, error: 'Tidak dapat mengubah peran akun Anda sendiri.' }
+  if (!actor) return { ok: false, error: t.srvAdmin.adminActions.accessDenied }
+  if (actor.id === userId) return { ok: false, error: t.srvAdmin.adminActions.cannotChangeOwnRole }
 
   try {
     const target = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, globalRole: true },
     })
-    if (!target) return { ok: false, error: 'Pengguna tidak ditemukan.' }
+    if (!target) return { ok: false, error: t.srvAdmin.adminActions.userNotFound }
     if (target.globalRole === role) return { ok: true }
 
     const meta = getRequestMeta()
@@ -86,7 +88,7 @@ export async function updateUserRole(input: { userId: string; role: GlobalRole }
     return { ok: true }
   } catch (err) {
     console.error('[updateUserRole] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAdmin.adminActions.genericError }
   }
 }
 
@@ -100,27 +102,28 @@ const userStatusSchema = z.object({
  * Refuses to change the actor's own status.
  */
 export async function updateUserStatus(input: { userId: string; status: UserStatus }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = userStatusSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Input tidak valid.' }
+  if (!parsed.success) return { ok: false, error: t.srvAdmin.adminActions.invalidInput }
   const { userId, status } = parsed.data
 
   const actor = await requireAdmin('ADMIN')
-  if (!actor) return { ok: false, error: 'Akses ditolak.' }
-  if (actor.id === userId) return { ok: false, error: 'Tidak dapat mengubah status akun Anda sendiri.' }
+  if (!actor) return { ok: false, error: t.srvAdmin.adminActions.accessDenied }
+  if (actor.id === userId) return { ok: false, error: t.srvAdmin.adminActions.cannotChangeOwnStatus }
 
   try {
     const target = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, status: true, globalRole: true },
     })
-    if (!target) return { ok: false, error: 'Pengguna tidak ditemukan.' }
+    if (!target) return { ok: false, error: t.srvAdmin.adminActions.userNotFound }
 
     // Non-SUPERADMIN actors cannot touch SUPERADMIN/ADMIN accounts.
     if (
       actor.globalRole !== 'SUPERADMIN' &&
       (target.globalRole === 'SUPERADMIN' || target.globalRole === 'ADMIN')
     ) {
-      return { ok: false, error: 'Tidak dapat mengubah status akun admin.' }
+      return { ok: false, error: t.srvAdmin.adminActions.cannotChangeAdminStatus }
     }
 
     if (target.status === status) return { ok: true }
@@ -146,7 +149,7 @@ export async function updateUserStatus(input: { userId: string; status: UserStat
     return { ok: true }
   } catch (err) {
     console.error('[updateUserStatus] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAdmin.adminActions.genericError }
   }
 }
 
@@ -156,19 +159,20 @@ const tenantStatusSchema = z.object({
 })
 
 export async function updateTenantStatus(input: { tenantId: string; status: TenantStatus }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = tenantStatusSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Input tidak valid.' }
+  if (!parsed.success) return { ok: false, error: t.srvAdmin.adminActions.invalidInput }
   const { tenantId, status } = parsed.data
 
   const actor = await requireAdmin('SUPERADMIN')
-  if (!actor) return { ok: false, error: 'Akses ditolak.' }
+  if (!actor) return { ok: false, error: t.srvAdmin.adminActions.accessDenied }
 
   try {
     const target = await prisma.tenant.findUnique({
       where: { id: tenantId },
       select: { id: true, status: true },
     })
-    if (!target) return { ok: false, error: 'Tenant tidak ditemukan.' }
+    if (!target) return { ok: false, error: t.srvAdmin.adminActions.tenantNotFound }
     if (target.status === status) return { ok: true }
 
     const meta = getRequestMeta()
@@ -193,7 +197,7 @@ export async function updateTenantStatus(input: { tenantId: string; status: Tena
     return { ok: true }
   } catch (err) {
     console.error('[updateTenantStatus] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAdmin.adminActions.genericError }
   }
 }
 
@@ -203,19 +207,20 @@ const tenantPlanSchema = z.object({
 })
 
 export async function updateTenantPlan(input: { tenantId: string; plan: PlanTier }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = tenantPlanSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Input tidak valid.' }
+  if (!parsed.success) return { ok: false, error: t.srvAdmin.adminActions.invalidInput }
   const { tenantId, plan } = parsed.data
 
   const actor = await requireAdmin('SUPERADMIN')
-  if (!actor) return { ok: false, error: 'Akses ditolak.' }
+  if (!actor) return { ok: false, error: t.srvAdmin.adminActions.accessDenied }
 
   try {
     const target = await prisma.tenant.findUnique({
       where: { id: tenantId },
       select: { id: true, planTier: true },
     })
-    if (!target) return { ok: false, error: 'Tenant tidak ditemukan.' }
+    if (!target) return { ok: false, error: t.srvAdmin.adminActions.tenantNotFound }
     if (target.planTier === plan) return { ok: true }
 
     const meta = getRequestMeta()
@@ -240,6 +245,6 @@ export async function updateTenantPlan(input: { tenantId: string; plan: PlanTier
     return { ok: true }
   } catch (err) {
     console.error('[updateTenantPlan] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAdmin.adminActions.genericError }
   }
 }

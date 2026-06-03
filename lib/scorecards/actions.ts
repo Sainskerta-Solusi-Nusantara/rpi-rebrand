@@ -7,6 +7,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -85,8 +86,9 @@ type LoadInterviewCtx =
 async function loadTenantForInterview(
   interviewId: string,
 ): Promise<LoadInterviewCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvScoring.scorecards.mustLogin }
 
   const interview = await prisma.interviewSchedule
     .findUnique({
@@ -105,7 +107,7 @@ async function loadTenantForInterview(
       },
     })
     .catch(() => null)
-  if (!interview) return { error: 'Wawancara tidak ditemukan.' }
+  if (!interview) return { error: t.srvScoring.scorecards.interviewNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -116,7 +118,7 @@ async function loadTenantForInterview(
       'job.update',
     )
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvScoring.scorecards.noPermission }
   }
   return {
     actorId,
@@ -140,12 +142,13 @@ export async function upsertScorecard(input: {
   notes?: string
   recommendation: string
 }): Promise<ActionResult<{ scorecardId: string; created: boolean }>> {
+  const t = await getServerT()
   const parsed = upsertSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvScoring.scorecards.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -209,14 +212,15 @@ export async function upsertScorecard(input: {
     }
   } catch (err) {
     console.error('[upsertScorecard] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvScoring.scorecards.upsertFailed }
   }
 }
 
 export async function deleteScorecard(
   interviewId: string,
 ): Promise<ActionResult> {
-  if (!interviewId) return { ok: false, error: 'ID wawancara tidak valid.' }
+  const t = await getServerT()
+  if (!interviewId) return { ok: false, error: t.srvScoring.scorecards.interviewIdInvalid }
 
   const ctx = await loadTenantForInterview(interviewId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
@@ -254,6 +258,6 @@ export async function deleteScorecard(
     return { ok: true }
   } catch (err) {
     console.error('[deleteScorecard] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvScoring.scorecards.deleteFailed }
   }
 }

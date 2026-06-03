@@ -3,6 +3,8 @@
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvAuth3 } from '@/lib/i18n/dictionaries/srv-auth3'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -50,6 +52,7 @@ const profileSchema = z.object({
  * location, image). Email + globalRole are intentionally immutable here.
  */
 export async function updateProfile(formData: FormData): Promise<ActionResult> {
+  const t = { srvAuth3: srvAuth3[await getServerLocale()] }
   const session = await requireAuth()
 
   const raw = {
@@ -66,7 +69,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvAuth3.profile.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -88,6 +91,6 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[updateProfile] failed', err)
-    return { ok: false, error: 'Gagal menyimpan. Coba lagi.' }
+    return { ok: false, error: t.srvAuth3.profile.saveFailed }
   }
 }

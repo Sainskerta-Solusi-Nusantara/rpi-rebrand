@@ -12,6 +12,7 @@ import { hasTenantPermission } from '@/lib/auth/rbac'
 import { shouldSendEmail } from '@/lib/auth/notification-prefs'
 import { sendEmail, tenantInviteEmail } from '@/lib/mailer'
 import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -74,9 +75,10 @@ const createTenantSchema = z.object({
  * Idempotent in spirit: refuses if slug taken; succeeds once.
  */
 export async function createTenant(formData: FormData): Promise<ActionResult<{ slug: string }>> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk untuk membuat tenant.' }
+    return { ok: false, error: t.srvTenant1.tenant.mustLogin }
   }
 
   const parsed = createTenantSchema.safeParse({
@@ -87,20 +89,20 @@ export async function createTenant(formData: FormData): Promise<ActionResult<{ s
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant1.tenant.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
   const { name, slug } = parsed.data
 
   if (RESERVED_SLUGS.has(slug)) {
-    return { ok: false, error: 'Slug ini dicadangkan, pilih yang lain.', field: 'slug' }
+    return { ok: false, error: t.srvTenant1.tenant.slugReserved, field: 'slug' }
   }
 
   try {
     const existing = await prisma.tenant.findUnique({ where: { slug }, select: { id: true } })
     if (existing) {
-      return { ok: false, error: 'Slug sudah digunakan, pilih yang lain.', field: 'slug' }
+      return { ok: false, error: t.srvTenant1.tenant.slugTaken, field: 'slug' }
     }
 
     const meta = getRequestMeta()
@@ -144,7 +146,7 @@ export async function createTenant(formData: FormData): Promise<ActionResult<{ s
     return { ok: true, data: { slug: tenant.slug } }
   } catch (err) {
     console.error('[createTenant] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.tenant.createFailed }
   }
 }
 
@@ -163,9 +165,10 @@ export async function createTenantInvite(input: {
   email: string
   role: TenantRole
 }): Promise<ActionResult<{ inviteId: string }>> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk untuk mengundang anggota.' }
+    return { ok: false, error: t.srvTenant1.tenant.mustLoginInvite }
   }
 
   const parsed = inviteSchema.safeParse(input)
@@ -173,7 +176,7 @@ export async function createTenantInvite(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant1.tenant.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -184,11 +187,11 @@ export async function createTenantInvite(input: {
       where: { slug: tenantSlug },
       select: { id: true, name: true },
     })
-    if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+    if (!tenant) return { ok: false, error: t.srvTenant1.tenant.tenantNotFound }
 
     const { globalRole, tenants, id: userId } = session.user
     if (!hasTenantPermission(globalRole, tenants, tenant.id, 'team.invite')) {
-      return { ok: false, error: 'Anda tidak memiliki izin untuk mengundang anggota.' }
+      return { ok: false, error: t.srvTenant1.tenant.noPermissionInvite }
     }
 
     // Refuse duplicate invite for same email + tenant if a pending one exists.
@@ -202,7 +205,7 @@ export async function createTenantInvite(input: {
       select: { id: true },
     })
     if (existing) {
-      return { ok: false, error: 'Undangan untuk email ini masih aktif.', field: 'email' }
+      return { ok: false, error: t.srvTenant1.tenant.inviteActive, field: 'email' }
     }
 
     // Refuse if user is already a member.
@@ -211,7 +214,7 @@ export async function createTenantInvite(input: {
       select: { id: true },
     })
     if (member) {
-      return { ok: false, error: 'Pengguna ini sudah menjadi anggota tenant.', field: 'email' }
+      return { ok: false, error: t.srvTenant1.tenant.alreadyMember, field: 'email' }
     }
 
     const token = randomBytes(24).toString('base64url')
@@ -263,7 +266,7 @@ export async function createTenantInvite(input: {
     return { ok: true, data: { inviteId: invite.id } }
   } catch (err) {
     console.error('[createTenantInvite] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.tenant.inviteFailed }
   }
 }
 
@@ -272,11 +275,12 @@ export async function createTenantInvite(input: {
  * the tenant the invitation belongs to.
  */
 export async function revokeTenantInvite(invitationId: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvTenant1.tenant.mustLoginShort }
   }
-  if (!invitationId) return { ok: false, error: 'ID undangan tidak valid.' }
+  if (!invitationId) return { ok: false, error: t.srvTenant1.tenant.inviteIdInvalid }
 
   try {
     const invite = await prisma.invitation.findUnique({
@@ -289,11 +293,11 @@ export async function revokeTenantInvite(invitationId: string): Promise<ActionRe
         tenant: { select: { slug: true } },
       },
     })
-    if (!invite) return { ok: false, error: 'Undangan tidak ditemukan.' }
+    if (!invite) return { ok: false, error: t.srvTenant1.tenant.inviteNotFound }
 
     const { globalRole, tenants, id: userId } = session.user
     if (!hasTenantPermission(globalRole, tenants, invite.tenantId, 'team.invite')) {
-      return { ok: false, error: 'Anda tidak memiliki izin untuk mencabut undangan.' }
+      return { ok: false, error: t.srvTenant1.tenant.noPermissionRevoke }
     }
 
     const meta = getRequestMeta()
@@ -319,7 +323,7 @@ export async function revokeTenantInvite(invitationId: string): Promise<ActionRe
     return { ok: true }
   } catch (err) {
     console.error('[revokeTenantInvite] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.tenant.revokeFailed }
   }
 }
 
@@ -374,11 +378,12 @@ export async function checkTenantInvite(token: string): Promise<
 export async function acceptTenantInvite(token: string): Promise<
   ActionResult<{ tenantSlug: string }>
 > {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id || !session.user.email) {
-    return { ok: false, error: 'Anda harus masuk untuk menerima undangan.' }
+    return { ok: false, error: t.srvTenant1.tenant.mustLoginAccept }
   }
-  if (!token) return { ok: false, error: 'Token tidak valid.' }
+  if (!token) return { ok: false, error: t.srvTenant1.tenant.tokenInvalid }
 
   try {
     const invite = await prisma.invitation.findUnique({
@@ -393,15 +398,15 @@ export async function acceptTenantInvite(token: string): Promise<
         tenant: { select: { slug: true } },
       },
     })
-    if (!invite || !invite.tenant) return { ok: false, error: 'Undangan tidak ditemukan.' }
-    if (invite.acceptedAt) return { ok: false, error: 'Undangan ini sudah digunakan.' }
+    if (!invite || !invite.tenant) return { ok: false, error: t.srvTenant1.tenant.inviteNotFound }
+    if (invite.acceptedAt) return { ok: false, error: t.srvTenant1.tenant.inviteUsed }
     if (invite.expiresAt.getTime() < Date.now()) {
-      return { ok: false, error: 'Undangan sudah kedaluwarsa.' }
+      return { ok: false, error: t.srvTenant1.tenant.inviteExpired }
     }
     if (invite.email.toLowerCase() !== session.user.email.toLowerCase()) {
       return {
         ok: false,
-        error: 'Undangan ini ditujukan untuk email yang berbeda. Masuk dengan akun yang benar.',
+        error: t.srvTenant1.tenant.inviteWrongEmail,
       }
     }
 
@@ -443,7 +448,7 @@ export async function acceptTenantInvite(token: string): Promise<
     return { ok: true, data: { tenantSlug: invite.tenant.slug } }
   } catch (err) {
     console.error('[acceptTenantInvite] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.tenant.acceptFailed }
   }
 }
 
@@ -473,18 +478,19 @@ async function loadTenantForMemberOp(
   tenantSlug: string,
   permission: 'team.update' | 'team.remove',
 ): Promise<LoadResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant1.tenant.mustLoginShort }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true, ownerUserId: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant1.tenant.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant1.tenant.noPermission }
   }
   return { tenant, actorId }
 }
@@ -498,10 +504,11 @@ export async function updateMemberRole(input: {
   userId: string
   role: TenantRole
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateMemberRoleSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
-    return { ok: false, error: issue?.message ?? 'Data tidak valid' }
+    return { ok: false, error: issue?.message ?? t.srvTenant1.tenant.dataInvalid }
   }
   const { tenantSlug, userId, role } = parsed.data
 
@@ -510,7 +517,7 @@ export async function updateMemberRole(input: {
   const { tenant, actorId } = ctx
 
   if (actorId === userId) {
-    return { ok: false, error: 'Tidak dapat mengubah peran Anda sendiri.' }
+    return { ok: false, error: t.srvTenant1.tenant.cannotChangeOwnRole }
   }
 
   try {
@@ -518,11 +525,11 @@ export async function updateMemberRole(input: {
       where: { userId_tenantId: { userId, tenantId: tenant.id } },
       select: { id: true, role: true },
     })
-    if (!member) return { ok: false, error: 'Anggota tidak ditemukan di tenant ini.' }
+    if (!member) return { ok: false, error: t.srvTenant1.tenant.memberNotFound }
     if (member.role === 'OWNER') {
       return {
         ok: false,
-        error: 'Peran OWNER tidak dapat diubah di sini. Gunakan transfer kepemilikan.',
+        error: t.srvTenant1.tenant.ownerRoleProtected,
       }
     }
     if (member.role === role) return { ok: true }
@@ -557,7 +564,7 @@ export async function updateMemberRole(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateMemberRole] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.tenant.updateRoleFailed }
   }
 }
 
@@ -569,8 +576,9 @@ export async function removeMember(input: {
   tenantSlug: string
   userId: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   if (!input.tenantSlug || !input.userId) {
-    return { ok: false, error: 'Data tidak valid' }
+    return { ok: false, error: t.srvTenant1.tenant.dataInvalid }
   }
 
   const ctx = await loadTenantForMemberOp(input.tenantSlug, 'team.remove')
@@ -578,7 +586,7 @@ export async function removeMember(input: {
   const { tenant, actorId } = ctx
 
   if (actorId === input.userId) {
-    return { ok: false, error: 'Gunakan tombol "Keluar" untuk mengeluarkan diri.' }
+    return { ok: false, error: t.srvTenant1.tenant.useSelfLeave }
   }
 
   try {
@@ -586,11 +594,11 @@ export async function removeMember(input: {
       where: { userId_tenantId: { userId: input.userId, tenantId: tenant.id } },
       select: { id: true, role: true, user: { select: { email: true } } },
     })
-    if (!member) return { ok: false, error: 'Anggota tidak ditemukan di tenant ini.' }
+    if (!member) return { ok: false, error: t.srvTenant1.tenant.memberNotFound }
     if (member.role === 'OWNER') {
       return {
         ok: false,
-        error: 'OWNER tidak dapat dikeluarkan. Lakukan transfer kepemilikan terlebih dulu.',
+        error: t.srvTenant1.tenant.ownerCannotBeRemoved,
       }
     }
 
@@ -621,7 +629,7 @@ export async function removeMember(input: {
     return { ok: true }
   } catch (err) {
     console.error('[removeMember] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.tenant.removeMemberFailed }
   }
 }
 
@@ -635,16 +643,17 @@ export async function transferOwnership(input: {
   tenantSlug: string
   newOwnerUserId: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   if (!input.tenantSlug || !input.newOwnerUserId) {
-    return { ok: false, error: 'Data tidak valid' }
+    return { ok: false, error: t.srvTenant1.tenant.dataInvalid }
   }
 
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvTenant1.tenant.mustLoginShort }
   const actorId = session.user.id
 
   if (actorId === input.newOwnerUserId) {
-    return { ok: false, error: 'Anda sudah menjadi OWNER tenant ini.' }
+    return { ok: false, error: t.srvTenant1.tenant.alreadyOwner }
   }
 
   try {
@@ -652,9 +661,9 @@ export async function transferOwnership(input: {
       where: { slug: input.tenantSlug },
       select: { id: true, slug: true, ownerUserId: true },
     })
-    if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+    if (!tenant) return { ok: false, error: t.srvTenant1.tenant.tenantNotFound }
     if (tenant.ownerUserId !== actorId) {
-      return { ok: false, error: 'Hanya OWNER saat ini yang dapat melakukan transfer.' }
+      return { ok: false, error: t.srvTenant1.tenant.onlyOwnerCanTransfer }
     }
 
     const target = await prisma.userTenant.findUnique({
@@ -662,7 +671,7 @@ export async function transferOwnership(input: {
       select: { id: true, role: true, status: true },
     })
     if (!target || target.status !== 'active') {
-      return { ok: false, error: 'Calon OWNER harus anggota aktif tenant ini.' }
+      return { ok: false, error: t.srvTenant1.tenant.newOwnerMustBeActive }
     }
 
     const actorMembership = await prisma.userTenant.findUnique({
@@ -670,7 +679,7 @@ export async function transferOwnership(input: {
       select: { id: true },
     })
     if (!actorMembership) {
-      return { ok: false, error: 'Membership OWNER tidak ditemukan.' }
+      return { ok: false, error: t.srvTenant1.tenant.ownerMembershipNotFound }
     }
 
     const meta = getRequestMeta()
@@ -706,7 +715,7 @@ export async function transferOwnership(input: {
     return { ok: true }
   } catch (err) {
     console.error('[transferOwnership] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.tenant.transferFailed }
   }
 }
 
@@ -714,10 +723,11 @@ export async function transferOwnership(input: {
  * Current user leaves a tenant. OWNER must transfer first — refused here.
  */
 export async function leaveTenant(tenantSlug: string): Promise<ActionResult> {
-  if (!tenantSlug) return { ok: false, error: 'Data tidak valid' }
+  const t = await getServerT()
+  if (!tenantSlug) return { ok: false, error: t.srvTenant1.tenant.dataInvalid }
 
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvTenant1.tenant.mustLoginShort }
   const actorId = session.user.id
 
   try {
@@ -725,13 +735,12 @@ export async function leaveTenant(tenantSlug: string): Promise<ActionResult> {
       where: { slug: tenantSlug },
       select: { id: true, slug: true, ownerUserId: true },
     })
-    if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+    if (!tenant) return { ok: false, error: t.srvTenant1.tenant.tenantNotFound }
 
     if (tenant.ownerUserId === actorId) {
       return {
         ok: false,
-        error:
-          'OWNER tidak dapat keluar. Lakukan transfer kepemilikan terlebih dulu.',
+        error: t.srvTenant1.tenant.ownerCannotLeave,
       }
     }
 
@@ -739,7 +748,7 @@ export async function leaveTenant(tenantSlug: string): Promise<ActionResult> {
       where: { userId_tenantId: { userId: actorId, tenantId: tenant.id } },
       select: { id: true, role: true },
     })
-    if (!member) return { ok: false, error: 'Anda bukan anggota tenant ini.' }
+    if (!member) return { ok: false, error: t.srvTenant1.tenant.notMember }
 
     const meta = getRequestMeta()
     await prisma.$transaction([
@@ -763,6 +772,6 @@ export async function leaveTenant(tenantSlug: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[leaveTenant] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.tenant.leaveFailed }
   }
 }

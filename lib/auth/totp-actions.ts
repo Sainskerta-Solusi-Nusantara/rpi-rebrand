@@ -14,6 +14,8 @@ import {
   hashRecoveryCode,
   verifyTotpCode,
 } from '@/lib/auth/totp'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvAuth3 } from '@/lib/i18n/dictionaries/srv-auth3'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -50,17 +52,18 @@ async function loadActor() {
 export async function beginTotpSetup(): Promise<
   ActionResult<{ qrDataUrl: string; secret: string; uri: string }>
 > {
+  const t = { srvAuth3: srvAuth3[await getServerLocale()] }
   const actor = await loadActor()
-  if (!actor) return { ok: false, error: 'Anda harus masuk.' }
+  if (!actor) return { ok: false, error: t.srvAuth3.totp.mustLogin }
 
   try {
     const user = await prisma.user.findUnique({
       where: { id: actor.id },
       select: { totpEnabledAt: true, email: true },
     })
-    if (!user) return { ok: false, error: 'Akun tidak ditemukan.' }
+    if (!user) return { ok: false, error: t.srvAuth3.totp.accountNotFound }
     if (user.totpEnabledAt) {
-      return { ok: false, error: '2FA sudah aktif. Nonaktifkan dulu untuk mengulang setup.' }
+      return { ok: false, error: t.srvAuth3.totp.alreadyEnabled }
     }
 
     const secret = generateTotpSecret()
@@ -75,7 +78,7 @@ export async function beginTotpSetup(): Promise<
     return { ok: true, data: { qrDataUrl, secret, uri } }
   } catch (err) {
     console.error('[beginTotpSetup] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth3.totp.saveFailed }
   }
 }
 
@@ -87,11 +90,12 @@ export async function beginTotpSetup(): Promise<
 export async function confirmTotpSetup(input: { code: string }): Promise<
   ActionResult<{ recoveryCodes: string[] }>
 > {
+  const t = { srvAuth3: srvAuth3[await getServerLocale()] }
   const actor = await loadActor()
-  if (!actor) return { ok: false, error: 'Anda harus masuk.' }
+  if (!actor) return { ok: false, error: t.srvAuth3.totp.mustLogin }
   const code = (input?.code ?? '').toString().trim()
   if (!/^\d{6}$/.test(code)) {
-    return { ok: false, error: 'Masukkan kode 6 digit.', field: 'code' }
+    return { ok: false, error: t.srvAuth3.totp.invalidCode6, field: 'code' }
   }
 
   try {
@@ -99,15 +103,15 @@ export async function confirmTotpSetup(input: { code: string }): Promise<
       where: { id: actor.id },
       select: { totpSecret: true, totpEnabledAt: true },
     })
-    if (!user) return { ok: false, error: 'Akun tidak ditemukan.' }
+    if (!user) return { ok: false, error: t.srvAuth3.totp.accountNotFound }
     if (user.totpEnabledAt) {
-      return { ok: false, error: '2FA sudah aktif.' }
+      return { ok: false, error: t.srvAuth3.totp.alreadyActive }
     }
     if (!user.totpSecret) {
-      return { ok: false, error: 'Setup belum dimulai. Mulai ulang dari awal.' }
+      return { ok: false, error: t.srvAuth3.totp.setupNotStarted }
     }
     if (!verifyTotpCode(user.totpSecret, code)) {
-      return { ok: false, error: 'Kode salah atau kedaluwarsa.', field: 'code' }
+      return { ok: false, error: t.srvAuth3.totp.codeExpired, field: 'code' }
     }
 
     const plainCodes = generateRecoveryCodes()
@@ -140,7 +144,7 @@ export async function confirmTotpSetup(input: { code: string }): Promise<
     return { ok: true, data: { recoveryCodes: plainCodes } }
   } catch (err) {
     console.error('[confirmTotpSetup] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth3.totp.saveFailed }
   }
 }
 
@@ -149,30 +153,31 @@ export async function confirmTotpSetup(input: { code: string }): Promise<
  * recovery code) to prove possession. Wipes secret and all recovery codes.
  */
 export async function disableTotp(formData: FormData): Promise<ActionResult> {
+  const t = { srvAuth3: srvAuth3[await getServerLocale()] }
   const actor = await loadActor()
-  if (!actor) return { ok: false, error: 'Anda harus masuk.' }
+  if (!actor) return { ok: false, error: t.srvAuth3.totp.mustLogin }
 
   const password = String(formData.get('password') ?? '')
   const code = String(formData.get('code') ?? '').trim()
 
-  if (!password) return { ok: false, error: 'Masukkan password.', field: 'password' }
-  if (!code) return { ok: false, error: 'Masukkan kode 2FA atau recovery code.', field: 'code' }
+  if (!password) return { ok: false, error: t.srvAuth3.totp.passwordRequired, field: 'password' }
+  if (!code) return { ok: false, error: t.srvAuth3.totp.codeRequired, field: 'code' }
 
   try {
     const user = await prisma.user.findUnique({
       where: { id: actor.id },
       select: { passwordHash: true, totpSecret: true, totpEnabledAt: true },
     })
-    if (!user) return { ok: false, error: 'Akun tidak ditemukan.' }
+    if (!user) return { ok: false, error: t.srvAuth3.totp.accountNotFound }
     if (!user.totpEnabledAt || !user.totpSecret) {
-      return { ok: false, error: '2FA tidak aktif.' }
+      return { ok: false, error: t.srvAuth3.totp.notActive }
     }
     if (!user.passwordHash) {
-      return { ok: false, error: 'Akun tidak memiliki password.', field: 'password' }
+      return { ok: false, error: t.srvAuth3.totp.noPassword, field: 'password' }
     }
 
     const okPw = await verifyPassword(password, user.passwordHash)
-    if (!okPw) return { ok: false, error: 'Password salah.', field: 'password' }
+    if (!okPw) return { ok: false, error: t.srvAuth3.totp.wrongPassword, field: 'password' }
 
     let codeOk = false
     if (/^\d{6}$/.test(code)) {
@@ -188,7 +193,7 @@ export async function disableTotp(formData: FormData): Promise<ActionResult> {
         codeOk = true
       }
     }
-    if (!codeOk) return { ok: false, error: 'Kode 2FA tidak valid.', field: 'code' }
+    if (!codeOk) return { ok: false, error: t.srvAuth3.totp.invalidTotpCode, field: 'code' }
 
     const meta = getRequestMeta()
     await prisma.$transaction([
@@ -214,7 +219,7 @@ export async function disableTotp(formData: FormData): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[disableTotp] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth3.totp.saveFailed }
   }
 }
 
@@ -224,11 +229,12 @@ export async function disableTotp(formData: FormData): Promise<ActionResult> {
 export async function regenerateRecoveryCodes(input: { code: string }): Promise<
   ActionResult<{ recoveryCodes: string[] }>
 > {
+  const t = { srvAuth3: srvAuth3[await getServerLocale()] }
   const actor = await loadActor()
-  if (!actor) return { ok: false, error: 'Anda harus masuk.' }
+  if (!actor) return { ok: false, error: t.srvAuth3.totp.mustLogin }
   const code = (input?.code ?? '').toString().trim()
   if (!/^\d{6}$/.test(code)) {
-    return { ok: false, error: 'Masukkan kode 6 digit dari authenticator.', field: 'code' }
+    return { ok: false, error: t.srvAuth3.totp.invalidCode6Authenticator, field: 'code' }
   }
 
   try {
@@ -237,10 +243,10 @@ export async function regenerateRecoveryCodes(input: { code: string }): Promise<
       select: { totpSecret: true, totpEnabledAt: true },
     })
     if (!user?.totpEnabledAt || !user.totpSecret) {
-      return { ok: false, error: '2FA tidak aktif.' }
+      return { ok: false, error: t.srvAuth3.totp.notActive }
     }
     if (!verifyTotpCode(user.totpSecret, code)) {
-      return { ok: false, error: 'Kode tidak valid.', field: 'code' }
+      return { ok: false, error: t.srvAuth3.totp.invalidCodeShort, field: 'code' }
     }
 
     const plainCodes = generateRecoveryCodes()
@@ -268,6 +274,6 @@ export async function regenerateRecoveryCodes(input: { code: string }): Promise<
     return { ok: true, data: { recoveryCodes: plainCodes } }
   } catch (err) {
     console.error('[regenerateRecoveryCodes] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth3.totp.saveFailed }
   }
 }

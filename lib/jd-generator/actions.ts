@@ -13,6 +13,7 @@
 import { createHash } from 'crypto'
 import { headers } from 'next/headers'
 import { z } from 'zod'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import {
   AuditAction,
   EmploymentType,
@@ -71,9 +72,10 @@ function titleHash(title: string): string {
 export async function generateJdAction(
   input: GenerateJdInput,
 ): Promise<ActionResult<JdGeneratorOutput>> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvBilling.jdGenerator.mustSignIn }
   }
 
   const parsed = inputSchema.safeParse(input)
@@ -81,7 +83,7 @@ export async function generateJdAction(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvBilling.jdGenerator.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -95,7 +97,7 @@ export async function generateJdAction(
       where: { slug: d.tenantSlug },
       select: { id: true },
     })
-    if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+    if (!tenant) return { ok: false, error: t.srvBilling.jdGenerator.tenantNotFound }
     if (
       !hasTenantPermission(
         session.user.globalRole,
@@ -104,7 +106,7 @@ export async function generateJdAction(
         'job.create',
       )
     ) {
-      return { ok: false, error: 'Anda tidak memiliki izin.' }
+      return { ok: false, error: t.srvBilling.jdGenerator.noPermission }
     }
     resolvedTenantId = tenant.id
   } else {
@@ -119,7 +121,7 @@ export async function generateJdAction(
       ),
     )
     if (!hasGlobalJobCreate && !hasAnyTenantJobCreate) {
-      return { ok: false, error: 'Anda tidak memiliki izin.' }
+      return { ok: false, error: t.srvBilling.jdGenerator.noPermission }
     }
   }
 

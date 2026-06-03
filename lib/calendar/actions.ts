@@ -22,6 +22,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 import {
   createCalendarEvent,
   deleteCalendarEvent,
@@ -121,12 +122,13 @@ export async function getMyCalendarAccounts(): Promise<CalendarAccountSummary[]>
 export async function disconnectCalendar(
   provider: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvCalendar.calendar.mustLogin }
   }
   if (!SUPPORTED_PROVIDERS.includes(provider as SupportedProvider)) {
-    return { ok: false, error: 'Provider tidak didukung.' }
+    return { ok: false, error: t.srvCalendar.calendar.providerNotSupported }
   }
 
   try {
@@ -135,7 +137,7 @@ export async function disconnectCalendar(
       select: { id: true, providerEmail: true },
     })
     if (!existing) {
-      return { ok: false, error: 'Kalender belum terhubung.' }
+      return { ok: false, error: t.srvCalendar.calendar.calendarNotConnected }
     }
 
     const meta = getRequestMeta()
@@ -158,7 +160,7 @@ export async function disconnectCalendar(
     return { ok: true }
   } catch (err) {
     console.error('[disconnectCalendar] failed', err)
-    return { ok: false, error: 'Gagal memutuskan kalender. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvCalendar.calendar.disconnectFailed }
   }
 }
 
@@ -183,7 +185,8 @@ async function ensureFreshAccessToken(account: {
   const stillValid = expiresAt > now + 60_000
   if (stillValid) return { ok: true, accessToken: account.accessToken }
   if (!account.refreshToken) {
-    return { ok: false, error: 'Refresh token tidak tersedia, hubungkan ulang kalender.' }
+    const t = await getServerT()
+    return { ok: false, error: t.srvCalendar.calendar.refreshTokenMissing }
   }
 
   if (account.provider === 'microsoft') {
@@ -347,9 +350,10 @@ function buildMicrosoftEventFromInterview(
 export async function syncInterviewToCalendar(
   interviewId: string,
 ): Promise<ActionResult<{ externalEventId: string; htmlLink: string | null }>> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvCalendar.calendar.mustLogin }
   }
   const interview = await prisma.interviewSchedule
     .findUnique({
@@ -379,7 +383,7 @@ export async function syncInterviewToCalendar(
     })
     .catch(() => null)
   if (!interview) {
-    return { ok: false, error: 'Wawancara tidak ditemukan.' }
+    return { ok: false, error: t.srvCalendar.calendar.interviewNotFound }
   }
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -390,7 +394,7 @@ export async function syncInterviewToCalendar(
       'job.update',
     )
   ) {
-    return { ok: false, error: 'Anda tidak memiliki izin.' }
+    return { ok: false, error: t.srvCalendar.calendar.noPermission }
   }
 
   const accounts = await prisma.calendarAccount.findMany({
@@ -408,8 +412,7 @@ export async function syncInterviewToCalendar(
   if (accounts.length === 0) {
     return {
       ok: false,
-      error:
-        'Belum ada kalender terhubung. Buka Integrasi untuk menghubungkan Google atau Outlook.',
+      error: t.srvCalendar.calendar.noCalendarConnected,
     }
   }
 
@@ -482,7 +485,7 @@ export async function syncInterviewToCalendar(
 
   if (created.length === 0) {
     const summary = errors.map((e) => `${e.provider}: ${e.error}`).join('; ')
-    return { ok: false, error: `Gagal membuat event: ${summary}` }
+    return { ok: false, error: `${t.srvCalendar.calendar.createEventFailed}${summary}` }
   }
 
   // Persist the FIRST successful provider as the canonical mapping (Google
@@ -490,7 +493,7 @@ export async function syncInterviewToCalendar(
   const primary = created[0]
   if (!primary) {
     // Unreachable: `created.length === 0` is handled above, but TS can't see it.
-    return { ok: false, error: 'Gagal membuat event.' }
+    return { ok: false, error: t.srvCalendar.calendar.createEventFailedGeneric }
   }
   const secondary = created.slice(1)
   const meta = getRequestMeta()
@@ -551,7 +554,7 @@ export async function syncInterviewToCalendar(
       }
     }
     console.error('[syncInterviewToCalendar] failed', err)
-    return { ok: false, error: 'Gagal menyimpan sinkronisasi.' }
+    return { ok: false, error: t.srvCalendar.calendar.saveSyncFailed }
   }
 }
 
@@ -561,9 +564,10 @@ export async function syncInterviewToCalendar(
 export async function unsyncInterview(
   interviewId: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvCalendar.calendar.mustLogin }
   }
   const mapping = await prisma.calendarEventMapping
     .findUnique({
@@ -597,7 +601,7 @@ export async function unsyncInterview(
     })
     .catch(() => null)
   if (!mapping) {
-    return { ok: false, error: 'Sinkronisasi tidak ditemukan.' }
+    return { ok: false, error: t.srvCalendar.calendar.syncNotFound }
   }
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -608,7 +612,7 @@ export async function unsyncInterview(
       'job.update',
     )
   ) {
-    return { ok: false, error: 'Anda tidak memiliki izin.' }
+    return { ok: false, error: t.srvCalendar.calendar.noPermission }
   }
   // Only allow deletion of an event tied to the actor's own account, unless
   // SUPERADMIN. Prevents accidentally calling another user's tokens.
@@ -616,7 +620,7 @@ export async function unsyncInterview(
     mapping.calendarAccount.userId !== actorId &&
     globalRole !== 'SUPERADMIN'
   ) {
-    return { ok: false, error: 'Anda hanya bisa menghapus sinkronisasi milik Anda.' }
+    return { ok: false, error: t.srvCalendar.calendar.deleteSyncOwnerOnly }
   }
 
   const fresh = await ensureFreshAccessToken({
@@ -678,6 +682,6 @@ export async function unsyncInterview(
     return { ok: true }
   } catch (err) {
     console.error('[unsyncInterview] failed', err)
-    return { ok: false, error: 'Gagal menghapus sinkronisasi.' }
+    return { ok: false, error: t.srvCalendar.calendar.deleteSyncFailed }
   }
 }

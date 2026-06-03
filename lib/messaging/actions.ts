@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import type { Session } from 'next-auth'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -107,9 +108,10 @@ type LoadResult =
     }
 
 async function loadContext(applicationId: string): Promise<LoadResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvMessaging.messaging.mustLogin }
   }
   const application = await prisma.application
     .findUnique({
@@ -124,13 +126,13 @@ async function loadContext(applicationId: string): Promise<LoadResult> {
       },
     })
     .catch(() => null)
-  if (!application) return { error: 'Lamaran tidak ditemukan.' }
+  if (!application) return { error: t.srvMessaging.messaging.applicationNotFound }
 
   const role = resolveRole(session, {
     tenantId: application.tenantId,
     userId: application.userId,
   })
-  if (!role) return { error: 'Anda tidak memiliki izin.' }
+  if (!role) return { error: t.srvMessaging.messaging.noPermission }
 
   return { session, application, role }
 }
@@ -153,12 +155,13 @@ export async function sendMessage(input: {
   applicationId: string
   body: string
 }): Promise<ActionResult<{ messageId: string }>> {
+  const t = await getServerT()
   const parsed = sendSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvMessaging.messaging.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -236,7 +239,7 @@ export async function sendMessage(input: {
           data: {
             userId: recipientUserId,
             type: NotificationType.APPLICATION_UPDATE,
-            title: `Pesan baru dari ${application.tenant.name}`,
+            title: `${t.srvMessaging.messaging.newMessageFrom} ${application.tenant.name}`,
             body: preview,
             link: candidateLink,
           },
@@ -252,7 +255,7 @@ export async function sendMessage(input: {
       void import('@/lib/push/dispatch')
         .then((m) =>
           m.dispatchPushToUser(recipientUserId, {
-            title: `Pesan baru dari ${application.tenant.name}`,
+            title: `${t.srvMessaging.messaging.newMessageFrom} ${application.tenant.name}`,
             body: pushPreview,
             url: candidateLink,
           }),
@@ -266,7 +269,7 @@ export async function sendMessage(input: {
       // because they may flood — they can still see threads via the dashboard.
       try {
         const senderName =
-          application.user.name ?? application.user.email ?? 'Pelamar'
+          application.user.name ?? application.user.email ?? t.srvMessaging.messaging.defaultSenderName
         const recruiters = await prisma.userTenant.findMany({
           where: {
             tenantId: application.tenantId,
@@ -280,7 +283,7 @@ export async function sendMessage(input: {
             data: recruiters.map((r) => ({
               userId: r.userId,
               type: NotificationType.APPLICATION_UPDATE,
-              title: `Pesan baru dari ${senderName}`,
+              title: `${t.srvMessaging.messaging.newMessageFrom} ${senderName}`,
               body: preview,
               link: recruiterLink,
             })),
@@ -297,7 +300,7 @@ export async function sendMessage(input: {
             .then((m) => {
               for (const r of recruiters) {
                 m.dispatchPushToUser(r.userId, {
-                  title: `Pesan baru dari ${senderName}`,
+                  title: `${t.srvMessaging.messaging.newMessageFrom} ${senderName}`,
                   body: pushPreview,
                   url: recruiterLink,
                 }).catch(() => {})
@@ -315,7 +318,7 @@ export async function sendMessage(input: {
     return { ok: true, data: { messageId: message.id } }
   } catch (err) {
     console.error('[sendMessage] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvMessaging.messaging.genericError }
   }
 }
 
@@ -327,9 +330,10 @@ export async function sendMessage(input: {
 export async function markThreadRead(
   applicationId: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = markReadSchema.safeParse({ applicationId })
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t.srvMessaging.messaging.dataInvalid }
   }
 
   const ctx = await loadContext(applicationId)
@@ -360,7 +364,7 @@ export async function markThreadRead(
     return { ok: true }
   } catch (err) {
     console.error('[markThreadRead] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvMessaging.messaging.genericError }
   }
 }
 
@@ -373,11 +377,12 @@ export async function getMessagesAfter(input: {
   applicationId: string
   sinceMessageId: string | null
 }): Promise<ActionResult<{ messages: MessageRow[] }>> {
+  const t = await getServerT()
   const parsed = getAfterSchema.safeParse(input)
   if (!parsed.success) {
     return {
       ok: false,
-      error: parsed.error.issues[0]?.message ?? 'Data tidak valid',
+      error: parsed.error.issues[0]?.message ?? t.srvMessaging.messaging.dataInvalid,
     }
   }
   const { applicationId, sinceMessageId } = parsed.data
@@ -425,6 +430,6 @@ export async function getMessagesAfter(input: {
     return { ok: true, data: { messages } }
   } catch (err) {
     console.error('[getMessagesAfter] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvMessaging.messaging.genericError }
   }
 }

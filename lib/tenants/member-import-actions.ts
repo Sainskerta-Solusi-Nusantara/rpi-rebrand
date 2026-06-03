@@ -9,6 +9,7 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { parseCsv } from '@/lib/csv'
 import { createTenantInvite } from '@/lib/tenants/actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 // =============================================================================
 // Types
@@ -144,18 +145,19 @@ async function loadTenantForMemberImport(
   tenantSlug: string,
   permission: Permission,
 ): Promise<TenantLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant3.memberImport.mustBeLoggedIn }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant3.memberImport.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant3.memberImport.noPermission }
   }
   return { tenant, actorId }
 }
@@ -183,15 +185,22 @@ type ParseOutcome =
       dataRows: { lineNum: number; raw: string[] }[]
     }
 
-function parseCsvToRows(csvText: string): ParseOutcome {
+type CsvMessages = {
+  csvEmpty: string
+  requiredColumnMissing: string
+  csvNoDataRows: string
+  maxRowsExceeded: string
+}
+
+function parseCsvToRows(csvText: string, msgs: CsvMessages): ParseOutcome {
   if (!csvText || csvText.trim().length === 0) {
-    return { kind: 'fatal', error: 'CSV kosong.' }
+    return { kind: 'fatal', error: msgs.csvEmpty }
   }
 
   const rows = parseCsv(csvText)
   const headerRow = rows[0]
   if (!headerRow) {
-    return { kind: 'fatal', error: 'CSV kosong.' }
+    return { kind: 'fatal', error: msgs.csvEmpty }
   }
 
   const headerMap = headerRow.map(normalizeHeaderKey)
@@ -203,7 +212,7 @@ function parseCsvToRows(csvText: string): ParseOutcome {
     if (!headerKeys.has(req)) {
       return {
         kind: 'fatal',
-        error: `Kolom wajib "${req}" tidak ditemukan di baris header.`,
+        error: msgs.requiredColumnMissing.replace('{col}', req),
       }
     }
   }
@@ -214,12 +223,14 @@ function parseCsvToRows(csvText: string): ParseOutcome {
   }))
 
   if (dataRows.length === 0) {
-    return { kind: 'fatal', error: 'CSV tidak memiliki baris data.' }
+    return { kind: 'fatal', error: msgs.csvNoDataRows }
   }
   if (dataRows.length > MAX_ROWS) {
     return {
       kind: 'fatal',
-      error: `Maksimum ${MAX_ROWS} baris per impor. Saat ini: ${dataRows.length}.`,
+      error: msgs.maxRowsExceeded
+        .replace('{max}', String(MAX_ROWS))
+        .replace('{count}', String(dataRows.length)),
     }
   }
 
@@ -311,10 +322,11 @@ export async function parseAndValidateMembersCsv(input: {
   tenantSlug: string
   csvText: string
 }): Promise<ActionResult<PreviewResult>> {
+  const t = await getServerT()
   const ctx = await loadTenantForMemberImport(input.tenantSlug, 'team.invite')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = parseCsvToRows(input.csvText)
+  const parsed = parseCsvToRows(input.csvText, t.srvTenant3.memberImport)
   if (parsed.kind === 'fatal') {
     return { ok: false, error: parsed.error }
   }
@@ -374,7 +386,7 @@ export async function parseAndValidateMembersCsv(input: {
         raw: it.raw,
         parsed: it.parsed,
         status: 'skip:duplicate',
-        note: 'Email duplikat di CSV — baris pertama akan diproses',
+        note: t.srvTenant3.memberImport.duplicateEmailPreview,
         errors: [],
       })
       continue
@@ -388,7 +400,7 @@ export async function parseAndValidateMembersCsv(input: {
         raw: it.raw,
         parsed: it.parsed,
         status: 'skip:member',
-        note: 'Sudah menjadi anggota tenant',
+        note: t.srvTenant3.memberImport.alreadyMember,
         errors: [],
       })
       continue
@@ -401,7 +413,7 @@ export async function parseAndValidateMembersCsv(input: {
         raw: it.raw,
         parsed: it.parsed,
         status: 'skip:invited',
-        note: 'Undangan aktif sudah ada',
+        note: t.srvTenant3.memberImport.inviteAlreadyExists,
         errors: [],
       })
       continue
@@ -438,10 +450,11 @@ export async function bulkImportMembers(input: {
   tenantSlug: string
   csvText: string
 }): Promise<ActionResult<ImportResult>> {
+  const t = await getServerT()
   const ctx = await loadTenantForMemberImport(input.tenantSlug, 'team.invite')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
-  const parsed = parseCsvToRows(input.csvText)
+  const parsed = parseCsvToRows(input.csvText, t.srvTenant3.memberImport)
   if (parsed.kind === 'fatal') {
     return { ok: false, error: parsed.error }
   }
@@ -488,7 +501,7 @@ export async function bulkImportMembers(input: {
       return {
         kind: 'skip',
         lineNum: it.lineNum,
-        error: it.errors[0] ?? 'Data tidak valid',
+        error: it.errors[0] ?? t.srvTenant3.memberImport.invalidData,
       }
     }
     const email = it.parsed.email
@@ -496,7 +509,7 @@ export async function bulkImportMembers(input: {
       return {
         kind: 'skip',
         lineNum: it.lineNum,
-        error: 'Email duplikat di CSV',
+        error: t.srvTenant3.memberImport.duplicateEmailImport,
       }
     }
     seenEmails.add(email)
@@ -504,14 +517,14 @@ export async function bulkImportMembers(input: {
       return {
         kind: 'skip',
         lineNum: it.lineNum,
-        error: 'Sudah menjadi anggota tenant',
+        error: t.srvTenant3.memberImport.alreadyMember,
       }
     }
     if (pendingInvites.has(email)) {
       return {
         kind: 'skip',
         lineNum: it.lineNum,
-        error: 'Undangan aktif sudah ada',
+        error: t.srvTenant3.memberImport.inviteAlreadyExists,
       }
     }
     return {
@@ -523,30 +536,30 @@ export async function bulkImportMembers(input: {
   })
 
   const settled = await Promise.allSettled(
-    tasks.map(async (t): Promise<Outcome> => {
-      if (t.kind === 'skip') {
-        return { kind: 'skipped', lineNum: t.lineNum, error: t.error }
+    tasks.map(async (task): Promise<Outcome> => {
+      if (task.kind === 'skip') {
+        return { kind: 'skipped', lineNum: task.lineNum, error: task.error }
       }
       try {
         const res = await createTenantInvite({
           tenantSlug: ctx.tenant.slug,
-          email: t.email,
-          role: t.role,
+          email: task.email,
+          role: task.role,
         })
         if (!res.ok) {
           return {
             kind: 'skipped',
-            lineNum: t.lineNum,
+            lineNum: task.lineNum,
             error: res.error,
           }
         }
         return { kind: 'invited' }
       } catch (err) {
-        console.error('[bulkImportMembers] invite failed', t.lineNum, err)
+        console.error('[bulkImportMembers] invite failed', task.lineNum, err)
         return {
           kind: 'skipped',
-          lineNum: t.lineNum,
-          error: 'Kesalahan internal saat mengirim undangan',
+          lineNum: task.lineNum,
+          error: t.srvTenant3.memberImport.inviteSendError,
         }
       }
     }),
@@ -569,7 +582,7 @@ export async function bulkImportMembers(input: {
       const lineNum = tasks[i]?.lineNum ?? 0
       errors.push({
         lineNum,
-        error: 'Kesalahan internal saat memproses baris',
+        error: t.srvTenant3.memberImport.rowProcessError,
       })
     }
   })

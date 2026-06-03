@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -110,12 +111,13 @@ export async function submitFlag(input: {
   reason: (typeof REASONS)[number]
   description?: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = submitFlagSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Input tidak valid.' }
+  if (!parsed.success) return { ok: false, error: t.srvAdmin.modActions.invalidInput }
   const { resourceType, resourceId, reason, description } = parsed.data
 
   const actor = await requireUser()
-  if (!actor) return { ok: false, error: 'Anda harus masuk untuk melaporkan.' }
+  if (!actor) return { ok: false, error: t.srvAdmin.modActions.mustBeLoggedIn }
 
   try {
     // Duplicate-check: same reporter, same resource — quietly succeed.
@@ -140,7 +142,7 @@ export async function submitFlag(input: {
     if (recentCount >= RATE_LIMIT_MAX) {
       return {
         ok: false,
-        error: 'Anda telah mencapai batas laporan harian. Coba lagi nanti.',
+        error: t.srvAdmin.modActions.rateLimitExceeded,
       }
     }
 
@@ -175,7 +177,7 @@ export async function submitFlag(input: {
     return { ok: true }
   } catch (err) {
     console.error('[submitFlag] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAdmin.modActions.genericError }
   }
 }
 
@@ -195,12 +197,13 @@ export async function updateFlagStatus(input: {
   status: 'reviewing' | 'resolved' | 'dismissed'
   resolution?: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = updateFlagStatusSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Input tidak valid.' }
+  if (!parsed.success) return { ok: false, error: t.srvAdmin.modActions.invalidInput }
   const { flagId, status, resolution } = parsed.data
 
   const actor = await requireAdmin('ADMIN')
-  if (!actor) return { ok: false, error: 'Akses ditolak.' }
+  if (!actor) return { ok: false, error: t.srvAdmin.modActions.accessDenied }
 
   try {
     const flag = await prisma.moderationFlag.findUnique({
@@ -213,7 +216,7 @@ export async function updateFlagStatus(input: {
         reportedById: true,
       },
     })
-    if (!flag) return { ok: false, error: 'Laporan tidak ditemukan.' }
+    if (!flag) return { ok: false, error: t.srvAdmin.modActions.flagNotFound }
     if (flag.status === status) return { ok: true }
 
     const isTerminal = status === 'resolved' || status === 'dismissed'
@@ -254,13 +257,13 @@ export async function updateFlagStatus(input: {
 
       const title =
         status === 'resolved'
-          ? 'Laporan moderasi diselesaikan'
-          : 'Laporan moderasi ditolak'
+          ? t.srvAdmin.modActions.notifTitleResolved
+          : t.srvAdmin.modActions.notifTitleDismissed
       const body = resolution?.trim()
         ? resolution.trim().slice(0, 500)
         : status === 'resolved'
-          ? 'Tim moderator telah menyelesaikan laporan Anda.'
-          : 'Tim moderator memutuskan tidak ada tindakan yang diperlukan.'
+          ? t.srvAdmin.modActions.notifBodyResolved
+          : t.srvAdmin.modActions.notifBodyDismissed
 
       await Promise.allSettled(
         Array.from(recipients).map((userId) =>
@@ -283,12 +286,12 @@ export async function updateFlagStatus(input: {
       // intentionally use the generic "Laporan moderasi diselesaikan"
       // title even for the dismissed branch — push surfaces are tiny and
       // the user can read the resolution detail when they tap through.
-      const pushBody = 'Laporan Anda telah ditinjau'
+      const pushBody = t.srvAdmin.modActions.pushBodyReviewed
       void import('@/lib/push/dispatch')
         .then((m) => {
           for (const userId of recipients) {
             m.dispatchPushToUser(userId, {
-              title: 'Laporan moderasi diselesaikan',
+              title: t.srvAdmin.modActions.pushTitleResolved,
               body: pushBody,
               url: `/admin/moderasi/${flagId}`,
             }).catch(() => {})
@@ -303,7 +306,7 @@ export async function updateFlagStatus(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateFlagStatus] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAdmin.modActions.genericError }
   }
 }
 
@@ -320,12 +323,13 @@ export async function removeContent(input: {
   flagId: string
   action: (typeof REMOVAL_ACTIONS)[number]
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = removeContentSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Input tidak valid.' }
+  if (!parsed.success) return { ok: false, error: t.srvAdmin.modActions.invalidInput }
   const { flagId, action } = parsed.data
 
   const actor = await requireAdmin('ADMIN')
-  if (!actor) return { ok: false, error: 'Akses ditolak.' }
+  if (!actor) return { ok: false, error: t.srvAdmin.modActions.accessDenied }
 
   try {
     const flag = await prisma.moderationFlag.findUnique({
@@ -338,7 +342,7 @@ export async function removeContent(input: {
         status: true,
       },
     })
-    if (!flag) return { ok: false, error: 'Laporan tidak ditemukan.' }
+    if (!flag) return { ok: false, error: t.srvAdmin.modActions.flagNotFound }
 
     const resourceType = flag.resourceType as (typeof RESOURCE_TYPES)[number]
     const resourceId = flag.resourceId
@@ -351,12 +355,12 @@ export async function removeContent(input: {
       (action === 'soft_delete_message' && resourceType === 'message')
 
     if (!valid) {
-      return { ok: false, error: 'Tindakan tidak sesuai dengan jenis konten.' }
+      return { ok: false, error: t.srvAdmin.modActions.actionMismatch }
     }
 
     // For MVP we explicitly skip soft_delete_message — no Message model handling here.
     if (action === 'soft_delete_message') {
-      return { ok: false, error: 'Tindakan pesan belum tersedia.' }
+      return { ok: false, error: t.srvAdmin.modActions.messageActionUnavailable }
     }
 
     const meta = getRequestMeta()
@@ -376,7 +380,7 @@ export async function removeContent(input: {
     } else if (action === 'suspend_user') {
       // resourceId is the user id for both 'user' and 'profile' types.
       if (actor.id === resourceId) {
-        return { ok: false, error: 'Tidak dapat menangguhkan akun Anda sendiri.' }
+        return { ok: false, error: t.srvAdmin.modActions.cannotSuspendSelf }
       }
       await prisma.user.update({
         where: { id: resourceId },
@@ -420,8 +424,8 @@ export async function removeContent(input: {
           data: {
             userId,
             type: 'SYSTEM',
-            title: 'Tindakan moderasi diterapkan',
-            body: `Tindakan: ${action}.`,
+            title: t.srvAdmin.modActions.removalNotifTitle,
+            body: t.srvAdmin.modActions.removalActionBody.replace('{action}', action),
             link: `/admin/moderasi/${flagId}`,
           },
         }),
@@ -433,6 +437,6 @@ export async function removeContent(input: {
     return { ok: true }
   } catch (err) {
     console.error('[removeContent] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAdmin.modActions.genericError }
   }
 }

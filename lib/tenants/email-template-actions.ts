@@ -7,6 +7,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -79,9 +80,10 @@ type LoadCtx =
  * `tenant.update`.
  */
 async function loadTenantForEmailTemplates(tenantSlug: string): Promise<LoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant3.emailTemplate.mustBeLoggedIn }
   }
   const tenant = await prisma.tenant
     .findUnique({
@@ -89,10 +91,10 @@ async function loadTenantForEmailTemplates(tenantSlug: string): Promise<LoadCtx>
       select: { id: true, slug: true },
     })
     .catch(() => null)
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant3.emailTemplate.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'job.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant3.emailTemplate.noPermission }
   }
   return { tenant, actorId }
 }
@@ -104,6 +106,7 @@ export async function upsertEmailTemplate(input: {
   body: string
   enabled?: boolean
 }): Promise<ActionResult<{ id: string; created: boolean }>> {
+  const t = await getServerT()
   const parsed = upsertSchema.safeParse({
     tenantSlug: input.tenantSlug,
     status: input.status,
@@ -115,7 +118,7 @@ export async function upsertEmailTemplate(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant3.emailTemplate.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -171,7 +174,7 @@ export async function upsertEmailTemplate(input: {
     return { ok: true, data: { id: row.id, created } }
   } catch (err) {
     console.error('[upsertEmailTemplate] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant3.emailTemplate.genericError }
   }
 }
 
@@ -179,12 +182,13 @@ export async function deleteEmailTemplate(input: {
   tenantSlug: string
   status: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = deleteSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant3.emailTemplate.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -226,6 +230,6 @@ export async function deleteEmailTemplate(input: {
     return { ok: true }
   } catch (err) {
     console.error('[deleteEmailTemplate] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant3.emailTemplate.genericError }
   }
 }

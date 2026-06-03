@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -94,31 +95,35 @@ type ParsedFields = {
   emailAlerts: boolean
 }
 
-function parseFormFields(formData: FormData, opts: { defaultEmailAlerts: boolean }):
+function parseFormFields(
+  formData: FormData,
+  opts: { defaultEmailAlerts: boolean },
+  msgs: { nameInvalid: string; queryTooLong: string; categorySlugTooLong: string; locationTooLong: string },
+):
   | { ok: true; data: ParsedFields }
   | { ok: false; error: string; field?: string } {
   const nameRaw = formData.get('name')
   const nameParsed = nameSchema.safeParse(nameRaw)
   if (!nameParsed.success) {
     const issue = nameParsed.error.issues[0]
-    return { ok: false, error: issue?.message ?? 'Nama tidak valid', field: 'name' }
+    return { ok: false, error: issue?.message ?? msgs.nameInvalid, field: 'name' }
   }
 
   const query = emptyToNull(formData.get('query'))
   if (query && query.length > 120) {
-    return { ok: false, error: 'Kata kunci maksimal 120 karakter', field: 'query' }
+    return { ok: false, error: msgs.queryTooLong, field: 'query' }
   }
   const categorySlug = emptyToNull(formData.get('categorySlug'))
   if (categorySlug && categorySlug.length > 120) {
     return {
       ok: false,
-      error: 'Slug kategori maksimal 120 karakter',
+      error: msgs.categorySlugTooLong,
       field: 'categorySlug',
     }
   }
   const location = emptyToNull(formData.get('location'))
   if (location && location.length > 120) {
-    return { ok: false, error: 'Lokasi maksimal 120 karakter', field: 'location' }
+    return { ok: false, error: msgs.locationTooLong, field: 'location' }
   }
 
   const employmentType = parseEmploymentType(formData.get('employmentType'))
@@ -142,10 +147,16 @@ function parseFormFields(formData: FormData, opts: { defaultEmailAlerts: boolean
  * `saved_search.created`. Revalidates the management page on success.
  */
 export async function createSavedSearch(formData: FormData): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearch.mustLogin }
 
-  const parsed = parseFormFields(formData, { defaultEmailAlerts: true })
+  const parsed = parseFormFields(formData, { defaultEmailAlerts: true }, {
+    nameInvalid: t.srvSavedSearch.savedSearch.nameInvalid,
+    queryTooLong: t.srvSavedSearch.savedSearch.queryTooLong,
+    categorySlugTooLong: t.srvSavedSearch.savedSearch.categorySlugTooLong,
+    locationTooLong: t.srvSavedSearch.savedSearch.locationTooLong,
+  })
   if (!parsed.ok) return parsed
 
   try {
@@ -175,7 +186,7 @@ export async function createSavedSearch(formData: FormData): Promise<ActionResul
     return { ok: true }
   } catch (err) {
     console.error('[createSavedSearch] failed', err)
-    return { ok: false, error: 'Gagal menyimpan pencarian. Coba lagi.' }
+    return { ok: false, error: t.srvSavedSearch.savedSearch.createFailed }
   }
 }
 
@@ -187,11 +198,17 @@ export async function updateSavedSearch(
   id: string,
   formData: FormData,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
-  if (!id) return { ok: false, error: 'ID tidak valid.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearch.mustLogin }
+  if (!id) return { ok: false, error: t.srvSavedSearch.savedSearch.idInvalid }
 
-  const parsed = parseFormFields(formData, { defaultEmailAlerts: true })
+  const parsed = parseFormFields(formData, { defaultEmailAlerts: true }, {
+    nameInvalid: t.srvSavedSearch.savedSearch.nameInvalid,
+    queryTooLong: t.srvSavedSearch.savedSearch.queryTooLong,
+    categorySlugTooLong: t.srvSavedSearch.savedSearch.categorySlugTooLong,
+    locationTooLong: t.srvSavedSearch.savedSearch.locationTooLong,
+  })
   if (!parsed.ok) return parsed
 
   try {
@@ -200,7 +217,7 @@ export async function updateSavedSearch(
       select: { userId: true },
     })
     if (!existing || existing.userId !== session.user.id) {
-      return { ok: false, error: 'Pencarian tidak ditemukan.' }
+      return { ok: false, error: t.srvSavedSearch.savedSearch.notFound }
     }
 
     await prisma.savedSearch.update({
@@ -228,7 +245,7 @@ export async function updateSavedSearch(
     return { ok: true }
   } catch (err) {
     console.error('[updateSavedSearch] failed', err)
-    return { ok: false, error: 'Gagal memperbarui pencarian. Coba lagi.' }
+    return { ok: false, error: t.srvSavedSearch.savedSearch.updateFailed }
   }
 }
 
@@ -236,9 +253,10 @@ export async function updateSavedSearch(
  * Delete a SavedSearch the caller owns. Audits as `saved_search.deleted`.
  */
 export async function deleteSavedSearch(id: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
-  if (!id) return { ok: false, error: 'ID tidak valid.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearch.mustLogin }
+  if (!id) return { ok: false, error: t.srvSavedSearch.savedSearch.idInvalid }
 
   try {
     const existing = await prisma.savedSearch.findUnique({
@@ -246,7 +264,7 @@ export async function deleteSavedSearch(id: string): Promise<ActionResult> {
       select: { userId: true, name: true },
     })
     if (!existing || existing.userId !== session.user.id) {
-      return { ok: false, error: 'Pencarian tidak ditemukan.' }
+      return { ok: false, error: t.srvSavedSearch.savedSearch.notFound }
     }
 
     await prisma.savedSearch.delete({ where: { id } })
@@ -264,7 +282,7 @@ export async function deleteSavedSearch(id: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteSavedSearch] failed', err)
-    return { ok: false, error: 'Gagal menghapus pencarian. Coba lagi.' }
+    return { ok: false, error: t.srvSavedSearch.savedSearch.deleteFailed }
   }
 }
 
@@ -276,9 +294,10 @@ export async function toggleSavedSearchAlerts(
   id: string,
   enabled: boolean,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
-  if (!id) return { ok: false, error: 'ID tidak valid.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.savedSearch.mustLogin }
+  if (!id) return { ok: false, error: t.srvSavedSearch.savedSearch.idInvalid }
 
   try {
     const existing = await prisma.savedSearch.findUnique({
@@ -286,7 +305,7 @@ export async function toggleSavedSearchAlerts(
       select: { userId: true, emailAlerts: true },
     })
     if (!existing || existing.userId !== session.user.id) {
-      return { ok: false, error: 'Pencarian tidak ditemukan.' }
+      return { ok: false, error: t.srvSavedSearch.savedSearch.notFound }
     }
 
     if (existing.emailAlerts !== enabled) {
@@ -309,6 +328,6 @@ export async function toggleSavedSearchAlerts(
     return { ok: true }
   } catch (err) {
     console.error('[toggleSavedSearchAlerts] failed', err)
-    return { ok: false, error: 'Gagal mengubah alert. Coba lagi.' }
+    return { ok: false, error: t.srvSavedSearch.savedSearch.alertFailed }
   }
 }

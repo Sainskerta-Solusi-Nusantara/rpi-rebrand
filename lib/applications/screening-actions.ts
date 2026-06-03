@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { scoreApplication } from './screening'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -56,9 +57,10 @@ type ApplicationCtx =
  * the loaded record + tenant slug. Gates on `job.update` (recruiter scope).
  */
 async function loadApplicationCtx(applicationId: string): Promise<ApplicationCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvApplications2.screening.mustLogin }
   }
   const application = await prisma.application
     .findUnique({
@@ -73,11 +75,11 @@ async function loadApplicationCtx(applicationId: string): Promise<ApplicationCtx
       },
     })
     .catch(() => null)
-  if (!application) return { error: 'Lamaran tidak ditemukan.' }
+  if (!application) return { error: t.srvApplications2.screening.applicationNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, application.tenantId, 'job.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvApplications2.screening.noPermission }
   }
   return { actorId, application }
 }
@@ -153,12 +155,13 @@ async function fetchScoringInputs(
 export async function runScreening(input: {
   applicationId: string
 }): Promise<ActionResult<{ score: number; tags: string[] }>> {
+  const t = await getServerT()
   const parsed = idSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvApplications2.screening.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -170,7 +173,7 @@ export async function runScreening(input: {
   try {
     const inputs = await fetchScoringInputs(applicationId)
     if (!inputs) {
-      return { ok: false, error: 'Data lamaran tidak lengkap.' }
+      return { ok: false, error: t.srvApplications2.screening.incompleteData }
     }
 
     const result = scoreApplication(inputs)
@@ -209,7 +212,7 @@ export async function runScreening(input: {
     return { ok: true, data: { score: result.score, tags: result.tags } }
   } catch (err) {
     console.error('[runScreening] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvApplications2.screening.genericError }
   }
 }
 
@@ -228,12 +231,13 @@ export async function runScreeningForJob(input: {
   tenantSlug: string
   jobId: string
 }): Promise<ActionResult<BulkScreeningSummary>> {
+  const t = await getServerT()
   const parsed = jobIdSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvApplications2.screening.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -241,7 +245,7 @@ export async function runScreeningForJob(input: {
 
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvApplications2.screening.mustLogin }
   }
 
   const job = await prisma.job
@@ -259,14 +263,14 @@ export async function runScreeningForJob(input: {
       },
     })
     .catch(() => null)
-  if (!job) return { ok: false, error: 'Lowongan tidak ditemukan.' }
+  if (!job) return { ok: false, error: t.srvApplications2.screening.jobNotFound }
   if (job.tenant.slug !== tenantSlug) {
-    return { ok: false, error: 'Tenant tidak cocok.' }
+    return { ok: false, error: t.srvApplications2.screening.tenantMismatch }
   }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, job.tenantId, 'job.update')) {
-    return { ok: false, error: 'Anda tidak memiliki izin.' }
+    return { ok: false, error: t.srvApplications2.screening.noPermission }
   }
 
   const applications = await prisma.application
@@ -376,12 +380,13 @@ export async function runScreeningForJob(input: {
 export async function clearScreening(input: {
   applicationId: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = idSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvApplications2.screening.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -421,6 +426,6 @@ export async function clearScreening(input: {
     return { ok: true }
   } catch (err) {
     console.error('[clearScreening] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvApplications2.screening.genericError }
   }
 }

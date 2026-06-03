@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { scoreApplicationToJob, type MatchResult } from './match-scorer'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -116,27 +117,28 @@ async function persistResult(
 export async function rescoreApplication(
   input: { applicationId: string },
 ): Promise<ActionResult<MatchResult>> {
+  const t = await getServerT()
   const parsed = idSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvApplications2.match.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
   const { applicationId } = parsed.data
 
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvApplications2.match.mustLogin }
 
   const ctx = await fetchScoringContext(applicationId)
-  if (!ctx) return { ok: false, error: 'Lamaran tidak ditemukan.' }
+  if (!ctx) return { ok: false, error: t.srvApplications2.match.applicationNotFound }
   const { app, job, user, resume } = ctx
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, app.tenantId, 'job.update')) {
-    return { ok: false, error: 'Anda tidak memiliki izin.' }
+    return { ok: false, error: t.srvApplications2.match.noPermission }
   }
 
   try {
@@ -183,7 +185,7 @@ export async function rescoreApplication(
     return { ok: true, data: result }
   } catch (err) {
     console.error('[rescoreApplication] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan saat menghitung skor.' }
+    return { ok: false, error: t.srvApplications2.match.scoringError }
   }
 }
 
@@ -201,28 +203,29 @@ export type BulkRescoreSummary = {
 export async function rescoreAllForJob(
   input: { jobId: string; limit?: number },
 ): Promise<ActionResult<BulkRescoreSummary>> {
+  const t = await getServerT()
   const parsed = jobIdSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvApplications2.match.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
   const { jobId, limit = 200 } = parsed.data
 
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvApplications2.match.mustLogin }
 
   const job = await prisma.job
     .findUnique({ where: { id: jobId }, select: JOB_SELECT })
     .catch(() => null)
-  if (!job) return { ok: false, error: 'Lowongan tidak ditemukan.' }
+  if (!job) return { ok: false, error: t.srvApplications2.match.jobNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, job.tenantId, 'job.update')) {
-    return { ok: false, error: 'Anda tidak memiliki izin.' }
+    return { ok: false, error: t.srvApplications2.match.noPermission }
   }
 
   const applications = await prisma.application
@@ -324,12 +327,13 @@ export async function rescoreAllForJob(
 export async function rescoreAllStaleApplications(
   input: { olderThanDays?: number; limit?: number } = {},
 ): Promise<ActionResult<BulkRescoreSummary>> {
+  const t = await getServerT()
   const parsed = staleSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvApplications2.match.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }

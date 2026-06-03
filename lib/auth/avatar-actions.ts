@@ -11,6 +11,8 @@ import {
   deleteLocalAvatar,
   saveAvatar,
 } from '@/lib/storage'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvAuth1 } from '@/lib/i18n/dictionaries/srv-auth1'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -32,20 +34,22 @@ function getRequestMeta() {
 }
 
 export async function uploadAvatar(formData: FormData): Promise<ActionResult<{ url: string }>> {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].avatar
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.mustLogin }
 
   const file = formData.get('file')
   if (!(file instanceof Blob)) {
-    return { ok: false, error: 'Berkas tidak ditemukan.' }
+    return { ok: false, error: t.fileNotFound }
   }
-  if (file.size === 0) return { ok: false, error: 'Berkas kosong.' }
+  if (file.size === 0) return { ok: false, error: t.fileEmpty }
   if (file.size > MAX_AVATAR_BYTES) {
-    return { ok: false, error: 'Ukuran gambar melebihi 5 MB.' }
+    return { ok: false, error: t.fileTooLarge }
   }
   const mime = file.type
   if (!ALLOWED_AVATAR_MIME.includes(mime)) {
-    return { ok: false, error: 'Format gambar harus JPEG, PNG, atau WEBP.' }
+    return { ok: false, error: t.invalidFormat }
   }
 
   try {
@@ -85,13 +89,15 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult<{ u
     return { ok: true, data: { url: save.url } }
   } catch (err) {
     console.error('[uploadAvatar] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.genericError }
   }
 }
 
 export async function removeAvatar(): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].avatar
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.mustLogin }
 
   try {
     const prior = await prisma.user.findUnique({
@@ -123,6 +129,6 @@ export async function removeAvatar(): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[removeAvatar] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.genericError }
   }
 }

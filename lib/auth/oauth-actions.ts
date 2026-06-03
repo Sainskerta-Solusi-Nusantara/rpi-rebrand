@@ -6,6 +6,7 @@ import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { verifyPassword } from '@/lib/auth/password'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -31,14 +32,15 @@ function getRequestMeta() {
  * unlinking would lock them out.
  */
 export async function unlinkGoogleAccount(formData: FormData): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvAuth2.oauth.mustLogin }
   }
 
   const password = String(formData.get('password') ?? '')
   if (!password) {
-    return { ok: false, error: 'Masukkan password Anda.', field: 'password' }
+    return { ok: false, error: t.srvAuth2.oauth.passwordRequired, field: 'password' }
   }
 
   try {
@@ -46,18 +48,17 @@ export async function unlinkGoogleAccount(formData: FormData): Promise<ActionRes
       where: { id: session.user.id },
       select: { passwordHash: true },
     })
-    if (!user) return { ok: false, error: 'Akun tidak ditemukan.' }
+    if (!user) return { ok: false, error: t.srvAuth2.oauth.accountNotFound }
     if (!user.passwordHash) {
       return {
         ok: false,
-        error:
-          'Akun Anda tidak memiliki password. Atur password terlebih dulu agar tidak terkunci.',
+        error: t.srvAuth2.oauth.noPasswordSet,
       }
     }
 
     const ok = await verifyPassword(password, user.passwordHash)
     if (!ok) {
-      return { ok: false, error: 'Password salah.', field: 'password' }
+      return { ok: false, error: t.srvAuth2.oauth.passwordWrong, field: 'password' }
     }
 
     const linked = await prisma.account.findFirst({
@@ -65,7 +66,7 @@ export async function unlinkGoogleAccount(formData: FormData): Promise<ActionRes
       select: { id: true, providerAccountId: true },
     })
     if (!linked) {
-      return { ok: false, error: 'Akun Google tidak terhubung.' }
+      return { ok: false, error: t.srvAuth2.oauth.googleNotLinked }
     }
 
     const meta = getRequestMeta()
@@ -88,6 +89,6 @@ export async function unlinkGoogleAccount(formData: FormData): Promise<ActionRes
     return { ok: true }
   } catch (err) {
     console.error('[unlinkGoogleAccount] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth2.oauth.genericError }
   }
 }

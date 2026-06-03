@@ -6,6 +6,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { locales, type Locale } from './dictionary'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 const COOKIE_NAME = 'rpi_locale'
 const ONE_YEAR = 60 * 60 * 24 * 365
@@ -28,8 +29,9 @@ function isLocale(v: unknown): v is Locale {
  *     resource `user.locale` + action UPDATE is written for traceability.
  */
 export async function setUserLocale(locale: Locale): Promise<SetLocaleResult> {
+  const t = await getServerT()
   if (!isLocale(locale)) {
-    return { ok: false, error: 'Bahasa tidak didukung.' }
+    return { ok: false, error: t.srvAuth4.locale.unsupportedLocale }
   }
 
   // (1) Cookie — always safe to set even for unauthenticated visitors.

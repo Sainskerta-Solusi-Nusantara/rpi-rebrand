@@ -14,6 +14,7 @@ import {
   emailChangeVerifyEmail,
   sendEmail,
 } from '@/lib/mailer'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -53,9 +54,10 @@ const requestSchema = z.object({
  * OAuth-only accounts since we cannot prove identity safely).
  */
 export async function requestEmailChange(formData: FormData): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvAuth2.emailChange.mustLogin }
   }
 
   const parsed = requestSchema.safeParse({
@@ -77,28 +79,27 @@ export async function requestEmailChange(formData: FormData): Promise<ActionResu
       where: { id: session.user.id },
       select: { id: true, name: true, email: true, passwordHash: true },
     })
-    if (!user) return { ok: false, error: 'Akun tidak ditemukan.' }
+    if (!user) return { ok: false, error: t.srvAuth2.emailChange.accountNotFound }
     if (!user.passwordHash) {
       return {
         ok: false,
-        error:
-          'Akun OAuth tidak dapat mengganti email lewat alur ini. Atur password terlebih dulu.',
+        error: t.srvAuth2.emailChange.oauthNoEmailChange,
         field: 'password',
       }
     }
     if (user.email.toLowerCase() === newEmail) {
-      return { ok: false, error: 'Email baru sama dengan email saat ini.', field: 'newEmail' }
+      return { ok: false, error: t.srvAuth2.emailChange.emailSameAsCurrent, field: 'newEmail' }
     }
 
     const ok = await verifyPassword(password, user.passwordHash)
-    if (!ok) return { ok: false, error: 'Password salah.', field: 'password' }
+    if (!ok) return { ok: false, error: t.srvAuth2.emailChange.passwordWrong, field: 'password' }
 
     const taken = await prisma.user.findUnique({
       where: { email: newEmail },
       select: { id: true },
     })
     if (taken) {
-      return { ok: false, error: 'Email tersebut sudah digunakan.', field: 'newEmail' }
+      return { ok: false, error: t.srvAuth2.emailChange.emailTaken, field: 'newEmail' }
     }
 
     const meta = getRequestMeta()
@@ -162,7 +163,7 @@ export async function requestEmailChange(formData: FormData): Promise<ActionResu
     return { ok: true }
   } catch (err) {
     console.error('[requestEmailChange] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth2.emailChange.genericError }
   }
 }
 
@@ -219,7 +220,8 @@ export async function checkEmailChangeToken(token: string): Promise<
  * and the token is marked used.
  */
 export async function confirmEmailChange(token: string): Promise<ActionResult> {
-  if (!token || token.length < 32) return { ok: false, error: 'Token tidak valid.' }
+  const t = await getServerT()
+  if (!token || token.length < 32) return { ok: false, error: t.srvAuth2.emailChange.tokenInvalid }
   try {
     const record = await prisma.emailChangeRequest.findUnique({
       where: { tokenHash: hashToken(token) },
@@ -233,19 +235,19 @@ export async function confirmEmailChange(token: string): Promise<ActionResult> {
         user: { select: { email: true } },
       },
     })
-    if (!record) return { ok: false, error: 'Tautan tidak valid.' }
-    if (record.usedAt) return { ok: false, error: 'Tautan sudah digunakan.' }
+    if (!record) return { ok: false, error: t.srvAuth2.emailChange.linkInvalid }
+    if (record.usedAt) return { ok: false, error: t.srvAuth2.emailChange.linkUsed }
     if (record.expiresAt.getTime() < Date.now()) {
-      return { ok: false, error: 'Tautan sudah kedaluwarsa. Mulai permintaan baru.' }
+      return { ok: false, error: t.srvAuth2.emailChange.linkExpired }
     }
     if (record.user?.email && record.user.email !== record.oldEmail) {
-      return { ok: false, error: 'Tautan tidak lagi berlaku karena email telah berubah.' }
+      return { ok: false, error: t.srvAuth2.emailChange.linkStale }
     }
     const taken = await prisma.user.findUnique({
       where: { email: record.newEmail },
       select: { id: true },
     })
-    if (taken) return { ok: false, error: 'Email tersebut sudah digunakan.' }
+    if (taken) return { ok: false, error: t.srvAuth2.emailChange.emailTaken }
 
     const meta = getRequestMeta()
     await prisma.$transaction([
@@ -274,6 +276,6 @@ export async function confirmEmailChange(token: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[confirmEmailChange] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth2.emailChange.genericError }
   }
 }

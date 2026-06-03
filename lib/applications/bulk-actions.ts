@@ -30,6 +30,8 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { sendEmail } from '@/lib/mailer'
 import { renderTemplate } from '@/lib/tenants/email-template-resolver'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
 
 export type BulkResult<T = undefined> =
   | { ok: true; data: T }
@@ -113,17 +115,20 @@ type LoadResult =
       skipped: BulkSummary['skipped']
     }
 
-async function loadEligible(applicationIds: string[]): Promise<LoadResult> {
+async function loadEligible(
+  applicationIds: string[],
+  m: (typeof srvApplications)['id' | 'en']['bulkActions'],
+): Promise<LoadResult> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLogin }
   }
   const { id: actorId, globalRole, tenants } = session.user
 
   // Dedupe + clamp to MAX_BULK_SIZE up-front.
   const ids = Array.from(new Set(applicationIds)).slice(0, MAX_BULK_SIZE)
   if (ids.length === 0) {
-    return { ok: false, error: 'Pilih minimal 1 lamaran.' }
+    return { ok: false, error: m.minOneApplication }
   }
 
   const rows = await prisma.application.findMany({
@@ -146,7 +151,7 @@ async function loadEligible(applicationIds: string[]): Promise<LoadResult> {
   const missing = ids.filter((i) => !found.has(i))
   const skipped: BulkSummary['skipped'] = missing.map((id) => ({
     id,
-    reason: 'Lamaran tidak ditemukan',
+    reason: m.applicationNotFound,
   }))
 
   const eligible = rows.filter((r) =>
@@ -154,7 +159,7 @@ async function loadEligible(applicationIds: string[]): Promise<LoadResult> {
   )
   for (const r of rows) {
     if (!eligible.includes(r)) {
-      skipped.push({ id: r.id, reason: 'Tidak memiliki izin' })
+      skipped.push({ id: r.id, reason: m.noPermission })
     }
   }
 
@@ -178,6 +183,8 @@ const statusSchema = z.object({
 export async function bulkUpdateStatus(
   input: FormData | { applicationIds: string[]; newStatus: string; notes?: string },
 ): Promise<BulkResult<BulkSummary>> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].bulkActions
   const raw =
     input instanceof FormData
       ? {
@@ -191,7 +198,7 @@ export async function bulkUpdateStatus(
     raw.newStatus === ApplicationStatus.WITHDRAWN ||
     !BULK_STATUSES.includes(raw.newStatus as (typeof BULK_STATUSES)[number])
   ) {
-    return { ok: false, error: 'Status tidak valid', field: 'newStatus' }
+    return { ok: false, error: m.statusInvalid, field: 'newStatus' }
   }
 
   const parsed = statusSchema.safeParse(raw)
@@ -199,14 +206,14 @@ export async function bulkUpdateStatus(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Input tidak valid.',
+      error: issue?.message ?? m.inputInvalid,
       field: issue?.path[0]?.toString(),
     }
   }
   const { applicationIds, newStatus, notes } = parsed.data
   const targetStatus = newStatus as ApplicationStatus
 
-  const ctx = await loadEligible(applicationIds)
+  const ctx = await loadEligible(applicationIds, m)
   if (!ctx.ok) return { ok: false, error: ctx.error }
   const { actorId, eligible, skipped } = ctx
 
@@ -227,7 +234,7 @@ export async function bulkUpdateStatus(
       // Skip no-op transitions but still record them in `skipped` so the UI
       // shows the count to the recruiter.
       if (app.status === targetStatus) {
-        skipped.push({ id: app.id, reason: 'Sudah pada status tersebut' })
+        skipped.push({ id: app.id, reason: m.alreadyAtStatus })
         continue
       }
       await prisma.$transaction([
@@ -259,7 +266,7 @@ export async function bulkUpdateStatus(
       if (app.tenant?.slug) tenantSlugs.add(app.tenant.slug)
     } catch (err) {
       console.error('[bulkUpdateStatus] row failed', app.id, err)
-      skipped.push({ id: app.id, reason: 'Gagal memperbarui' })
+      skipped.push({ id: app.id, reason: m.updateFailed })
     }
   }
 
@@ -304,6 +311,8 @@ export async function bulkSendEmail(
         body?: string
       },
 ): Promise<BulkResult<BulkEmailSummary>> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].bulkActions
   const raw =
     input instanceof FormData
       ? {
@@ -319,13 +328,13 @@ export async function bulkSendEmail(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Input tidak valid.',
+      error: issue?.message ?? m.inputInvalid,
       field: issue?.path[0]?.toString(),
     }
   }
   const { applicationIds, templateId, subject, body } = parsed.data
 
-  const ctx = await loadEligible(applicationIds)
+  const ctx = await loadEligible(applicationIds, m)
   if (!ctx.ok) return { ok: false, error: ctx.error }
   const { actorId, eligible, skipped } = ctx
 
@@ -346,7 +355,7 @@ export async function bulkSendEmail(
     if (!row || !row.enabled) {
       return {
         ok: false,
-        error: 'Template email tidak ditemukan atau dinonaktifkan.',
+        error: m.templateNotFound,
         field: 'templateId',
       }
     }
@@ -361,11 +370,11 @@ export async function bulkSendEmail(
   for (const app of eligible) {
     // Reject cross-tenant template usage as a safety net.
     if (resolvedTpl && resolvedTpl.tenantId !== app.tenantId) {
-      skipped.push({ id: app.id, reason: 'Template bukan milik tenant' })
+      skipped.push({ id: app.id, reason: m.crossTenantTemplate })
       continue
     }
     if (!app.user?.email) {
-      skipped.push({ id: app.id, reason: 'Kandidat tanpa email' })
+      skipped.push({ id: app.id, reason: m.noEmail })
       continue
     }
 
@@ -396,7 +405,7 @@ export async function bulkSendEmail(
         sent += 1
       } else {
         failed += 1
-        skipped.push({ id: app.id, reason: 'Gagal mengirim email' })
+        skipped.push({ id: app.id, reason: m.emailSendFailed })
         continue
       }
       await prisma.auditLog.create({
@@ -421,7 +430,7 @@ export async function bulkSendEmail(
     } catch (err) {
       failed += 1
       console.error('[bulkSendEmail] row failed', app.id, err)
-      skipped.push({ id: app.id, reason: 'Gagal mengirim email' })
+      skipped.push({ id: app.id, reason: m.emailSendFailed })
     }
   }
 
@@ -448,6 +457,8 @@ const tagSchema = z.object({
 export async function bulkAddTag(
   input: FormData | { applicationIds: string[]; tag: string },
 ): Promise<BulkResult<BulkSummary>> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].bulkActions
   const raw =
     input instanceof FormData
       ? {
@@ -461,13 +472,13 @@ export async function bulkAddTag(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Input tidak valid.',
+      error: issue?.message ?? m.inputInvalid,
       field: issue?.path[0]?.toString(),
     }
   }
   const { applicationIds, tag } = parsed.data
 
-  const ctx = await loadEligible(applicationIds)
+  const ctx = await loadEligible(applicationIds, m)
   if (!ctx.ok) return { ok: false, error: ctx.error }
   const { actorId, eligible, skipped } = ctx
 
@@ -480,7 +491,7 @@ export async function bulkAddTag(
     try {
       // Append-only: skip if the tag is already present.
       if (app.aiTags?.includes(tag)) {
-        skipped.push({ id: app.id, reason: 'Tag sudah ada' })
+        skipped.push({ id: app.id, reason: m.tagAlreadyExists })
         continue
       }
       const nextTags = [...(app.aiTags ?? []), tag]
@@ -506,7 +517,7 @@ export async function bulkAddTag(
       if (app.tenant?.slug) tenantSlugs.add(app.tenant.slug)
     } catch (err) {
       console.error('[bulkAddTag] row failed', app.id, err)
-      skipped.push({ id: app.id, reason: 'Gagal menambahkan tag' })
+      skipped.push({ id: app.id, reason: m.tagAddFailed })
     }
   }
 
@@ -529,6 +540,8 @@ const assignSchema = z.object({
 export async function bulkAssignReviewer(
   input: FormData | { applicationIds: string[]; reviewerId: string },
 ): Promise<BulkResult<BulkSummary>> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].bulkActions
   const raw =
     input instanceof FormData
       ? {
@@ -542,13 +555,13 @@ export async function bulkAssignReviewer(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Input tidak valid.',
+      error: issue?.message ?? m.inputInvalid,
       field: issue?.path[0]?.toString(),
     }
   }
   const { applicationIds, reviewerId } = parsed.data
 
-  const ctx = await loadEligible(applicationIds)
+  const ctx = await loadEligible(applicationIds, m)
   if (!ctx.ok) return { ok: false, error: ctx.error }
   const { actorId, eligible, skipped } = ctx
 
@@ -559,7 +572,7 @@ export async function bulkAssignReviewer(
     })
     .catch(() => null)
   if (!reviewer) {
-    return { ok: false, error: 'Pengulas tidak ditemukan.', field: 'reviewerId' }
+    return { ok: false, error: m.reviewerNotFound, field: 'reviewerId' }
   }
   const reviewerLabel = reviewer.name ?? reviewer.email ?? 'Pengulas'
 
@@ -570,7 +583,7 @@ export async function bulkAssignReviewer(
 
   for (const app of eligible) {
     try {
-      const appendedNote = `Diteruskan ke ${reviewerLabel}`
+      const appendedNote = m.assignedNote.replace('{reviewerLabel}', reviewerLabel)
       const nextNotes = app.notes
         ? `${app.notes}\n${appendedNote}`
         : appendedNote
@@ -602,8 +615,8 @@ export async function bulkAssignReviewer(
           data: {
             userId: reviewer.id,
             type: 'APPLICATION_UPDATE',
-            title: 'Lamaran ditugaskan kepada Anda',
-            body: `${app.job?.title ?? 'Lamaran'} diteruskan untuk Anda ulas.`,
+            title: m.assignNotifTitle,
+            body: m.assignNotifBody.replace('{jobTitle}', app.job?.title ?? 'Lamaran'),
             link: `/dashboard/tenants/${app.tenant?.slug ?? ''}/lamaran/${app.id}`,
           },
         })
@@ -614,7 +627,7 @@ export async function bulkAssignReviewer(
       if (app.tenant?.slug) tenantSlugs.add(app.tenant.slug)
     } catch (err) {
       console.error('[bulkAssignReviewer] row failed', app.id, err)
-      skipped.push({ id: app.id, reason: 'Gagal menugaskan' })
+      skipped.push({ id: app.id, reason: m.assignFailed })
     }
   }
 

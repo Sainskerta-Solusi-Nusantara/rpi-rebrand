@@ -20,6 +20,7 @@ import { revalidatePath } from 'next/cache'
 import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth, requireAuth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 function getRequestMeta() {
   try {
@@ -65,9 +66,10 @@ export async function linkMicrosoftCalendar(returnTo?: string): Promise<void> {
  * timeline shows the provider clearly without parsing metadata.
  */
 export async function unlinkMicrosoftCalendar(): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.srvCalendar.microsoft.mustLogin }
   }
 
   try {
@@ -78,7 +80,7 @@ export async function unlinkMicrosoftCalendar(): Promise<ActionResult> {
       select: { id: true, providerEmail: true },
     })
     if (!existing) {
-      return { ok: false, error: 'Kalender Outlook belum terhubung.' }
+      return { ok: false, error: t.srvCalendar.microsoft.calendarNotConnected }
     }
 
     const meta = getRequestMeta()
@@ -107,7 +109,7 @@ export async function unlinkMicrosoftCalendar(): Promise<ActionResult> {
     console.error('[unlinkMicrosoftCalendar] failed', err)
     return {
       ok: false,
-      error: 'Gagal memutuskan kalender Outlook. Coba lagi sebentar.',
+      error: t.srvCalendar.microsoft.disconnectFailed,
     }
   }
 }

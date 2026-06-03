@@ -8,6 +8,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -52,10 +53,13 @@ type LoadCtx =
       globalRole: import('@/types/next-auth').GlobalRole
     }
 
-async function loadTenantForDomain(tenantSlug: string): Promise<LoadCtx> {
+async function loadTenantForDomain(
+  tenantSlug: string,
+  t: Awaited<ReturnType<typeof getServerT>>,
+): Promise<LoadCtx> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant2.domain.mustSignIn }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
@@ -67,10 +71,10 @@ async function loadTenantForDomain(tenantSlug: string): Promise<LoadCtx> {
       domainVerifiedAt: true,
     },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant2.domain.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'tenant.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant2.domain.noPermission }
   }
   return { tenant, actorId, globalRole }
 }
@@ -105,21 +109,21 @@ export async function setCustomDomain(input: {
     record: { name: string; type: 'TXT'; value: string }
   }>
 > {
-  const ctx = await loadTenantForDomain(input.tenantSlug)
+  const t = await getServerT()
+  const ctx = await loadTenantForDomain(input.tenantSlug, t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const domain = normalizeDomain(String(input.domain ?? ''))
   if (!domain) {
-    return { ok: false, error: 'Domain wajib diisi.', field: 'domain' }
+    return { ok: false, error: t.srvTenant2.domain.domainRequired, field: 'domain' }
   }
   if (domain.length > 253) {
-    return { ok: false, error: 'Domain terlalu panjang (maks 253 karakter).', field: 'domain' }
+    return { ok: false, error: t.srvTenant2.domain.domainTooLong, field: 'domain' }
   }
   if (!DOMAIN_RE.test(domain)) {
     return {
       ok: false,
-      error:
-        'Format domain tidak valid. Gunakan format seperti app.contoh.com tanpa http:// atau path.',
+      error: t.srvTenant2.domain.domainFormatInvalid,
       field: 'domain',
     }
   }
@@ -132,7 +136,7 @@ export async function setCustomDomain(input: {
     if (taken) {
       return {
         ok: false,
-        error: 'Domain ini sudah dipakai tenant lain.',
+        error: t.srvTenant2.domain.domainTaken,
         field: 'domain',
       }
     }
@@ -175,7 +179,7 @@ export async function setCustomDomain(input: {
     return { ok: true, data: { domain, token, record } }
   } catch (err) {
     console.error('[setCustomDomain] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.domain.genericError }
   }
 }
 
@@ -219,23 +223,24 @@ export async function verifyCustomDomain(
   tenantSlug: string,
   options?: { bypass?: boolean },
 ): Promise<ActionResult<{ verifiedAt: Date; bypass: boolean }>> {
-  const ctx = await loadTenantForDomain(tenantSlug)
+  const t = await getServerT()
+  const ctx = await loadTenantForDomain(tenantSlug, t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const { tenant } = ctx
   if (!tenant.customDomain) {
-    return { ok: false, error: 'Tetapkan domain terlebih dahulu sebelum verifikasi.' }
+    return { ok: false, error: t.srvTenant2.domain.setDomainFirst }
   }
   if (!tenant.domainVerificationToken) {
     return {
       ok: false,
-      error: 'Token verifikasi tidak ditemukan. Simpan ulang domain untuk membuat token baru.',
+      error: t.srvTenant2.domain.tokenMissing,
     }
   }
 
   const bypass = options?.bypass === true
   if (bypass && ctx.globalRole !== 'SUPERADMIN') {
-    return { ok: false, error: 'Hanya SUPERADMIN yang boleh melewati verifikasi DNS.' }
+    return { ok: false, error: t.srvTenant2.domain.superadminOnly }
   }
 
   let verifiedVia: 'dns' | 'bypass' = 'dns'
@@ -252,20 +257,18 @@ export async function verifyCustomDomain(
       if (!matched) {
         return {
           ok: false,
-          error:
-            'TXT record ditemukan tetapi nilainya tidak cocok dengan token verifikasi. Periksa kembali catatan DNS.',
+          error: t.srvTenant2.domain.txtMismatch,
         }
       }
     } else if ('timeout' in lookup) {
       return {
         ok: false,
-        error: 'Pencarian DNS habis waktu (3 detik). Coba lagi setelah propagasi DNS selesai.',
+        error: t.srvTenant2.domain.dnsTimeout,
       }
     } else {
       return {
         ok: false,
-        error:
-          'TXT record _rpi-verify belum ditemukan di DNS. Pastikan record sudah ditambahkan dan tunggu propagasi.',
+        error: t.srvTenant2.domain.txtNotFound,
       }
     }
   }
@@ -300,7 +303,7 @@ export async function verifyCustomDomain(
     return { ok: true, data: { verifiedAt: now, bypass: verifiedVia === 'bypass' } }
   } catch (err) {
     console.error('[verifyCustomDomain] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.domain.genericError }
   }
 }
 
@@ -311,7 +314,8 @@ export async function verifyCustomDomain(
 export async function removeCustomDomain(
   tenantSlug: string,
 ): Promise<ActionResult> {
-  const ctx = await loadTenantForDomain(tenantSlug)
+  const t = await getServerT()
+  const ctx = await loadTenantForDomain(tenantSlug, t)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   if (!ctx.tenant.customDomain) {
@@ -347,6 +351,6 @@ export async function removeCustomDomain(
     return { ok: true }
   } catch (err) {
     console.error('[removeCustomDomain] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant2.domain.genericError }
   }
 }

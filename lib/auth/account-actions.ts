@@ -6,6 +6,8 @@ import { AuditAction } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { verifyPassword } from '@/lib/auth/password'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvAuth1 } from '@/lib/i18n/dictionaries/srv-auth1'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -45,9 +47,11 @@ function anonymizedEmail(userId: string): string {
  * find an inactive user and treat it as unauthenticated.
  */
 export async function requestAccountDeletion(formData: FormData): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const t = srvAuth1[locale].account
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: t.mustLogin }
   }
   const userId = session.user.id
 
@@ -57,12 +61,12 @@ export async function requestAccountDeletion(formData: FormData): Promise<Action
   if (confirm !== 'HAPUS') {
     return {
       ok: false,
-      error: 'Ketik HAPUS untuk konfirmasi.',
+      error: t.typeHapus,
       field: 'confirm',
     }
   }
   if (!password) {
-    return { ok: false, error: 'Masukkan password Anda.', field: 'password' }
+    return { ok: false, error: t.enterPassword, field: 'password' }
   }
 
   try {
@@ -70,22 +74,21 @@ export async function requestAccountDeletion(formData: FormData): Promise<Action
       where: { id: userId },
       select: { id: true, email: true, passwordHash: true, status: true },
     })
-    if (!user) return { ok: false, error: 'Akun tidak ditemukan.' }
+    if (!user) return { ok: false, error: t.notFound }
     if (user.status === 'DELETED') {
-      return { ok: false, error: 'Akun ini sudah dihapus.' }
+      return { ok: false, error: t.alreadyDeleted }
     }
     if (!user.passwordHash) {
       return {
         ok: false,
-        error:
-          'Atur password terlebih dulu sebelum menghapus akun (akun OAuth-only tidak dapat dikonfirmasi via password).',
+        error: t.oauthNoPassword,
         field: 'password',
       }
     }
 
     const ok = await verifyPassword(password, user.passwordHash)
     if (!ok) {
-      return { ok: false, error: 'Password salah.', field: 'password' }
+      return { ok: false, error: t.wrongPassword, field: 'password' }
     }
 
     // Refuse if user is the OWNER of any tenant.
@@ -97,7 +100,7 @@ export async function requestAccountDeletion(formData: FormData): Promise<Action
       const list = ownedTenants.map((t) => t.name).join(', ')
       return {
         ok: false,
-        error: `Anda masih OWNER tenant: ${list}. Transfer kepemilikan dulu sebelum menghapus akun.`,
+        error: t.ownerMustTransfer.replace('{list}', list),
       }
     }
 
@@ -148,6 +151,6 @@ export async function requestAccountDeletion(formData: FormData): Promise<Action
     return { ok: true }
   } catch (err) {
     console.error('[requestAccountDeletion] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.genericError }
   }
 }

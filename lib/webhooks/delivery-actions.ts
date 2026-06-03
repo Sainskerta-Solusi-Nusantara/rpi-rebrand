@@ -9,6 +9,7 @@ import {
   manuallyDeadLetter,
   manuallyRetryDelivery,
 } from '@/lib/webhooks/retry-worker'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -29,9 +30,10 @@ async function authorizeDeliveryAction(
       tenant: { id: string; slug: string }
     }
 > {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
-  if (!deliveryId) return { error: 'ID pengiriman tidak valid.' }
+  if (!session?.user?.id) return { error: t.srvSavedSearch.webhookDelivery.mustLogin }
+  if (!deliveryId) return { error: t.srvSavedSearch.webhookDelivery.deliveryIdInvalid }
 
   const row = await prisma.webhookDelivery.findUnique({
     where: { id: deliveryId },
@@ -47,14 +49,14 @@ async function authorizeDeliveryAction(
     },
   })
   if (!row || !row.webhook) {
-    return { error: 'Pengiriman tidak ditemukan.' }
+    return { error: t.srvSavedSearch.webhookDelivery.deliveryNotFound }
   }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
     !hasTenantPermission(globalRole, tenants, row.webhook.tenantId, 'team.update')
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvSavedSearch.webhookDelivery.noPermission }
   }
 
   return {
@@ -68,12 +70,13 @@ async function authorizeDeliveryAction(
 export async function retryDeliveryAction(
   deliveryId: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await authorizeDeliveryAction(deliveryId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const result = await manuallyRetryDelivery(deliveryId, ctx.actorId)
   if (!result.ok) {
-    return { ok: false, error: result.error ?? 'Gagal kirim ulang.' }
+    return { ok: false, error: result.error ?? t.srvSavedSearch.webhookDelivery.retryFailed }
   }
 
   revalidatePath(
@@ -87,12 +90,13 @@ export async function retryDeliveryAction(
 export async function deadLetterDeliveryAction(
   deliveryId: string,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await authorizeDeliveryAction(deliveryId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
   const result = await manuallyDeadLetter(deliveryId, ctx.actorId)
   if (!result.ok) {
-    return { ok: false, error: result.error ?? 'Gagal tandai surat mati.' }
+    return { ok: false, error: result.error ?? t.srvSavedSearch.webhookDelivery.deadLetterFailed }
   }
 
   revalidatePath(
@@ -110,17 +114,18 @@ export async function bulkRetryDeadLetterAction(input: {
   tenantSlug: string
   deliveryIds: string[]
 }): Promise<ActionResult<{ retried: number }>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvSavedSearch.webhookDelivery.mustLogin }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: input.tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { ok: false, error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { ok: false, error: t.srvSavedSearch.webhookDelivery.tenantNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'team.update')) {
-    return { ok: false, error: 'Anda tidak memiliki izin.' }
+    return { ok: false, error: t.srvSavedSearch.webhookDelivery.noPermission }
   }
 
   const result = await bulkRetryDeadLetter(

@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; data: T })
@@ -27,9 +28,9 @@ const MAINTENANCE_STATUSES = [
 const emptyToUndefined = (v: unknown) =>
   typeof v === 'string' && v.trim() === '' ? undefined : v
 
-function requireSuperadmin(globalRole: string | undefined): string | null {
+function requireSuperadmin(globalRole: string | undefined, msg: string): string | null {
   if (globalRole !== 'SUPERADMIN') {
-    return 'Hanya SUPERADMIN yang dapat mengelola halaman status.'
+    return msg
   }
   return null
 }
@@ -122,8 +123,9 @@ const createIncidentSchema = z.object({
 export async function createIncident(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
+  const t = await getServerT()
   const session = await requireAuth()
-  const denied = requireSuperadmin(session.user.globalRole)
+  const denied = requireSuperadmin(session.user.globalRole, t.srvCalendar.statusIncident.superadminOnly)
   if (denied) return { ok: false, error: denied }
 
   const raw = {
@@ -139,7 +141,7 @@ export async function createIncident(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvCalendar.statusIncident.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -147,7 +149,7 @@ export async function createIncident(
   const affectedServices = parseServices(data.affectedServices)
   const startedAt = data.startedAt ? new Date(data.startedAt) : new Date()
   if (Number.isNaN(startedAt.getTime())) {
-    return { ok: false, error: 'Waktu mulai tidak valid.', field: 'startedAt' }
+    return { ok: false, error: t.srvCalendar.statusIncident.startedAtInvalid, field: 'startedAt' }
   }
 
   try {
@@ -185,7 +187,7 @@ export async function createIncident(
     return { ok: true, data: { id: incident.id } }
   } catch (err) {
     console.error('[createIncident] failed', err)
-    return { ok: false, error: 'Gagal membuat insiden. Coba lagi.' }
+    return { ok: false, error: t.srvCalendar.statusIncident.createIncidentFailed }
   }
 }
 
@@ -209,8 +211,9 @@ export async function postIncidentUpdate(
   incidentId: string,
   formData: FormData,
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
-  const denied = requireSuperadmin(session.user.globalRole)
+  const denied = requireSuperadmin(session.user.globalRole, t.srvCalendar.statusIncident.superadminOnly)
   if (denied) return { ok: false, error: denied }
 
   const raw = {
@@ -222,7 +225,7 @@ export async function postIncidentUpdate(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvCalendar.statusIncident.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -258,10 +261,10 @@ export async function postIncidentUpdate(
     return { ok: true }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      return { ok: false, error: 'Insiden tidak ditemukan.' }
+      return { ok: false, error: t.srvCalendar.statusIncident.incidentNotFound }
     }
     console.error('[postIncidentUpdate] failed', err)
-    return { ok: false, error: 'Gagal mengirim pembaruan.' }
+    return { ok: false, error: t.srvCalendar.statusIncident.postUpdateFailed }
   }
 }
 
@@ -270,8 +273,9 @@ export async function postIncidentUpdate(
  * a hard DELETE so the audit trail + history strip remain intact.
  */
 export async function deleteIncident(id: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
-  const denied = requireSuperadmin(session.user.globalRole)
+  const denied = requireSuperadmin(session.user.globalRole, t.srvCalendar.statusIncident.superadminOnly)
   if (denied) return { ok: false, error: denied }
 
   try {
@@ -301,10 +305,10 @@ export async function deleteIncident(id: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      return { ok: false, error: 'Insiden tidak ditemukan.' }
+      return { ok: false, error: t.srvCalendar.statusIncident.incidentNotFound }
     }
     console.error('[deleteIncident] failed', err)
-    return { ok: false, error: 'Gagal menghapus insiden.' }
+    return { ok: false, error: t.srvCalendar.statusIncident.deleteIncidentFailed }
   }
 }
 
@@ -356,8 +360,9 @@ const createMaintenanceSchema = z
 export async function createMaintenance(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
+  const t = await getServerT()
   const session = await requireAuth()
-  const denied = requireSuperadmin(session.user.globalRole)
+  const denied = requireSuperadmin(session.user.globalRole, t.srvCalendar.statusIncident.superadminOnly)
   if (denied) return { ok: false, error: denied }
 
   const raw = {
@@ -372,7 +377,7 @@ export async function createMaintenance(
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvCalendar.statusIncident.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -407,7 +412,7 @@ export async function createMaintenance(
     return { ok: true, data: { id: maintenance.id } }
   } catch (err) {
     console.error('[createMaintenance] failed', err)
-    return { ok: false, error: 'Gagal menjadwalkan pemeliharaan.' }
+    return { ok: false, error: t.srvCalendar.statusIncident.createMaintenanceFailed }
   }
 }
 
@@ -419,12 +424,13 @@ export async function updateMaintenanceStatus(
   id: string,
   status: (typeof MAINTENANCE_STATUSES)[number],
 ): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await requireAuth()
-  const denied = requireSuperadmin(session.user.globalRole)
+  const denied = requireSuperadmin(session.user.globalRole, t.srvCalendar.statusIncident.superadminOnly)
   if (denied) return { ok: false, error: denied }
 
   if (!MAINTENANCE_STATUSES.includes(status)) {
-    return { ok: false, error: 'Status tidak valid.' }
+    return { ok: false, error: t.srvCalendar.statusIncident.statusInvalid }
   }
 
   try {
@@ -444,9 +450,9 @@ export async function updateMaintenanceStatus(
     return { ok: true }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      return { ok: false, error: 'Pemeliharaan tidak ditemukan.' }
+      return { ok: false, error: t.srvCalendar.statusIncident.maintenanceNotFound }
     }
     console.error('[updateMaintenanceStatus] failed', err)
-    return { ok: false, error: 'Gagal memperbarui status pemeliharaan.' }
+    return { ok: false, error: t.srvCalendar.statusIncident.updateMaintenanceFailed }
   }
 }

@@ -14,6 +14,7 @@ import {
   type TenantApiKeyScope,
 } from '@/lib/tenants/api-key'
 import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -61,18 +62,19 @@ type LoadCtx =
   | { tenant: { id: string; slug: string }; actorId: string }
 
 async function loadTenantForApiKey(tenantSlug: string): Promise<LoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant1.apiKey.mustLogin }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant1.apiKey.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'team.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant1.apiKey.noPermission }
   }
   return { tenant, actorId }
 }
@@ -89,6 +91,7 @@ export async function createTenantApiKey(input: {
   const ctx = await loadTenantForApiKey(input.tenantSlug)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
+  const t = await getServerT()
   const fd = input.values
   const scopesRaw = fd.getAll('scopes').map((v) => String(v))
   const parsed = createSchema.safeParse({
@@ -100,7 +103,7 @@ export async function createTenantApiKey(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant1.apiKey.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -113,7 +116,7 @@ export async function createTenantApiKey(input: {
     if (activeCount >= MAX_KEYS_PER_TENANT) {
       return {
         ok: false,
-        error: `Batas ${MAX_KEYS_PER_TENANT} kunci aktif tercapai. Cabut kunci lama dulu.`,
+        error: t.srvTenant1.apiKey.limitReached.replace('{max}', String(MAX_KEYS_PER_TENANT)),
       }
     }
 
@@ -159,14 +162,15 @@ export async function createTenantApiKey(input: {
     return { ok: true, data: { plain, prefix, expiresAt } }
   } catch (err) {
     console.error('[createTenantApiKey] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.apiKey.createFailed }
   }
 }
 
 export async function revokeTenantApiKey(keyId: string): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
-  if (!keyId) return { ok: false, error: 'ID kunci tidak valid.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvTenant1.apiKey.mustLogin }
+  if (!keyId) return { ok: false, error: t.srvTenant1.apiKey.keyIdInvalid }
 
   try {
     const key = await prisma.tenantApiKey.findUnique({
@@ -179,11 +183,11 @@ export async function revokeTenantApiKey(keyId: string): Promise<ActionResult> {
         tenant: { select: { slug: true } },
       },
     })
-    if (!key) return { ok: false, error: 'Kunci tidak ditemukan.' }
+    if (!key) return { ok: false, error: t.srvTenant1.apiKey.keyNotFound }
 
     const { globalRole, tenants } = session.user
     if (!hasTenantPermission(globalRole, tenants, key.tenantId, 'team.update')) {
-      return { ok: false, error: 'Anda tidak memiliki izin.' }
+      return { ok: false, error: t.srvTenant1.apiKey.noPermission }
     }
     if (key.revokedAt) return { ok: true }
 
@@ -218,6 +222,6 @@ export async function revokeTenantApiKey(keyId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[revokeTenantApiKey] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.apiKey.revokeFailed }
   }
 }

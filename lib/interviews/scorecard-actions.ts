@@ -11,6 +11,7 @@ import {
   RECOMMENDATION_VALUES,
   isRecommendationValue,
 } from '@/lib/interviews/scorecard-defaults'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ScorecardActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -93,8 +94,9 @@ type InterviewContext =
 async function loadInterviewContext(
   interviewId: string,
 ): Promise<InterviewContext> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvScoring.interviewScorecard.mustLogin }
 
   const interview = await prisma.interviewSchedule
     .findUnique({
@@ -113,7 +115,7 @@ async function loadInterviewContext(
       },
     })
     .catch(() => null)
-  if (!interview) return { error: 'Wawancara tidak ditemukan.' }
+  if (!interview) return { error: t.srvScoring.interviewScorecard.interviewNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
@@ -124,7 +126,7 @@ async function loadInterviewContext(
       'job.update',
     )
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvScoring.interviewScorecard.noPermission }
   }
   return {
     actorId,
@@ -155,9 +157,11 @@ function revalidateForApplication(tenantSlug: string, applicationId: string, int
  * submit). Returns a normalised, validated shape — caller still has to
  * authorize.
  */
-function readPayload(input: unknown):
+async function readPayload(input: unknown): Promise<
   | { ok: true; data: z.infer<typeof payloadSchema> }
-  | { ok: false; error: string; field?: string } {
+  | { ok: false; error: string; field?: string }
+> {
+  const t = await getServerT()
   let raw: unknown = input
   if (typeof FormData !== 'undefined' && input instanceof FormData) {
     const ratingsJson = input.get('ratingsJson')
@@ -168,7 +172,7 @@ function readPayload(input: unknown):
       } catch {
         return {
           ok: false,
-          error: 'Data kriteria tidak valid.',
+          error: t.srvScoring.interviewScorecard.ratingsInvalid,
           field: 'ratings',
         }
       }
@@ -186,7 +190,7 @@ function readPayload(input: unknown):
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvScoring.interviewScorecard.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -210,12 +214,13 @@ export async function submitScorecard(
     recommendation: string
   },
 ): Promise<ScorecardActionResult<{ scorecardId: string; created: boolean }>> {
-  const parsed = readPayload(input)
+  const t = await getServerT()
+  const parsed = await readPayload(input)
   if (!parsed.ok) return parsed
 
   const { interviewId, ratings, notes, recommendation } = parsed.data
   if (!isRecommendationValue(recommendation)) {
-    return { ok: false, error: 'Rekomendasi tidak valid', field: 'recommendation' }
+    return { ok: false, error: t.srvScoring.interviewScorecard.recommendationInvalid, field: 'recommendation' }
   }
 
   const ctx = await loadInterviewContext(interviewId)
@@ -277,7 +282,7 @@ export async function submitScorecard(
     }
   } catch (err) {
     console.error('[submitScorecard] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvScoring.interviewScorecard.submitFailed }
   }
 }
 
@@ -289,7 +294,8 @@ export async function submitScorecard(
 export async function deleteScorecard(
   interviewId: string,
 ): Promise<ScorecardActionResult> {
-  if (!interviewId) return { ok: false, error: 'ID wawancara tidak valid.' }
+  const t = await getServerT()
+  if (!interviewId) return { ok: false, error: t.srvScoring.interviewScorecard.interviewIdInvalid }
 
   const ctx = await loadInterviewContext(interviewId)
   if ('error' in ctx) return { ok: false, error: ctx.error }
@@ -328,6 +334,6 @@ export async function deleteScorecard(
     return { ok: true }
   } catch (err) {
     console.error('[deleteScorecard] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvScoring.interviewScorecard.deleteFailed }
   }
 }

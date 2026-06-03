@@ -15,6 +15,7 @@ import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -170,18 +171,19 @@ async function loadTenantForJob(
   tenantSlug: string,
   permission: Permission,
 ): Promise<TenantLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant3.job.mustBeLoggedIn }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant3.job.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant3.job.noPermission }
   }
   return { tenant, actorId }
 }
@@ -205,11 +207,12 @@ async function loadJobForAction(
   jobId: string,
   permission: Permission,
 ): Promise<JobLoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant3.job.mustBeLoggedIn }
   }
-  if (!jobId) return { error: 'ID lowongan tidak valid.' }
+  if (!jobId) return { error: t.srvTenant3.job.invalidJobId }
 
   const job = await prisma.job.findUnique({
     where: { id: jobId },
@@ -223,11 +226,11 @@ async function loadJobForAction(
       tenant: { select: { id: true, slug: true } },
     },
   })
-  if (!job) return { error: 'Lowongan tidak ditemukan.' }
+  if (!job) return { error: t.srvTenant3.job.jobNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, job.tenantId, permission)) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant3.job.noPermission }
   }
   return {
     job: {
@@ -251,6 +254,7 @@ export async function createJob(input: {
   tenantSlug: string
   values: FormData
 }): Promise<ActionResult<{ id: string; slug: string }>> {
+  const t = await getServerT()
   const ctx = await loadTenantForJob(input.tenantSlug, 'job.create')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -259,7 +263,7 @@ export async function createJob(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant3.job.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -276,7 +280,7 @@ export async function createJob(input: {
         'job.publish',
       )
     ) {
-      return { ok: false, error: 'Anda tidak memiliki izin untuk publikasi.' }
+      return { ok: false, error: t.srvTenant3.job.noPublishPermission }
     }
   }
 
@@ -288,7 +292,7 @@ export async function createJob(input: {
         select: { id: true },
       })
       if (!cat) {
-        return { ok: false, error: 'Kategori tidak ditemukan.', field: 'categoryId' }
+        return { ok: false, error: t.srvTenant3.job.categoryNotFound, field: 'categoryId' }
       }
     }
 
@@ -346,7 +350,7 @@ export async function createJob(input: {
     return { ok: true, data: { id: created.id, slug: created.slug } }
   } catch (err) {
     console.error('[createJob] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant3.job.genericError }
   }
 }
 
@@ -358,6 +362,7 @@ export async function updateJob(input: {
   jobId: string
   values: FormData
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await loadJobForAction(input.jobId, 'job.update')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -366,7 +371,7 @@ export async function updateJob(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant3.job.invalidData,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -385,7 +390,7 @@ export async function updateJob(input: {
         'job.publish',
       )
     ) {
-      return { ok: false, error: 'Anda tidak memiliki izin untuk publikasi.' }
+      return { ok: false, error: t.srvTenant3.job.noPublishPermission }
     }
   }
 
@@ -396,7 +401,7 @@ export async function updateJob(input: {
         select: { id: true },
       })
       if (!cat) {
-        return { ok: false, error: 'Kategori tidak ditemukan.', field: 'categoryId' }
+        return { ok: false, error: t.srvTenant3.job.categoryNotFound, field: 'categoryId' }
       }
     }
 
@@ -456,7 +461,7 @@ export async function updateJob(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateJob] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant3.job.genericError }
   }
 }
 
@@ -468,9 +473,10 @@ export async function changeJobStatus(input: {
   jobId: string
   status: JobStatus
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const statusParse = jobStatusSchema.safeParse(input.status)
   if (!statusParse.success) {
-    return { ok: false, error: 'Status tidak valid.' }
+    return { ok: false, error: t.srvTenant3.job.invalidStatus }
   }
   const nextStatus = statusParse.data
 
@@ -520,7 +526,7 @@ export async function changeJobStatus(input: {
     return { ok: true }
   } catch (err) {
     console.error('[changeJobStatus] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant3.job.genericError }
   }
 }
 
@@ -531,6 +537,7 @@ export async function changeJobStatus(input: {
 // =============================================================================
 
 export async function deleteJob(jobId: string): Promise<ActionResult> {
+  const t = await getServerT()
   const ctx = await loadJobForAction(jobId, 'job.delete')
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
@@ -562,6 +569,6 @@ export async function deleteJob(jobId: string): Promise<ActionResult> {
     return { ok: true }
   } catch (err) {
     console.error('[deleteJob] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant3.job.genericError }
   }
 }

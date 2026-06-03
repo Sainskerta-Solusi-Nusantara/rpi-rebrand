@@ -12,6 +12,8 @@ import {
   applicationReceivedEmail,
   applicationNotifyEmail,
 } from '@/lib/mailer'
+import { getServerLocale } from '@/lib/i18n/server-dictionary'
+import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -65,9 +67,11 @@ export async function submitApplication(input: {
   coverLetter?: string
   answers?: Array<{ questionId: string; value: string }>
 }): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].actions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk untuk melamar.' }
+    return { ok: false, error: m.mustLogin }
   }
   const userId = session.user.id
 
@@ -76,7 +80,7 @@ export async function submitApplication(input: {
     const first = parsed.error.issues[0]
     return {
       ok: false,
-      error: first?.message ?? 'Input tidak valid.',
+      error: first?.message ?? m.inputInvalid,
       field: first?.path?.[0]?.toString(),
     }
   }
@@ -105,10 +109,10 @@ export async function submitApplication(input: {
     })
 
     if (!job) {
-      return { ok: false, error: 'Lowongan tidak ditemukan.' }
+      return { ok: false, error: m.jobNotFound }
     }
     if (job.status !== 'PUBLISHED') {
-      return { ok: false, error: 'Lowongan ini sudah tidak menerima lamaran.' }
+      return { ok: false, error: m.jobClosed }
     }
 
     const existing = await prisma.application.findUnique({
@@ -118,7 +122,7 @@ export async function submitApplication(input: {
     if (existing) {
       return {
         ok: false,
-        error: 'Anda sudah pernah melamar lowongan ini.',
+        error: m.alreadyApplied,
       }
     }
 
@@ -142,7 +146,7 @@ export async function submitApplication(input: {
         if (v === undefined || v.trim().length === 0) {
           return {
             ok: false,
-            error: `Pertanyaan "${q.label}" wajib dijawab.`,
+            error: m.questionRequired.replace('{label}', q.label),
             field: 'answers',
           }
         }
@@ -158,7 +162,7 @@ export async function submitApplication(input: {
       if (!resume) {
         return {
           ok: false,
-          error: 'CV tidak ditemukan atau bukan milik Anda.',
+          error: m.resumeNotFound,
           field: 'resumeId',
         }
       }
@@ -295,7 +299,7 @@ export async function submitApplication(input: {
     return { ok: true }
   } catch (err) {
     console.error('[submitApplication] failed', err)
-    return { ok: false, error: 'Gagal mengirim lamaran. Coba lagi sebentar.' }
+    return { ok: false, error: m.submitFailed }
   }
 }
 
@@ -315,14 +319,16 @@ const WITHDRAWABLE_STATUSES: ApplicationStatus[] = [
 export async function withdrawApplication(
   applicationId: string,
 ): Promise<ActionResult> {
+  const locale = await getServerLocale()
+  const m = srvApplications[locale].actions
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, error: 'Anda harus masuk.' }
+    return { ok: false, error: m.mustLoginWithdraw }
   }
   const userId = session.user.id
 
   if (!applicationId || typeof applicationId !== 'string') {
-    return { ok: false, error: 'ID lamaran tidak valid.' }
+    return { ok: false, error: m.applicationIdInvalid }
   }
 
   try {
@@ -338,16 +344,15 @@ export async function withdrawApplication(
       },
     })
     if (!application) {
-      return { ok: false, error: 'Lamaran tidak ditemukan.' }
+      return { ok: false, error: m.applicationNotFound }
     }
     if (application.userId !== userId) {
-      return { ok: false, error: 'Anda tidak berhak menarik lamaran ini.' }
+      return { ok: false, error: m.notOwner }
     }
     if (!WITHDRAWABLE_STATUSES.includes(application.status)) {
       return {
         ok: false,
-        error:
-          'Lamaran ini tidak dapat ditarik pada tahap saat ini.',
+        error: m.notWithdrawable,
       }
     }
 
@@ -383,6 +388,6 @@ export async function withdrawApplication(
     return { ok: true }
   } catch (err) {
     console.error('[withdrawApplication] failed', err)
-    return { ok: false, error: 'Gagal menarik lamaran. Coba lagi sebentar.' }
+    return { ok: false, error: m.withdrawFailed }
   }
 }

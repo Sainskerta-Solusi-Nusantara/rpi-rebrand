@@ -14,6 +14,7 @@ import {
   deleteLocalTenantLogo,
   saveTenantLogo,
 } from '@/lib/storage'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -65,18 +66,19 @@ type LoadCtx =
   | { tenant: { id: string; slug: string }; actorId: string }
 
 async function loadTenantForBranding(tenantSlug: string): Promise<LoadCtx> {
+  const t = await getServerT()
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Anda harus masuk.' }
+    return { error: t.srvTenant1.branding.mustLogin }
   }
   const tenant = await prisma.tenant.findUnique({
     where: { slug: tenantSlug },
     select: { id: true, slug: true },
   })
-  if (!tenant) return { error: 'Tenant tidak ditemukan.' }
+  if (!tenant) return { error: t.srvTenant1.branding.tenantNotFound }
   const { globalRole, tenants, id: actorId } = session.user
   if (!hasTenantPermission(globalRole, tenants, tenant.id, 'branding.update')) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvTenant1.branding.noPermission }
   }
   return { tenant, actorId }
 }
@@ -88,6 +90,7 @@ export async function updateTenantBranding(input: {
   const ctx = await loadTenantForBranding(input.tenantSlug)
   if ('error' in ctx) return { ok: false, error: ctx.error }
 
+  const t = await getServerT()
   const fd = input.values
   const parsed = updateSchema.safeParse({
     primaryColor: fd.get('primaryColor') ?? '',
@@ -105,7 +108,7 @@ export async function updateTenantBranding(input: {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvTenant1.branding.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -153,7 +156,7 @@ export async function updateTenantBranding(input: {
     return { ok: true }
   } catch (err) {
     console.error('[updateTenantBranding] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.branding.updateFailed }
   }
 }
 
@@ -161,10 +164,11 @@ const LOGO_SLOTS = ['light', 'dark', 'favicon'] as const
 type LogoSlot = (typeof LOGO_SLOTS)[number]
 
 export async function uploadTenantLogo(formData: FormData): Promise<ActionResult<{ url: string }>> {
+  const t = await getServerT()
   const tenantSlug = String(formData.get('tenantSlug') ?? '')
   const slotRaw = String(formData.get('slot') ?? '')
   if (!LOGO_SLOTS.includes(slotRaw as LogoSlot)) {
-    return { ok: false, error: 'Slot logo tidak valid.' }
+    return { ok: false, error: t.srvTenant1.branding.slotInvalid }
   }
   const slot = slotRaw as LogoSlot
 
@@ -173,13 +177,13 @@ export async function uploadTenantLogo(formData: FormData): Promise<ActionResult
 
   const file = formData.get('file')
   if (!(file instanceof Blob) || file.size === 0) {
-    return { ok: false, error: 'Berkas tidak ditemukan.' }
+    return { ok: false, error: t.srvTenant1.branding.fileNotFound }
   }
   if (file.size > MAX_LOGO_BYTES) {
-    return { ok: false, error: 'Ukuran logo melebihi 2 MB.' }
+    return { ok: false, error: t.srvTenant1.branding.fileTooLarge }
   }
   if (!ALLOWED_LOGO_MIME.includes(file.type)) {
-    return { ok: false, error: 'Format harus PNG, JPEG, WEBP, atau SVG.' }
+    return { ok: false, error: t.srvTenant1.branding.formatInvalid }
   }
 
   try {
@@ -220,7 +224,7 @@ export async function uploadTenantLogo(formData: FormData): Promise<ActionResult
     return { ok: true, data: { url: save.url } }
   } catch (err) {
     console.error('[uploadTenantLogo] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.branding.uploadFailed }
   }
 }
 
@@ -228,8 +232,9 @@ export async function removeTenantLogo(input: {
   tenantSlug: string
   slot: LogoSlot
 }): Promise<ActionResult> {
+  const t = await getServerT()
   if (!LOGO_SLOTS.includes(input.slot)) {
-    return { ok: false, error: 'Slot logo tidak valid.' }
+    return { ok: false, error: t.srvTenant1.branding.slotInvalid }
   }
   const ctx = await loadTenantForBranding(input.tenantSlug)
   if ('error' in ctx) return { ok: false, error: ctx.error }
@@ -269,6 +274,6 @@ export async function removeTenantLogo(input: {
     return { ok: true }
   } catch (err) {
     console.error('[removeTenantLogo] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvTenant1.branding.removeFailed }
   }
 }

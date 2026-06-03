@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -24,8 +25,9 @@ function readCheckbox(formData: FormData, key: string): boolean {
  * Persist notification preferences for the signed-in user. Upserts the row.
  */
 export async function updateNotificationPrefs(formData: FormData): Promise<ActionResult> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvAuth2.notification.mustLogin }
 
   const parsed = updateSchema.safeParse({
     emailLoginAlert: readCheckbox(formData, 'emailLoginAlert'),
@@ -33,7 +35,7 @@ export async function updateNotificationPrefs(formData: FormData): Promise<Actio
     emailInvitation: readCheckbox(formData, 'emailInvitation'),
     emailMarketing: readCheckbox(formData, 'emailMarketing'),
   })
-  if (!parsed.success) return { ok: false, error: 'Data tidak valid.' }
+  if (!parsed.success) return { ok: false, error: t.srvAuth2.notification.dataInvalid }
   const data = parsed.data
 
   try {
@@ -46,6 +48,6 @@ export async function updateNotificationPrefs(formData: FormData): Promise<Actio
     return { ok: true }
   } catch (err) {
     console.error('[updateNotificationPrefs] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvAuth2.notification.genericError }
   }
 }

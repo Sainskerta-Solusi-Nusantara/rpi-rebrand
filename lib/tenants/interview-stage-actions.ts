@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { scheduleInterview } from '@/lib/tenants/interview-actions'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 import { DEFAULT_STAGE_NAMES } from '@/lib/tenants/interview-stage-constants'
 
@@ -117,8 +118,9 @@ type LoadAppCtx =
 async function loadTenantForApplication(
   applicationId: string,
 ): Promise<LoadAppCtx> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { error: t.srvInterview.interviewStage.mustLogin }
   const application = await prisma.application
     .findUnique({
       where: { id: applicationId },
@@ -129,13 +131,13 @@ async function loadTenantForApplication(
       },
     })
     .catch(() => null)
-  if (!application) return { error: 'Lamaran tidak ditemukan.' }
+  if (!application) return { error: t.srvInterview.interviewStage.applicationNotFound }
 
   const { globalRole, tenants, id: actorId } = session.user
   if (
     !hasTenantPermission(globalRole, tenants, application.tenantId, 'job.update')
   ) {
-    return { error: 'Anda tidak memiliki izin.' }
+    return { error: t.srvInterview.interviewStage.noPermission }
   }
   return { actorId, application }
 }
@@ -157,12 +159,13 @@ export async function reorderStages(input: {
   applicationId: string
   stages: Array<{ interviewId: string; stageOrder: number; stageName?: string }>
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = reorderSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.interviewStage.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
@@ -183,14 +186,14 @@ export async function reorderStages(input: {
     })
     .catch(() => null)
   if (!existing) {
-    return { ok: false, error: 'Gagal memuat wawancara terkait.' }
+    return { ok: false, error: t.srvInterview.interviewStage.loadFailed }
   }
   const existingById = new Map(existing.map((iv) => [iv.id, iv]))
   for (const stage of stages) {
     if (!existingById.has(stage.interviewId)) {
       return {
         ok: false,
-        error: 'Salah satu wawancara tidak termasuk dalam lamaran ini.',
+        error: t.srvInterview.interviewStage.interviewNotInApplication,
       }
     }
   }
@@ -254,7 +257,7 @@ export async function reorderStages(input: {
     return { ok: true }
   } catch (err) {
     console.error('[reorderStages] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.interviewStage.genericError }
   }
 }
 
@@ -267,19 +270,20 @@ export async function setInterviewStage(input: {
   stageOrder: number
   stageName?: string
 }): Promise<ActionResult> {
+  const t = await getServerT()
   const parsed = setStageSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.interviewStage.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }
   const { interviewId, stageOrder, stageName } = parsed.data
 
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvInterview.interviewStage.mustLogin }
 
   const interview = await prisma.interviewSchedule
     .findUnique({
@@ -300,7 +304,7 @@ export async function setInterviewStage(input: {
     })
     .catch(() => null)
   if (!interview) {
-    return { ok: false, error: 'Wawancara tidak ditemukan.' }
+    return { ok: false, error: t.srvInterview.interviewStage.interviewNotFound }
   }
 
   const { globalRole, tenants, id: actorId } = session.user
@@ -312,7 +316,7 @@ export async function setInterviewStage(input: {
       'job.update',
     )
   ) {
-    return { ok: false, error: 'Anda tidak memiliki izin.' }
+    return { ok: false, error: t.srvInterview.interviewStage.noPermission }
   }
 
   const nextName = stageName ?? null
@@ -356,7 +360,7 @@ export async function setInterviewStage(input: {
     return { ok: true }
   } catch (err) {
     console.error('[setInterviewStage] failed', err)
-    return { ok: false, error: 'Terjadi kesalahan. Coba lagi sebentar.' }
+    return { ok: false, error: t.srvInterview.interviewStage.genericError }
   }
 }
 
@@ -376,12 +380,13 @@ export async function quickAddStage(input: {
   location?: string
   notes?: string
 }): Promise<ActionResult<{ interviewId: string }>> {
+  const t = await getServerT()
   const parsed = quickAddSchema.safeParse(input)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
     return {
       ok: false,
-      error: issue?.message ?? 'Data tidak valid',
+      error: issue?.message ?? t.srvInterview.interviewStage.dataInvalid,
       field: issue?.path[0] as string | undefined,
     }
   }

@@ -10,6 +10,7 @@ import {
   type AnalysisResult,
   type AnalyzerResume,
 } from '@/lib/resume/analyzer'
+import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -126,12 +127,13 @@ function toAnalyzerInput(
 export async function analyzeMyResume(
   resumeId: string,
 ): Promise<ActionResult<AnalysisResult>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumeSuggestion.mustLogin }
   const userId = session.user.id
 
   if (typeof resumeId !== 'string' || resumeId.length === 0) {
-    return { ok: false, error: 'ID CV tidak valid.' }
+    return { ok: false, error: t.srvMessaging.resumeSuggestion.resumeIdInvalid }
   }
 
   try {
@@ -146,7 +148,7 @@ export async function analyzeMyResume(
       },
     })
     if (!resume || resume.userId !== userId) {
-      return { ok: false, error: 'CV tidak ditemukan.' }
+      return { ok: false, error: t.srvMessaging.resumeSuggestion.resumeNotFound }
     }
 
     const user = await prisma.user.findUnique({
@@ -165,7 +167,7 @@ export async function analyzeMyResume(
     return { ok: true, data: result }
   } catch (err) {
     console.error('[analyzeMyResume] failed', err)
-    return { ok: false, error: 'Gagal menganalisis CV. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.resumeSuggestion.analyzeFailed }
   }
 }
 
@@ -179,15 +181,16 @@ export async function applySuggestion(
   resumeId: string,
   suggestionId: string,
 ): Promise<ActionResult<AnalysisResult>> {
+  const t = await getServerT()
   const session = await auth()
-  if (!session?.user?.id) return { ok: false, error: 'Anda harus masuk.' }
+  if (!session?.user?.id) return { ok: false, error: t.srvMessaging.resumeSuggestion.mustLogin }
   const userId = session.user.id
 
   if (typeof resumeId !== 'string' || resumeId.length === 0) {
-    return { ok: false, error: 'ID CV tidak valid.' }
+    return { ok: false, error: t.srvMessaging.resumeSuggestion.resumeIdInvalid }
   }
   if (typeof suggestionId !== 'string' || suggestionId.length === 0) {
-    return { ok: false, error: 'ID saran tidak valid.' }
+    return { ok: false, error: t.srvMessaging.resumeSuggestion.suggestionIdInvalid }
   }
 
   try {
@@ -196,7 +199,7 @@ export async function applySuggestion(
       select: { id: true, userId: true, name: true, fileUrl: true, content: true },
     })
     if (!resume || resume.userId !== userId) {
-      return { ok: false, error: 'CV tidak ditemukan.' }
+      return { ok: false, error: t.srvMessaging.resumeSuggestion.resumeNotFound }
     }
 
     const content =
@@ -259,7 +262,7 @@ export async function applySuggestion(
     if (!changed) {
       return {
         ok: false,
-        error: 'Saran ini perlu diedit manual.',
+        error: t.srvMessaging.resumeSuggestion.manualEditRequired,
       }
     }
 
@@ -284,11 +287,11 @@ export async function applySuggestion(
       where: { id: userId },
       select: { email: true, phone: true },
     })
-    if (!refreshed) return { ok: false, error: 'CV tidak ditemukan.' }
+    if (!refreshed) return { ok: false, error: t.srvMessaging.resumeSuggestion.resumeNotFound }
     const newResult = analyzeResume(toAnalyzerInput(refreshed, user))
     return { ok: true, data: newResult }
   } catch (err) {
     console.error('[applySuggestion] failed', err)
-    return { ok: false, error: 'Gagal menerapkan saran. Coba lagi.' }
+    return { ok: false, error: t.srvMessaging.resumeSuggestion.applyFailed }
   }
 }
