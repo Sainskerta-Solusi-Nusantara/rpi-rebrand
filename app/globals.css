@@ -36,7 +36,6 @@
 
     --radius: 12px;
   }
-
 }
 
 /*
@@ -84,7 +83,9 @@ html.dark {
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -121,5 +122,20 @@ html.dark {
 
   .container-prose {
     @apply mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Respect the user's "reduce motion" OS setting for CSS-driven animation and
+   transitions (Tailwind animate-*, tailwindcss-animate, the marquee, hover
+   transforms). framer-motion is handled separately via
+   <MotionConfig reducedMotion="user"> in components/providers/app-providers.tsx. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
