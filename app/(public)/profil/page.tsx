@@ -17,8 +17,7 @@ export default async function PublicProfileIndexPage() {
       <section className="mx-auto flex min-h-[60vh] w-full max-w-3xl items-center justify-center px-6 py-16">
         <div className="border-border bg-card w-full rounded-2xl border p-10 text-center shadow-sm">
           <span
-            className="mx-auto grid size-12 place-items-center rounded-full text-white"
-            style={{ background: 'hsl(220, 50%, 14%)' }}
+            className="mx-auto grid size-12 place-items-center rounded-full bg-primary text-primary-foreground"
             aria-hidden
           >
             <UserRound className="h-6 w-6" />

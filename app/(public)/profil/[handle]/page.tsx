@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -94,14 +95,28 @@ export default async function PublicProfilePage({
   const assessmentBadges = await getMyPassedAssessmentBadges(profile.id)
 
   return (
-    <div className="bg-background">
+    <div
+      className="bg-background"
+      // Deliberately-dark decorative hero palette, centralized here instead of
+      // scattered hsl() literals. These stay constant across light/dark (the
+      // hero is a fixed dark "poster" with white text); /profil is RPI-global,
+      // not tenant-branded, so it does not flow through the branding tokens.
+      style={
+        {
+          '--profile-navy': 'hsl(220 50% 14%)',
+          '--profile-navy-2': 'hsl(220 50% 22%)',
+          '--profile-navy-glow': 'hsl(220 65% 35%)',
+          '--profile-gold': 'hsl(43 74% 55%)',
+        } as CSSProperties
+      }
+    >
       {/* HERO */}
       <section
         aria-label="Profil kandidat"
         className="border-border relative overflow-hidden border-b"
         style={{
           background:
-            'linear-gradient(135deg, hsl(220, 50%, 14%) 0%, hsl(220, 50%, 22%) 100%)',
+            'linear-gradient(135deg, var(--profile-navy) 0%, var(--profile-navy-2) 100%)',
         }}
       >
         <div
@@ -109,7 +124,7 @@ export default async function PublicProfilePage({
           className="absolute inset-0 opacity-20"
           style={{
             background:
-              'radial-gradient(700px 350px at 85% -10%, hsl(43, 74%, 55%), transparent 60%), radial-gradient(600px 350px at -10% 110%, hsl(220, 65%, 35%), transparent 60%)',
+              'radial-gradient(700px 350px at 85% -10%, var(--profile-gold), transparent 60%), radial-gradient(600px 350px at -10% 110%, var(--profile-navy-glow), transparent 60%)',
           }}
         />
         <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center gap-6 px-6 py-16 text-center text-white md:py-20">
@@ -180,7 +195,7 @@ export default async function PublicProfilePage({
             <div className="mb-8 flex items-center gap-3">
               <span
                 className="grid size-9 place-items-center rounded-lg text-white"
-                style={{ background: 'hsl(220, 50%, 14%)' }}
+                style={{ background: 'var(--profile-navy)' }}
                 aria-hidden
               >
                 <Briefcase className="h-5 w-5" />
@@ -195,7 +210,7 @@ export default async function PublicProfilePage({
                   <span
                     aria-hidden
                     className="absolute -left-[31px] top-2 grid size-3 place-items-center rounded-full"
-                    style={{ background: 'hsl(43, 74%, 55%)' }}
+                    style={{ background: 'var(--profile-gold)' }}
                   />
                   <article className="border-border bg-card rounded-xl border p-5 shadow-sm">
                     <header className="flex flex-wrap items-baseline justify-between gap-2">
@@ -234,7 +249,7 @@ export default async function PublicProfilePage({
             <div className="mb-8 flex items-center gap-3">
               <span
                 className="grid size-9 place-items-center rounded-lg text-white"
-                style={{ background: 'hsl(220, 50%, 14%)' }}
+                style={{ background: 'var(--profile-navy)' }}
                 aria-hidden
               >
                 <GraduationCap className="h-5 w-5" />
@@ -249,7 +264,7 @@ export default async function PublicProfilePage({
                   <span
                     aria-hidden
                     className="absolute -left-[31px] top-2 grid size-3 place-items-center rounded-full"
-                    style={{ background: 'hsl(43, 74%, 55%)' }}
+                    style={{ background: 'var(--profile-gold)' }}
                   />
                   <article className="border-border bg-card rounded-xl border p-5 shadow-sm">
                     <header className="flex flex-wrap items-baseline justify-between gap-2">
@@ -291,7 +306,7 @@ export default async function PublicProfilePage({
                 <div className="mb-5 flex items-center gap-3">
                   <span
                     className="grid size-9 place-items-center rounded-lg text-white"
-                    style={{ background: 'hsl(220, 50%, 14%)' }}
+                    style={{ background: 'var(--profile-navy)' }}
                     aria-hidden
                   >
                     <Sparkles className="h-5 w-5" />
@@ -317,7 +332,7 @@ export default async function PublicProfilePage({
                 <div className="mb-5 flex items-center gap-3">
                   <span
                     className="grid size-9 place-items-center rounded-lg text-white"
-                    style={{ background: 'hsl(220, 50%, 14%)' }}
+                    style={{ background: 'var(--profile-navy)' }}
                     aria-hidden
                   >
                     <LanguagesIcon className="h-5 w-5" />
@@ -352,7 +367,7 @@ export default async function PublicProfilePage({
             <div className="mb-8 flex items-center gap-3">
               <span
                 className="grid size-9 place-items-center rounded-lg text-white"
-                style={{ background: 'hsl(220, 50%, 14%)' }}
+                style={{ background: 'var(--profile-navy)' }}
                 aria-hidden
               >
                 <Award className="h-5 w-5" />
@@ -402,7 +417,7 @@ export default async function PublicProfilePage({
             <div className="mb-8 flex items-center gap-3">
               <span
                 className="grid size-9 place-items-center rounded-lg text-white"
-                style={{ background: 'hsl(220, 50%, 14%)' }}
+                style={{ background: 'var(--profile-navy)' }}
                 aria-hidden
               >
                 <Award className="h-5 w-5" />
