@@ -11,9 +11,9 @@ import { formatDate } from '@/lib/i18n/format'
 export const metadata = { title: 'Detail Pengguna — Admin' }
 
 const roleLabels: Record<string, { label: string; tone: string }> = {
-  SUPERADMIN: { label: 'SUPERADMIN', tone: 'bg-amber-100 text-amber-800' },
-  ADMIN: { label: 'ADMIN', tone: 'bg-blue-100 text-blue-800' },
-  PARTNER: { label: 'PARTNER', tone: 'bg-purple-100 text-purple-800' },
+  SUPERADMIN: { label: 'SUPERADMIN', tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200' },
+  ADMIN: { label: 'ADMIN', tone: 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300' },
+  PARTNER: { label: 'PARTNER', tone: 'bg-purple-100 dark:bg-purple-500/15 text-purple-800 dark:text-purple-300' },
   USER: { label: 'USER', tone: 'bg-slate-100 text-slate-800' },
 }
 
@@ -132,16 +132,16 @@ export default async function AdminUserDetailPage({
           <span
             className={
               user.status === 'ACTIVE'
-                ? 'inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800'
+                ? 'inline-flex items-center rounded-full bg-green-100 dark:bg-green-500/15 px-2.5 py-1 text-xs font-medium text-green-800 dark:text-green-300'
                 : user.status === 'SUSPENDED'
-                  ? 'inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-800'
+                  ? 'inline-flex items-center rounded-full bg-red-100 dark:bg-red-500/15 px-2.5 py-1 text-xs font-medium text-red-800 dark:text-red-300'
                   : 'bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium'
             }
           >
             {statusLabels[user.status] ?? user.status}
           </span>
           {user.emailVerified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800">
+            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2.5 py-1 text-xs font-medium text-green-800 dark:text-green-300">
               <ShieldCheck className="h-3 w-3" aria-hidden="true" />
               {td.emailVerified}
             </span>

@@ -34,7 +34,7 @@ type Stage =
 function StatusBadge({ status, tl }: { status: PreviewRowStatus; tl: { badgeValid: string; badgeError: string; badgeSkipped: string } }) {
   if (status === 'valid') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
         <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
         {tl.badgeValid}
       </span>
@@ -42,7 +42,7 @@ function StatusBadge({ status, tl }: { status: PreviewRowStatus; tl: { badgeVali
   }
   if (status === 'error') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-500/15 px-2 py-0.5 text-xs font-medium text-red-800 dark:text-red-300">
         <XCircle className="h-3 w-3" aria-hidden="true" />
         {tl.badgeError}
       </span>
@@ -50,7 +50,7 @@ function StatusBadge({ status, tl }: { status: PreviewRowStatus; tl: { badgeVali
   }
   // skip:*
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
       <Info className="h-3 w-3" aria-hidden="true" />
       {tl.badgeSkipped}
     </span>
@@ -220,7 +220,7 @@ export function TenantMembersImportForm({
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase">{tl.statSkipped}</p>
-            <p className="font-semibold text-amber-700">{preview.skipCount}</p>
+            <p className="font-semibold text-amber-700 dark:text-amber-200">{preview.skipCount}</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase">{tl.statError}</p>
@@ -280,7 +280,7 @@ export function TenantMembersImportForm({
                           ))}
                         </ul>
                       ) : r.note ? (
-                        <span className="text-amber-700">{r.note}</span>
+                        <span className="text-amber-700 dark:text-amber-200">{r.note}</span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -334,7 +334,7 @@ export function TenantMembersImportForm({
         className={`rounded-2xl border p-5 ${
           allOk
             ? 'border-success/30 bg-success/10'
-            : 'border-amber-400/40 bg-amber-50'
+            : 'border-amber-400 dark:border-amber-500/30/40 bg-amber-50 dark:bg-amber-500/10'
         }`}
       >
         <div className="flex items-start gap-3">
@@ -345,7 +345,7 @@ export function TenantMembersImportForm({
             />
           ) : (
             <AlertTriangle
-              className="mt-0.5 h-6 w-6 text-amber-700"
+              className="mt-0.5 h-6 w-6 text-amber-700 dark:text-amber-200"
               aria-hidden="true"
             />
           )}
@@ -365,7 +365,7 @@ export function TenantMembersImportForm({
               </li>
               <li>
                 {tl.resultSkipped}:{' '}
-                <span className="font-mono font-semibold text-amber-700">
+                <span className="font-mono font-semibold text-amber-700 dark:text-amber-200">
                   {result.skipped}
                 </span>
               </li>

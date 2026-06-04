@@ -36,28 +36,28 @@ function scoreColor(score: number): {
   if (score < 50) {
     return {
       bar: 'bg-red-500',
-      text: 'text-red-600',
-      bg: 'bg-red-50',
+      text: 'text-red-600 dark:text-red-300',
+      bg: 'bg-red-50 dark:bg-red-500/10',
     }
   }
   if (score < 80) {
     return {
       bar: 'bg-amber-500',
-      text: 'text-amber-600',
-      bg: 'bg-amber-50',
+      text: 'text-amber-600 dark:text-amber-200',
+      bg: 'bg-amber-50 dark:bg-amber-500/10',
     }
   }
   return {
     bar: 'bg-emerald-500',
-    text: 'text-emerald-600',
-    bg: 'bg-emerald-50',
+    text: 'text-emerald-600 dark:text-emerald-300',
+    bg: 'bg-emerald-50 dark:bg-emerald-500/10',
   }
 }
 
 function severityClass(s: Severity): string {
-  if (s === 'high') return 'border-red-200 bg-red-50 text-red-700'
-  if (s === 'medium') return 'border-amber-200 bg-amber-50 text-amber-700'
-  return 'border-sky-200 bg-sky-50 text-sky-700'
+  if (s === 'high') return 'border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300'
+  if (s === 'medium') return 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-200'
+  return 'border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300'
 }
 
 function severityIcon(s: Severity) {
@@ -258,8 +258,8 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
           role="status"
           className={`mb-3 rounded-md border px-3 py-2 text-sm ${
             banner.kind === 'error'
-              ? 'border-red-200 bg-red-50 text-red-700'
-              : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+              ? 'border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300'
+              : 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
           }`}
         >
           {banner.text}
@@ -318,7 +318,7 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
                     </div>
                   )}
                   {s.exampleAfter && (
-                    <div className="rounded border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-900">
+                    <div className="rounded border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-2 text-xs text-emerald-900 dark:text-emerald-300">
                       <div className="mb-1 font-medium">{rs.exampleAfter}</div>
                       <div>{s.exampleAfter}</div>
                     </div>
@@ -368,11 +368,11 @@ function FilterChip({
     'inline-flex items-center rounded-full border px-3 py-1 text-xs transition-colors'
   const palette = active
     ? color === 'red'
-      ? 'border-red-300 bg-red-100 text-red-800'
+      ? 'border-red-300 dark:border-red-500/30 bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300'
       : color === 'amber'
-        ? 'border-amber-300 bg-amber-100 text-amber-800'
+        ? 'border-amber-300 dark:border-amber-500/30 bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200'
         : color === 'sky'
-          ? 'border-sky-300 bg-sky-100 text-sky-800'
+          ? 'border-sky-300 dark:border-sky-500/30 bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300'
           : 'border-foreground/30 bg-foreground/10 text-foreground'
     : 'border-border bg-background text-muted-foreground hover:bg-muted'
   return (

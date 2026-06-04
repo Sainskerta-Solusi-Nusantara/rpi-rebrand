@@ -169,7 +169,7 @@ export function TalentPoolOutreachModal({
             {success && (
               <div
                 role="status"
-                className="mt-3 flex items-center gap-1.5 text-xs text-green-700"
+                className="mt-3 flex items-center gap-1.5 text-xs text-green-700 dark:text-green-300"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                 {tl.successMsg}

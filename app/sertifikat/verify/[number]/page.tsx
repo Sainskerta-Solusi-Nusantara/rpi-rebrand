@@ -53,11 +53,11 @@ export default async function VerifyCertificatePage({
       <div className="mx-auto max-w-2xl">
         <div className="border-border bg-card rounded-2xl border p-8 shadow-sm">
           <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
               <ShieldCheck className="h-6 w-6" aria-hidden />
             </span>
             <div>
-              <p className="text-emerald-700 inline-flex items-center gap-1.5 text-sm font-semibold">
+              <p className="text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1.5 text-sm font-semibold">
                 <CheckCircle2 className="h-4 w-4" aria-hidden />
                 Sertifikat Sah
               </p>

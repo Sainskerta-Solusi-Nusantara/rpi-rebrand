@@ -228,12 +228,12 @@ export function TenantCoursesImportForm({
                     <td className="p-3 font-mono text-xs">{r.lineNum}</td>
                     <td className="p-3">
                       {isValid ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
                           <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
                           {tl.badgeValid}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-500/15 px-2 py-0.5 text-xs font-medium text-red-800 dark:text-red-300">
                           <XCircle className="h-3 w-3" aria-hidden="true" />
                           {tl.badgeError}
                         </span>
@@ -305,7 +305,7 @@ export function TenantCoursesImportForm({
         className={`rounded-2xl border p-5 ${
           allOk
             ? 'border-success/30 bg-success/10'
-            : 'border-amber-400/40 bg-amber-50'
+            : 'border-amber-400 dark:border-amber-500/30/40 bg-amber-50 dark:bg-amber-500/10'
         }`}
       >
         <div className="flex items-start gap-3">
@@ -316,7 +316,7 @@ export function TenantCoursesImportForm({
             />
           ) : (
             <AlertTriangle
-              className="mt-0.5 h-6 w-6 text-amber-700"
+              className="mt-0.5 h-6 w-6 text-amber-700 dark:text-amber-200"
               aria-hidden="true"
             />
           )}

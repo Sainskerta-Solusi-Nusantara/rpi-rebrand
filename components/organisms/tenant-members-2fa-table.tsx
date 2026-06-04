@@ -61,12 +61,12 @@ export async function TenantMembers2faTable({
               <td className="py-2 pr-3 text-xs">{roleLabels[m.role] ?? m.role}</td>
               <td className="py-2 pr-3">
                 {m.totpEnabled ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
                     <ShieldCheck className="h-3 w-3" aria-hidden="true" />
                     {ns.statusActive}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
                     <ShieldX className="h-3 w-3" aria-hidden="true" />
                     {ns.statusInactive}
                   </span>

@@ -24,10 +24,10 @@ const numberFmt = new Intl.NumberFormat('id-ID', {
  * them. Maps each recommendation onto a chip + a stacked-bar segment color.
  */
 const CHIP_CLASS: Record<RecommendationValue, string> = {
-  strong_hire: 'bg-green-100 text-green-800',
-  hire: 'bg-emerald-100 text-emerald-800',
-  no_hire: 'bg-red-100 text-red-800',
-  strong_no_hire: 'bg-rose-100 text-rose-800',
+  strong_hire: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
+  hire: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
+  no_hire: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
+  strong_no_hire: 'bg-rose-100 dark:bg-rose-500/15 text-rose-800 dark:text-rose-300',
 }
 
 const BAR_CLASS: Record<RecommendationValue, string> = {
@@ -42,7 +42,7 @@ const CONSENSUS_LABEL_OVERRIDES: Record<string, string> = {
 }
 
 const CONSENSUS_CHIP_CLASS: Record<string, string> = {
-  split: 'bg-amber-100 text-amber-800',
+  split: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200',
 }
 
 function formatScore(value: number | null): string {

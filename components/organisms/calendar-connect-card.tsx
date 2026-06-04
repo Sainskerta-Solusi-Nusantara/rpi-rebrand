@@ -85,7 +85,7 @@ export async function CalendarConnectCard({
           <div className="flex flex-col items-start gap-2 sm:items-end">
             {google ? (
               <>
-                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
                   Terhubung
                 </span>
                 <CalendarDisconnectButton provider="google" />
@@ -126,7 +126,7 @@ export async function CalendarConnectCard({
           <div className="flex flex-col items-start gap-2 sm:items-end">
             {microsoft ? (
               <>
-                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
                   Terhubung
                 </span>
                 <CalendarDisconnectButton provider="microsoft" />

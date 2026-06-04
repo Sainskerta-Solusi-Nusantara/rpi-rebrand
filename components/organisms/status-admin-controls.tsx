@@ -38,7 +38,7 @@ export function IncidentDeleteButton({ id }: { id: string }) {
   return (
     <span className="inline-flex items-center gap-2">
       {error ? (
-        <span role="alert" className="text-xs text-red-600">
+        <span role="alert" className="text-xs text-red-600 dark:text-red-300">
           {error}
         </span>
       ) : null}
@@ -46,7 +46,7 @@ export function IncidentDeleteButton({ id }: { id: string }) {
         type="button"
         onClick={onClick}
         disabled={isPending}
-        className="border-border bg-background hover:bg-muted inline-flex h-8 items-center rounded-md border px-2.5 text-xs font-medium text-red-600 disabled:opacity-60"
+        className="border-border bg-background hover:bg-muted inline-flex h-8 items-center rounded-md border px-2.5 text-xs font-medium text-red-600 dark:text-red-300 disabled:opacity-60"
       >
         {isPending ? tf.incidentDeletePending : tf.incidentDelete}
       </button>
@@ -124,7 +124,7 @@ export function MaintenanceStatusActions({
         )}
       </div>
       {error ? (
-        <p role="alert" className="text-xs text-red-600">
+        <p role="alert" className="text-xs text-red-600 dark:text-red-300">
           {error}
         </p>
       ) : null}

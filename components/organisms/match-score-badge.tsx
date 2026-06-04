@@ -40,24 +40,24 @@ function toneFor(score: number | null | undefined): {
   }
   if (score >= 80) {
     return {
-      classes: 'border-green-200 bg-green-50 text-green-800',
+      classes: 'border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 text-green-800 dark:text-green-300',
       label: 'Cocokkan sangat kuat',
     }
   }
   if (score >= 60) {
     return {
-      classes: 'border-amber-200 bg-amber-50 text-amber-800',
+      classes: 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-200',
       label: 'Cocok',
     }
   }
   if (score >= 40) {
     return {
-      classes: 'border-orange-200 bg-orange-50 text-orange-800',
+      classes: 'border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-800 dark:text-orange-300',
       label: 'Cocok sebagian',
     }
   }
   return {
-    classes: 'border-red-200 bg-red-50 text-red-800',
+    classes: 'border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-800 dark:text-red-300',
     label: 'Kurang cocok',
   }
 }

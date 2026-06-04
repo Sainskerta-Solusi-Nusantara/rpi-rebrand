@@ -300,7 +300,7 @@ export function ValuesDeepDive() {
 
                     <div className="grid gap-5 md:grid-cols-2">
                       <div>
-                        <div className="mb-3 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+                        <div className="mb-3 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-300">
                           <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                           Artinya kami
                         </div>
@@ -320,7 +320,7 @@ export function ValuesDeepDive() {
                         </ul>
                       </div>
                       <div>
-                        <div className="mb-3 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-rose-600">
+                        <div className="mb-3 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-300">
                           <X className="h-3.5 w-3.5" aria-hidden />
                           Artinya kami tidak
                         </div>

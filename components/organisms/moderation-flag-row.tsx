@@ -13,15 +13,15 @@ const REASON_LABEL: Record<string, string> = {
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   pending: {
     label: 'Menunggu',
-    cls: 'bg-amber-100 text-amber-800 border-amber-200',
+    cls: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-500/30',
   },
   reviewing: {
     label: 'Ditinjau',
-    cls: 'bg-blue-100 text-blue-800 border-blue-200',
+    cls: 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-500/30',
   },
   resolved: {
     label: 'Selesai',
-    cls: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    cls: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30',
   },
   dismissed: {
     label: 'Ditolak',

@@ -31,15 +31,15 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
 
 function tagTone(tag: string): string {
   if (tag === 'strong_match')
-    return 'bg-green-50 text-green-700 border-green-200'
+    return 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 border-green-200 dark:border-green-500/30'
   if (tag === 'partial_match')
-    return 'bg-amber-50 text-amber-700 border-amber-200'
+    return 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-200 border-amber-200 dark:border-amber-500/30'
   if (tag === 'weak_match')
-    return 'bg-orange-50 text-orange-700 border-orange-200'
+    return 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-500/30'
   if (tag === 'low_match' || tag === 'skills_gap')
-    return 'bg-red-50 text-red-700 border-red-200'
+    return 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/30'
   if (tag === 'location_remote_ok')
-    return 'bg-sky-50 text-sky-700 border-sky-200'
+    return 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-500/30'
   if (tag === 'overqualified' || tag === 'junior_for_role')
     return 'bg-violet-50 text-violet-700 border-violet-200'
   return 'bg-slate-50 text-slate-700 border-slate-200'
@@ -190,7 +190,7 @@ export function MatchScoreCard({
                     {breakdown.keywordOverlap.matchedKeywords.map((kw) => (
                       <li
                         key={kw}
-                        className="border-green-200 bg-green-50 text-green-800 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                        className="border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 text-green-800 dark:text-green-300 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
                       >
                         {kw}
                       </li>
@@ -209,7 +209,7 @@ export function MatchScoreCard({
                     {breakdown.keywordOverlap.missedKeywords.map((kw) => (
                       <li
                         key={kw}
-                        className="border-red-200 bg-red-50 text-red-700 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                        className="border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
                       >
                         {kw}
                       </li>
@@ -232,7 +232,7 @@ export function MatchScoreCard({
                   {breakdown.skillsCoverage.present.map((s) => (
                     <li
                       key={s}
-                      className="border-sky-200 bg-sky-50 text-sky-800 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                      className="border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 text-sky-800 dark:text-sky-300 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
                     >
                       {s}
                     </li>
@@ -252,7 +252,7 @@ export function MatchScoreCard({
                   {breakdown.skillsCoverage.missing.map((s) => (
                     <li
                       key={s}
-                      className="border-red-200 bg-red-50 text-red-700 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                      className="border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
                     >
                       {s}
                     </li>

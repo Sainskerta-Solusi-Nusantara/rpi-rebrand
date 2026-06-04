@@ -175,29 +175,29 @@ export function QuizRunner({
         <div
           className={
             'border-border rounded-lg border p-6 text-center ' +
-            (result.passed ? 'bg-emerald-50' : 'bg-rose-50')
+            (result.passed ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-rose-50 dark:bg-rose-500/10')
           }
         >
           <div className="flex justify-center">
             {result.passed ? (
               <CheckCircle2
-                className="h-10 w-10 text-emerald-600"
+                className="h-10 w-10 text-emerald-600 dark:text-emerald-300"
                 aria-hidden
               />
             ) : (
-              <XCircle className="h-10 w-10 text-rose-600" aria-hidden />
+              <XCircle className="h-10 w-10 text-rose-600 dark:text-rose-300" aria-hidden />
             )}
           </div>
           <p
             className={
               'mt-3 text-xl font-semibold ' +
-              (result.passed ? 'text-emerald-800' : 'text-rose-800')
+              (result.passed ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300')
             }
           >
             {result.passed ? passMsg : failMsg}
           </p>
           {result.certificateIssued && (
-            <p className="mt-2 text-sm font-medium text-emerald-800">
+            <p className="mt-2 text-sm font-medium text-emerald-800 dark:text-emerald-300">
               {fl.certificateIssued}
             </p>
           )}

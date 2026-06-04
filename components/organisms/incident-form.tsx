@@ -159,7 +159,7 @@ export function IncidentForm({ defaults }: IncidentFormProps) {
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-red-600 dark:text-red-300">
           {error}
         </p>
       ) : null}

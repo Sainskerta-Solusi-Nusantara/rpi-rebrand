@@ -96,10 +96,10 @@ export default async function TenantSecurityPage({
             </h2>
           </div>
           <div className="text-muted-foreground flex flex-wrap gap-2 text-xs">
-            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 font-medium text-green-800">
+            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 font-medium text-green-800 dark:text-green-300">
               {policy.membersWithTwoFactor} aktif
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 font-medium text-amber-800 dark:text-amber-200">
               {policy.membersWithoutTwoFactor} belum
             </span>
           </div>

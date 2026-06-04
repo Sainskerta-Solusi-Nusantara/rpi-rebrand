@@ -257,7 +257,7 @@ export default async function LessonPage({ params }: { params: Params }) {
                     alreadyTakenCount={quizPanel.takenCount}
                   />
                 ) : attemptsExhausted ? (
-                  <div className="border-border bg-rose-50 rounded-lg border p-4 text-sm text-rose-800">
+                  <div className="border-border bg-rose-50 dark:bg-rose-500/10 rounded-lg border p-4 text-sm text-rose-800 dark:text-rose-300">
                     {t.dashboard.courses.lesson.attemptsExhausted.replace('{n}', String(MAX_ATTEMPTS_PER_QUIZ))}
                   </div>
                 ) : (

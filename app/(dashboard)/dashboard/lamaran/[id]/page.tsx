@@ -14,12 +14,12 @@ export const metadata = { title: 'Detail Lamaran — Lamaran Saya' }
 
 const STATUS_TONE: Record<ApplicationStatus, string> = {
   APPLIED: 'bg-slate-100 text-slate-800',
-  REVIEWED: 'bg-sky-100 text-sky-800',
+  REVIEWED: 'bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300',
   SHORTLISTED: 'bg-indigo-100 text-indigo-800',
   INTERVIEW: 'bg-violet-100 text-violet-800',
-  OFFERED: 'bg-amber-100 text-amber-800',
-  HIRED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
+  OFFERED: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200',
+  HIRED: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
+  REJECTED: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
   WITHDRAWN: 'bg-zinc-100 text-zinc-800',
 }
 

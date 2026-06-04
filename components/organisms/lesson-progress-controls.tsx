@@ -66,7 +66,7 @@ export function LessonProgressControls({
             <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" aria-hidden />
           )}
           {!pending && optimisticDone && (
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden />
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-300" aria-hidden />
           )}
         </span>
       </label>

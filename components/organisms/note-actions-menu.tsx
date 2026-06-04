@@ -157,7 +157,7 @@ export function NoteActionsMenu({
           className={cn(
             'inline-flex h-7 w-7 items-center justify-center rounded-md',
             pinned
-              ? 'text-amber-600 hover:bg-amber-100'
+              ? 'text-amber-600 dark:text-amber-200 hover:bg-amber-100 dark:bg-amber-500/15'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground',
           )}
         >

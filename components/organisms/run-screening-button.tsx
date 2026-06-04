@@ -46,7 +46,7 @@ export function RunScreeningButton({ applicationId, hasScore }: Props) {
         )}
         {hasScore ? 'Refresh AI screening' : 'Jalankan AI screening'}
       </button>
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="text-xs text-red-600 dark:text-red-300">{error}</p> : null}
     </div>
   )
 }

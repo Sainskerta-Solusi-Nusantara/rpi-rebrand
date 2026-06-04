@@ -77,7 +77,7 @@ export function MemberRowActions({
     <div className="flex flex-col items-end gap-1">
       <div className="flex items-center gap-2">
         {isOwner ? (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+          <span className="rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
             OWNER
           </span>
         ) : (

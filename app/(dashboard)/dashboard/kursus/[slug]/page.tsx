@@ -222,7 +222,7 @@ export default async function CoursePlayerPage({
           {t.dashboard.courses.player.back}
         </Link>
         {isCompleted && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
             {t.dashboard.courses.player.completedBadge}
           </span>
@@ -324,7 +324,7 @@ export default async function CoursePlayerPage({
                           >
                             {done ? (
                               <CheckCircle2
-                                className="h-4 w-4 shrink-0 text-emerald-600"
+                                className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300"
                                 aria-hidden
                               />
                             ) : (

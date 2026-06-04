@@ -90,7 +90,7 @@ export default async function TenantDataExportPage({
         className="border-border bg-card flex items-start gap-3 rounded-2xl border p-4"
       >
         <ShieldAlert
-          className="mt-0.5 size-5 text-amber-600"
+          className="mt-0.5 size-5 text-amber-600 dark:text-amber-200"
           aria-hidden="true"
         />
         <div className="text-sm">

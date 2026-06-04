@@ -107,11 +107,11 @@ export default async function TenantWebhooksPage({
   function statusBadge(status: string): { label: string; tone: string } {
     switch (status) {
       case 'success':
-        return { label: w_.statusSuccess, tone: 'bg-green-100 text-green-800' }
+        return { label: w_.statusSuccess, tone: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300' }
       case 'failed':
-        return { label: w_.statusFailed, tone: 'bg-red-100 text-red-800' }
+        return { label: w_.statusFailed, tone: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300' }
       case 'pending':
-        return { label: w_.statusPending, tone: 'bg-amber-100 text-amber-800' }
+        return { label: w_.statusPending, tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200' }
       case 'dead_letter':
         return { label: w_.statusDeadLetter, tone: 'bg-zinc-200 text-zinc-800' }
       default:
@@ -182,7 +182,7 @@ export default async function TenantWebhooksPage({
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                             wh.enabled
-                              ? 'bg-green-100 text-green-800'
+                              ? 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300'
                               : 'bg-muted text-muted-foreground'
                           }`}
                         >

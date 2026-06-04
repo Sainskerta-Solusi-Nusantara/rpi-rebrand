@@ -95,7 +95,7 @@ export default async function TenantBenchmarksPage({
         className="border-border bg-card rounded-2xl border p-6"
       >
         <div className="flex items-start gap-3">
-          <div className="grid size-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700">
+          <div className="grid size-9 place-items-center rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
             <ShieldCheck className="h-5 w-5" aria-hidden="true" />
           </div>
           <div className="space-y-2">

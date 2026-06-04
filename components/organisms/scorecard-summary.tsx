@@ -10,10 +10,10 @@ const RECOMMENDATION_LABELS: Record<string, string> = {
 }
 
 const RECOMMENDATION_TONE: Record<string, string> = {
-  strong_hire: 'bg-green-100 text-green-800',
-  hire: 'bg-emerald-100 text-emerald-800',
-  no_hire: 'bg-amber-100 text-amber-800',
-  strong_no_hire: 'bg-red-100 text-red-800',
+  strong_hire: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
+  hire: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
+  no_hire: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200',
+  strong_no_hire: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
 }
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', {

@@ -68,7 +68,7 @@ export function AdminReset2faForm({
   return (
     <div className="space-y-4">
       {!totpEnabled && (
-        <p className="rounded-md border border-amber-300/40 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+        <p className="rounded-md border border-amber-300 dark:border-amber-500/30/40 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
           {tr.notEnabledNote}
         </p>
       )}

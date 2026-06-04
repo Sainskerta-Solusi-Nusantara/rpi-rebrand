@@ -9,8 +9,8 @@ import { formatNumber, formatDate as formatDateI18n } from '@/lib/i18n/format'
 export const metadata = { title: 'Manajemen Asesmen' }
 
 const STATUS_TONES: Record<string, string> = {
-  DRAFT: 'bg-amber-100 text-amber-900',
-  PUBLISHED: 'bg-emerald-100 text-emerald-800',
+  DRAFT: 'bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-200',
+  PUBLISHED: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
   ARCHIVED: 'bg-stone-200 text-stone-800',
 }
 

@@ -70,12 +70,12 @@ export default async function AdminResetTwoFactorPage({
             <dt className="text-muted-foreground text-xs uppercase">{tf.twoFactor}</dt>
             <dd className="mt-1 text-sm font-medium">
               {enabled ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
                   <ShieldCheck className="h-3 w-3" aria-hidden="true" />
                   {tf.active}
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
                   <ShieldX className="h-3 w-3" aria-hidden="true" />
                   {tf.inactive}
                 </span>

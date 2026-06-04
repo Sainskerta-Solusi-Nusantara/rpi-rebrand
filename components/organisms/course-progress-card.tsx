@@ -126,17 +126,17 @@ export async function CourseProgressCard({
       </p>
 
       {certificate && (
-        <div className="border-border bg-emerald-50 flex flex-wrap items-start gap-3 rounded-lg border p-3">
+        <div className="border-border bg-emerald-50 dark:bg-emerald-500/10 flex flex-wrap items-start gap-3 rounded-lg border p-3">
           <ShieldCheck
-            className="mt-0.5 h-5 w-5 text-emerald-700"
+            className="mt-0.5 h-5 w-5 text-emerald-700 dark:text-emerald-300"
             aria-hidden
           />
           <div className="flex-1">
-            <p className="text-emerald-900 text-sm font-medium">
+            <p className="text-emerald-900 dark:text-emerald-300 text-sm font-medium">
               Sertifikat tersedia
             </p>
             {certificate.certificateNumber && (
-              <p className="font-mono text-emerald-800 text-xs">
+              <p className="font-mono text-emerald-800 dark:text-emerald-300 text-xs">
                 {certificate.certificateNumber}
               </p>
             )}
@@ -171,7 +171,7 @@ export async function CourseProgressCard({
                   >
                     {done ? (
                       <CheckCircle2
-                        className="h-3.5 w-3.5 shrink-0 text-emerald-600"
+                        className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-300"
                         aria-hidden
                       />
                     ) : (
@@ -194,8 +194,8 @@ export async function CourseProgressCard({
                         className={
                           'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ' +
                           (quizPassed
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-amber-100 text-amber-700')
+                            ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-200')
                         }
                         title={quizPassed ? 'Kuis lulus' : 'Kuis belum lulus'}
                       >

@@ -30,16 +30,16 @@ const dateFmt = new Intl.DateTimeFormat('id-ID', {
 
 const STATUS_TONE: Record<string, string> = {
   scheduled: 'bg-violet-100 text-violet-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
+  completed: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
+  cancelled: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
   no_show: 'bg-slate-100 text-slate-800',
 }
 
 const RECOMMENDATION_CHIP: Record<RecommendationValue, string> = {
-  strong_hire: 'bg-green-100 text-green-800',
-  hire: 'bg-emerald-100 text-emerald-800',
-  no_hire: 'bg-red-100 text-red-800',
-  strong_no_hire: 'bg-rose-100 text-rose-800',
+  strong_hire: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
+  hire: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
+  no_hire: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
+  strong_no_hire: 'bg-rose-100 dark:bg-rose-500/15 text-rose-800 dark:text-rose-300',
 }
 
 function recommendationChip(value: string): string {

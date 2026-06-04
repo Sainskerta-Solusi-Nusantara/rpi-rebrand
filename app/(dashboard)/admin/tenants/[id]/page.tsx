@@ -10,9 +10,9 @@ import { formatDate, formatNumber } from '@/lib/i18n/format'
 export const metadata = { title: 'Detail Tenant — Admin' }
 
 const STATUS_TONES: Record<string, string> = {
-  ACTIVE: 'bg-green-100 text-green-800',
-  SUSPENDED: 'bg-red-100 text-red-800',
-  PROVISIONING: 'bg-amber-100 text-amber-800',
+  ACTIVE: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
+  SUSPENDED: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
+  PROVISIONING: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200',
 }
 
 export default async function AdminTenantDetailPage({

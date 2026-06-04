@@ -193,7 +193,7 @@ export default async function CandidateAssessmentsPage({
                       <Icon className="h-5 w-5" />
                     </span>
                     {passed && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">
                         <BadgeCheck
                           className="h-3 w-3"
                           aria-hidden="true"

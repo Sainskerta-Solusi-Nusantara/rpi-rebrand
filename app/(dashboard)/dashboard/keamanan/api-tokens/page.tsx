@@ -16,12 +16,12 @@ function expiryLabel(expiresAt: Date | null, revokedAt: Date | null): { label: s
   if (revokedAt) {
     return { label: 'Dicabut', tone: 'bg-muted text-muted-foreground' }
   }
-  if (!expiresAt) return { label: 'Tidak kedaluwarsa', tone: 'bg-green-100 text-green-800' }
+  if (!expiresAt) return { label: 'Tidak kedaluwarsa', tone: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300' }
   const now = Date.now()
   const exp = expiresAt.getTime()
-  if (exp < now) return { label: 'Kedaluwarsa', tone: 'bg-red-100 text-red-800' }
+  if (exp < now) return { label: 'Kedaluwarsa', tone: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300' }
   const days = Math.ceil((exp - now) / (24 * 60 * 60 * 1000))
-  if (days <= 7) return { label: `Berakhir dalam ${days}h`, tone: 'bg-amber-100 text-amber-800' }
+  if (days <= 7) return { label: `Berakhir dalam ${days}h`, tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200' }
   return { label: `Berakhir ${dateShort.format(expiresAt)}`, tone: 'bg-muted text-muted-foreground' }
 }
 

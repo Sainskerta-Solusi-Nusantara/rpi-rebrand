@@ -68,14 +68,14 @@ export function SyncInterviewButton({
             href={syncedMapping.htmlLink}
             target="_blank"
             rel="noreferrer noopener"
-            className="inline-flex items-center gap-1.5 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-800 hover:bg-green-100"
+            className="inline-flex items-center gap-1.5 rounded-md border border-green-300 dark:border-green-500/30 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-800 dark:text-green-300 hover:bg-green-100 dark:bg-green-500/15"
           >
             <CalendarCheck className="h-3.5 w-3.5" aria-hidden="true" />
             Tersinkron · Buka di Google Calendar
             <ExternalLink className="h-3 w-3" aria-hidden="true" />
           </a>
         ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-800">
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-green-300 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-800 dark:text-green-300">
             <CalendarCheck className="h-3.5 w-3.5" aria-hidden="true" />
             Tersinkron
           </span>

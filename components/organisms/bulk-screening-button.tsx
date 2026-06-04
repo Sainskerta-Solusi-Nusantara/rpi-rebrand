@@ -60,7 +60,7 @@ export function BulkScreeningButton({ tenantSlug, jobId, jobTitle }: Props) {
           )}
           {tl.buttonLabel}
         </button>
-        {error ? <p className="text-xs text-red-600">{error}</p> : null}
+        {error ? <p className="text-xs text-red-600 dark:text-red-300">{error}</p> : null}
       </div>
 
       {summary ? (
@@ -89,11 +89,11 @@ export function BulkScreeningButton({ tenantSlug, jobId, jobTitle }: Props) {
                 </dt>
                 <dd className="font-semibold">{summary.total}</dd>
               </div>
-              <div className="rounded-md bg-green-50 p-2 text-green-800">
+              <div className="rounded-md bg-green-50 dark:bg-green-500/10 p-2 text-green-800 dark:text-green-300">
                 <dt className="text-[10px] uppercase">{tl.statSucceeded}</dt>
                 <dd className="font-semibold">{summary.succeeded}</dd>
               </div>
-              <div className="rounded-md bg-red-50 p-2 text-red-800">
+              <div className="rounded-md bg-red-50 dark:bg-red-500/10 p-2 text-red-800 dark:text-red-300">
                 <dt className="text-[10px] uppercase">{tl.statFailed}</dt>
                 <dd className="font-semibold">{summary.errors}</dd>
               </div>

@@ -78,7 +78,7 @@ function NoteItem({
       id={`note-${note.id}`}
       className={
         note.pinned && isTopLevel
-          ? 'border-amber-300 bg-amber-50/60 rounded-lg border p-3'
+          ? 'border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10/60 rounded-lg border p-3'
           : 'rounded-lg p-3'
       }
     >
@@ -112,7 +112,7 @@ function NoteItem({
               </span>
             ) : null}
             {note.pinned && isTopLevel ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-200/70 px-2 py-0.5 text-[10px] font-medium text-amber-900">
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-200/70 px-2 py-0.5 text-[10px] font-medium text-amber-900 dark:text-amber-200">
                 <Pin className="h-3 w-3" aria-hidden="true" />
                 Disematkan
               </span>

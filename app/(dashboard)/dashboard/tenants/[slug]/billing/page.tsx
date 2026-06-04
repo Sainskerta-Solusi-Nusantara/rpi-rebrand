@@ -21,9 +21,9 @@ const dateShort = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' })
 
 const planTone: Record<string, string> = {
   FREE: 'bg-muted text-muted-foreground',
-  PRO: 'bg-blue-100 text-blue-800',
-  BUSINESS: 'bg-purple-100 text-purple-800',
-  ENTERPRISE: 'bg-amber-100 text-amber-900',
+  PRO: 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300',
+  BUSINESS: 'bg-purple-100 dark:bg-purple-500/15 text-purple-800 dark:text-purple-300',
+  ENTERPRISE: 'bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-200',
 }
 
 export default async function TenantBillingPage({
@@ -78,13 +78,13 @@ export default async function TenantBillingPage({
   function subscriptionStatusLabel(status: string): { label: string; tone: string } {
     switch (status) {
       case 'active':
-        return { label: t.pagesTenant1.billing.statusActive, tone: 'bg-green-100 text-green-800' }
+        return { label: t.pagesTenant1.billing.statusActive, tone: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300' }
       case 'cancelled':
         return { label: t.pagesTenant1.billing.statusCancelled, tone: 'bg-muted text-muted-foreground' }
       case 'past_due':
-        return { label: t.pagesTenant1.billing.statusPastDue, tone: 'bg-red-100 text-red-800' }
+        return { label: t.pagesTenant1.billing.statusPastDue, tone: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300' }
       case 'trialing':
-        return { label: t.pagesTenant1.billing.statusTrialing, tone: 'bg-amber-100 text-amber-900' }
+        return { label: t.pagesTenant1.billing.statusTrialing, tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-200' }
       default:
         return { label: status, tone: 'bg-muted text-muted-foreground' }
     }
@@ -127,7 +127,7 @@ export default async function TenantBillingPage({
       {!stripeReady && (
         <div
           role="note"
-          className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          className="flex items-start gap-2 rounded-md border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200"
         >
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>

@@ -290,7 +290,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
                           <span className="text-muted-foreground text-[10px] font-medium uppercase">
                             #{idx + 1}
                           </span>
-                          <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
+                          <span className="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-500/15 px-2 py-0.5 text-[10px] font-medium text-purple-800 dark:text-purple-300">
                             {tq.questionTypeLabels[q.type as QuizQuestionType] ??
                               q.type}
                           </span>
@@ -304,7 +304,7 @@ export function QuizEditor({ lessonId }: { lessonId: string }) {
                               key={c.id}
                               className={
                                 c.isCorrect
-                                  ? 'text-emerald-700 font-medium'
+                                  ? 'text-emerald-700 dark:text-emerald-300 font-medium'
                                   : ''
                               }
                             >

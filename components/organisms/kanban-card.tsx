@@ -21,9 +21,9 @@ type Props = {
 /** Tiny corner chip showing the AI score with traffic-light colors. */
 function aiTone(score: number | null): string {
   if (score === null) return 'bg-zinc-100 text-zinc-700'
-  if (score >= 75) return 'bg-green-100 text-green-800'
-  if (score >= 50) return 'bg-amber-100 text-amber-800'
-  return 'bg-red-100 text-red-800'
+  if (score >= 75) return 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300'
+  if (score >= 50) return 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200'
+  return 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300'
 }
 
 /** "5 menit yang lalu", "2 jam", "3 hari" — short relative time in Indonesian. */

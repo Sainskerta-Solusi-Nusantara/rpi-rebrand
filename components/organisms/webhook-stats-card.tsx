@@ -107,17 +107,17 @@ export async function WebhookStatsCard({
         <Stat
           label={ns.statSuccess}
           value={numberFmt.format(stats.success)}
-          icon={<CheckCircle2 className="h-4 w-4 text-green-600" />}
+          icon={<CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-300" />}
         />
         <Stat
           label={ns.statPending}
           value={numberFmt.format(stats.pending)}
-          icon={<Clock className="h-4 w-4 text-amber-600" />}
+          icon={<Clock className="h-4 w-4 text-amber-600 dark:text-amber-200" />}
         />
         <Stat
           label={ns.statFailed}
           value={numberFmt.format(stats.failed)}
-          icon={<XCircle className="h-4 w-4 text-red-600" />}
+          icon={<XCircle className="h-4 w-4 text-red-600 dark:text-red-300" />}
         />
         <Stat
           label={ns.statDeadLetter}

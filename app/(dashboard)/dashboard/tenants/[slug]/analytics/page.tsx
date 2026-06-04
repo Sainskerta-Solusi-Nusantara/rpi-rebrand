@@ -37,9 +37,9 @@ const statusLabels: Record<string, string> = {
 
 const statusTones: Record<string, string> = {
   DRAFT: 'bg-muted text-muted-foreground',
-  PUBLISHED: 'bg-green-100 text-green-800',
-  PAUSED: 'bg-amber-100 text-amber-800',
-  CLOSED: 'bg-red-100 text-red-800',
+  PUBLISHED: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
+  PAUSED: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200',
+  CLOSED: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
   ARCHIVED: 'bg-muted text-muted-foreground',
 }
 

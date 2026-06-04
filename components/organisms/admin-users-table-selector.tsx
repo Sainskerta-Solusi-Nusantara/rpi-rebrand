@@ -132,7 +132,7 @@ export function AdminUsersTableSelector({ users }: { users: AdminUserRow[] }) {
                   <td className="p-3">{statusLabels[u.status] ?? u.status}</td>
                   <td className="p-3">
                     {u.emailVerified ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
                         <ShieldCheck className="h-3 w-3" aria-hidden="true" />
                         {tc.verifiedYes}
                       </span>

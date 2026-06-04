@@ -11,9 +11,9 @@ import type { Dictionary } from '@/lib/i18n/dictionary'
 export const metadata = { title: 'Detail Laporan' }
 
 const STATUS_CLS: Record<string, string> = {
-  pending: 'bg-amber-100 text-amber-800 border-amber-200',
-  reviewing: 'bg-blue-100 text-blue-800 border-blue-200',
-  resolved: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  pending: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-500/30',
+  reviewing: 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-500/30',
+  resolved: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30',
   dismissed: 'bg-muted text-muted-foreground border-border',
 }
 

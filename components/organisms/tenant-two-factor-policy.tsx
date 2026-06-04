@@ -98,7 +98,7 @@ export function TenantTwoFactorPolicy({
       </div>
 
       {required && pendingCount > 0 && (
-        <div className="border-amber-300/40 bg-amber-50 dark:bg-amber-950/30 rounded-md border p-3 text-sm">
+        <div className="border-amber-300 dark:border-amber-500/30/40 bg-amber-50 dark:bg-amber-950/30 rounded-md border p-3 text-sm">
           <p className="font-medium text-amber-900 dark:text-amber-200">
             {pendingCount} anggota belum mengaktifkan 2FA.
           </p>

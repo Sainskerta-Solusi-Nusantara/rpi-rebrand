@@ -33,9 +33,9 @@ function formatPlatform(value: number | null, unit: BenchmarkMetric['unit'], mar
 }
 
 const STATUS_TONE: Record<BenchmarkMetric['status'], string> = {
-  above: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  above: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30',
   at: 'bg-muted text-muted-foreground border-border',
-  below: 'bg-rose-100 text-rose-800 border-rose-200',
+  below: 'bg-rose-100 dark:bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-500/30',
   unknown: 'bg-muted text-muted-foreground border-border',
 }
 

@@ -244,7 +244,7 @@ export function AssessmentEditor({
       {info && !error && (
         <p
           role="status"
-          className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs text-emerald-800"
+          className="rounded-md border border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300"
         >
           {info}
         </p>
@@ -448,7 +448,7 @@ export function AssessmentEditor({
                       <span className="text-muted-foreground text-[10px] font-medium uppercase">
                         #{idx + 1}
                       </span>
-                      <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
+                      <span className="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-500/15 px-2 py-0.5 text-[10px] font-medium text-purple-800 dark:text-purple-300">
                         {fe.questionType[
                           q.type as AssessmentQuestionType
                         ] ?? q.type}
@@ -462,7 +462,7 @@ export function AssessmentEditor({
                         <li
                           key={c.id}
                           className={
-                            c.isCorrect ? 'text-emerald-700 font-medium' : ''
+                            c.isCorrect ? 'text-emerald-700 dark:text-emerald-300 font-medium' : ''
                           }
                         >
                           {c.isCorrect ? '✓ ' : '· '}

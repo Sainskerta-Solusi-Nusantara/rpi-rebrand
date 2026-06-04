@@ -89,7 +89,7 @@ export default async function TenantCoursesPage({
 
   const STATUS_LABELS: Record<CourseStatus, { label: string; tone: string }> = {
     DRAFT: { label: t.pagesTenant2.coursesList.statusDraft, tone: 'bg-muted text-muted-foreground' },
-    PUBLISHED: { label: t.pagesTenant2.coursesList.statusPublished, tone: 'bg-green-100 text-green-800' },
+    PUBLISHED: { label: t.pagesTenant2.coursesList.statusPublished, tone: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300' },
     ARCHIVED: { label: t.pagesTenant2.coursesList.statusArchived, tone: 'bg-stone-200 text-stone-700' },
   }
 

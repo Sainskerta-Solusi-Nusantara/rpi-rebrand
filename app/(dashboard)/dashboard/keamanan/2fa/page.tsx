@@ -30,7 +30,7 @@ export default async function Setup2faPage() {
           {t.dashboard.security.twoFactorPage.backLink}
         </Link>
         <h1 className="font-heading text-2xl md:text-3xl">{t.dashboard.security.twoFactorPage.title}</h1>
-        <p className="rounded-md border border-amber-300/40 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+        <p className="rounded-md border border-amber-300 dark:border-amber-500/30/40 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
           {t.dashboard.security.twoFactorPage.needsPasswordNote}
         </p>
         <Link

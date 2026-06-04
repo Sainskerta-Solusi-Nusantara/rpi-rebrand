@@ -27,7 +27,7 @@ const STATUSES: {
     status: 'REVIEWED',
     label: 'Sedang ditinjau',
     description: 'Dikirim saat lamaran mulai ditinjau tim rekrutmen.',
-    tone: 'bg-blue-100 text-blue-800',
+    tone: 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300',
   },
   {
     status: 'SHORTLISTED',
@@ -39,25 +39,25 @@ const STATUSES: {
     status: 'INTERVIEW',
     label: 'Diundang wawancara',
     description: 'Dikirim saat kandidat diundang untuk wawancara.',
-    tone: 'bg-amber-100 text-amber-800',
+    tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200',
   },
   {
     status: 'OFFERED',
     label: 'Diberi penawaran',
     description: 'Dikirim saat tenant mengajukan penawaran kerja.',
-    tone: 'bg-emerald-100 text-emerald-800',
+    tone: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
   },
   {
     status: 'HIRED',
     label: 'Diterima bekerja',
     description: 'Dikirim saat kandidat resmi diterima.',
-    tone: 'bg-green-100 text-green-800',
+    tone: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
   },
   {
     status: 'REJECTED',
     label: 'Tidak diteruskan',
     description: 'Dikirim saat lamaran tidak dilanjutkan ke tahap berikutnya.',
-    tone: 'bg-red-100 text-red-800',
+    tone: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
   },
 ]
 
@@ -177,8 +177,8 @@ export default async function TenantEmailTemplatesPage({
             const stateLabel = !initial
               ? { text: 'Pakai default', tone: 'bg-muted text-muted-foreground' }
               : initial.enabled
-                ? { text: 'Custom aktif', tone: 'bg-emerald-100 text-emerald-800' }
-                : { text: 'Custom (nonaktif)', tone: 'bg-amber-100 text-amber-800' }
+                ? { text: 'Custom aktif', tone: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300' }
+                : { text: 'Custom (nonaktif)', tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200' }
             return (
               <details
                 key={s.status}

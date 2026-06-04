@@ -37,10 +37,10 @@ const btnGhostSm =
   'text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs disabled:cursor-not-allowed disabled:opacity-60'
 
 const CONTENT_TYPE_TONES: Record<LessonContentType, string> = {
-  VIDEO: 'bg-blue-100 text-blue-800',
-  ARTICLE: 'bg-emerald-100 text-emerald-800',
-  QUIZ: 'bg-purple-100 text-purple-800',
-  ASSIGNMENT: 'bg-amber-100 text-amber-800',
+  VIDEO: 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300',
+  ARTICLE: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
+  QUIZ: 'bg-purple-100 dark:bg-purple-500/15 text-purple-800 dark:text-purple-300',
+  ASSIGNMENT: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200',
   DOWNLOAD: 'bg-stone-200 text-stone-800',
 }
 

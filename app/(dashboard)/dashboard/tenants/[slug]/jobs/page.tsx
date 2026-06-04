@@ -22,9 +22,9 @@ const STATUSES: JobStatus[] = [
 
 const STATUS_LABELS: Record<JobStatus, { label: string; tone: string }> = {
   DRAFT: { label: 'Draft', tone: 'bg-muted text-muted-foreground' },
-  PUBLISHED: { label: 'Dipublikasikan', tone: 'bg-green-100 text-green-800' },
-  PAUSED: { label: 'Dijeda', tone: 'bg-amber-100 text-amber-800' },
-  CLOSED: { label: 'Ditutup', tone: 'bg-red-100 text-red-800' },
+  PUBLISHED: { label: 'Dipublikasikan', tone: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300' },
+  PAUSED: { label: 'Dijeda', tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200' },
+  CLOSED: { label: 'Ditutup', tone: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300' },
   ARCHIVED: { label: 'Diarsipkan', tone: 'bg-stone-200 text-stone-700' },
 }
 

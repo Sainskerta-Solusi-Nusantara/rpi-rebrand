@@ -110,7 +110,7 @@ export default async function KeamananPage({
 
         {snapshot.emailVerifiedAt ? (
           <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+            <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
               {t.dashboard.security.verifiedBadge}
             </span>
             <span className="text-muted-foreground">
@@ -161,7 +161,7 @@ export default async function KeamananPage({
         {snapshot.totpEnabledAt ? (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
                 {t.dashboard.security.twoFactorEnabled}
               </span>
               <span className="text-muted-foreground text-xs">
@@ -171,7 +171,7 @@ export default async function KeamananPage({
             <p className="text-muted-foreground text-sm">
               {t.dashboard.security.recoveryCodesRemaining} <span className="text-foreground font-medium">{snapshot.recoveryCodeCount}</span>
               {snapshot.recoveryCodeCount <= 2 && snapshot.recoveryCodeCount > 0 && (
-                <span className="text-amber-700 ml-2">
+                <span className="text-amber-700 dark:text-amber-200 ml-2">
                   {t.dashboard.security.recoveryCodesLow}
                 </span>
               )}
@@ -235,7 +235,7 @@ export default async function KeamananPage({
             <span
               className={
                 snapshot.googleLinked
-                  ? 'inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800'
+                  ? 'inline-flex items-center rounded-full bg-green-100 dark:bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300'
                   : 'bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium'
               }
             >
@@ -368,7 +368,7 @@ export default async function KeamananPage({
                         <span
                           className={
                             isLogin
-                              ? 'inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800'
+                              ? 'inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-300'
                               : 'bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium'
                           }
                         >

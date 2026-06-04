@@ -107,24 +107,24 @@ export function QuizTaker({
           className={
             'border-border rounded-lg border p-6 text-center ' +
             (result.passed
-              ? 'bg-emerald-50'
-              : 'bg-rose-50')
+              ? 'bg-emerald-50 dark:bg-emerald-500/10'
+              : 'bg-rose-50 dark:bg-rose-500/10')
           }
         >
           <div className="flex justify-center">
             {result.passed ? (
               <CheckCircle2
-                className="h-10 w-10 text-emerald-600"
+                className="h-10 w-10 text-emerald-600 dark:text-emerald-300"
                 aria-hidden="true"
               />
             ) : (
-              <XCircle className="h-10 w-10 text-rose-600" aria-hidden="true" />
+              <XCircle className="h-10 w-10 text-rose-600 dark:text-rose-300" aria-hidden="true" />
             )}
           </div>
           <p
             className={
               'mt-3 text-xl font-semibold ' +
-              (result.passed ? 'text-emerald-800' : 'text-rose-800')
+              (result.passed ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300')
             }
           >
             {result.passed ? 'Lulus!' : 'Belum lulus'}

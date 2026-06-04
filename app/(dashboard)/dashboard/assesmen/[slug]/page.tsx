@@ -72,7 +72,7 @@ export default async function AssessmentIntroPage({
             {CATEGORY_LABELS[assessment.category] ?? assessment.category}
           </span>
           {!isPublished && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-900">
+            <span className="rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-900 dark:text-amber-200">
               Status: {assessment.status}
             </span>
           )}
@@ -120,11 +120,11 @@ export default async function AssessmentIntroPage({
 
       {/* Active in-flight attempt → "Lanjutkan" */}
       {activeAttempt && (
-        <section className="rounded-lg border border-sky-300 bg-sky-50 p-4">
-          <p className="text-sky-900 text-sm font-semibold">
+        <section className="rounded-lg border border-sky-300 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 p-4">
+          <p className="text-sky-900 dark:text-sky-300 text-sm font-semibold">
             Anda memiliki percobaan yang belum selesai.
           </p>
-          <p className="text-sky-900/80 mt-1 text-xs">
+          <p className="text-sky-900 dark:text-sky-300/80 mt-1 text-xs">
             Dimulai pada {formatDateTime(activeAttempt.startedAt)}.
           </p>
           <Link
@@ -141,21 +141,21 @@ export default async function AssessmentIntroPage({
 
       {/* Passed already → certificate-like card */}
       {bestPassed && (
-        <section className="rounded-lg border border-emerald-300 bg-emerald-50 p-5">
+        <section className="rounded-lg border border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-5">
           <div className="flex items-start gap-3">
             <BadgeCheck
-              className="mt-0.5 h-6 w-6 text-emerald-700"
+              className="mt-0.5 h-6 w-6 text-emerald-700 dark:text-emerald-300"
               aria-hidden="true"
             />
             <div className="min-w-0 flex-1">
-              <p className="font-heading text-emerald-900 text-base font-semibold">
+              <p className="font-heading text-emerald-900 dark:text-emerald-300 text-base font-semibold">
                 Anda telah lulus asesmen ini
               </p>
-              <p className="text-emerald-900/80 mt-1 text-sm">
+              <p className="text-emerald-900 dark:text-emerald-300/80 mt-1 text-sm">
                 Skor terbaik: <strong>{bestPassed.score}/100</strong> · diselesaikan{' '}
                 {formatDateTime(bestPassed.completedAt)}.
               </p>
-              <p className="text-emerald-900/70 mt-1 text-xs">
+              <p className="text-emerald-900 dark:text-emerald-300/70 mt-1 text-xs">
                 Lencana muncul di profil publik Anda (jika dipublikasikan).
               </p>
             </div>
@@ -182,7 +182,7 @@ export default async function AssessmentIntroPage({
       )}
 
       {!isPublished && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs text-amber-900">
+        <div className="rounded-lg border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 text-xs text-amber-900 dark:text-amber-200">
           Asesmen ini belum dipublikasikan. Anda dapat melihat detailnya, namun
           percobaan baru tidak dapat dimulai.
         </div>
@@ -203,7 +203,7 @@ export default async function AssessmentIntroPage({
                 <span>
                   {formatDateTime(h.completedAt ?? h.startedAt)}
                   {!h.completedAt && (
-                    <span className="ml-2 inline-block rounded-full bg-sky-100 px-2 py-0.5 text-[10px] text-sky-900">
+                    <span className="ml-2 inline-block rounded-full bg-sky-100 dark:bg-sky-500/15 px-2 py-0.5 text-[10px] text-sky-900 dark:text-sky-300">
                       Belum selesai
                     </span>
                   )}
@@ -214,7 +214,7 @@ export default async function AssessmentIntroPage({
                       {h.score}/100 ·{' '}
                       <span
                         className={
-                          h.passed ? 'text-emerald-700' : 'text-rose-700'
+                          h.passed ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'
                         }
                       >
                         {h.passed ? 'Lulus' : 'Tidak lulus'}

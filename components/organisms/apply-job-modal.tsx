@@ -135,7 +135,7 @@ export function ApplyJobModal({
       {success ? (
         <div
           role="status"
-          className="space-y-3 rounded-md border border-emerald-300/40 bg-emerald-50 p-4 text-sm text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200"
+          className="space-y-3 rounded-md border border-emerald-300 dark:border-emerald-500/30/40 bg-emerald-50 p-4 text-sm text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200"
         >
           <div className="flex items-start gap-2">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
