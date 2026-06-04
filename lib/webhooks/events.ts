@@ -12,6 +12,13 @@ export const WEBHOOK_EVENTS = [
   'tenant.branding.updated',
   'tenant.api_key.created',
   'tenant.api_key.revoked',
+  'tenant.job.created',
+  'tenant.job.updated',
+  'tenant.job.published',
+  'tenant.job.status_changed',
+  'tenant.job.deleted',
+  'tenant.application.submitted',
+  'tenant.plan.changed',
 ] as const
 
 export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number]
@@ -24,6 +31,13 @@ export const WEBHOOK_EVENT_LABELS: Record<WebhookEvent, string> = {
   'tenant.branding.updated': 'Branding tenant diperbarui',
   'tenant.api_key.created': 'API key tenant dibuat',
   'tenant.api_key.revoked': 'API key tenant dicabut',
+  'tenant.job.created': 'Lowongan dibuat',
+  'tenant.job.updated': 'Lowongan diperbarui',
+  'tenant.job.published': 'Lowongan dipublikasikan',
+  'tenant.job.status_changed': 'Status lowongan diubah',
+  'tenant.job.deleted': 'Lowongan dihapus',
+  'tenant.application.submitted': 'Lamaran masuk',
+  'tenant.plan.changed': 'Paket langganan diubah',
 }
 
 /** Type guard – useful when validating data from forms / external input. */

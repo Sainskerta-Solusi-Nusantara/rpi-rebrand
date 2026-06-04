@@ -17,6 +17,7 @@ import { auth } from '@/lib/auth/session'
 import { hasTenantPermission, type Permission } from '@/lib/auth/rbac'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 import { localizedParse } from '@/lib/i18n/zod-error-map'
+import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -344,8 +345,19 @@ export async function createJob(input: {
       },
     })
 
-    // TODO(webhooks): emit tenant.job.created — pending allowlist update in
-    // lib/webhooks/events.ts.
+    dispatchTenantEvent(ctx.tenant.id, 'tenant.job.created', {
+      jobId: created.id,
+      slug: created.slug,
+      title: d.title,
+      status: d.status,
+    })
+    if (d.status === JobStatus.PUBLISHED) {
+      dispatchTenantEvent(ctx.tenant.id, 'tenant.job.published', {
+        jobId: created.id,
+        slug: created.slug,
+        title: d.title,
+      })
+    }
 
     revalidatePath(`/dashboard/tenants/${ctx.tenant.slug}/jobs`)
     return { ok: true, data: { id: created.id, slug: created.slug } }
@@ -452,8 +464,22 @@ export async function updateJob(input: {
       },
     })
 
-    // TODO(webhooks): emit tenant.job.updated / tenant.job.published — pending
-    // allowlist update in lib/webhooks/events.ts.
+    dispatchTenantEvent(ctx.tenant.id, 'tenant.job.updated', {
+      jobId: ctx.job.id,
+      slug: ctx.job.slug,
+      title: d.title,
+      status: d.status,
+      previousStatus: ctx.job.status,
+    })
+    // First-time publish via the edit form: emit the dedicated published event
+    // so subscribers filtering only on tenant.job.published still fire.
+    if (willPublish && ctx.job.publishedAt === null) {
+      dispatchTenantEvent(ctx.tenant.id, 'tenant.job.published', {
+        jobId: ctx.job.id,
+        slug: ctx.job.slug,
+        title: d.title,
+      })
+    }
 
     revalidatePath(`/dashboard/tenants/${ctx.tenant.slug}/jobs`)
     revalidatePath(
@@ -521,7 +547,22 @@ export async function changeJobStatus(input: {
       },
     })
 
-    // TODO(webhooks): emit tenant.job.status_changed — pending allowlist update.
+    dispatchTenantEvent(ctx.tenant.id, 'tenant.job.status_changed', {
+      jobId: ctx.job.id,
+      slug: ctx.job.slug,
+      title: ctx.job.title,
+      status: nextStatus,
+      previousStatus: ctx.job.status,
+    })
+    // A status flip into PUBLISHED (for the first time) also emits the
+    // dedicated published event, mirroring updateJob.
+    if (nextStatus === JobStatus.PUBLISHED && ctx.job.publishedAt === null) {
+      dispatchTenantEvent(ctx.tenant.id, 'tenant.job.published', {
+        jobId: ctx.job.id,
+        slug: ctx.job.slug,
+        title: ctx.job.title,
+      })
+    }
 
     revalidatePath(`/dashboard/tenants/${ctx.tenant.slug}/jobs`)
     return { ok: true }
@@ -564,7 +605,12 @@ export async function deleteJob(jobId: string): Promise<ActionResult> {
       }),
     ])
 
-    // TODO(webhooks): emit tenant.job.deleted — pending allowlist update.
+    dispatchTenantEvent(ctx.tenant.id, 'tenant.job.deleted', {
+      jobId: ctx.job.id,
+      slug: ctx.job.slug,
+      title: ctx.job.title,
+      status: ctx.job.status,
+    })
 
     revalidatePath(`/dashboard/tenants/${ctx.tenant.slug}/jobs`)
     return { ok: true }

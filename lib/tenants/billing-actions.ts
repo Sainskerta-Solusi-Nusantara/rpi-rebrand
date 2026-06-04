@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 import { localizedParse } from '@/lib/i18n/zod-error-map'
+import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 import { AuditAction, PlanTier, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
@@ -149,8 +150,12 @@ export async function updateTenantPlan(input: {
       })
     })
 
-    // TODO: dispatchTenantEvent(ctx.tenant.id, 'tenant.plan.changed', {...})
-    // once `tenant.plan.changed` is added to WEBHOOK_EVENTS allowlist.
+    dispatchTenantEvent(ctx.tenant.id, 'tenant.plan.changed', {
+      tenantId: ctx.tenant.id,
+      fromPlan,
+      toPlan: plan,
+      currentPeriodEnd: periodEnd.toISOString(),
+    })
 
     revalidatePath(`/dashboard/tenants/${tenantSlug}/billing`)
     revalidatePath(`/dashboard/tenants/${tenantSlug}`)

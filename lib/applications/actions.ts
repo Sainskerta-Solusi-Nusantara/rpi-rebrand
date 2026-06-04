@@ -15,6 +15,7 @@ import {
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
 import { localizedParse } from '@/lib/i18n/zod-error-map'
+import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 
 export type ActionResult = { ok: true } | { ok: false; error: string; field?: string }
 
@@ -278,9 +279,14 @@ export async function submitApplication(input: {
       }
     }
 
-    // TODO: dispatchTenantEvent('application.submitted', …) — event not yet in
-    // the WEBHOOK_EVENTS allowlist (lib/webhooks/events.ts). Skipped until that
-    // catalogue is extended; webhook subscribers cannot receive it yet.
+    dispatchTenantEvent(job.tenantId, 'tenant.application.submitted', {
+      applicationId: application.id,
+      jobId: job.id,
+      jobSlug: job.slug,
+      jobTitle: job.title,
+      applicantId: userId,
+      applicantName: applicantUser?.name ?? null,
+    })
 
     // -----------------------------------------------------------------
     // BEGIN: Referral viral hook — best-effort. Never block submission.
