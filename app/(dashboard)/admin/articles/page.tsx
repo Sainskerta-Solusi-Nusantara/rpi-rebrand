@@ -121,6 +121,7 @@ export default async function AdminArticlesPage({
             {ta.empty}
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wide">
               <tr>
@@ -165,6 +166,7 @@ export default async function AdminArticlesPage({
               })}
             </tbody>
           </table>
+          </div>
         )}
       </section>
 

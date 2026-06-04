@@ -232,7 +232,7 @@ export function CustomDomainSetupForm({
             {td.dnsVerifyHint}
           </p>
 
-          <div className="border-border overflow-hidden rounded-md border">
+          <div className="border-border overflow-x-auto rounded-md border">
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/40 text-muted-foreground">
                 <tr>
