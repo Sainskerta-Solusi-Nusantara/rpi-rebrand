@@ -7,7 +7,7 @@ import { AuditAction, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
-import { scoreApplication } from './screening'
+import { scoreApplicationAI } from './screening-ai'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 import { localizedParse } from '@/lib/i18n/zod-error-map'
 
@@ -177,11 +177,21 @@ export async function runScreening(input: {
       return { ok: false, error: t.srvApplications2.screening.incompleteData }
     }
 
-    const result = scoreApplication(inputs)
+    const result = await scoreApplicationAI(inputs)
 
     await prisma.application.update({
       where: { id: applicationId },
-      data: { aiScore: result.score, aiTags: result.tags },
+      data: {
+        aiScore: result.score,
+        aiTags: result.tags,
+        aiScoreBreakdown: {
+          breakdown: result.breakdown,
+          matchedSkills: result.matchedSkills,
+          reason: result.reason,
+          source: result.source,
+        } as Prisma.InputJsonValue,
+        aiScoredAt: new Date(),
+      },
     })
 
     const meta = getRequestMeta()
@@ -196,6 +206,8 @@ export async function runScreening(input: {
           score: result.score,
           tags: result.tags,
           breakdown: result.breakdown,
+          reason: result.reason,
+          source: result.source,
         } as Prisma.InputJsonValue,
         ip: meta.ip,
         userAgent: meta.userAgent,
@@ -319,7 +331,7 @@ export async function runScreeningForJob(input: {
       if (!user) throw new Error('user-missing')
       const primaryResume = resumeByUser.get(a.userId) ?? null
 
-      const result = scoreApplication({
+      const result = await scoreApplicationAI({
         application: { coverLetter: a.coverLetter },
         job: {
           title: job.title,
@@ -334,7 +346,17 @@ export async function runScreeningForJob(input: {
 
       await prisma.application.update({
         where: { id: a.id },
-        data: { aiScore: result.score, aiTags: result.tags },
+        data: {
+          aiScore: result.score,
+          aiTags: result.tags,
+          aiScoreBreakdown: {
+            breakdown: result.breakdown,
+            matchedSkills: result.matchedSkills,
+            reason: result.reason,
+            source: result.source,
+          } as Prisma.InputJsonValue,
+          aiScoredAt: new Date(),
+        },
       })
       return result
     }),
