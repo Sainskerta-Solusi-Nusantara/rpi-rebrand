@@ -25,10 +25,8 @@ import {
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasPermission, hasTenantPermission } from '@/lib/auth/rbac'
-import {
-  generateJobDescription,
-  type JdGeneratorOutput,
-} from './generate'
+import { type JdGeneratorOutput } from './generate'
+import { generateJobDescriptionAI } from './ai'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -126,7 +124,7 @@ export async function generateJdAction(
     }
   }
 
-  const output = generateJobDescription({
+  const { output, source } = await generateJobDescriptionAI({
     title: d.title,
     level: d.level,
     employmentType: d.employmentType,
@@ -150,6 +148,7 @@ export async function generateJdAction(
           level: d.level,
           employmentType: d.employmentType,
           locationType: d.locationType,
+          source,
         } as Prisma.InputJsonValue,
         ip: meta.ip,
         userAgent: meta.userAgent,
