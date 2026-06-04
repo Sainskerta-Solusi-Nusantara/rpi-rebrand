@@ -33,6 +33,7 @@ import { renderTemplate } from '@/lib/tenants/email-template-resolver'
 import { getServerLocale } from '@/lib/i18n/server-dictionary'
 import { srvApplications } from '@/lib/i18n/dictionaries/srv-applications'
 import { localizedParse } from '@/lib/i18n/zod-error-map'
+import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 
 export type BulkResult<T = undefined> =
   | { ok: true; data: T }
@@ -264,6 +265,12 @@ export async function bulkUpdateStatus(
         }),
       ])
       updated.push(app.id)
+      dispatchTenantEvent(app.tenantId, 'tenant.application.status_changed', {
+        applicationId: app.id,
+        status: targetStatus,
+        previousStatus: app.status,
+        batchId,
+      })
       if (app.tenant?.slug) tenantSlugs.add(app.tenant.slug)
     } catch (err) {
       console.error('[bulkUpdateStatus] row failed', app.id, err)

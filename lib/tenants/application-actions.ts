@@ -15,6 +15,7 @@ import {
 } from '@/lib/tenants/email-template-resolver'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 import { localizedParse } from '@/lib/i18n/zod-error-map'
+import { dispatchTenantEvent } from '@/lib/webhooks/dispatch'
 
 function escapeHtmlForTemplate(s: string): string {
   return s
@@ -173,6 +174,12 @@ export async function updateApplicationStatus(input: {
     revalidatePath(
       `/dashboard/tenants/${ctx.application.tenant.slug}/lamaran/${applicationId}`,
     )
+
+    dispatchTenantEvent(ctx.application.tenantId, 'tenant.application.status_changed', {
+      applicationId,
+      status,
+      previousStatus: ctx.application.status,
+    })
 
     // ---- Best-effort candidate notification email ---------------------------
     // Application status changes are operationally critical to the candidate

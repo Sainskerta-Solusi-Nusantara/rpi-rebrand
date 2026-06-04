@@ -18,6 +18,7 @@ export const WEBHOOK_EVENTS = [
   'tenant.job.status_changed',
   'tenant.job.deleted',
   'tenant.application.submitted',
+  'tenant.application.status_changed',
   'tenant.plan.changed',
 ] as const
 
@@ -37,6 +38,7 @@ export const WEBHOOK_EVENT_LABELS: Record<WebhookEvent, string> = {
   'tenant.job.status_changed': 'Status lowongan diubah',
   'tenant.job.deleted': 'Lowongan dihapus',
   'tenant.application.submitted': 'Lamaran masuk',
+  'tenant.application.status_changed': 'Status lamaran diubah',
   'tenant.plan.changed': 'Paket langganan diubah',
 }
 
