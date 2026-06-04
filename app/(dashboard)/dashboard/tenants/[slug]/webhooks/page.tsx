@@ -113,7 +113,7 @@ export default async function TenantWebhooksPage({
       case 'pending':
         return { label: w_.statusPending, tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200' }
       case 'dead_letter':
-        return { label: w_.statusDeadLetter, tone: 'bg-zinc-200 text-zinc-800' }
+        return { label: w_.statusDeadLetter, tone: 'bg-zinc-200 dark:bg-zinc-500/20 text-zinc-800 dark:text-zinc-300' }
       default:
         return { label: status, tone: 'bg-muted text-muted-foreground' }
     }

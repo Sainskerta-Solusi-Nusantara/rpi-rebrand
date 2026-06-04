@@ -11,7 +11,7 @@ export const metadata = { title: 'Manajemen Asesmen' }
 const STATUS_TONES: Record<string, string> = {
   DRAFT: 'bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-200',
   PUBLISHED: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
-  ARCHIVED: 'bg-stone-200 text-stone-800',
+  ARCHIVED: 'bg-stone-200 dark:bg-stone-500/20 text-stone-800 dark:text-stone-300',
 }
 
 const PAGE_SIZE = 20

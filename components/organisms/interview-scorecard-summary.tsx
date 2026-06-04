@@ -65,7 +65,7 @@ function recommendationChipClass(value: string): string {
   if ((RECOMMENDATION_VALUES as readonly string[]).includes(value)) {
     return CHIP_CLASS[value as RecommendationValue]
   }
-  return 'bg-slate-100 text-slate-800'
+  return 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300'
 }
 
 /**

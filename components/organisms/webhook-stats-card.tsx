@@ -122,7 +122,7 @@ export async function WebhookStatsCard({
         <Stat
           label={ns.statDeadLetter}
           value={numberFmt.format(stats.deadLetter)}
-          icon={<Skull className="h-4 w-4 text-zinc-600" />}
+          icon={<Skull className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />}
         />
       </div>
 

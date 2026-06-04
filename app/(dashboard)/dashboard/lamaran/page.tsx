@@ -253,7 +253,7 @@ export default async function ApplicationsKanbanPage({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-800">
+                  <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-500/15 px-2 py-0.5 text-xs font-medium text-zinc-800 dark:text-zinc-300">
                     {t.dashboard.applications.withdrawnBadge}
                   </span>
                   <Link

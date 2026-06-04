@@ -42,7 +42,7 @@ function tagTone(tag: string): string {
     return 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-500/30'
   if (tag === 'overqualified' || tag === 'junior_for_role')
     return 'bg-violet-50 text-violet-700 border-violet-200'
-  return 'bg-slate-50 text-slate-700 border-slate-200'
+  return 'bg-slate-50 dark:bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-500/30'
 }
 
 function dimDetail(

@@ -14,7 +14,7 @@ const roleLabels: Record<string, { label: string; tone: string }> = {
   SUPERADMIN: { label: 'SUPERADMIN', tone: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200' },
   ADMIN: { label: 'ADMIN', tone: 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300' },
   PARTNER: { label: 'PARTNER', tone: 'bg-purple-100 dark:bg-purple-500/15 text-purple-800 dark:text-purple-300' },
-  USER: { label: 'USER', tone: 'bg-slate-100 text-slate-800' },
+  USER: { label: 'USER', tone: 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300' },
 }
 
 function truncate(value: string | null | undefined, max = 60): string {

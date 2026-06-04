@@ -26,7 +26,7 @@ const STATUS_TONE: Record<string, string> = {
   scheduled: 'bg-violet-100 text-violet-800',
   completed: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
   cancelled: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
-  no_show: 'bg-slate-100 text-slate-800',
+  no_show: 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300',
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -55,7 +55,7 @@ function statusLabel(value: string): string {
 }
 
 function statusTone(value: string): string {
-  return STATUS_TONE[value] ?? 'bg-slate-100 text-slate-800'
+  return STATUS_TONE[value] ?? 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300'
 }
 
 function recommendationLabel(value: string): string {
@@ -63,7 +63,7 @@ function recommendationLabel(value: string): string {
 }
 
 function recommendationTone(value: string): string {
-  return RECOMMENDATION_TONE[value] ?? 'bg-slate-100 text-slate-800'
+  return RECOMMENDATION_TONE[value] ?? 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300'
 }
 
 /**

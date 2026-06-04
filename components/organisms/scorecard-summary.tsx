@@ -36,7 +36,7 @@ function recommendationLabel(value: string): string {
 }
 
 function recommendationTone(value: string): string {
-  return RECOMMENDATION_TONE[value] ?? 'bg-slate-100 text-slate-800'
+  return RECOMMENDATION_TONE[value] ?? 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300'
 }
 
 /**

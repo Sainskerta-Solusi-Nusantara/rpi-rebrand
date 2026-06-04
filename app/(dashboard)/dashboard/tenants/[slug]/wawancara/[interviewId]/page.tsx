@@ -32,7 +32,7 @@ const STATUS_TONE: Record<string, string> = {
   scheduled: 'bg-violet-100 text-violet-800',
   completed: 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300',
   cancelled: 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300',
-  no_show: 'bg-slate-100 text-slate-800',
+  no_show: 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300',
 }
 
 const RECOMMENDATION_CHIP: Record<RecommendationValue, string> = {
@@ -46,7 +46,7 @@ function recommendationChip(value: string): string {
   if ((RECOMMENDATION_VALUES as readonly string[]).includes(value)) {
     return RECOMMENDATION_CHIP[value as RecommendationValue]
   }
-  return 'bg-slate-100 text-slate-800'
+  return 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300'
 }
 
 function recommendationLabel(value: string): string {
@@ -151,7 +151,7 @@ export default async function TenantInterviewDetailPage({
 
   const typeLabel = TYPE_LABEL[interview.type] ?? interview.type
   const statusLabel = STATUS_LABEL[interview.status] ?? interview.status
-  const statusTone = STATUS_TONE[interview.status] ?? 'bg-slate-100 text-slate-800'
+  const statusTone = STATUS_TONE[interview.status] ?? 'bg-slate-100 dark:bg-slate-500/15 text-slate-800 dark:text-slate-300'
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">

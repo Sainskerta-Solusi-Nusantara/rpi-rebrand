@@ -10,7 +10,7 @@ type Props = {
 function toneFor(score: number | null): { box: string; label: string } {
   if (score === null) {
     return {
-      box: 'bg-zinc-100 text-zinc-700 border-zinc-200',
+      box: 'bg-zinc-100 dark:bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-500/30',
       label: 'Belum di-screening',
     }
   }
@@ -37,7 +37,7 @@ function tagTone(tag: string): string {
   if (tag === 'match-sedang') return 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-200 border-amber-200 dark:border-amber-500/30'
   if (tag === 'perlu-tinjauan' || tag === 'tidak-ada-cv')
     return 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/30'
-  return 'bg-slate-50 text-slate-700 border-slate-200'
+  return 'bg-slate-50 dark:bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-500/30'
 }
 
 /**

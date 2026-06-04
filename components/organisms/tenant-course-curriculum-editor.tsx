@@ -41,7 +41,7 @@ const CONTENT_TYPE_TONES: Record<LessonContentType, string> = {
   ARTICLE: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
   QUIZ: 'bg-purple-100 dark:bg-purple-500/15 text-purple-800 dark:text-purple-300',
   ASSIGNMENT: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-200',
-  DOWNLOAD: 'bg-stone-200 text-stone-800',
+  DOWNLOAD: 'bg-stone-200 dark:bg-stone-500/20 text-stone-800 dark:text-stone-300',
 }
 
 export type CurriculumLesson = {
