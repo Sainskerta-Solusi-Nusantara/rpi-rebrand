@@ -174,7 +174,7 @@ export function NotificationsBell({
         <div
           role="dialog"
           aria-label="Panel notifikasi"
-          className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg"
+          className="absolute right-0 z-50 mt-2 w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="font-medium">{tn.heading}</p>
