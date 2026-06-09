@@ -179,19 +179,13 @@ export async function runScreening(input: {
 
     const result = await scoreApplicationAI(inputs)
 
+    // Persist only score + tags on the row — the aiScoreBreakdown column is
+    // owned by the match scorer (different shape). The screening breakdown +
+    // AI reason live in the audit metadata below, where the detail page reads
+    // them, so the two systems don't collide on the column.
     await prisma.application.update({
       where: { id: applicationId },
-      data: {
-        aiScore: result.score,
-        aiTags: result.tags,
-        aiScoreBreakdown: {
-          breakdown: result.breakdown,
-          matchedSkills: result.matchedSkills,
-          reason: result.reason,
-          source: result.source,
-        } as Prisma.InputJsonValue,
-        aiScoredAt: new Date(),
-      },
+      data: { aiScore: result.score, aiTags: result.tags },
     })
 
     const meta = getRequestMeta()
@@ -346,17 +340,7 @@ export async function runScreeningForJob(input: {
 
       await prisma.application.update({
         where: { id: a.id },
-        data: {
-          aiScore: result.score,
-          aiTags: result.tags,
-          aiScoreBreakdown: {
-            breakdown: result.breakdown,
-            matchedSkills: result.matchedSkills,
-            reason: result.reason,
-            source: result.source,
-          } as Prisma.InputJsonValue,
-          aiScoredAt: new Date(),
-        },
+        data: { aiScore: result.score, aiTags: result.tags },
       })
       return result
     }),

@@ -14,6 +14,9 @@ export const pagesTenant3 = {
       aiScreeningHeading: 'AI Screening',
       aiScreeningSubtitle:
         'Skor otomatis berbasis aturan untuk memprioritaskan tinjauan. Bukan pengganti penilaian rekruter.',
+      aiReasonLabel: 'Alasan AI',
+      aiSourceAi: 'AI',
+      aiSourceHeuristic: 'Berbasis aturan',
       applicantProfileHeading: 'Profil pelamar',
       labelEmail: 'Email',
       labelPhone: 'Telepon',
@@ -135,6 +138,9 @@ export const pagesTenant3 = {
       aiScreeningHeading: 'AI Screening',
       aiScreeningSubtitle:
         'Automated rule-based score to prioritize reviews. Not a replacement for recruiter judgment.',
+      aiReasonLabel: 'AI reasoning',
+      aiSourceAi: 'AI',
+      aiSourceHeuristic: 'Rule-based',
       applicantProfileHeading: 'Applicant profile',
       labelEmail: 'Email',
       labelPhone: 'Phone',

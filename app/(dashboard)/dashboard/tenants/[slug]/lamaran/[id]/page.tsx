@@ -381,6 +381,22 @@ export default async function TenantApplicationDetailPage({
   }
   const screeningBreakdown = readBreakdown(screeningAudit?.metadata)
 
+  // The AI reason + which engine produced the score live in the same audit
+  // metadata. reason is only set when Claude scored (source 'ai'); the
+  // heuristic fallback leaves it null.
+  function readScreeningReason(meta: unknown): {
+    reason: string | null
+    source: 'ai' | 'heuristic' | null
+  } {
+    if (!meta || typeof meta !== 'object') return { reason: null, source: null }
+    const m = meta as { reason?: unknown; source?: unknown }
+    const reason =
+      typeof m.reason === 'string' && m.reason.trim() ? m.reason.trim() : null
+    const source = m.source === 'ai' || m.source === 'heuristic' ? m.source : null
+    return { reason, source }
+  }
+  const screeningReason = readScreeningReason(screeningAudit?.metadata)
+
   // ---- Match score (separate from legacy AI screening) ----
   // Parse the persisted breakdown if present; otherwise compute an unsaved
   // preview from the current job + resume so the card always has something to
@@ -606,6 +622,23 @@ export default async function TenantApplicationDetailPage({
           score={application.aiScore}
           tags={application.aiTags}
         />
+        {screeningReason.reason ? (
+          <div className="border-border bg-muted/40 mt-3 rounded-lg border p-3">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="text-muted-foreground text-xs font-medium">
+                {ad.aiReasonLabel}
+              </span>
+              <span className="border-border text-muted-foreground inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+                {screeningReason.source === 'heuristic'
+                  ? ad.aiSourceHeuristic
+                  : ad.aiSourceAi}
+              </span>
+            </div>
+            <p className="text-foreground/90 text-sm leading-relaxed">
+              {screeningReason.reason}
+            </p>
+          </div>
+        ) : null}
         {screeningBreakdown && application.aiScore !== null ? (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {(
