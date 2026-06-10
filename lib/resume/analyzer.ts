@@ -1,5 +1,6 @@
-// FUTURE: if process.env.OPENAI_API_KEY is set, augment with LLM-generated suggestions.
-// Currently rules-based only.
+// This module is the deterministic, rules-based baseline. When ANTHROPIC_API_KEY
+// is configured, `lib/resume/analyzer-ai.ts` augments these results with
+// contextual Claude-generated suggestions (the score/breakdown stay rules-based).
 
 /**
  * Resume analyzer — rules-based "AI" suggestion engine.
@@ -40,6 +41,9 @@ export type Suggestion = {
     kind: 'trim-summary' | 'add-skill'
     payload: Record<string, unknown>
   }
+  /** True when produced by the Claude augmentation (`analyzeResumeAI`) rather
+   *  than the deterministic rules. Advisory only — never carries an autoFix. */
+  aiGenerated?: boolean
 }
 
 export type CategoryBreakdown = {
@@ -52,6 +56,9 @@ export type AnalysisResult = {
   score: number
   breakdown: CategoryBreakdown[]
   suggestions: Suggestion[]
+  /** Which engine produced the suggestions. Absent ⇒ heuristic (rules-only),
+   *  for backward compatibility with callers that predate the AI augmentation. */
+  source?: 'ai' | 'heuristic'
 }
 
 /** Subset of fields the analyzer reads. Anything matching the shape works. */

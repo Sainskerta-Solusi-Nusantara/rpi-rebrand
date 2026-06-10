@@ -10,6 +10,7 @@ import {
   type AnalysisResult,
   type AnalyzerResume,
 } from '@/lib/resume/analyzer'
+import { analyzeResumeAI } from '@/lib/resume/analyzer-ai'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export type ActionResult<T = undefined> =
@@ -157,11 +158,15 @@ export async function analyzeMyResume(
     })
 
     const input = toAnalyzerInput(resume, user)
-    const result = analyzeResume(input)
+    // On-demand action — this is the ONLY place we spend Claude tokens. The CV
+    // page load stays on the cheap sync heuristic (`analyzeResume`). When no key
+    // is configured this is identical to the heuristic path.
+    const result = await analyzeResumeAI(input)
 
     await audit(userId, AuditAction.UPDATE, 'resume.analyzed', resume.id, {
       resumeId: resume.id,
       score: result.score,
+      source: result.source ?? 'heuristic',
     })
 
     return { ok: true, data: result }

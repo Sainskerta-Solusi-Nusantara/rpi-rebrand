@@ -158,6 +158,12 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
           <p className="text-muted-foreground text-sm">
             {rs.subheading}
           </p>
+          {analysis.source === 'ai' && (
+            <span className="mt-1 inline-flex items-center gap-1 text-xs text-violet-600 dark:text-violet-300">
+              <Sparkles className="h-3 w-3" aria-hidden />
+              {rs.aiEnhancedNote}
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -298,6 +304,12 @@ export function ResumeSuggestionsPanel({ resumeId, initialAnalysis }: Props) {
                 <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
                   {CATEGORY_LABEL[s.category] ?? s.category}
                 </span>
+                {s.aiGenerated && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-violet-200 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 text-xs text-violet-700 dark:text-violet-300">
+                    <Sparkles className="h-3 w-3" aria-hidden />
+                    {rs.aiBadge}
+                  </span>
+                )}
                 {s.affectedSection && (
                   <span className="text-muted-foreground text-xs">
                     · {s.affectedSection}

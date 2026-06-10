@@ -32,9 +32,10 @@ export const formsInsights = {
     resumeSuggestions: {
       panelLabel: 'Saran perbaikan CV',
       heading: 'Saran AI untuk CV Anda',
-      subheading:
-        'Analisis otomatis berbasis aturan. Tidak ada data dikirim ke layanan eksternal.',
+      subheading: 'Analisis otomatis untuk menyempurnakan CV Anda.',
       reanalyzeButton: 'Analisis ulang',
+      aiBadge: 'AI',
+      aiEnhancedNote: 'Disempurnakan dengan AI',
       scoreLabel: 'Skor resume Anda',
       filterAll: 'Semua ({count})',
       filterHigh: 'Tinggi ({count})',
@@ -100,9 +101,10 @@ export const formsInsights = {
     resumeSuggestions: {
       panelLabel: 'Resume improvement suggestions',
       heading: 'AI Suggestions for Your Resume',
-      subheading:
-        'Automated rule-based analysis. No data is sent to external services.',
+      subheading: 'Automated analysis to help improve your resume.',
       reanalyzeButton: 'Re-analyze',
+      aiBadge: 'AI',
+      aiEnhancedNote: 'Enhanced with AI',
       scoreLabel: 'Your resume score',
       filterAll: 'All ({count})',
       filterHigh: 'High ({count})',
