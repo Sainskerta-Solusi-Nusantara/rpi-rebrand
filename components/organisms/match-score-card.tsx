@@ -22,6 +22,10 @@ type Props = {
   notes?: string[]
   scoredAt?: Date | null
   canManage: boolean
+  /** Holistic AI reason for the headline score (null on the heuristic path). */
+  reason?: string | null
+  /** Which engine produced the score, for the badge next to the reason. */
+  source?: 'ai' | 'heuristic' | null
 }
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', {
@@ -71,6 +75,8 @@ export function MatchScoreCard({
   notes = [],
   scoredAt,
   canManage,
+  reason = null,
+  source = null,
 }: Props) {
   const hasScore = typeof score === 'number' && breakdown !== null && breakdown !== undefined
   const keys: Array<keyof MatchBreakdown> = [
@@ -137,6 +143,20 @@ export function MatchScoreCard({
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {reason ? (
+        <div className="border-border bg-muted/40 rounded-lg border p-3">
+          <div className="mb-1 flex items-center gap-2">
+            <span className="text-muted-foreground text-xs font-medium">
+              Alasan AI
+            </span>
+            <span className="border-border text-muted-foreground inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+              {source === 'heuristic' ? 'Berbasis aturan' : 'AI'}
+            </span>
+          </div>
+          <p className="text-foreground/90 text-sm leading-relaxed">{reason}</p>
+        </div>
       ) : null}
 
       {hasScore && breakdown ? (

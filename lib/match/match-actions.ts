@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth/session'
 import { hasTenantPermission } from '@/lib/auth/rbac'
 import { scoreApplicationToJob, type MatchResult } from './match-scorer'
+import { scoreApplicationToJobAI } from './match-scorer-ai'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 import { localizedParse } from '@/lib/i18n/zod-error-map'
 
@@ -143,7 +144,10 @@ export async function rescoreApplication(
   }
 
   try {
-    const result = scoreApplicationToJob(
+    // On-demand (recruiter-triggered) → AI-augmented when configured. The
+    // breakdown stays heuristic; Claude only refines the headline score + adds
+    // a reason. With no key this is identical to the pure heuristic.
+    const result = await scoreApplicationToJobAI(
       { coverLetter: app.coverLetter },
       {
         title: job.title,
@@ -173,6 +177,8 @@ export async function rescoreApplication(
           metadata: {
             score: result.score,
             tags: result.tags,
+            reason: result.reason ?? null,
+            source: result.source ?? 'heuristic',
           } as Prisma.InputJsonValue,
           ip: meta.ip,
           userAgent: meta.userAgent,
@@ -272,7 +278,10 @@ export async function rescoreAllForJob(
     applications.map(async (a) => {
       const u = userById.get(a.userId) ?? null
       const resume = resumeByUser.get(a.userId) ?? null
-      const result = scoreApplicationToJob(
+      // Recruiter-triggered bulk → AI per row (mirrors runScreeningForJob).
+      // Per-row failures fall back to heuristic inside the scorer; the outer
+      // allSettled keeps one bad row from aborting the batch.
+      const result = await scoreApplicationToJobAI(
         { coverLetter: a.coverLetter },
         {
           title: job.title,
@@ -300,6 +309,8 @@ export async function rescoreAllForJob(
             metadata: {
               score: result.score,
               tags: result.tags,
+              reason: result.reason ?? null,
+              source: result.source ?? 'heuristic',
               mode: 'bulk_job',
             } as Prisma.InputJsonValue,
             ip: meta.ip,
@@ -394,6 +405,10 @@ export async function rescoreAllStaleApplications(
       if (!job) throw new Error('job-missing')
       const u = userById.get(a.userId) ?? null
       const resume = resumeByUser.get(a.userId) ?? null
+      // HEURISTIC ONLY — this is the cron batch path (up to 500 rows/run). Do
+      // NOT swap in scoreApplicationToJobAI here: it would fan out into hundreds
+      // of Claude calls per cron tick. AI scoring is reserved for the
+      // recruiter-triggered single + per-job paths above.
       const result = scoreApplicationToJob(
         { coverLetter: a.coverLetter },
         {

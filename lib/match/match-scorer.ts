@@ -78,6 +78,12 @@ export type MatchResult = {
   breakdown: MatchBreakdown
   tags: string[]
   notes: string[]
+  /** Holistic AI reason for the headline score; null on the heuristic path.
+   *  Set by `scoreApplicationToJobAI` (lib/match/match-scorer-ai.ts). */
+  reason?: string | null
+  /** Which engine produced the headline score. Absent ⇒ heuristic, for
+   *  backward compatibility with callers that predate the AI augmentation. */
+  source?: 'ai' | 'heuristic'
 }
 
 export type MatchApplication = {

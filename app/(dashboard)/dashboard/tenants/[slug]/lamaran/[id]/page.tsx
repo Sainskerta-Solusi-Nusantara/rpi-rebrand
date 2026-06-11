@@ -383,8 +383,9 @@ export default async function TenantApplicationDetailPage({
 
   // The AI reason + which engine produced the score live in the same audit
   // metadata. reason is only set when Claude scored (source 'ai'); the
-  // heuristic fallback leaves it null.
-  function readScreeningReason(meta: unknown): {
+  // heuristic fallback leaves it null. Shared by both the screening and the
+  // match-score audit rows.
+  function readAiReason(meta: unknown): {
     reason: string | null
     source: 'ai' | 'heuristic' | null
   } {
@@ -395,7 +396,7 @@ export default async function TenantApplicationDetailPage({
     const source = m.source === 'ai' || m.source === 'heuristic' ? m.source : null
     return { reason, source }
   }
-  const screeningReason = readScreeningReason(screeningAudit?.metadata)
+  const screeningReason = readAiReason(screeningAudit?.metadata)
 
   // ---- Match score (separate from legacy AI screening) ----
   // Parse the persisted breakdown if present; otherwise compute an unsaved
@@ -444,6 +445,23 @@ export default async function TenantApplicationDetailPage({
       ? application.aiTags
       : matchPreview?.tags ?? []
   const matchNotes = matchPreview?.notes ?? []
+
+  // The match-score AI reason (when Claude produced the headline score) lives
+  // in the latest match-scored audit row's metadata — same mechanism as the
+  // screening reason above. Survives reload even though `notes` are ephemeral.
+  const matchAudit = await prisma.auditLog
+    .findFirst({
+      where: {
+        tenantId: tenant.id,
+        resource: 'application.match.scored',
+        resourceId: application.id,
+        action: 'UPDATE',
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { metadata: true },
+    })
+    .catch(() => null)
+  const matchReason = readAiReason(matchAudit?.metadata)
 
   // Recruiter-side unread badge for this thread: count messages the recruiter
   // hasn't read yet AND that weren't sent by this viewer.
@@ -598,6 +616,8 @@ export default async function TenantApplicationDetailPage({
         notes={matchNotes}
         scoredAt={application.aiScoredAt ?? null}
         canManage={canManage}
+        reason={matchReason.reason}
+        source={matchReason.source}
       />
 
       <section
