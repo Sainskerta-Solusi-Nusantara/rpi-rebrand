@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: test · lint · typecheck · build
+    runs-on: ubuntu-latest
+
+    # next build runs generateStaticParams, which queries Prisma — so the build
+    # needs a real Postgres. db push (below) applies the schema; no seed data is
+    # needed (static params just resolve to empty sets on an empty DB).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rpi
+          POSTGRES_PASSWORD: rpi
+          POSTGRES_DB: rpi_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Build-required vars (lib/env.ts). Non-secret CI placeholders — the app
+      # is never exposed here, and all integration keys stay unset so the
+      # AI/email/calendar features fall back gracefully.
+      DATABASE_URL: postgresql://rpi:rpi@localhost:5432/rpi_ci
+      NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production-0001
+      NEXTAUTH_URL: http://localhost:3005
+      NEXT_PUBLIC_APP_URL: http://localhost:3005
+      NEXT_PUBLIC_ROOT_DOMAIN: localhost
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # npm ci runs the postinstall `prisma generate`, so the client is ready.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply database schema
+        run: npx prisma db push --skip-generate
+
+      # Mirrors the local git hooks: vitest (pre-merge), then the same gates the
+      # pre-commit (lint + typecheck) and pre-push (build) hooks enforce.
+      - name: Unit tests
+        run: npm run test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
