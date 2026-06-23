@@ -1,6 +1,11 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { randomBytes } from 'node:crypto'
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3'
 import { env } from '@/lib/env'
 
 const MIME_TO_EXT: Record<string, string> = {
@@ -20,59 +25,177 @@ function randomBasename(): string {
   return randomBytes(12).toString('hex')
 }
 
+// ---------------------------------------------------------------------------
+// Storage transport — local filesystem (dev) vs Cloudflare R2 (prod)
+//
+// Both paths share one logical "key": a slash-joined relative path such as
+// `avatars/{userId}/{basename}.jpg`. Local writes it under `public/uploads/`
+// (served directly by Next); R2 uploads it under that key and serves it from
+// `R2_PUBLIC_URL`. Keeping the key identical across providers means the delete
+// helpers can route a stored URL back to the right transport.
+// ---------------------------------------------------------------------------
+
+type StoreResult = { ok: true; url: string } | { ok: false; error: string }
+
+const R2_NOT_CONFIGURED = 'Storage provider R2 belum dikonfigurasi.'
+
+let r2Singleton: S3Client | null = null
+
 /**
- * Save an avatar image and return a relative URL that the app can serve.
- * Local storage writes under `public/uploads/avatars/{userId}/` so Next can
- * serve it without a custom route. R2 transport is a TODO — the call will
- * return an error until configured.
+ * Lazily build the R2 (S3-compatible) client. Returns null when any required
+ * R2 env var is missing so callers can surface a clean "belum dikonfigurasi"
+ * error instead of crashing — mirrors the graceful-degradation pattern used by
+ * the AI and email layers.
+ */
+function r2Client(): S3Client | null {
+  if (
+    !env.R2_ACCOUNT_ID ||
+    !env.R2_ACCESS_KEY_ID ||
+    !env.R2_SECRET_ACCESS_KEY ||
+    !env.R2_BUCKET_NAME ||
+    !env.R2_PUBLIC_URL
+  ) {
+    return null
+  }
+  if (!r2Singleton) {
+    r2Singleton = new S3Client({
+      region: 'auto',
+      endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: env.R2_ACCESS_KEY_ID,
+        secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+      },
+    })
+  }
+  return r2Singleton
+}
+
+function r2PublicUrl(key: string): string {
+  // env.R2_PUBLIC_URL is guaranteed present when r2Client() is non-null.
+  return `${(env.R2_PUBLIC_URL ?? '').replace(/\/+$/, '')}/${key}`
+}
+
+/**
+ * Derive the R2 object key from a stored public URL, scoped to `prefix` (e.g.
+ * `avatars/`). Returns null when the URL is not an R2 URL under that prefix —
+ * the guard that keeps deletes from straying outside their own namespace.
+ */
+export function r2KeyFromPublicUrl(
+  url: string,
+  prefix: string,
+): string | null {
+  if (!env.R2_PUBLIC_URL) return null
+  const base = `${env.R2_PUBLIC_URL.replace(/\/+$/, '')}/`
+  if (!url.startsWith(base)) return null
+  const key = url.slice(base.length)
+  return key.startsWith(prefix) ? key : null
+}
+
+/**
+ * Persist `buffer` at the logical `key` using the configured provider and
+ * return a servable URL. Validation (mime, size) is the caller's job; this
+ * only moves bytes.
+ */
+async function storeFile(
+  key: string,
+  buffer: Buffer,
+  contentType: string,
+): Promise<StoreResult> {
+  if (env.STORAGE_PROVIDER === 'r2') {
+    const client = r2Client()
+    if (!client || !env.R2_BUCKET_NAME) {
+      return { ok: false, error: R2_NOT_CONFIGURED }
+    }
+    try {
+      await client.send(
+        new PutObjectCommand({
+          Bucket: env.R2_BUCKET_NAME,
+          Key: key,
+          Body: buffer,
+          ContentType: contentType,
+          // Random basenames make every object immutable; cache hard.
+          CacheControl: 'public, max-age=31536000, immutable',
+        }),
+      )
+      return { ok: true, url: r2PublicUrl(key) }
+    } catch (err) {
+      console.error('[storeFile:r2] failed', err)
+      return { ok: false, error: 'Gagal mengunggah berkas ke penyimpanan.' }
+    }
+  }
+
+  try {
+    const filePath = path.join(process.cwd(), 'public', 'uploads', key)
+    await fs.mkdir(path.dirname(filePath), { recursive: true })
+    await fs.writeFile(filePath, buffer)
+    return { ok: true, url: `/uploads/${key}` }
+  } catch (err) {
+    console.error('[storeFile:local] failed', err)
+    return { ok: false, error: 'Gagal menyimpan berkas.' }
+  }
+}
+
+/**
+ * Best-effort delete of a previously stored file, scoped to `prefix`. Routes a
+ * local `/uploads/{prefix}...` URL to the filesystem and an R2 public URL to
+ * the bucket; ignores anything else (already gone, external, or unknown).
+ */
+async function removeFile(
+  url: string | null | undefined,
+  prefix: string,
+): Promise<void> {
+  if (!url) return
+
+  if (url.startsWith(`/uploads/${prefix}`)) {
+    try {
+      const rel = url.replace(/^\/+/, '')
+      await fs.unlink(path.join(process.cwd(), 'public', rel))
+    } catch {
+      // Ignore — the file may already be gone.
+    }
+    return
+  }
+
+  const key = r2KeyFromPublicUrl(url, prefix)
+  if (!key) return
+  const client = r2Client()
+  if (!client || !env.R2_BUCKET_NAME) return
+  try {
+    await client.send(
+      new DeleteObjectCommand({ Bucket: env.R2_BUCKET_NAME, Key: key }),
+    )
+  } catch (err) {
+    console.error('[removeFile:r2] failed', err)
+  }
+}
+
+/**
+ * Save an avatar image and return a servable URL. Routes through the configured
+ * provider: local writes under `public/uploads/avatars/{userId}/` (served
+ * directly by Next), R2 uploads under `avatars/{userId}/…` and serves from
+ * `R2_PUBLIC_URL`.
  */
 export async function saveAvatar(opts: {
   userId: string
   buffer: Buffer
   mime: string
-}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+}): Promise<StoreResult> {
   const ext = extForMime(opts.mime)
   if (!ext) return { ok: false, error: 'Format gambar tidak didukung.' }
   if (opts.buffer.length > MAX_AVATAR_BYTES) {
     return { ok: false, error: 'Ukuran gambar melebihi 5 MB.' }
   }
 
-  if (env.STORAGE_PROVIDER === 'r2') {
-    // R2 transport intentionally unimplemented in this scope — when wiring,
-    // upload via S3 SDK with env.R2_* credentials and return the public URL.
-    return {
-      ok: false,
-      error: 'Storage provider R2 belum dikonfigurasi.',
-    }
-  }
-
-  try {
-    const baseDir = path.join(process.cwd(), 'public', 'uploads', 'avatars', opts.userId)
-    await fs.mkdir(baseDir, { recursive: true })
-    const filename = `${randomBasename()}.${ext}`
-    const filePath = path.join(baseDir, filename)
-    await fs.writeFile(filePath, opts.buffer)
-    return { ok: true, url: `/uploads/avatars/${opts.userId}/${filename}` }
-  } catch (err) {
-    console.error('[saveAvatar] failed', err)
-    return { ok: false, error: 'Gagal menyimpan gambar.' }
-  }
+  const key = `avatars/${opts.userId}/${randomBasename()}.${ext}`
+  return storeFile(key, opts.buffer, opts.mime)
 }
 
 /**
- * Best-effort cleanup of a previously stored local avatar. Silently ignores
- * remote or unknown URLs — those are the responsibility of the caller's
- * provider-specific delete path.
+ * Best-effort cleanup of a previously stored avatar (local file or R2 object).
+ * Silently ignores external or unknown URLs.
  */
 export async function deleteLocalAvatar(url: string | null | undefined): Promise<void> {
-  if (!url || !url.startsWith('/uploads/avatars/')) return
-  try {
-    const rel = url.replace(/^\/+/, '')
-    const filePath = path.join(process.cwd(), 'public', rel)
-    await fs.unlink(filePath)
-  } catch {
-    // Ignore — the file may already be gone.
-  }
+  await removeFile(url, 'avatars/')
 }
 
 export const MAX_LOGO_BYTES = 2 * 1024 * 1024 // 2 MB
@@ -91,37 +214,19 @@ export async function saveTenantLogo(opts: {
   slot: 'light' | 'dark' | 'favicon'
   buffer: Buffer
   mime: string
-}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+}): Promise<StoreResult> {
   const ext = logoExtForMime(opts.mime)
   if (!ext) return { ok: false, error: 'Format gambar tidak didukung.' }
   if (opts.buffer.length > MAX_LOGO_BYTES) {
     return { ok: false, error: 'Ukuran gambar melebihi 2 MB.' }
   }
 
-  if (env.STORAGE_PROVIDER === 'r2') {
-    return { ok: false, error: 'Storage provider R2 belum dikonfigurasi.' }
-  }
-
-  try {
-    const baseDir = path.join(process.cwd(), 'public', 'uploads', 'tenants', opts.tenantId)
-    await fs.mkdir(baseDir, { recursive: true })
-    const filename = `${opts.slot}-${randomBasename()}.${ext}`
-    await fs.writeFile(path.join(baseDir, filename), opts.buffer)
-    return { ok: true, url: `/uploads/tenants/${opts.tenantId}/${filename}` }
-  } catch (err) {
-    console.error('[saveTenantLogo] failed', err)
-    return { ok: false, error: 'Gagal menyimpan gambar.' }
-  }
+  const key = `tenants/${opts.tenantId}/${opts.slot}-${randomBasename()}.${ext}`
+  return storeFile(key, opts.buffer, opts.mime)
 }
 
 export async function deleteLocalTenantLogo(url: string | null | undefined): Promise<void> {
-  if (!url || !url.startsWith('/uploads/tenants/')) return
-  try {
-    const rel = url.replace(/^\/+/, '')
-    await fs.unlink(path.join(process.cwd(), 'public', rel))
-  } catch {
-    // ignore
-  }
+  await removeFile(url, 'tenants/')
 }
 
 // ---------------------------------------------------------------------------
@@ -143,62 +248,33 @@ export function resumeExtForMime(mime: string): string | null {
 }
 
 /**
- * Save a resume document (PDF/DOC/DOCX) and return a relative URL that the
- * app can serve. Local storage writes under `public/uploads/resumes/{userId}/`
- * so Next can serve it without a custom route. R2 transport is a TODO — the
- * call will return an error until configured.
+ * Save a resume document (PDF/DOC/DOCX) and return a servable URL. Local writes
+ * under `public/uploads/resumes/{userId}/`; R2 uploads under
+ * `resumes/{userId}/…` and serves from `R2_PUBLIC_URL`.
  */
 export async function saveResumeFile(opts: {
   userId: string
   buffer: Buffer
   mime: string
-}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+}): Promise<StoreResult> {
   const ext = resumeExtForMime(opts.mime)
   if (!ext) return { ok: false, error: 'Format dokumen tidak didukung.' }
   if (opts.buffer.length > MAX_RESUME_BYTES) {
     return { ok: false, error: 'Ukuran dokumen melebihi 10 MB.' }
   }
 
-  if (env.STORAGE_PROVIDER === 'r2') {
-    return {
-      ok: false,
-      error: 'Storage provider R2 belum dikonfigurasi.',
-    }
-  }
-
-  try {
-    const baseDir = path.join(
-      process.cwd(),
-      'public',
-      'uploads',
-      'resumes',
-      opts.userId,
-    )
-    await fs.mkdir(baseDir, { recursive: true })
-    const filename = `${randomBasename()}.${ext}`
-    await fs.writeFile(path.join(baseDir, filename), opts.buffer)
-    return { ok: true, url: `/uploads/resumes/${opts.userId}/${filename}` }
-  } catch (err) {
-    console.error('[saveResumeFile] failed', err)
-    return { ok: false, error: 'Gagal menyimpan dokumen.' }
-  }
+  const key = `resumes/${opts.userId}/${randomBasename()}.${ext}`
+  return storeFile(key, opts.buffer, opts.mime)
 }
 
 /**
- * Best-effort cleanup of a previously stored local resume file. Silently
- * ignores remote or unknown URLs — those are the responsibility of the
- * caller's provider-specific delete path.
+ * Best-effort cleanup of a previously stored resume file (local file or R2
+ * object). Silently ignores external or unknown URLs.
  */
 export async function deleteLocalResumeFile(
   url: string | null | undefined,
 ): Promise<void> {
-  if (!url || !url.startsWith('/uploads/resumes/')) return
-  try {
-    const rel = url.replace(/^\/+/, '')
-    await fs.unlink(path.join(process.cwd(), 'public', rel))
-  } catch {
-    // Ignore — the file may already be gone.
-  }
+  await removeFile(url, 'resumes/')
 }
 
 // ---------------------------------------------------------------------------
@@ -222,41 +298,21 @@ export function jobAttachmentExtForMime(mime: string): string | null {
 
 /**
  * Save a generic attachment uploaded by a candidate as an answer to a
- * `file_url` custom job question. Stored under
- * `public/uploads/job-attachments/{userId}/` so Next can serve it directly.
+ * `file_url` custom job question. Local writes under
+ * `public/uploads/job-attachments/{userId}/`; R2 uploads under
+ * `job-attachments/{userId}/…` and serves from `R2_PUBLIC_URL`.
  */
 export async function saveJobAttachment(opts: {
   userId: string
   buffer: Buffer
   mime: string
-}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+}): Promise<StoreResult> {
   const ext = jobAttachmentExtForMime(opts.mime)
   if (!ext) return { ok: false, error: 'Format berkas tidak didukung.' }
   if (opts.buffer.length > MAX_JOB_ATTACHMENT_BYTES) {
     return { ok: false, error: 'Ukuran berkas melebihi 10 MB.' }
   }
 
-  if (env.STORAGE_PROVIDER === 'r2') {
-    return { ok: false, error: 'Storage provider R2 belum dikonfigurasi.' }
-  }
-
-  try {
-    const baseDir = path.join(
-      process.cwd(),
-      'public',
-      'uploads',
-      'job-attachments',
-      opts.userId,
-    )
-    await fs.mkdir(baseDir, { recursive: true })
-    const filename = `${randomBasename()}.${ext}`
-    await fs.writeFile(path.join(baseDir, filename), opts.buffer)
-    return {
-      ok: true,
-      url: `/uploads/job-attachments/${opts.userId}/${filename}`,
-    }
-  } catch (err) {
-    console.error('[saveJobAttachment] failed', err)
-    return { ok: false, error: 'Gagal menyimpan berkas.' }
-  }
+  const key = `job-attachments/${opts.userId}/${randomBasename()}.${ext}`
+  return storeFile(key, opts.buffer, opts.mime)
 }
