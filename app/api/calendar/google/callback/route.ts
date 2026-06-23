@@ -22,6 +22,7 @@ import {
   exchangeCodeForTokens,
   fetchUserInfo,
 } from '@/lib/calendar/google-client'
+import { encryptToken } from '@/lib/calendar/token-crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,17 +107,18 @@ export async function GET(req: NextRequest) {
         provider: 'google',
         providerEmail: userInfo.data.email,
         calendarId: 'primary',
-        accessToken,
+        accessToken: encryptToken(accessToken),
         // Only the initial consent reliably returns a refresh_token.
-        refreshToken: refreshToken ?? null,
+        refreshToken: encryptToken(refreshToken ?? null),
         expiresAt,
         scope: scope ?? null,
       },
       update: {
         providerEmail: userInfo.data.email,
-        accessToken,
+        accessToken: encryptToken(accessToken),
         // Google may omit refresh_token on re-consent; keep the existing one.
-        refreshToken: refreshToken ?? existing?.refreshToken ?? null,
+        // encryptToken is a no-op on the already-encrypted existing value.
+        refreshToken: encryptToken(refreshToken ?? existing?.refreshToken ?? null),
         expiresAt,
         scope: scope ?? undefined,
       },

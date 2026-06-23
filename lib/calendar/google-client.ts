@@ -9,10 +9,10 @@
  *    `{ ok: false, error: 'NOT_CONFIGURED' }` from every async helper.
  *  - All `fetch` failures are caught and surfaced as `{ ok: false, error }`.
  *
- * Token storage trade-off (see lib/calendar/actions.ts):
- *  Tokens are persisted plaintext in `CalendarAccount.accessToken` /
- *  `refreshToken`. For MVP simplicity we accept this; production should
- *  encrypt with an at-rest key (e.g. envelope via libsodium) before insert.
+ * Token storage (see lib/calendar/actions.ts):
+ *  `CalendarAccount.accessToken` / `refreshToken` are encrypted at rest
+ *  (AES-256-GCM, KEK from `CALENDAR_TOKEN_KEY`) via token-crypto.ts. The
+ *  `accessToken` this client receives is already decrypted plaintext.
  */
 
 import { env } from '@/lib/env'

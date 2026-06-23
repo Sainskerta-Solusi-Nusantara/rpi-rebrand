@@ -25,6 +25,7 @@ import {
   exchangeMicrosoftCode,
   getMicrosoftProfile,
 } from '@/lib/calendar/microsoft'
+import { encryptToken } from '@/lib/calendar/token-crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -169,17 +170,18 @@ export async function GET(req: NextRequest) {
         // Graph defaults to the user's primary calendar when no id is given
         // (POST /me/calendar/events). Persist null to signal "default".
         calendarId: null,
-        accessToken,
-        refreshToken: refreshToken ?? null,
+        accessToken: encryptToken(accessToken),
+        refreshToken: encryptToken(refreshToken ?? null),
         expiresAt,
         scope: scope ?? null,
       },
       update: {
         providerEmail: profile.data.email,
-        accessToken,
+        accessToken: encryptToken(accessToken),
         // Microsoft refresh_token rotation: a new one is returned on each
         // refresh; fall back to existing if a re-consent omits it.
-        refreshToken: refreshToken ?? existing?.refreshToken ?? null,
+        // encryptToken is a no-op on the already-encrypted existing value.
+        refreshToken: encryptToken(refreshToken ?? existing?.refreshToken ?? null),
         expiresAt,
         scope: scope ?? undefined,
       },

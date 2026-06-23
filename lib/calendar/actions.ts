@@ -3,10 +3,11 @@
 /**
  * Calendar server actions for the connected recruiter user.
  *
- * Token-storage note (MVP): tokens are persisted plaintext in
- * `CalendarAccount.accessToken` / `refreshToken`. Production should encrypt
- * with an envelope key (e.g. libsodium secretbox + KEK from env). Mark as
- * TODO before shipping to multi-tenant prod.
+ * Token-storage: `CalendarAccount.accessToken` / `refreshToken` are encrypted
+ * at rest with AES-256-GCM via lib/calendar/token-crypto.ts (KEK from
+ * `CALENDAR_TOKEN_KEY`). This module decrypts on read and re-encrypts on
+ * refresh; legacy plaintext rows are read transparently and upgraded on their
+ * next write. Without a configured key (dev), tokens fall back to plaintext.
  *
  * TODO(auto-sync): once `scheduleInterview` (lib/tenants/interview-actions.ts)
  * settles its transaction, callers could best-effort fire
@@ -35,6 +36,7 @@ import {
   refreshMicrosoftToken,
   type MicrosoftEventInput,
 } from '@/lib/calendar/microsoft'
+import { decryptToken, encryptToken } from '@/lib/calendar/token-crypto'
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -167,7 +169,12 @@ export async function disconnectCalendar(
 /**
  * Internal: ensure `account.accessToken` is still valid (>60s left). If not,
  * refresh via the appropriate provider's token endpoint and persist.
- * Returns a valid accessToken or an error.
+ * Returns a valid (plaintext) accessToken or an error.
+ *
+ * The `account` fields are read from the DB and may be encrypted at rest
+ * (see lib/calendar/token-crypto.ts). We decrypt on the way in, operate on
+ * plaintext, and re-encrypt before persisting refreshed tokens. The returned
+ * accessToken is always plaintext for direct use against provider APIs.
  *
  * Provider-aware: dispatches to either `refreshAccessToken` (Google) or
  * `refreshMicrosoftToken` (Graph). Both return shapes are normalized so this
@@ -180,24 +187,27 @@ async function ensureFreshAccessToken(account: {
   refreshToken: string | null
   expiresAt: Date | null
 }): Promise<{ ok: true; accessToken: string } | { ok: false; error: string }> {
+  const accessToken = decryptToken(account.accessToken) as string
+  const refreshToken = decryptToken(account.refreshToken)
+
   const now = Date.now()
   const expiresAt = account.expiresAt?.getTime() ?? 0
   const stillValid = expiresAt > now + 60_000
-  if (stillValid) return { ok: true, accessToken: account.accessToken }
-  if (!account.refreshToken) {
+  if (stillValid) return { ok: true, accessToken }
+  if (!refreshToken) {
     const t = await getServerT()
     return { ok: false, error: t.srvCalendar.calendar.refreshTokenMissing }
   }
 
   if (account.provider === 'microsoft') {
-    const refreshed = await refreshMicrosoftToken(account.refreshToken)
+    const refreshed = await refreshMicrosoftToken(refreshToken)
     if (!refreshed.ok) return { ok: false, error: refreshed.error }
     await prisma.calendarAccount
       .update({
         where: { id: account.id },
         data: {
-          accessToken: refreshed.data.accessToken,
-          refreshToken: refreshed.data.refreshToken ?? account.refreshToken,
+          accessToken: encryptToken(refreshed.data.accessToken),
+          refreshToken: encryptToken(refreshed.data.refreshToken ?? refreshToken),
           expiresAt: refreshed.data.expiresAt,
           scope: refreshed.data.scope ?? undefined,
         },
@@ -207,14 +217,14 @@ async function ensureFreshAccessToken(account: {
   }
 
   // Default: Google.
-  const refreshed = await refreshAccessToken(account.refreshToken)
+  const refreshed = await refreshAccessToken(refreshToken)
   if (!refreshed.ok) return { ok: false, error: refreshed.error }
   await prisma.calendarAccount
     .update({
       where: { id: account.id },
       data: {
-        accessToken: refreshed.data.accessToken,
-        refreshToken: refreshed.data.refreshToken ?? account.refreshToken,
+        accessToken: encryptToken(refreshed.data.accessToken),
+        refreshToken: encryptToken(refreshed.data.refreshToken ?? refreshToken),
         expiresAt: new Date(Date.now() + refreshed.data.expiresIn * 1000),
         scope: refreshed.data.scope ?? undefined,
       },

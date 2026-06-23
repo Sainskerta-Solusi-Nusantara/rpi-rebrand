@@ -43,6 +43,12 @@ const envSchema = z.object({
   R2_BUCKET_NAME: optionalString,
   R2_PUBLIC_URL: optionalUrl,
 
+  // ----- Calendar token encryption (KEK) -----
+  // AES-256 key for encrypting OAuth tokens at rest in CalendarAccount.
+  // 64 hex chars or base64 of 32 random bytes. Optional in dev (tokens stay
+  // plaintext); REQUIRED in multi-tenant prod. Generate: openssl rand -hex 32
+  CALENDAR_TOKEN_KEY: optionalString,
+
   // ----- AI (Anthropic / Claude) -----
   // Optional: when absent, AI-backed features gracefully fall back to their
   // deterministic template/heuristic implementations (build stays green, no
@@ -91,6 +97,7 @@ const parsed = envSchema.safeParse({
   R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
   R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
   R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
+  CALENDAR_TOKEN_KEY: process.env.CALENDAR_TOKEN_KEY,
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
   REDIS_URL: process.env.REDIS_URL,

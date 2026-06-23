@@ -9,9 +9,10 @@
  * happens in one place — the state-signing key (NEXTAUTH_SECRET) is therefore
  * only referenced from server-only files.
  *
- * Token-storage note (MVP): tokens are persisted plaintext in
- * `CalendarAccount.accessToken` / `refreshToken`. Production should encrypt
- * with an envelope key. Tracked alongside Google in lib/calendar/actions.ts.
+ * Token-storage: `CalendarAccount.accessToken` / `refreshToken` are encrypted
+ * at rest (AES-256-GCM, KEK from `CALENDAR_TOKEN_KEY`) via
+ * lib/calendar/token-crypto.ts. See lib/calendar/actions.ts for the read/write
+ * boundary.
  */
 
 import { redirect } from 'next/navigation'
