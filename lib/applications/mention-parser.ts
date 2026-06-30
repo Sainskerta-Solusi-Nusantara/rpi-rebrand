@@ -64,8 +64,9 @@ export type KnownUserLookup = Record<string, { id: string; name: string | null }
  * the username is in `knownUsers` (case-insensitive lookup on lowercase keys).
  * Unknown mentions stay as plain text. Linebreaks become `<br>`.
  *
- * The link href points to the user's profile (`/u/{username}`) — adjust if the
- * profile URL convention changes. Class names follow tenant theme.
+ * The link href points to the user's public profile (`/profil/{username}`),
+ * which resolves by lowercased username — adjust if the profile URL convention
+ * changes. Class names follow tenant theme.
  */
 export function renderMentionsToHtml(
   body: string,
@@ -85,7 +86,7 @@ export function renderMentionsToHtml(
         const display = escapeHtml(user.name ?? `@${username}`)
         return `${leading}<a class="text-primary font-medium hover:underline" data-mention-username="${escapeHtml(
           key,
-        )}" data-mention-user-id="${escapeHtml(user.id)}" href="/u/${escapeHtml(key)}">@${escapeHtml(username)}</a><span class="sr-only"> (${display})</span>`
+        )}" data-mention-user-id="${escapeHtml(user.id)}" href="/profil/${escapeHtml(key)}">@${escapeHtml(username)}</a><span class="sr-only"> (${display})</span>`
       }
       // Unknown: keep as literal token.
       return `${leading}@${escapeHtml(username)}`
