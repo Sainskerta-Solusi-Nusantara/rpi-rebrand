@@ -50,7 +50,7 @@ Project sudah dibangun sebelum loop dimulai (Next.js 14, Prisma/Postgres+RLS, Ne
 | 1   | Cron secret pakai `!==` bukan `timingSafeEqual` (7 route)          | low      | ✅ fixed (lib/cron/auth.ts) |
 | 2   | Konvensi header cron tidak konsisten (`x-cron-secret` vs `Bearer`) | low      | ✅ fixed (terima keduanya)  |
 | 3   | DB pakai FK — deviasi Sainskerta Rule #2                           | medium   | open (butuh keputusan user) |
-| 4   | `bcrypt` + `bcryptjs` terpasang bersamaan                          | low      | open                        |
+| 4   | `bcrypt` + `bcryptjs` terpasang bersamaan                          | low      | ✅ fixed (hapus bcryptjs)   |
 
 Detail lengkap: `audit-report.md`.
 
@@ -70,3 +70,4 @@ Loop berhenti di **gate audit** (mandatory approval gate). Tidak auto-advance ke
 | `2026-06-30 08:10` | `05-AUDIT`       | Audit 404/undeveloped. FIX: KPI cards (5 hal) export-name `KpiCard`; 5 link nav slug-404 (moderasi/sistem/profil/tentang/mitra). Typecheck PASS. Kategori C (12 halaman belum ada) menunggu keputusan user. Detail: `audit-report.md` Addendum.                                                                                                                      |
 | `2026-06-30 08:30` | `05-AUDIT→build` | Kategori C dikerjakan. REPOINT 5 link (jobs→/jobs, talents→/partner/talent, analytics→/partner/analitik, jobs/new→/partner/lowongan/baru, team/invite→/partner/tim) + hapus nav calendar. BUILD 6 halaman baru: /dashboard/settings, /admin/settings, /help, /dashboard/messages (inbox real-data), /admin/billing, /admin/analytics. `npm run build` PASS (exit 0). |
 | `2026-06-30 08:50` | `05-AUDIT`       | Hardening keamanan #1+#2: shared helper `lib/cron/auth.ts` (timing-safe `timingSafeEqual` + terima header `Bearer` & `x-cron-secret`), refactor 7 cron route. Test unit `lib/cron/auth.test.ts` (11 case). Full Vitest 55/55 PASS, tsc clean.                                                                                                                        |
+| `2026-06-30 09:00` | `05-AUDIT`       | Hardening #4: konsolidasi bcrypt — seed pakai `bcrypt` (native), hapus `bcryptjs` dari deps. `npm run build` PASS (260 hal), tsc clean. Sisa audit terbuka: hanya #3 (FK, butuh keputusan arsitektur user).                                                                                                                                                          |
