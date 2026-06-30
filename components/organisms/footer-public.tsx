@@ -55,9 +55,9 @@ export function FooterPublic({
     { label: t.public.footer.companyLinks.enterprise, href: '/enterprise' },
   ]
   const aboutLinks = [
-    { label: t.public.footer.aboutLinks.about, href: '/about' },
+    { label: t.public.footer.aboutLinks.about, href: '/tentang' },
     { label: t.public.footer.aboutLinks.careers, href: '/careers' },
-    { label: t.public.footer.aboutLinks.partners, href: '/partners' },
+    { label: t.public.footer.aboutLinks.partners, href: '/mitra' },
     { label: t.public.footer.aboutLinks.contact, href: '/contact' },
   ]
   const legalLinks = [

@@ -30,10 +30,10 @@ export function CmdKPalette({ open, onOpenChange, items }: CmdKPaletteProps) {
 
   const DEFAULT_ITEMS: CmdKItem[] = [
     { id: 'page-dashboard', group: 'Halaman', label: tc.itemDashboard, href: '/dashboard', icon: <Sparkles className="h-4 w-4" /> },
-    { id: 'page-jobs', group: 'Halaman', label: tc.itemJobs, href: '/dashboard/jobs', icon: <FileText className="h-4 w-4" /> },
+    { id: 'page-jobs', group: 'Halaman', label: tc.itemJobs, href: '/jobs', icon: <FileText className="h-4 w-4" /> },
     { id: 'page-settings', group: 'Halaman', label: tc.itemSettings, href: '/dashboard/settings', icon: <Settings className="h-4 w-4" /> },
-    { id: 'action-new-job', group: 'Aksi', label: tc.itemNewJob, href: '/dashboard/jobs/new', hint: tc.itemNewJobHint },
-    { id: 'action-invite', group: 'Aksi', label: tc.itemInvite, href: '/dashboard/team/invite' },
+    { id: 'action-new-job', group: 'Aksi', label: tc.itemNewJob, href: '/partner/lowongan/baru', hint: tc.itemNewJobHint },
+    { id: 'action-invite', group: 'Aksi', label: tc.itemInvite, href: '/partner/tim' },
   ]
 
   const resolvedItems = items ?? DEFAULT_ITEMS

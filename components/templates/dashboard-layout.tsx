@@ -5,7 +5,6 @@ import {
   BarChart3,
   Briefcase,
   Building2,
-  Calendar,
   GraduationCap,
   HelpCircle,
   LayoutDashboard,
@@ -43,21 +42,20 @@ export interface DashboardLayoutProps {
 function buildMenuFromSession(t: Dictionary, globalRole?: string): MiniSidebarItem[] {
   const base: MiniSidebarItem[] = [
     { href: '/dashboard', label: t.dashboard.sidebar.dashboardLabel, icon: LayoutDashboard },
-    { href: '/dashboard/jobs', label: t.dashboard.nav.jobs, icon: Briefcase, matchPrefix: true },
+    { href: '/jobs', label: t.dashboard.nav.jobs, icon: Briefcase, matchPrefix: true },
     { href: '/dashboard/lms', label: t.dashboard.nav.lms, icon: GraduationCap, matchPrefix: true },
     { href: '/dashboard/messages', label: t.dashboard.nav.messages, icon: MessageSquare, matchPrefix: true },
-    { href: '/dashboard/calendar', label: t.dashboard.nav.calendar, icon: Calendar, matchPrefix: true },
   ]
 
   if (globalRole === 'PARTNER' || globalRole === 'ADMIN' || globalRole === 'SUPERADMIN') {
     base.push({
-      href: '/dashboard/talents',
+      href: '/partner/talent',
       label: t.dashboard.nav.talents,
       icon: Users,
       matchPrefix: true,
     })
     base.push({
-      href: '/dashboard/analytics',
+      href: '/partner/analitik',
       label: t.dashboard.nav.analytics,
       icon: BarChart3,
       matchPrefix: true,
