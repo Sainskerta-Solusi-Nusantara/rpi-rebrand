@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { env } from '@/lib/env'
+import { isCronAuthorized } from '@/lib/cron/auth'
 import { processRetryQueue } from '@/lib/webhooks/retry-worker'
 
 export const runtime = 'nodejs'
@@ -25,8 +26,7 @@ export async function POST(req: NextRequest) {
       { status: 503 },
     )
   }
-  const provided = req.headers.get('x-cron-secret') ?? ''
-  if (provided !== env.CRON_SECRET) {
+  if (!isCronAuthorized(req, env.CRON_SECRET)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
   }
 

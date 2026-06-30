@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { env } from '@/lib/env'
+import { isCronAuthorized } from '@/lib/cron/auth'
 import { rescoreAllStaleApplications } from '@/lib/match/match-actions'
 
 export const dynamic = 'force-dynamic'
@@ -27,8 +28,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const secret = req.headers.get('x-cron-secret') ?? ''
-  if (secret !== env.CRON_SECRET) {
+  if (!isCronAuthorized(req, env.CRON_SECRET)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
   }
 
