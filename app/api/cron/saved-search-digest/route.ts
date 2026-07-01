@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { env } from '@/lib/env'
+import { isCronAuthorized } from '@/lib/cron/auth'
 import { runWeeklyDigest } from '@/lib/saved-search/digest-sender'
 
 export const runtime = 'nodejs'
@@ -23,8 +24,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const provided = req.headers.get('x-cron-secret') ?? ''
-  if (provided !== env.CRON_SECRET) {
+  if (!isCronAuthorized(req, env.CRON_SECRET)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
   }
 

@@ -26,9 +26,9 @@ export function MobileBottomNav({ items, className }: MobileBottomNavProps) {
   const defaultItems: MobileBottomNavItem[] = React.useMemo(
     () => [
       { href: '/dashboard', label: t.dashboard.nav.dashboard, icon: Home },
-      { href: '/dashboard/jobs', label: t.dashboard.nav.jobs, icon: Briefcase, matchPrefix: true },
+      { href: '/jobs', label: t.dashboard.nav.jobs, icon: Briefcase, matchPrefix: true },
       { href: '/dashboard/lms', label: t.dashboard.nav.lms, icon: GraduationCap, matchPrefix: true },
-      { href: '/dashboard/profile', label: t.dashboard.nav.profile, icon: User, matchPrefix: true },
+      { href: '/dashboard/profil', label: t.dashboard.nav.profile, icon: User, matchPrefix: true },
     ],
     [t],
   )

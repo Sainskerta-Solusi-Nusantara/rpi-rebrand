@@ -25,7 +25,7 @@ function safeRequire<T = unknown>(path: string, exportName: string): T {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const KPICard: any = safeRequire('@/components/molecules/kpi-card', 'KPICard')
+const KPICard: any = safeRequire('@/components/molecules/kpi-card', 'KpiCard')
 
 export const metadata = { title: 'Kesehatan Sistem' }
 

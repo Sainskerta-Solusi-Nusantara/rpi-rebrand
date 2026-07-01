@@ -32,7 +32,7 @@ const LineChartCard: any = safeRequire('@/components/molecules/line-chart-card',
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const FunnelChart: any = safeRequire('@/components/organisms/funnel-chart', 'FunnelChart')
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const KPICard: any = safeRequire('@/components/molecules/kpi-card', 'KPICard')
+const KPICard: any = safeRequire('@/components/molecules/kpi-card', 'KpiCard')
 
 export const metadata = { title: 'Analitik' }
 

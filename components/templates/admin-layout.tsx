@@ -27,9 +27,9 @@ const ADMIN_ITEMS: MiniSidebarItem[] = [
   { href: '/admin/users', label: 'Pengguna', icon: Users, matchPrefix: true },
   { href: '/admin/billing', label: 'Penagihan', icon: CreditCard, matchPrefix: true },
   { href: '/admin/audit', label: 'Audit Log', icon: Activity, matchPrefix: true },
-  { href: '/admin/moderation', label: 'Moderasi', icon: Flag, matchPrefix: true },
+  { href: '/admin/moderasi', label: 'Moderasi', icon: Flag, matchPrefix: true },
   { href: '/admin/analytics', label: 'Analitik', icon: BarChart3, matchPrefix: true },
-  { href: '/admin/system', label: 'Sistem', icon: ShieldCheck, matchPrefix: true },
+  { href: '/admin/sistem', label: 'Sistem', icon: ShieldCheck, matchPrefix: true },
 ]
 
 const ADMIN_FOOTER: MiniSidebarItem[] = [

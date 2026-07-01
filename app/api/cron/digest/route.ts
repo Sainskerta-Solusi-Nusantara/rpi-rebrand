@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { UserStatus } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { env } from '@/lib/env'
+import { isCronAuthorized } from '@/lib/cron/auth'
 import { sendUserDigest, type SendResultRecord } from '@/lib/digest/builder'
 
 export const dynamic = 'force-dynamic'
@@ -37,9 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'CRON_DISABLED' }, { status: 401 })
   }
 
-  const authHeader = req.headers.get('authorization') ?? ''
-  const expected = `Bearer ${env.CRON_SECRET}`
-  if (authHeader !== expected) {
+  if (!isCronAuthorized(req, env.CRON_SECRET)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
   }
 

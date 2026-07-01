@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import type { SavedSearch } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { env } from '@/lib/env'
+import { isCronAuthorized } from '@/lib/cron/auth'
 import { sendEmail, savedSearchAlertEmail } from '@/lib/mailer'
 import { findMatchingJobs, type MatchingJob } from '@/lib/saved-searches/queries'
 
@@ -55,9 +56,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'CRON_DISABLED' }, { status: 401 })
   }
 
-  const authHeader = req.headers.get('authorization') ?? ''
-  const expected = `Bearer ${env.CRON_SECRET}`
-  if (authHeader !== expected) {
+  if (!isCronAuthorized(req, env.CRON_SECRET)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
   }
 

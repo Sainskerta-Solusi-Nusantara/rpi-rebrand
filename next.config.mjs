@@ -23,6 +23,12 @@ const nextConfig = {
       { protocol: 'https', hostname: 'plus.unsplash.com' },
     ],
   },
+  async redirects() {
+    return [
+      // Legacy/alias path used by the cookie banner and privacy center.
+      { source: '/privacy-policy', destination: '/privacy', permanent: true },
+    ]
+  },
   async headers() {
     return [
       {
