@@ -58,28 +58,22 @@ export function HeroBanner({ stats = FALLBACK_STATS, className }: HeroBannerProp
           backgroundSize: '100% 96px',
         }}
       />
-      {/* Radial mesh — light mode: warm gold + cool navy whisper */}
+      {/* Drifting aurora wash — gold (bottom-right) + purple accent (top-left) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 dark:hidden"
+        className="animate-aurora pointer-events-none absolute inset-0 -z-10 opacity-70 dark:opacity-50"
         style={{
           backgroundImage: [
-            'radial-gradient(ellipse 80% 50% at 88% 100%, color-mix(in oklab, var(--ring) 14%, transparent), transparent 60%)',
-            'radial-gradient(ellipse 60% 40% at 12% 0%, color-mix(in oklab, var(--foreground) 6%, transparent), transparent 60%)',
+            'radial-gradient(ellipse 70% 55% at 90% 100%, color-mix(in oklab, var(--ring) 18%, transparent), transparent 60%)',
+            'radial-gradient(ellipse 55% 45% at 10% 0%, color-mix(in oklab, var(--accent) 12%, transparent), transparent 60%)',
           ].join(', '),
         }}
       />
-      {/* Radial mesh — dark mode: stronger gold + near-white whisper */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 hidden dark:block"
-        style={{
-          backgroundImage: [
-            'radial-gradient(ellipse 80% 55% at 88% 100%, color-mix(in oklab, var(--ring) 22%, transparent), transparent 65%)',
-            'radial-gradient(ellipse 50% 35% at 12% 0%, color-mix(in oklab, var(--foreground) 5%, transparent), transparent 60%)',
-          ].join(', '),
-        }}
-      />
+      {/* Floating orbs — soft depth, one gold one purple */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="animate-float absolute -right-24 top-1/3 h-[26rem] w-[26rem] rounded-full bg-[color:var(--ring)] opacity-[0.12] blur-3xl dark:opacity-25" />
+        <div className="animate-float absolute -left-28 -top-20 h-[24rem] w-[24rem] rounded-full bg-[color:var(--accent)] opacity-[0.09] blur-3xl [animation-delay:-3.5s] dark:opacity-20" />
+      </div>
 
       <div className="container relative mx-auto w-full max-w-6xl px-6 py-10 md:py-14 lg:py-16">
         {/* 1. STATS strip — protagonist */}
@@ -114,7 +108,7 @@ export function HeroBanner({ stats = FALLBACK_STATS, className }: HeroBannerProp
           <h1 className="font-heading text-4xl font-semibold leading-[1.05] tracking-tight text-balance md:text-5xl lg:text-6xl">
             {t.hero.headlineLine1}
             <br />
-            <span className="text-foreground/85">{t.hero.headlineLine2}</span>
+            <span className="text-gradient-gold">{t.hero.headlineLine2}</span>
           </h1>
 
           <p className="mt-4 max-w-2xl text-base text-muted-foreground text-pretty md:text-lg">
@@ -195,16 +189,26 @@ export function HeroBanner({ stats = FALLBACK_STATS, className }: HeroBannerProp
             </span>
             <span aria-hidden className="h-px flex-1 bg-border/60" />
           </div>
-          <ul className="flex flex-wrap items-center gap-x-10 gap-y-4">
-            {TRUSTED_LOGOS.map((logo) => (
-              <li
-                key={logo}
-                className="font-heading text-base font-medium tracking-wide text-muted-foreground transition-colors hover:text-foreground md:text-lg"
+          {/* Seamless marquee: two identical tracks each translating -100% of
+              their own width. Pauses on hover. */}
+          <div className="group mask-fade-x relative flex overflow-hidden">
+            {[0, 1].map((track) => (
+              <ul
+                key={track}
+                aria-hidden={track === 1}
+                className="marquee flex w-max shrink-0 items-center gap-x-10 pr-10 group-hover:[animation-play-state:paused]"
               >
-                {logo}
-              </li>
+                {TRUSTED_LOGOS.map((logo) => (
+                  <li
+                    key={logo}
+                    className="font-heading whitespace-nowrap text-base font-medium tracking-wide text-muted-foreground transition-colors hover:text-foreground md:text-lg"
+                  >
+                    {logo}
+                  </li>
+                ))}
+              </ul>
             ))}
-          </ul>
+          </div>
         </motion.div>
       </div>
     </section>

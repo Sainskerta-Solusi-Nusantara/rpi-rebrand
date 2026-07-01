@@ -96,11 +96,11 @@ export function HowItWorks({ className }: HowItWorksProps): JSX.Element {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 transition-colors hover:border-[color:var(--ring)]"
+                className="card-lift group relative flex flex-col rounded-2xl border border-border bg-card p-6 hover:border-[color:var(--ring)]"
               >
                 {/* Number badge — sits on the connecting line */}
                 <div className="relative mb-5 flex items-center justify-between">
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-background text-xs font-semibold text-[color:var(--ring)] ring-1 ring-border">
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-background text-xs font-semibold text-[color:var(--ring)] ring-1 ring-border transition-all duration-300 group-hover:scale-110 group-hover:bg-[color:var(--ring)] group-hover:text-background group-hover:ring-[color:var(--ring)]">
                     {step.number}
                   </span>
                   <Icon

@@ -15,9 +15,28 @@ export interface CTABannerProps {
 export function CTABanner({ className }: CTABannerProps) {
   return (
     <section
-      className={cn('bg-muted/30 py-16 md:py-24', className)}
+      className={cn(
+        'bg-primary text-primary-foreground relative isolate overflow-hidden py-20 md:py-28',
+        className,
+      )}
       aria-labelledby="cta-banner-heading"
     >
+      {/* Drifting aurora + floating orb for depth */}
+      <div
+        aria-hidden
+        className="animate-aurora pointer-events-none absolute inset-0 -z-10 opacity-70"
+        style={{
+          backgroundImage: [
+            'radial-gradient(ellipse 55% 60% at 20% 20%, color-mix(in oklab, var(--accent) 32%, transparent), transparent 60%)',
+            'radial-gradient(ellipse 60% 60% at 82% 90%, color-mix(in oklab, var(--secondary) 30%, transparent), transparent 60%)',
+          ].join(', '),
+        }}
+      />
+      <div
+        aria-hidden
+        className="animate-float bg-secondary pointer-events-none absolute -right-20 top-1/2 -z-10 h-72 w-72 -translate-y-1/2 rounded-full opacity-20 blur-3xl"
+      />
+
       <div className="container mx-auto w-full max-w-3xl px-6 text-center">
         <motion.h2
           id="cta-banner-heading"
@@ -25,9 +44,9 @@ export function CTABanner({ className }: CTABannerProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.5 }}
-          className="font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl"
+          className="font-heading text-3xl font-semibold tracking-tight md:text-5xl"
         >
-          Siap memulai karier baru?
+          Siap memulai <span className="text-gradient-gold">karier baru?</span>
         </motion.h2>
 
         <motion.p
@@ -35,7 +54,7 @@ export function CTABanner({ className }: CTABannerProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-4 text-base text-muted-foreground md:text-lg"
+          className="text-primary-foreground/75 mt-4 text-base md:text-lg"
         >
           Bergabunglah dengan 240.000+ pekerja dan 850+ mitra Indonesia yang
           sudah bertumbuh di Rumah Pekerja Indonesia.
@@ -48,13 +67,18 @@ export function CTABanner({ className }: CTABannerProps) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
-          <Button asChild size="lg">
+          <Button asChild size="lg" variant="secondary">
             <Link href="/register">
               Daftar Gratis
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground bg-transparent"
+          >
             <Link href="/mitra">
               <Building2 className="h-4 w-4" aria-hidden />
               Untuk Perusahaan
