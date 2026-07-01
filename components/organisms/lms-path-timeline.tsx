@@ -130,7 +130,7 @@ export function LMSPathTimeline({ courses, className }: LMSPathTimelineProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-[color:var(--ring)]"
+                className="card-lift group relative overflow-hidden rounded-2xl border border-border bg-card hover:border-[color:var(--ring)]"
               >
                 <Link href={href} className="absolute inset-0 z-10" aria-label={course.title} />
 

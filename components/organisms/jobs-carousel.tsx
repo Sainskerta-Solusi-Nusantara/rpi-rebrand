@@ -284,7 +284,7 @@ export function JobsCarousel({ jobs, categories, className }: JobsCarouselProps)
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
                 transition={{ duration: 0.45, delay: i * 0.04, ease: 'easeOut' }}
-                className="group relative w-[300px] shrink-0 snap-start rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--ring)] md:w-[320px]"
+                className="card-lift group relative w-[300px] shrink-0 snap-start rounded-2xl border border-border bg-card p-5 hover:border-[color:var(--ring)] md:w-[320px]"
               >
                 <Link
                   href={href as Route}
