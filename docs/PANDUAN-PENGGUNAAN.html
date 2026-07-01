@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panduan Penggunaan — Rumah Pekerja Indonesia (RPI)</title>
+<style>
+  :root{
+    --brand:#1d4ed8;          /* biru */
+    --brand-dark:#1e3a8a;
+    --accent:#0ea5e9;
+    --ink:#1f2937;
+    --muted:#6b7280;
+    --line:#e5e7eb;
+    --bg-soft:#f8fafc;
+    --green:#059669;
+    --amber:#d97706;
+    --violet:#7c3aed;
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); line-height:1.6; margin:0; font-size:14px;
+    background:#fff;
+  }
+  .page{ max-width:880px; margin:0 auto; padding:48px 56px; }
+
+  /* ---------- Cover ---------- */
+  .cover{
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+    background:linear-gradient(135deg,var(--brand-dark) 0%,var(--brand) 55%,var(--accent) 100%);
+    color:#fff; padding:64px 56px; page-break-after:always;
+  }
+  .cover .badge{
+    display:inline-block; border:1px solid rgba(255,255,255,.5); border-radius:999px;
+    padding:6px 16px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:28px;
+    width:max-content;
+  }
+  .cover h1{ font-size:46px; line-height:1.1; margin:0 0 16px; font-weight:800; }
+  .cover h2{ font-size:20px; font-weight:400; opacity:.92; margin:0 0 40px; max-width:620px;}
+  .cover .meta{ font-size:13px; opacity:.85; border-top:1px solid rgba(255,255,255,.3); padding-top:20px; max-width:620px;}
+  .cover .meta b{font-weight:600;}
+  .cover .pills{margin:8px 0 36px; display:flex; gap:10px; flex-wrap:wrap;}
+  .cover .pill{background:rgba(255,255,255,.15); border-radius:8px; padding:8px 14px; font-size:13px;}
+
+  h2.section{
+    font-size:26px; color:var(--brand-dark); border-bottom:3px solid var(--brand);
+    padding-bottom:8px; margin:0 0 6px; font-weight:800;
+  }
+  .section-num{ color:var(--accent); font-weight:800; }
+  h3{ font-size:18px; color:var(--brand-dark); margin:28px 0 6px; }
+  h4{ font-size:15px; color:var(--ink); margin:18px 0 4px; }
+  p{margin:8px 0;}
+  a{color:var(--brand); text-decoration:none;}
+
+  .lead{ color:var(--muted); font-size:15px; margin-bottom:18px;}
+
+  .route{
+    display:inline-block; font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+    font-size:12px; background:#eff6ff; color:var(--brand-dark); border:1px solid #dbeafe;
+    border-radius:6px; padding:2px 8px; margin:2px 4px 2px 0;
+  }
+  .role-tag{
+    display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.04em; border-radius:999px; padding:3px 10px; color:#fff;
+  }
+  .r-public{background:#0ea5e9;} .r-seeker{background:#059669;}
+  .r-employer{background:#7c3aed;} .r-admin{background:#dc2626;}
+
+  ul{margin:8px 0; padding-left:22px;} li{margin:4px 0;}
+
+  .card{
+    border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin:14px 0;
+    background:#fff; page-break-inside:avoid;
+  }
+  .card.soft{background:var(--bg-soft);}
+
+  .steps{counter-reset:step; list-style:none; padding:0; margin:14px 0;}
+  .steps li{
+    position:relative; padding:10px 0 10px 46px; border-bottom:1px dashed var(--line); margin:0;
+  }
+  .steps li:last-child{border-bottom:none;}
+  .steps li::before{
+    counter-increment:step; content:counter(step);
+    position:absolute; left:0; top:8px; width:30px; height:30px; border-radius:50%;
+    background:var(--brand); color:#fff; font-weight:700; font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .steps.green li::before{background:var(--green);}
+  .steps.violet li::before{background:var(--violet);}
+  .steps.sky li::before{background:var(--accent);}
+  .steps.red li::before{background:#dc2626;}
+
+  table{border-collapse:collapse; width:100%; margin:14px 0; font-size:13px;}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top;}
+  th{background:var(--brand-dark); color:#fff; font-weight:600;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  td code{font-family:Consolas,monospace; font-size:12px; color:var(--brand-dark);}
+
+  .callout{
+    border-left:4px solid var(--amber); background:#fffbeb; padding:12px 16px;
+    border-radius:0 8px 8px 0; margin:14px 0; font-size:13px;
+  }
+  .callout.tip{border-left-color:var(--green); background:#ecfdf5;}
+  .callout.info{border-left-color:var(--accent); background:#f0f9ff;}
+  .callout b{display:block; margin-bottom:2px;}
+
+  /* TOC */
+  .toc{ background:var(--bg-soft); border:1px solid var(--line); border-radius:12px; padding:24px 28px;}
+  .toc ol{margin:0; padding-left:20px;}
+  .toc > ol > li{margin:8px 0; font-weight:600; color:var(--brand-dark);}
+  .toc ol ol{padding-left:18px; margin:4px 0;}
+  .toc ol ol li{font-weight:400; color:var(--ink); font-size:13px;}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .mini{border:1px solid var(--line); border-radius:10px; padding:14px; background:#fff;}
+  .mini h4{margin:0 0 4px;}
+  .mini p{margin:0; font-size:13px; color:var(--muted);}
+
+  .page-break{page-break-before:always;}
+  footer{margin-top:40px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; text-align:center;}
+
+  @media print{
+    .page{padding:0 0 0 0; max-width:none;}
+    body{font-size:11.5pt;}
+    .no-print{display:none;}
+    h2.section{font-size:20pt;}
+    .cover{min-height:auto; height:100vh;}
+  }
+  @page{ margin:18mm 16mm; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <span class="badge">Panduan Pengguna · Versi 1.0</span>
+  <h1>Rumah Pekerja Indonesia</h1>
+  <h2>Panduan penggunaan platform — alur lengkap dari awal sampai akhir untuk Pengunjung, Pencari Kerja, Perusahaan/Mitra, dan Admin.</h2>
+  <div class="pills">
+    <span class="pill">🔎 Job Board</span>
+    <span class="pill">🎓 LMS &amp; Sertifikasi</span>
+    <span class="pill">🏢 ATS Multi-tenant</span>
+    <span class="pill">🤖 AI Matching</span>
+  </div>
+  <div class="meta">
+    <b>Tentang platform.</b> RPI adalah platform SaaS multi-tenant yang menghubungkan pencari kerja, perusahaan, dan institusi pelatihan dalam satu ekosistem: job board, Learning Management System (LMS) dengan jalur sertifikasi, white-label SaaS untuk mitra, dan pencocokan kandidat berbasis AI.<br><br>
+    Dokumen ini menjelaskan <b>apa yang dilakukan pengguna</b> di tiap halaman dan <b>urutan langkahnya</b>, bukan detail teknis.
+  </div>
+</section>
+
+<!-- ============ TOC ============ -->
+<div class="page">
+  <h2 class="section"><span class="section-num">»</span> Daftar Isi</h2>
+  <div class="toc">
+    <ol>
+      <li>Gambaran Umum &amp; Peran Pengguna</li>
+      <li>Alur Pengunjung (Publik — tanpa login)
+        <ol>
+          <li>Beranda &amp; navigasi</li>
+          <li>Cari &amp; lihat lowongan</li>
+          <li>Kursus, Blog, Mitra, Profil publik</li>
+        </ol>
+      </li>
+      <li>Pendaftaran &amp; Keamanan Akun
+        <ol>
+          <li>Daftar → verifikasi email → login</li>
+          <li>Lupa password &amp; 2FA</li>
+        </ol>
+      </li>
+      <li>Alur Pencari Kerja (Job Seeker)
+        <ol>
+          <li>Lengkapi profil &amp; CV</li>
+          <li>Rekomendasi AI, cari &amp; simpan lowongan</li>
+          <li>Melamar &amp; melacak lamaran</li>
+          <li>Asesmen, kursus &amp; sertifikat</li>
+          <li>Notifikasi, referral, wawasan gaji, keamanan</li>
+        </ol>
+      </li>
+      <li>Alur Perusahaan / Mitra (ATS)
+        <ol>
+          <li>Buat workspace &amp; undang tim</li>
+          <li>Pasang lowongan</li>
+          <li>Seleksi pelamar &amp; wawancara</li>
+          <li>Talent pool, branding, domain &amp; embed</li>
+          <li>Langganan, analitik &amp; integrasi</li>
+        </ol>
+      </li>
+      <li>Alur Admin Platform</li>
+      <li>Glosarium Istilah</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============ 1. OVERVIEW ============ -->
+<div class="page page-break">
+  <h2 class="section"><span class="section-num">1.</span> Gambaran Umum &amp; Peran Pengguna</h2>
+  <p class="lead">RPI melayani empat tipe pengguna. Hak akses dan menu yang tampil menyesuaikan peran Anda.</p>
+
+  <div class="grid2">
+    <div class="mini"><span class="role-tag r-public">Pengunjung</span>
+      <h4 style="margin-top:8px;">Tamu / belum login</h4>
+      <p>Menjelajah lowongan, kursus, blog, dan profil mitra. Bisa mencari &amp; melihat detail, tetapi harus login untuk melamar atau mendaftar kursus.</p></div>
+    <div class="mini"><span class="role-tag r-seeker">Pencari Kerja</span>
+      <h4 style="margin-top:8px;">Job Seeker</h4>
+      <p>Membuat profil &amp; CV, menerima rekomendasi AI, melamar pekerjaan, mengikuti asesmen/kursus, dan mengumpulkan sertifikat.</p></div>
+    <div class="mini"><span class="role-tag r-employer">Perusahaan / Mitra</span>
+      <h4 style="margin-top:8px;">Recruiter / Employer</h4>
+      <p>Mengelola workspace perusahaan (tenant): pasang lowongan, seleksi pelamar, jadwalkan wawancara, kelola tim, branding &amp; langganan.</p></div>
+    <div class="mini"><span class="role-tag r-admin">Admin Platform</span>
+      <h4 style="margin-top:8px;">Admin / Superadmin</h4>
+      <p>Mengawasi seluruh platform: pengguna, tenant, moderasi konten, status sistem, dan audit.</p></div>
+  </div>
+
+  <h3>Peran di dalam workspace perusahaan</h3>
+  <p>Satu perusahaan (tenant) dapat memiliki banyak anggota dengan peran berbeda:</p>
+  <table>
+    <tr><th>Peran</th><th>Hak akses</th></tr>
+    <tr><td><b>OWNER</b></td><td>Kontrol penuh — termasuk penagihan, transfer kepemilikan, hapus tenant, kebijakan 2FA, retensi audit, ekspor data.</td></tr>
+    <tr><td><b>ADMIN</b></td><td>Hampir penuh — tanpa akses penagihan &amp; transfer kepemilikan.</td></tr>
+    <tr><td><b>RECRUITER</b></td><td>Kelola lowongan, lamaran, wawancara, talent pool, template email. Tanpa pengaturan tim/penagihan/keamanan.</td></tr>
+    <tr><td><b>VIEWER</b></td><td>Hanya-baca terhadap lowongan &amp; lamaran.</td></tr>
+  </table>
+
+  <div class="callout info"><b>Catatan navigasi</b>
+    Halaman publik diakses dari domain utama. Setelah login, Anda masuk ke <span class="route">/dashboard</span> (pencari kerja), <span class="route">/dashboard/tenants/[slug]</span> (workspace perusahaan), atau <span class="route">/admin</span> (admin platform).</div>
+</div>
+
+<!-- ============ 2. PUBLIC ============ -->
+<div class="page page-break">
+  <h2 class="section"><span class="section-num">2.</span> Alur Pengunjung (Publik) <span class="role-tag r-public">Tanpa Login</span></h2>
+  <p class="lead">Semua orang bisa menjelajah konten publik tanpa akun. Login baru diperlukan saat akan melamar atau mendaftar kursus.</p>
+
+  <h3>2.1 Beranda &amp; navigasi <span class="route">/</span></h3>
+  <p>Halaman utama menampilkan: hero dengan statistik platform, lowongan unggulan, langkah "cara kerja", kursus pilihan, kisah sukses, artikel terbaru, dan FAQ. Dari sini pengunjung dapat langsung mencari lowongan, menelusuri kursus, membaca artikel, atau mendaftar.</p>
+
+  <h3>2.2 Cari &amp; lihat lowongan</h3>
+  <h4>Daftar lowongan <span class="route">/jobs</span></h4>
+  <ul>
+    <li><b>Pencarian &amp; filter:</b> kata kunci, kategori, tipe kerja (full-time/part-time/kontrak/magang/freelance), lokasi (on-site/hybrid/remote), level pengalaman, dan rentang gaji.</li>
+    <li><b>Urutkan:</b> relevansi, terbaru, gaji tertinggi/terendah, pelamar paling sedikit.</li>
+    <li>Filter aktif tampil sebagai chip yang bisa dilepas; tersedia tombol <b>"Simpan pencarian ini"</b> (perlu login).</li>
+  </ul>
+  <h4>Detail lowongan <span class="route">/jobs/[slug]</span></h4>
+  <ul>
+    <li>Deskripsi lengkap: tentang perusahaan, tanggung jawab, persyaratan, benefit, skill yang dibutuhkan, dan statistik (jumlah pelamar &amp; dilihat).</li>
+    <li><b>Tombol "Lamar":</b> jika belum login → diarahkan ke halaman login dengan callback kembali ke lowongan; jika sudah login → muncul modal lamaran (pilih CV + jawab pertanyaan kustom). Jika sudah pernah melamar, status lamaran ditampilkan.</li>
+    <li>Tombol <b>Simpan lowongan</b>, tombol bagikan (LinkedIn/Twitter/WhatsApp/salin tautan), dan daftar lowongan serupa.</li>
+  </ul>
+
+  <h3>2.3 Kursus, Blog, Mitra &amp; Profil publik</h3>
+  <table>
+    <tr><th>Halaman</th><th>Rute</th><th>Yang bisa dilakukan</th></tr>
+    <tr><td>Katalog kursus</td><td><code>/courses</code></td><td>Cari &amp; filter kursus (level, durasi, penyelenggara, instruktur), lihat detail.</td></tr>
+    <tr><td>Detail kursus</td><td><code>/courses/[slug]</code></td><td>Lihat silabus, materi, instruktur; tombol <b>Daftar</b> (perlu login). Jika sudah terdaftar → "Lanjutkan belajar" atau "Lihat sertifikat".</td></tr>
+    <tr><td>Blog</td><td><code>/blog</code></td><td>Cari artikel, filter berdasarkan tag/topik, baca &amp; bagikan.</td></tr>
+    <tr><td>Direktori mitra</td><td><code>/mitra</code></td><td>Cari perusahaan perekrut, filter industri/paket; lihat profil mitra &amp; lowongan aktifnya.</td></tr>
+    <tr><td>Profil publik</td><td><code>/profil/[handle]</code></td><td>Lihat profil pengguna yang dipublikasikan: pengalaman, pendidikan, skill, sertifikat, dan badge asesmen.</td></tr>
+    <tr><td>Info lain</td><td><code>/tentang · /pricing · /contact</code></td><td>Profil perusahaan, paket harga untuk perusahaan, dan kanal dukungan.</td></tr>
+  </table>
+
+  <div class="card soft">
+    <h4 style="margin-top:0;">🧭 Perjalanan inti pengunjung → melamar</h4>
+    <ol class="steps sky">
+      <li>Buka Beranda → klik lowongan unggulan atau "Lihat semua lowongan".</li>
+      <li>Di <span class="route">/jobs</span>, cari &amp; filter, lalu klik kartu lowongan.</li>
+      <li>Di detail lowongan, klik <b>Lamar</b>.</li>
+      <li>Jika belum punya akun → diarahkan login/daftar, lalu otomatis kembali ke lowongan tadi.</li>
+      <li>Isi modal lamaran (pilih CV + pertanyaan) → kirim. Lamaran kini terlacak di dashboard.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============ 3. AUTH ============ -->
+<div class="page page-break">
+  <h2 class="section"><span class="section-num">3.</span> Pendaftaran &amp; Keamanan Akun</h2>
+  <p class="lead">Akun dibuat sekali dan dipakai untuk semua peran. Verifikasi email wajib; 2FA opsional kecuali diwajibkan oleh perusahaan Anda.</p>
+
+  <h3>3.1 Daftar → verifikasi email → login</h3>
+  <ol class="steps">
+    <li><b>Daftar</b> <span class="route">/register</span> — isi email &amp; password (minimal: panjang tertentu, huruf besar, angka, karakter khusus), setujui syarat &amp; ketentuan.</li>
+    <li><b>Cek email</b> <span class="route">/verify</span> — halaman mengingatkan untuk membuka tautan verifikasi di email (cek folder spam jika perlu).</li>
+    <li><b>Konfirmasi</b> <span class="route">/verify/[token]</span> — klik tautan; email terverifikasi → lanjut ke login. Token kedaluwarsa/terpakai menampilkan pesan kesalahan.</li>
+    <li><b>Login</b> <span class="route">/login</span> — masuk dengan email &amp; password (atau Google). Setelah berhasil → menuju <span class="route">/dashboard</span> atau kembali ke halaman asal (mis. lowongan yang akan dilamar).</li>
+  </ol>
+
+  <h3>3.2 Lupa password</h3>
+  <ol class="steps red">
+    <li><span class="route">/login</span> → klik "Lupa password".</li>
+    <li><span class="route">/forgot</span> → masukkan email → kirim tautan reset.</li>
+    <li>Buka email → klik tautan → <span class="route">/reset/[token]</span> → buat password baru.</li>
+    <li>Diarahkan kembali ke login dengan pesan "Password berhasil direset".</li>
+  </ol>
+
+  <h3>3.3 Autentikasi dua faktor (2FA)</h3>
+  <p>2FA berbasis aplikasi authenticator (TOTP, mis. Google Authenticator). Diaktifkan di <span class="route">/dashboard/keamanan</span>. Jika perusahaan tempat Anda bergabung <b>mewajibkan 2FA</b> dan Anda belum mengaktifkannya, saat login Anda diarahkan ke <span class="route">/two-factor-required</span> dengan pilihan: aktifkan 2FA, keluar, atau keluar dari tenant tersebut.</p>
+
+  <div class="callout"><b>Ganti email</b>
+    Saat mengganti email di pengaturan keamanan, sistem mengirim tautan konfirmasi ke alamat baru (<span class="route">/verify-email-change/[token]</span>) yang harus diklik agar perubahan berlaku.</div>
+</div>
+
+<!-- ============ 4. JOB SEEKER ============ -->
+<div class="page page-break">
+  <h2 class="section"><span class="section-num">4.</span> Alur Pencari Kerja <span class="role-tag r-seeker">Job Seeker</span></h2>
+  <p class="lead">Setelah login, pencari kerja masuk ke <span class="route">/dashboard</span> — pusat kerja dengan KPI, rekomendasi, dan checklist onboarding.</p>
+
+  <h3>4.1 Lengkapi profil &amp; CV</h3>
+  <table>
+    <tr><th>Halaman</th><th>Fungsi</th></tr>
+    <tr><td><b>Profil Saya</b><br><code>/dashboard/profil</code></td><td>Foto, headline, bio, lokasi, kontak; username publik &amp; visibilitas profil (<code>/profil/{username}</code>); bahasa &amp; zona waktu.</td></tr>
+    <tr><td><b>CV &amp; Resume</b><br><code>/dashboard/cv</code></td><td>Unggah beberapa CV atau pakai builder; tandai satu CV sebagai <b>utama</b> (dipakai untuk pencocokan &amp; rekomendasi AI).</td></tr>
+  </table>
+  <div class="callout tip"><b>Tips</b> Lengkapi headline, lokasi, dan skill pada CV utama agar kualitas rekomendasi AI meningkat.</div>
+
+  <h3>4.2 Rekomendasi AI, cari &amp; simpan lowongan</h3>
+  <ul>
+    <li><b>Rekomendasi untuk Anda</b> <span class="route">/dashboard/rekomendasi</span> — hingga 20 lowongan diperingkat skor kecocokan; tampil skill yang cocok dan alasan AI (dimuat saat diklik).</li>
+    <li><b>Pencarian Tersimpan</b> <span class="route">/dashboard/pencarian-tersimpan</span> — simpan filter pencarian bernama + aktifkan <b>alert email</b> untuk lowongan baru yang cocok.</li>
+    <li><b>Disimpan</b> <span class="route">/dashboard/disimpan</span> — daftar lowongan yang Anda bookmark untuk ditinjau nanti.</li>
+  </ul>
+
+  <h3>4.3 Melamar &amp; melacak lamaran</h3>
+  <p><b>Lamaran Saya</b> <span class="route">/dashboard/lamaran</span> menampilkan papan <b>Kanban</b> dengan 4 kolom: <b>Disimpan → Dilamar → Wawancara → Penawaran</b>. Setiap kartu menampilkan judul, perusahaan, dan status. Untuk lamaran yang masih aktif Anda bisa: melihat percakapan dengan perekrut (dengan badge pesan belum dibaca) dan <b>menarik lamaran</b>. Toggle "Termasuk yang ditarik" menampilkan lamaran yang sudah dibatalkan.</p>
+  <p>Halaman pendukung: <b>Aktivitas Akun</b> <span class="route">/dashboard/aktivitas</span> (log tindakan + ekspor CSV) dan <b>Mention Saya</b> <span class="route">/dashboard/mentions</span> (saat perekrut menyebut Anda di catatan internal).</p>
+
+  <h3>4.4 Asesmen, kursus &amp; sertifikat</h3>
+  <table>
+    <tr><th>Halaman</th><th>Fungsi</th></tr>
+    <tr><td><b>Asesmen</b><br><code>/dashboard/assesmen</code></td><td>Kuis untuk memvalidasi skill (Teknis, Soft Skill, Bahasa, Kognitif). Tampil durasi, jumlah soal, nilai lulus; badge "Sudah lulus" untuk yang selesai. Hasil menjadi badge di profil.</td></tr>
+    <tr><td><b>Pembelajaran / Kursus</b><br><code>/dashboard/lms · /dashboard/kursus</code></td><td>Lihat semua kursus terdaftar dengan progress bar; tab Semua / Sedang Berjalan / Selesai; tombol "Lanjutkan".</td></tr>
+    <tr><td><b>Sertifikat</b><br><code>/dashboard/sertifikat</code></td><td>Kumpulan sertifikat penyelesaian kursus: unduh PDF, verifikasi keaslian (nomor sertifikat), buka berkas.</td></tr>
+  </table>
+
+  <h3>4.5 Notifikasi, referral, wawasan gaji &amp; keamanan</h3>
+  <div class="grid2">
+    <div class="mini"><h4>Notifikasi <code>/dashboard/notifikasi</code></h4><p>Atur push browser &amp; preferensi email per jenis notifikasi. Email transaksional kritis tidak dapat dimatikan.</p></div>
+    <div class="mini"><h4>Referral <code>/dashboard/referral</code></h4><p>Bagikan kode undangan, pantau statistik undangan &amp; posisi leaderboard.</p></div>
+    <div class="mini"><h4>Wawasan Gaji <code>/dashboard/salary-insights</code></h4><p>Benchmark gaji per kategori, level, &amp; lokasi: median, rentang persentil, distribusi.</p></div>
+    <div class="mini"><h4>Keamanan <code>/dashboard/keamanan</code></h4><p>Password, 2FA &amp; kode pemulihan, tautan Google, kelola perangkat/sesi, ekspor data, hapus akun.</p></div>
+  </div>
+
+  <div class="card soft">
+    <h4 style="margin-top:0;">🧭 Perjalanan inti pencari kerja</h4>
+    <ol class="steps green">
+      <li>Lengkapi <b>Profil</b> &amp; unggah <b>CV utama</b>.</li>
+      <li>Buka <b>Rekomendasi</b> AI yang muncul setelah CV lengkap.</li>
+      <li>Simpan lowongan / buat pencarian tersimpan dengan alert.</li>
+      <li>Lamar pekerjaan → pantau di papan Kanban <b>Lamaran</b>.</li>
+      <li>Tingkatkan profil lewat <b>Asesmen</b> &amp; <b>Kursus</b> → kumpulkan <b>Sertifikat</b>.</li>
+      <li>Amankan akun: verifikasi email &amp; aktifkan 2FA.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============ 5. EMPLOYER ============ -->
+<div class="page page-break">
+  <h2 class="section"><span class="section-num">5.</span> Alur Perusahaan / Mitra <span class="role-tag r-employer">ATS</span></h2>
+  <p class="lead">Perusahaan bekerja di dalam <b>workspace (tenant)</b>. Tampilan <span class="route">/partner/*</span> memberi ringkasan lintas-workspace, sedangkan <span class="route">/dashboard/tenants/[slug]/*</span> adalah ATS lengkapnya.</p>
+
+  <h3>5.1 Buat workspace &amp; undang tim</h3>
+  <ul>
+    <li><b>Tenant Saya</b> <span class="route">/dashboard/tenants</span> — daftar semua workspace Anda (nama, paket, status, peran, jumlah anggota &amp; lowongan); buat workspace baru via onboarding.</li>
+    <li><b>Kelola Tenant</b> <span class="route">/dashboard/tenants/[slug]</span> — hub workspace: navigasi ke semua modul, tabel anggota &amp; undangan tertunda, <b>form undang anggota</b> (dengan peran), import CSV anggota, transfer kepemilikan, dan feed RSS (Atom/LinkedIn/Indeed) untuk sindikasi lowongan.</li>
+  </ul>
+
+  <h3>5.2 Pasang lowongan</h3>
+  <ul>
+    <li><b>Lowongan</b> <span class="route">/dashboard/tenants/[slug]/jobs</span> — tabel semua lowongan dengan status (DRAFT/PUBLISHED/PAUSED/CLOSED/ARCHIVED), jumlah dilihat &amp; pelamar; cari, filter, import CSV.</li>
+    <li><b>Buat lowongan baru</b> <span class="route">.../jobs/new</span> — judul, lokasi, tipe kerja, kategori, deskripsi, gaji, tag. Tersedia bantuan <b>pembuatan deskripsi berbasis AI</b>.</li>
+    <li>Setelah dipublikasikan, lowongan tampil di job board publik &amp; tersindikasi ke feed RSS.</li>
+  </ul>
+
+  <h3>5.3 Seleksi pelamar &amp; wawancara</h3>
+  <ul>
+    <li><b>Lamaran Masuk</b> <span class="route">.../lamaran</span> — tabel pelamar dengan filter status/lowongan/nama dan <b>skor kecocokan AI</b> + tag AI. Tersedia <b>aksi massal</b>: ubah status, kirim email (template), tugaskan reviewer. Tersedia pula <b>tampilan Kanban</b> <span class="route">.../lamaran/kanban</span> (geser kartu antar status).</li>
+    <li><b>Detail lamaran</b> <span class="route">.../lamaran/[id]</span> — profil kandidat, resume, skor AI, kirim pesan/email, jadwalkan wawancara, ubah status, catatan internal.</li>
+    <li><b>Wawancara &amp; scorecard</b> — isi penilaian (kriteria + rekomendasi Strong Hire…No Hire), lihat riwayat scorecard. <b>Bank Pertanyaan Wawancara</b> <span class="route">.../interview-questions</span> menyediakan pustaka pertanyaan (kategori &amp; tingkat kesulitan).</li>
+  </ul>
+  <p>Status lamaran mengalir: <b>APPLIED → REVIEWED → SHORTLISTED → INTERVIEW → OFFERED → HIRED</b> (atau REJECTED/WITHDRAWN). Email otomatis per perubahan status diatur di <b>Template Email</b> <span class="route">.../email-templates</span> dengan variabel seperti <code>{{candidateName}}</code>.</p>
+
+  <h3>5.4 Talent pool, branding, domain &amp; embed</h3>
+  <table>
+    <tr><th>Modul</th><th>Rute</th><th>Fungsi</th></tr>
+    <tr><td>Talent Pool</td><td><code>.../talent-pool</code></td><td>Cari kandidat (kata kunci, skill, lokasi, pengalaman) dari profil yang dipublikasikan; kirim ajakan. Pencarian dicatat untuk kepatuhan.</td></tr>
+    <tr><td>Branding</td><td><code>.../branding</code></td><td>White-label: logo (terang/gelap), favicon, warna, font, radius, kepadatan layout.</td></tr>
+    <tr><td>Domain kustom</td><td><code>.../domain</code></td><td>Pasang domain sendiri (mis. <code>karir.contoh.com</code>) + verifikasi DNS (TXT record).</td></tr>
+    <tr><td>Embed widget</td><td><code>.../embed</code></td><td>Konfigurasi widget lowongan; salin snippet iframe/script untuk situs perusahaan.</td></tr>
+  </table>
+
+  <h3>5.5 Langganan, analitik &amp; integrasi</h3>
+  <table>
+    <tr><th>Modul</th><th>Rute</th><th>Fungsi</th></tr>
+    <tr><td>Penagihan</td><td><code>.../billing</code></td><td>Kelola paket (FREE/PRO/BUSINESS/ENTERPRISE) via Stripe; upgrade/downgrade; riwayat langganan.</td></tr>
+    <tr><td>Analitik</td><td><code>.../analytics</code></td><td>KPI, funnel status pelamar, tren harian, lowongan teratas, aktivitas terbaru.</td></tr>
+    <tr><td>Benchmarks</td><td><code>.../benchmarks</code></td><td>Bandingkan metrik tenant dengan benchmark industri.</td></tr>
+    <tr><td>Webhooks</td><td><code>.../webhooks</code></td><td>Endpoint event (application.created, status_changed, dll.); riwayat &amp; dead-letter queue.</td></tr>
+    <tr><td>API Keys / Docs</td><td><code>.../api-keys · .../api-docs</code></td><td>Kunci API ber-scope untuk akses programatik + dokumentasi interaktif.</td></tr>
+    <tr><td>Keamanan</td><td><code>.../keamanan</code></td><td>Kebijakan wajib 2FA untuk anggota + status kepatuhan (khusus OWNER).</td></tr>
+    <tr><td>Audit &amp; Ekspor</td><td><code>.../audit · .../data-export</code></td><td>Log aktivitas tenant, kebijakan retensi, dan ekspor seluruh data (ZIP).</td></tr>
+  </table>
+
+  <div class="card soft">
+    <h4 style="margin-top:0;">🧭 Perjalanan inti perusahaan</h4>
+    <ol class="steps violet">
+      <li>Buat workspace (tenant) → undang anggota tim dengan peran.</li>
+      <li>Pasang lowongan (manual / bantuan AI) → publikasikan.</li>
+      <li>Terima pelamar → seleksi via tabel/Kanban dengan skor AI.</li>
+      <li>Jadwalkan wawancara → isi scorecard → ubah status (email otomatis).</li>
+      <li>Sumberkan kandidat dari Talent Pool; kustomisasi branding/domain/embed.</li>
+      <li>Pantau analitik; atur langganan, integrasi (webhook/API), &amp; keamanan.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============ 6. ADMIN ============ -->
+<div class="page page-break">
+  <h2 class="section"><span class="section-num">6.</span> Alur Admin Platform <span class="role-tag r-admin">Admin / Superadmin</span></h2>
+  <p class="lead">Area <span class="route">/admin</span> untuk mengelola seluruh platform. Beberapa fitur khusus SUPERADMIN.</p>
+
+  <h3>Pusat &amp; pengelolaan</h3>
+  <table>
+    <tr><th>Halaman</th><th>Rute</th><th>Fungsi</th></tr>
+    <tr><td>Dasbor</td><td><code>/admin</code></td><td>KPI platform (pengguna, tenant, lowongan, lamaran), tren pertumbuhan, kesehatan sistem, ringkasan moderasi.</td></tr>
+    <tr><td>Pengguna</td><td><code>/admin/users</code></td><td>Cari/filter semua pengguna; di detail: ubah peran global, suspend, reset 2FA (SUPERADMIN), lihat keanggotaan tenant &amp; audit.</td></tr>
+    <tr><td>Tenant <span class="role-tag r-admin" style="font-size:9px;">SUPERADMIN</span></td><td><code>/admin/tenants</code></td><td>Awasi semua perusahaan; di detail: suspend/aktifkan, ubah paket, lihat anggota &amp; audit.</td></tr>
+    <tr><td>Moderasi</td><td><code>/admin/moderasi</code></td><td>Antrian laporan konten (lowongan/kursus/profil/pesan); tinjau detail → tandai ditinjau / selesai / tolak.</td></tr>
+    <tr><td>Audit</td><td><code>/admin/audit</code></td><td>Jejak audit sistem (immutable) dengan filter aksi &amp; resource.</td></tr>
+    <tr><td>Sistem</td><td><code>/admin/sistem</code></td><td>Status layanan (DB, Auth, Storage) &amp; aktivitas 24 jam terakhir.</td></tr>
+  </table>
+
+  <h3>Konten &amp; operasional</h3>
+  <table>
+    <tr><th>Halaman</th><th>Rute</th><th>Fungsi</th></tr>
+    <tr><td>Artikel (CMS)</td><td><code>/admin/articles</code></td><td>Kelola blog: buat, edit, publish/draft/archive.</td></tr>
+    <tr><td>Asesmen</td><td><code>/admin/assessments</code></td><td>Bank asesmen skill: kelola soal, kategori, status.</td></tr>
+    <tr><td>Branding platform</td><td><code>/admin/branding</code></td><td>Branding default seluruh platform (logo, warna, nama).</td></tr>
+    <tr><td>Status &amp; insiden <span class="role-tag r-admin" style="font-size:9px;">SUPERADMIN</span></td><td><code>/admin/status</code></td><td>Kelola halaman status publik: insiden aktif/riwayat &amp; jadwal pemeliharaan.</td></tr>
+    <tr><td>Feature flags <span class="role-tag r-admin" style="font-size:9px;">SUPERADMIN</span></td><td><code>/dashboard/feature-flags</code></td><td>Aktif/nonaktifkan fitur untuk rollout bertahap / A-B testing.</td></tr>
+  </table>
+
+  <div class="card soft">
+    <h4 style="margin-top:0;">🧭 Alur kerja admin tipikal</h4>
+    <ol class="steps red">
+      <li>Tangani masalah pengguna: Pengguna → detail → audit / reset 2FA / ubah status.</li>
+      <li>Moderasi konten: Moderasi → tinjau laporan → selesaikan/tolak.</li>
+      <li>Awasi tenant: Tenant → detail → cek anggota &amp; jejak audit.</li>
+      <li>Pantau sistem: Sistem / Status untuk kesehatan &amp; insiden.</li>
+      <li>Kelola konten: Artikel &amp; Asesmen (buat → publish).</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============ 7. GLOSSARY ============ -->
+<div class="page page-break">
+  <h2 class="section"><span class="section-num">7.</span> Glosarium Istilah</h2>
+  <p class="lead">Padanan istilah Indonesia ⇄ Inggris yang sering muncul di platform.</p>
+  <table>
+    <tr><th>Istilah</th><th>Arti</th><th>Konteks</th></tr>
+    <tr><td>Lowongan</td><td>Job posting</td><td>Iklan pekerjaan di job board</td></tr>
+    <tr><td>Lamaran</td><td>Application</td><td>Pengajuan lamaran / pipeline pelamar</td></tr>
+    <tr><td>Wawancara</td><td>Interview</td><td>Penjadwalan &amp; penilaian wawancara</td></tr>
+    <tr><td>Asesmen</td><td>Assessment</td><td>Kuis validasi skill</td></tr>
+    <tr><td>Sertifikat</td><td>Certificate</td><td>Bukti penyelesaian kursus</td></tr>
+    <tr><td>Disimpan</td><td>Saved jobs</td><td>Lowongan yang dibookmark</td></tr>
+    <tr><td>Pencarian Tersimpan</td><td>Saved search</td><td>Filter pencarian + alert email</td></tr>
+    <tr><td>Rekomendasi</td><td>Recommendations</td><td>Saran lowongan berbasis AI</td></tr>
+    <tr><td>Talent Pool</td><td>Talent pool</td><td>Pencarian kandidat dari profil publik</td></tr>
+    <tr><td>Tim / Anggota</td><td>Team / Member</td><td>Anggota workspace perusahaan</td></tr>
+    <tr><td>Tenant / Mitra</td><td>Workspace / Partner</td><td>Workspace perusahaan multi-tenant</td></tr>
+    <tr><td>Branding</td><td>White-label</td><td>Kustomisasi logo, warna, font</td></tr>
+    <tr><td>Domain kustom</td><td>Custom domain</td><td>Domain sendiri untuk job board</td></tr>
+    <tr><td>Embed</td><td>Embed widget</td><td>Widget lowongan untuk situs eksternal</td></tr>
+    <tr><td>Penagihan</td><td>Billing</td><td>Langganan &amp; pembayaran (Stripe)</td></tr>
+    <tr><td>Analitik</td><td>Analytics</td><td>Metrik &amp; insight perekrutan</td></tr>
+    <tr><td>Keamanan</td><td>Security</td><td>Password, 2FA, perangkat</td></tr>
+    <tr><td>Audit</td><td>Audit log</td><td>Riwayat aktivitas</td></tr>
+    <tr><td>Moderasi</td><td>Moderation</td><td>Tinjauan konten yang dilaporkan</td></tr>
+    <tr><td>Sistem</td><td>System health</td><td>Status infrastruktur platform</td></tr>
+  </table>
+
+  <footer>
+    Rumah Pekerja Indonesia (RPI) · Panduan Penggunaan v1.0 · Dokumen dibuat untuk pengguna akhir.<br>
+    Platform SaaS Job Board + LMS + ATS multi-tenant dengan AI matching.
+  </footer>
+</div>
+
+</body>
+</html>
