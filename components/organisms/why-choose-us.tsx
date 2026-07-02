@@ -46,7 +46,7 @@ export function WhyChooseUs({ className }: WhyChooseUsProps): JSX.Element {
   return (
     <section
       className={cn(
-        'bg-primary text-primary-foreground relative isolate overflow-hidden py-20 md:py-28',
+        'bg-brand-ink text-brand-ink-foreground relative isolate overflow-hidden py-20 md:py-28',
         className,
       )}
       aria-labelledby="why-ssn-heading"
@@ -57,7 +57,7 @@ export function WhyChooseUs({ className }: WhyChooseUsProps): JSX.Element {
         className="animate-aurora pointer-events-none absolute inset-0 -z-10 opacity-60"
         style={{
           backgroundImage: [
-            'radial-gradient(ellipse 60% 50% at 85% 15%, color-mix(in oklab, var(--secondary) 30%, transparent), transparent 60%)',
+            'radial-gradient(ellipse 60% 50% at 85% 15%, color-mix(in oklab, var(--brand-gold) 30%, transparent), transparent 60%)',
             'radial-gradient(ellipse 55% 50% at 10% 90%, color-mix(in oklab, var(--accent) 35%, transparent), transparent 60%)',
           ].join(', '),
         }}
@@ -66,8 +66,8 @@ export function WhyChooseUs({ className }: WhyChooseUsProps): JSX.Element {
       <div className="container mx-auto w-full max-w-6xl px-6">
         {/* Eyebrow + heading */}
         <div className="mb-6 flex items-center gap-3">
-          <span aria-hidden className="bg-secondary h-px w-8" />
-          <span className="text-primary-foreground/70 text-xs font-medium uppercase tracking-[0.2em]">
+          <span aria-hidden className="bg-brand-gold h-px w-8" />
+          <span className="text-brand-ink-foreground/70 text-xs font-medium uppercase tracking-[0.2em]">
             Mengapa SSN
           </span>
         </div>
@@ -88,7 +88,7 @@ export function WhyChooseUs({ className }: WhyChooseUsProps): JSX.Element {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-primary-foreground/70 mt-4 max-w-2xl text-base md:text-lg"
+          className="text-brand-ink-foreground/70 mt-4 max-w-2xl text-base md:text-lg"
         >
           Infrastruktur karier yang dirancang untuk skala — dari pekerja
           individu sampai instansi nasional.
@@ -105,15 +105,15 @@ export function WhyChooseUs({ className }: WhyChooseUsProps): JSX.Element {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.55, delay: (i % 2) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                className="border-primary-foreground/10 bg-primary-foreground/[0.04] hover:border-secondary/60 card-lift group rounded-2xl border p-6 backdrop-blur-sm md:p-8"
+                className="border-brand-ink-foreground/10 bg-brand-ink-foreground/[0.04] hover:border-brand-gold/60 card-lift group rounded-2xl border p-6 backdrop-blur-sm md:p-8"
               >
-                <div className="bg-secondary/15 text-secondary grid h-11 w-11 place-items-center rounded-xl transition-transform duration-300 group-hover:scale-110">
+                <div className="bg-brand-gold/15 text-brand-gold grid h-11 w-11 place-items-center rounded-xl transition-transform duration-300 group-hover:scale-110">
                   <Icon className="h-5 w-5" aria-hidden />
                 </div>
                 <h3 className="font-heading mt-5 text-lg font-semibold md:text-xl">
                   {prop.title}
                 </h3>
-                <p className="text-primary-foreground/70 mt-2 text-sm md:text-base">
+                <p className="text-brand-ink-foreground/70 mt-2 text-sm md:text-base">
                   {prop.description}
                 </p>
               </motion.article>

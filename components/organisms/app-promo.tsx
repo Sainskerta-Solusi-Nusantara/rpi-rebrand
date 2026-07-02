@@ -33,7 +33,7 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
     <section
       aria-labelledby="app-promo-heading"
       className={cn(
-        'relative overflow-hidden bg-gradient-to-br from-primary via-primary to-[#061a30] py-20 text-primary-foreground md:py-28',
+        'relative overflow-hidden bg-gradient-to-br from-brand-ink via-brand-ink to-[#061a30] py-20 text-brand-ink-foreground md:py-28',
         className,
       )}
     >
@@ -50,19 +50,19 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
       <div className="container relative mx-auto grid max-w-7xl gap-12 px-6 md:grid-cols-2 md:items-center md:gap-8">
         {/* LEFT */}
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur">
-            <Smartphone className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-brand-ink-foreground/20 bg-brand-ink-foreground/10 px-3 py-1 text-xs font-medium text-brand-ink-foreground backdrop-blur">
+            <Smartphone className="h-3.5 w-3.5 text-brand-gold" aria-hidden="true" />
             {ta.badge}
           </span>
 
           <h2
             id="app-promo-heading"
-            className="mt-4 font-heading text-3xl font-bold tracking-tight text-primary-foreground md:text-5xl"
+            className="mt-4 font-heading text-3xl font-bold tracking-tight text-brand-ink-foreground md:text-5xl"
           >
             {ta.heading}
           </h2>
 
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-primary-foreground/80 md:text-lg">
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-brand-ink-foreground/80 md:text-lg">
             {ta.body}
           </p>
 
@@ -73,10 +73,10 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
                 className="flex items-start gap-3 text-sm md:text-base"
               >
                 <CheckCircle2
-                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-secondary"
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-brand-gold"
                   aria-hidden="true"
                 />
-                <span className="text-primary-foreground/90">{feature}</span>
+                <span className="text-brand-ink-foreground/90">{feature}</span>
               </li>
             ))}
           </ul>
@@ -113,8 +113,8 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
           </div>
 
           {/* Stats row */}
-          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-primary-foreground/70">
-            <span className="font-semibold text-secondary">
+          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-brand-ink-foreground/70">
+            <span className="font-semibold text-brand-gold">
               <span aria-hidden="true">★</span> {ta.rating}
             </span>
             <span aria-hidden="true">•</span>
@@ -163,7 +163,7 @@ export function AppPromo(props: AppPromoProps): JSX.Element {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="absolute top-8 -left-2 z-20 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground shadow-xl md:-left-4"
+            className="absolute top-8 -left-2 z-20 rounded-full bg-brand-gold px-3 py-1.5 text-xs font-medium text-[#0a2540] shadow-xl md:-left-4"
           >
             {ta.chipInterview}
           </motion.div>
@@ -239,8 +239,8 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
         {/* Floating notification toast */}
         {isFront && (
           <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-md">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary/20">
-              <Bell className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-gold/20">
+              <Bell className="h-3.5 w-3.5 text-brand-gold" aria-hidden="true" />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-semibold text-foreground">
@@ -264,7 +264,7 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
           <span className="text-[10px] font-semibold text-foreground">
             {ta.mockupSection}
           </span>
-          <span className="text-[9px] text-primary">{ta.mockupSeeAll}</span>
+          <span className="text-[9px] text-brand-ink">{ta.mockupSeeAll}</span>
         </div>
 
         {/* Mini job cards */}
@@ -274,8 +274,8 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
               key={job.title}
               className="flex items-center gap-2 rounded-lg border border-border bg-card p-2"
             >
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
-                <div className="h-4 w-4 rounded bg-primary/40" />
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-brand-ink/10">
+                <div className="h-4 w-4 rounded bg-brand-ink/40" />
               </div>
               <div className="flex min-w-0 flex-1 flex-col leading-tight">
                 <span className="truncate text-[10px] font-semibold text-foreground">
@@ -287,7 +287,7 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
               </div>
               <div className="flex flex-col items-end gap-1">
                 <Heart className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
-                <span className="rounded-full bg-secondary/20 px-1.5 py-0.5 text-[8px] font-medium text-secondary">
+                <span className="rounded-full bg-brand-gold/20 px-1.5 py-0.5 text-[8px] font-medium text-brand-gold">
                   {job.tag}
                 </span>
               </div>
@@ -298,8 +298,8 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
         {/* Bottom nav */}
         <div className="flex h-12 items-center justify-around border-t border-border bg-card px-2">
           <div className="flex flex-col items-center gap-0.5">
-            <div className="h-3 w-3 rounded-sm bg-primary" />
-            <span className="text-[8px] text-primary">{ta.mockupNavHome}</span>
+            <div className="h-3 w-3 rounded-sm bg-brand-ink" />
+            <span className="text-[8px] text-brand-ink">{ta.mockupNavHome}</span>
           </div>
           <div className="flex flex-col items-center gap-0.5">
             <div className="h-3 w-3 rounded-sm bg-muted-foreground/40" />

@@ -16,7 +16,7 @@ export function CTABanner({ className }: CTABannerProps) {
   return (
     <section
       className={cn(
-        'bg-primary text-primary-foreground relative isolate overflow-hidden py-20 md:py-28',
+        'bg-brand-ink text-brand-ink-foreground relative isolate overflow-hidden py-20 md:py-28',
         className,
       )}
       aria-labelledby="cta-banner-heading"
@@ -28,13 +28,13 @@ export function CTABanner({ className }: CTABannerProps) {
         style={{
           backgroundImage: [
             'radial-gradient(ellipse 55% 60% at 20% 20%, color-mix(in oklab, var(--accent) 32%, transparent), transparent 60%)',
-            'radial-gradient(ellipse 60% 60% at 82% 90%, color-mix(in oklab, var(--secondary) 30%, transparent), transparent 60%)',
+            'radial-gradient(ellipse 60% 60% at 82% 90%, color-mix(in oklab, var(--brand-gold) 30%, transparent), transparent 60%)',
           ].join(', '),
         }}
       />
       <div
         aria-hidden
-        className="animate-float bg-secondary pointer-events-none absolute -right-20 top-1/2 -z-10 h-72 w-72 -translate-y-1/2 rounded-full opacity-20 blur-3xl"
+        className="animate-float bg-brand-gold pointer-events-none absolute -right-20 top-1/2 -z-10 h-72 w-72 -translate-y-1/2 rounded-full opacity-20 blur-3xl"
       />
 
       <div className="container mx-auto w-full max-w-3xl px-6 text-center">
@@ -45,7 +45,7 @@ export function CTABanner({ className }: CTABannerProps) {
           transition={{ duration: 0.5 }}
           className="mb-5 flex justify-center"
         >
-          <span className="border-secondary/30 bg-secondary/10 text-secondary inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
+          <span className="border-brand-gold/30 bg-brand-gold/10 text-brand-gold inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
             Dipercaya 850+ mitra di Indonesia
           </span>
@@ -67,7 +67,7 @@ export function CTABanner({ className }: CTABannerProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-primary-foreground/75 mt-4 text-base md:text-lg"
+          className="text-brand-ink-foreground/75 mt-4 text-base md:text-lg"
         >
           Bergabunglah dengan 240.000+ pekerja dan 850+ mitra Indonesia yang
           sudah bertumbuh di SSN Pekerja.
@@ -80,7 +80,7 @@ export function CTABanner({ className }: CTABannerProps) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
-          <Button asChild size="lg" variant="secondary">
+          <Button asChild size="lg" variant="brand-gold">
             <Link href="/register">
               Daftar Gratis
               <ArrowRight className="h-4 w-4" aria-hidden />
@@ -90,7 +90,7 @@ export function CTABanner({ className }: CTABannerProps) {
             asChild
             size="lg"
             variant="outline"
-            className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground bg-transparent"
+            className="border-brand-ink-foreground/30 text-brand-ink-foreground hover:bg-brand-ink-foreground/10 hover:text-brand-ink-foreground bg-transparent"
           >
             <Link href="/mitra">
               <Building2 className="h-4 w-4" aria-hidden />

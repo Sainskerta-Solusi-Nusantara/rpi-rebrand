@@ -44,7 +44,7 @@ export function HeroStorySplit({
   return (
     <section
       className={cn(
-        'relative isolate overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground',
+        'relative isolate overflow-hidden bg-gradient-to-br from-brand-ink via-brand-ink to-brand-ink/90 text-brand-ink-foreground',
         className,
       )}
     >
@@ -53,7 +53,7 @@ export function HeroStorySplit({
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{
           backgroundImage:
-            'radial-gradient(circle at 20% 10%, var(--secondary) 0, transparent 40%), radial-gradient(circle at 80% 80%, var(--accent) 0, transparent 45%)',
+            'radial-gradient(circle at 20% 10%, var(--brand-gold) 0, transparent 40%), radial-gradient(circle at 80% 80%, var(--accent) 0, transparent 45%)',
         }}
       />
 
@@ -64,8 +64,8 @@ export function HeroStorySplit({
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="flex flex-col justify-center"
         >
-          <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-secondary/30 bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
-            <span className="h-1.5 w-1.5 rounded-full bg-secondary" aria-hidden />
+          <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-brand-gold/30 bg-brand-gold/10 px-3 py-1 text-xs font-medium text-brand-gold">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-gold" aria-hidden />
             {resolvedEyebrow}
           </span>
 
@@ -74,23 +74,23 @@ export function HeroStorySplit({
               <React.Fragment key={i}>
                 {seg}
                 {i < arr.length - 1 ? (
-                  <span className="text-secondary italic"> SSN Pekerja</span>
+                  <span className="text-brand-gold italic"> SSN Pekerja</span>
                 ) : null}
               </React.Fragment>
             ))}
           </h1>
 
-          <p className="mt-5 max-w-xl text-base text-primary-foreground/80 md:text-lg">{resolvedBody}</p>
+          <p className="mt-5 max-w-xl text-base text-brand-ink-foreground/80 md:text-lg">{resolvedBody}</p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" variant="secondary">
+            <Button asChild size="lg" variant="brand-gold">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               <Link href={primaryHref as any}>
                 {resolvedPrimaryLabel}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="bg-transparent border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
+            <Button asChild size="lg" variant="outline" className="bg-transparent border-brand-ink-foreground/40 text-brand-ink-foreground hover:bg-brand-ink-foreground/10 hover:text-brand-ink-foreground">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               <Link href={secondaryHref as any}>
                 <GraduationCap className="h-4 w-4" />
@@ -99,18 +99,18 @@ export function HeroStorySplit({
             </Button>
           </div>
 
-          <dl className="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-primary-foreground/10 pt-6">
+          <dl className="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-brand-ink-foreground/10 pt-6">
             <div>
-              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">{th.statJobsLabel}</dt>
-              <dd className="font-heading text-2xl text-secondary">12K+</dd>
+              <dt className="text-xs uppercase tracking-wider text-brand-ink-foreground/60">{th.statJobsLabel}</dt>
+              <dd className="font-heading text-2xl text-brand-gold">12K+</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">{th.statPartnersLabel}</dt>
-              <dd className="font-heading text-2xl text-secondary">850+</dd>
+              <dt className="text-xs uppercase tracking-wider text-brand-ink-foreground/60">{th.statPartnersLabel}</dt>
+              <dd className="font-heading text-2xl text-brand-gold">850+</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wider text-primary-foreground/60">{th.statTalentLabel}</dt>
-              <dd className="font-heading text-2xl text-secondary">240K</dd>
+              <dt className="text-xs uppercase tracking-wider text-brand-ink-foreground/60">{th.statTalentLabel}</dt>
+              <dd className="font-heading text-2xl text-brand-gold">240K</dd>
             </div>
           </dl>
         </motion.div>

@@ -30,6 +30,15 @@ const config: Config = {
           DEFAULT: 'var(--accent)',
           foreground: 'var(--accent-foreground)',
         },
+        // Stable brand tokens — do NOT flip between light/dark, unlike
+        // primary/secondary. Used for the dark marketing bands (hero, CTA,
+        // "Mengapa SSN", app-promo) so they stay navy with gold accents in
+        // both themes instead of becoming gold slabs in dark mode.
+        'brand-ink': {
+          DEFAULT: 'var(--brand-ink)',
+          foreground: 'var(--brand-ink-fg)',
+        },
+        'brand-gold': 'var(--brand-gold)',
         background: 'var(--background)',
         foreground: 'var(--foreground)',
         card: {
