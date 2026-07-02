@@ -5,8 +5,8 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 import { RegisterForm } from './register-form'
 
 export const metadata = {
-  title: 'Daftar · Rumah Pekerja Indonesia',
-  description: 'Buat akun RPI gratis untuk mulai mencari pekerjaan.',
+  title: 'Daftar · SSN Pekerja',
+  description: 'Buat akun SSN gratis untuk mulai mencari pekerjaan.',
 }
 
 export default async function RegisterPage() {

@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 /**
  * Auth split-screen layout.
- * Left: navy panel with RPI brand wordmark + tagline.
+ * Left: navy panel with SSN brand wordmark + tagline.
  * Right: white card slot for the auth form (children).
  */
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -21,13 +21,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               R
             </div>
             <span className="text-sm uppercase tracking-[0.2em] text-white/70">
-              RPI SaaS
+              SSN SaaS
             </span>
           </div>
 
           <div className="space-y-6">
             <h1 className="font-heading text-4xl font-semibold leading-tight tracking-tight xl:text-5xl">
-              Rumah Pekerja
+              SSN Pekerja
               <br />
               Indonesia
             </h1>
@@ -43,7 +43,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           </div>
 
           <footer className="text-xs text-white/50">
-            &copy; {new Date().getFullYear()} Rumah Pekerja Indonesia. All rights reserved.
+            &copy; {new Date().getFullYear()} SSN Pekerja. All rights reserved.
           </footer>
         </aside>
 
@@ -53,7 +53,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <div className="w-full max-w-md">
               <div className="mb-8 flex items-center justify-between lg:hidden">
                 <Link href="/" className="font-heading text-xl font-semibold text-primary">
-                  Rumah Pekerja Indonesia
+                  SSN Pekerja
                 </Link>
               </div>
               <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">

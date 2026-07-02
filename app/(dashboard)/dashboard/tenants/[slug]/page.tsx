@@ -14,7 +14,7 @@ import {
 import { FeedUrlBlock } from '@/components/organisms/feed-url-block'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
-const PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://rumahpekerja.id').replace(
+const PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://pekerja.sainskerta.net').replace(
   /\/+$/,
   '',
 )

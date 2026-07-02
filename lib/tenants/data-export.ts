@@ -29,7 +29,7 @@ const AUDIT_LOG_CAP = 5000
 export type TenantExportPayload = {
   meta: {
     exportedAt: string
-    format: 'rpi-tenant-export@v1'
+    format: 'ssn-tenant-export@v1'
     tenantId: string
     tenantSlug: string
     note: string
@@ -372,7 +372,7 @@ export async function buildTenantExportPayload(
   return {
     meta: {
       exportedAt: new Date().toISOString(),
-      format: 'rpi-tenant-export@v1',
+      format: 'ssn-tenant-export@v1',
       tenantId,
       tenantSlug,
       note:

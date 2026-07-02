@@ -16,15 +16,15 @@ type Params = { slug: string }
 
 const CATEGORY_DESCRIPTION: Record<PressCategory, string> = {
   Pendanaan:
-    'Pengumuman pendanaan, ekuitas, dan tonggak komersial yang membentuk pertumbuhan RPI dan ekosistem mitranya.',
+    'Pengumuman pendanaan, ekuitas, dan tonggak komersial yang membentuk pertumbuhan SSN dan ekosistem mitranya.',
   Produk:
-    'Peluncuran produk, fitur baru, dan tonggak teknologi yang memperluas cakupan platform RPI.',
+    'Peluncuran produk, fitur baru, dan tonggak teknologi yang memperluas cakupan platform SSN.',
   Kemitraan:
-    'Kolaborasi dengan perusahaan, pemerintah, dan lembaga pendidikan untuk memperluas dampak RPI.',
+    'Kolaborasi dengan perusahaan, pemerintah, dan lembaga pendidikan untuk memperluas dampak SSN.',
   Riset:
-    'Laporan riset dan publikasi data berdasarkan platform RPI tentang tren tenaga kerja dan industri Indonesia.',
+    'Laporan riset dan publikasi data berdasarkan platform SSN tentang tren tenaga kerja dan industri Indonesia.',
   Penghargaan:
-    'Penghargaan industri dan pengakuan yang diterima RPI dan timnya.',
+    'Penghargaan industri dan pengakuan yang diterima SSN dan timnya.',
 }
 
 export function generateStaticParams(): Params[] {
@@ -35,8 +35,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const category = findCategoryBySlug(params.slug)
   if (!category) return { title: 'Kategori Tidak Ditemukan' }
   return {
-    title: `${category} — Press RPI`,
-    description: `Semua siaran pers RPI dalam kategori ${category}.`,
+    title: `${category} — Press SSN`,
+    description: `Semua siaran pers SSN dalam kategori ${category}.`,
   }
 }
 

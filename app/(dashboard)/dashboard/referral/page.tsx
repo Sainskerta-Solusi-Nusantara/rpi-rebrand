@@ -35,7 +35,7 @@ export default async function ReferralDashboardPage() {
       <header>
         <h1 className="font-heading text-2xl md:text-3xl">Referral</h1>
         <p className="text-muted-foreground mt-1">
-          Undang teman bergabung di RPI dan lacak performa kode referral Anda.
+          Undang teman bergabung di SSN dan lacak performa kode referral Anda.
         </p>
       </header>
 
@@ -106,7 +106,7 @@ export default async function ReferralDashboardPage() {
                     className="border-border/60 border-b last:border-b-0"
                   >
                     <td className="py-2 pr-3 font-medium">
-                      {row.referredUserName ?? 'Pengguna RPI'}
+                      {row.referredUserName ?? 'Pengguna SSN'}
                     </td>
                     <td className="py-2 pr-3 whitespace-nowrap text-xs">
                       {dateFmt.format(row.signedUpAt)}

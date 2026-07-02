@@ -1,6 +1,6 @@
-# FRONTEND.md — Rumah Pekerja Indonesia (RPI)
+# FRONTEND.md — SSN Pekerja (SSN)
 
-Dokumen arsitektur frontend untuk platform SaaS RPI. Stack: **Next.js 14 App Router**, **TypeScript strict**, **Tailwind CSS** (CSS-variable based), **Atomic Design**, **react-hook-form + Zod**, **Zustand** (selektif), **SWR** (live data), **Storybook + Vitest + Playwright**.
+Dokumen arsitektur frontend untuk platform SaaS SSN. Stack: **Next.js 14 App Router**, **TypeScript strict**, **Tailwind CSS** (CSS-variable based), **Atomic Design**, **react-hook-form + Zod**, **Zustand** (selektif), **SWR** (live data), **Storybook + Vitest + Playwright**.
 
 Bahasa narasi: **Bahasa Indonesia**. Bahasa kode: **English**.
 
@@ -20,7 +20,7 @@ Bahasa narasi: **Bahasa Indonesia**. Bahasa kode: **English**.
 
 ## 2. Atomic Design — Rasional & Tree
 
-Atomic Design dipilih karena RPI memiliki **multi-tenant** dengan banyak halaman publik + dashboard berbeda peran. Struktur atomic menjaga konsistensi visual, mempercepat onboarding developer, dan memudahkan A/B testing per layer.
+Atomic Design dipilih karena SSN memiliki **multi-tenant** dengan banyak halaman publik + dashboard berbeda peran. Struktur atomic menjaga konsistensi visual, mempercepat onboarding developer, dan memudahkan A/B testing per layer.
 
 ```
 src/components/
@@ -222,13 +222,13 @@ Implementasi via React Context internal + Radix primitives di bawahnya.
 
 ### 3.5 Props Naming Convention
 
-| Pola              | Contoh                                |
-| ----------------- | ------------------------------------- |
-| Boolean flags     | `disabled`, `loading`, `selected`     |
-| Event handlers    | `onChange`, `onSelect`, `onConfirm`   |
-| Render props      | `renderItem`, `renderEmpty`           |
-| Slot props        | `leftSlot`, `rightSlot`, `icon`       |
-| Data shapes       | `items`, `data`, `value` / `onValueChange` |
+| Pola           | Contoh                                     |
+| -------------- | ------------------------------------------ |
+| Boolean flags  | `disabled`, `loading`, `selected`          |
+| Event handlers | `onChange`, `onSelect`, `onConfirm`        |
+| Render props   | `renderItem`, `renderEmpty`                |
+| Slot props     | `leftSlot`, `rightSlot`, `icon`            |
+| Data shapes    | `items`, `data`, `value` / `onValueChange` |
 
 ---
 
@@ -245,6 +245,7 @@ Implementasi via React Context internal + Radix primitives di bawahnya.
 ```
 
 Zustand **hanya** untuk:
+
 - Command Palette open/close + query
 - Toast queue
 - Branding preview state (sebelum save)
@@ -258,29 +259,29 @@ Tidak dipakai untuk data domain — itu tugas server.
 Setiap mutation = satu server action. Pola:
 
 ```ts
-"use server";
+'use server'
 
-import { z } from "zod";
-import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
+import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
 
 const ApplyJobSchema = z.object({
   jobId: z.string().uuid(),
   coverLetter: z.string().min(20).max(2000),
   cvFileId: z.string().uuid(),
-});
+})
 
 export async function applyJob(input: z.infer<typeof ApplyJobSchema>) {
-  const session = await auth();
-  if (!session) return { ok: false, error: "UNAUTHORIZED" } as const;
+  const session = await auth()
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' } as const
 
-  const parsed = ApplyJobSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: "INVALID", issues: parsed.error.issues } as const;
+  const parsed = ApplyJobSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: 'INVALID', issues: parsed.error.issues } as const
 
-  await db.application.create({ data: { ...parsed.data, userId: session.user.id } });
-  revalidatePath("/dashboard/applications");
-  return { ok: true } as const;
+  await db.application.create({ data: { ...parsed.data, userId: session.user.id } })
+  revalidatePath('/dashboard/applications')
+  return { ok: true } as const
 }
 ```
 
@@ -290,23 +291,23 @@ Server action **selalu** return discriminated union `{ ok: true, ... } | { ok: f
 
 ```ts
 // stores/command-palette.ts
-import { create } from "zustand";
+import { create } from 'zustand'
 
 interface CommandPaletteState {
-  open: boolean;
-  query: string;
-  setOpen: (open: boolean) => void;
-  setQuery: (q: string) => void;
-  toggle: () => void;
+  open: boolean
+  query: string
+  setOpen: (open: boolean) => void
+  setQuery: (q: string) => void
+  toggle: () => void
 }
 
 export const useCommandPalette = create<CommandPaletteState>((set) => ({
   open: false,
-  query: "",
+  query: '',
   setOpen: (open) => set({ open }),
   setQuery: (query) => set({ query }),
   toggle: () => set((s) => ({ open: !s.open })),
-}));
+}))
 ```
 
 ---
@@ -317,12 +318,12 @@ export const useCommandPalette = create<CommandPaletteState>((set) => ({
 
 ```ts
 // lib/data/jobs.ts
-import { cache } from "react";
-import { db } from "@/lib/db";
+import { cache } from 'react'
+import { db } from '@/lib/db'
 
 export const getJobById = cache(async (id: string) => {
-  return db.job.findUnique({ where: { id }, include: { company: true } });
-});
+  return db.job.findUnique({ where: { id }, include: { company: true } })
+})
 ```
 
 `cache()` membuat dedup di dalam satu request — bisa dipanggil dari layout & page tanpa double query.
@@ -332,20 +333,20 @@ export const getJobById = cache(async (id: string) => {
 Live Job Ticker (homepage), notification bell, talent search hasil real-time pakai SWR + interval polling 30 detik. Untuk pure real-time (chat di future), siapkan abstraksi untuk migrate ke WebSocket/SSE.
 
 ```ts
-const { data } = useSWR("/api/jobs/live", fetcher, {
+const { data } = useSWR('/api/jobs/live', fetcher, {
   refreshInterval: 30_000,
   revalidateOnFocus: true,
-});
+})
 ```
 
 ### 5.3 Revalidation Strategy
 
-| Action                    | Method                            |
-| ------------------------- | --------------------------------- |
-| User apply ke job         | `revalidatePath("/dashboard/applications")` |
-| Partner publish job baru  | `revalidateTag("jobs-list")`      |
-| Admin moderasi job        | `revalidateTag("jobs-list")` + `revalidatePath` job detail |
-| Branding update           | `revalidateTag("tenant-theme:" + tenantId)` |
+| Action                   | Method                                                     |
+| ------------------------ | ---------------------------------------------------------- |
+| User apply ke job        | `revalidatePath("/dashboard/applications")`                |
+| Partner publish job baru | `revalidateTag("jobs-list")`                               |
+| Admin moderasi job       | `revalidateTag("jobs-list")` + `revalidatePath` job detail |
+| Branding update          | `revalidateTag("tenant-theme:" + tenantId)`                |
 
 ### 5.4 Streaming + Suspense
 
@@ -360,38 +361,39 @@ Stack: **react-hook-form** + `@hookform/resolvers/zod` + server action.
 ### 6.1 Pola Form Standar
 
 ```tsx
-"use client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { applyJob } from "./actions";
+'use client'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { applyJob } from './actions'
 
 const Schema = z.object({
-  coverLetter: z.string().min(20, "Minimal 20 karakter"),
-  cvFileId: z.string().uuid("Pilih CV"),
-});
-type FormValues = z.infer<typeof Schema>;
+  coverLetter: z.string().min(20, 'Minimal 20 karakter'),
+  cvFileId: z.string().uuid('Pilih CV'),
+})
+type FormValues = z.infer<typeof Schema>
 
 export function ApplyJobForm({ jobId }: { jobId: string }) {
-  const form = useForm<FormValues>({ resolver: zodResolver(Schema) });
+  const form = useForm<FormValues>({ resolver: zodResolver(Schema) })
 
   const onSubmit = form.handleSubmit(async (values) => {
-    const res = await applyJob({ jobId, ...values });
+    const res = await applyJob({ jobId, ...values })
     if (!res.ok) {
-      if (res.error === "INVALID") {
-        res.issues?.forEach((i) => form.setError(i.path[0] as any, { message: i.message }));
+      if (res.error === 'INVALID') {
+        res.issues?.forEach((i) => form.setError(i.path[0] as any, { message: i.message }))
       }
-      return;
+      return
     }
-    toast.success("Lamaran terkirim");
-  });
+    toast.success('Lamaran terkirim')
+  })
 
-  return <form onSubmit={onSubmit}>...</form>;
+  return <form onSubmit={onSubmit}>...</form>
 }
 ```
 
 ### 6.2 Zod Schema Sharing
 
 Schema didefinisikan **sekali** di `lib/schemas/` dan diimport oleh:
+
 - Server action (validate input)
 - Form resolver (validate client-side)
 - API route handler (jika ada)
@@ -501,9 +503,9 @@ CSS variable diset di `:root` (lihat `app/globals.css`) untuk default Premium Co
 
 ```css
 :root {
-  --primary: 213 76% 15%;          /* Navy #0A2540 */
-  --gold:    42 49% 60%;            /* Gold #C9A961 */
-  --indigo:  244 100% 68%;          /* Indigo #635BFF */
+  --primary: 213 76% 15%; /* Navy #0A2540 */
+  --gold: 42 49% 60%; /* Gold #C9A961 */
+  --indigo: 244 100% 68%; /* Indigo #635BFF */
   --background: 0 0% 100%;
   --foreground: 213 76% 15%;
   --muted: 30 9% 96%;
@@ -518,8 +520,8 @@ Server component membaca tenant dari `headers()` → query tema → inject `<sty
 ```tsx
 // app/layout.tsx
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const tenant = await getTenantFromHost();
-  const theme = await getTenantTheme(tenant.id);
+  const tenant = await getTenantFromHost()
+  const theme = await getTenantTheme(tenant.id)
   return (
     <html lang="id">
       <head>
@@ -527,7 +529,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>{children}</body>
     </html>
-  );
+  )
 }
 ```
 
@@ -576,6 +578,7 @@ Halaman `/partner/branding` punya client-side preview: Zustand store menampung d
 ## 12. Font Loading
 
 `next/font/google` untuk:
+
 - **Playfair Display** (serif) — heading.
 - **Inter** (sans) — body.
 - **JetBrains Mono** — code, kbd.
@@ -603,19 +606,19 @@ Stack: **next-intl**.
 
 Checklist build-time + runtime:
 
-| Item                                       | Cara                                  |
-| ------------------------------------------ | ------------------------------------- |
-| Kontras teks ≥ 4.5:1                       | Token color sudah lulus, ESLint plugin |
-| Focus ring visible                         | `:focus-visible:ring-2 ring-ring`     |
-| Skip link                                  | `<a href="#main" class="sr-only focus:not-sr-only">` |
-| Landmark roles                             | `<header>`, `<nav>`, `<main>`, `<footer>` |
-| Form label                                 | Semua input wrap `<FormField>` (label wajib) |
-| Error association                          | `aria-invalid` + `aria-describedby`   |
-| Keyboard nav                               | Roving tabindex untuk menu/listbox    |
-| Live region                                | Toast region `aria-live="polite"`     |
-| Modal trap focus                           | Radix Dialog                          |
-| Reduced motion                             | Wrap framer animations                |
-| Screen reader text                         | `<VisuallyHidden>` atom               |
+| Item                 | Cara                                                 |
+| -------------------- | ---------------------------------------------------- |
+| Kontras teks ≥ 4.5:1 | Token color sudah lulus, ESLint plugin               |
+| Focus ring visible   | `:focus-visible:ring-2 ring-ring`                    |
+| Skip link            | `<a href="#main" class="sr-only focus:not-sr-only">` |
+| Landmark roles       | `<header>`, `<nav>`, `<main>`, `<footer>`            |
+| Form label           | Semua input wrap `<FormField>` (label wajib)         |
+| Error association    | `aria-invalid` + `aria-describedby`                  |
+| Keyboard nav         | Roving tabindex untuk menu/listbox                   |
+| Live region          | Toast region `aria-live="polite"`                    |
+| Modal trap focus     | Radix Dialog                                         |
+| Reduced motion       | Wrap framer animations                               |
+| Screen reader text   | `<VisuallyHidden>` atom                              |
 
 Tooling: `eslint-plugin-jsx-a11y`, `@axe-core/playwright` di E2E.
 
@@ -637,6 +640,7 @@ Setiap `error.tsx` adalah client component, menampilkan komponen `<ErrorState>` 
 ### 15.2 Suspense
 
 Pasang di:
+
 - Dashboard widget yang lambat (analytics chart).
 - Live ticker.
 - LMS player metadata.
@@ -673,6 +677,7 @@ Target coverage: 80% untuk `lib/` dan `components/atoms`, 60% untuk `components/
 ### 16.3 E2E — Playwright
 
 Skenario kritis:
+
 1. Visitor → cari job → apply → terlihat di Kanban.
 2. Partner → post job → moderasi admin → publish → tampil di list.
 3. Partner → upload logo & ubah warna → preview live → save → tenant baru render.
@@ -697,14 +702,14 @@ Skenario kritis:
 
 ## 18. Performance Budget
 
-| Metric                           | Target           |
-| -------------------------------- | ---------------- |
-| LCP (homepage)                   | ≤ 2.0 s          |
-| INP                              | ≤ 200 ms         |
-| CLS                              | ≤ 0.05           |
-| JS shipped homepage              | ≤ 120 KB gzip    |
-| Initial CSS                      | ≤ 30 KB gzip     |
-| Image LCP                        | < 100 KB optimized |
+| Metric              | Target             |
+| ------------------- | ------------------ |
+| LCP (homepage)      | ≤ 2.0 s            |
+| INP                 | ≤ 200 ms           |
+| CLS                 | ≤ 0.05             |
+| JS shipped homepage | ≤ 120 KB gzip      |
+| Initial CSS         | ≤ 30 KB gzip       |
+| Image LCP           | < 100 KB optimized |
 
 Diukur via Lighthouse CI + Vercel Analytics.
 
@@ -721,14 +726,14 @@ Diukur via Lighthouse CI + Vercel Analytics.
 
 ## 20. Roadmap Frontend
 
-| Fase | Fokus                                                                 |
-| ---- | --------------------------------------------------------------------- |
-| 1    | Atomic foundation (atoms + molecules + theming engine)                |
-| 2    | Public site (homepage, jobs, courses, partner career)                 |
-| 3    | User dashboard (apply, kanban, LMS, CV builder)                       |
-| 4    | Partner dashboard (jobs mgmt, talent search, branding)                |
-| 5    | Admin/SuperAdmin (moderation, tenant mgmt, audit, health)             |
-| 6    | Storybook publik + Chromatic + perf hardening                         |
+| Fase | Fokus                                                     |
+| ---- | --------------------------------------------------------- |
+| 1    | Atomic foundation (atoms + molecules + theming engine)    |
+| 2    | Public site (homepage, jobs, courses, partner career)     |
+| 3    | User dashboard (apply, kanban, LMS, CV builder)           |
+| 4    | Partner dashboard (jobs mgmt, talent search, branding)    |
+| 5    | Admin/SuperAdmin (moderation, tenant mgmt, audit, health) |
+| 6    | Storybook publik + Chromatic + perf hardening             |
 
 ---
 

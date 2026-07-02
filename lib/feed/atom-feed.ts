@@ -69,7 +69,7 @@ export function buildAtomFeed(
   <updated>${escapeXml(updated)}</updated>
   <link rel="self" type="application/atom+xml" href="${escapeXml(selfHref)}" />
   <link rel="alternate" type="text/html" href="${escapeXml(alternateHref)}" />
-  <generator uri="${escapeXml(baseUrl)}">Rumah Pekerja Indonesia</generator>
+  <generator uri="${escapeXml(baseUrl)}">SSN Pekerja</generator>
 ${entriesXml}
 </feed>
 `

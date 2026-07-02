@@ -180,8 +180,8 @@ export const formsEnterprise = {
     caseStudy: {
       eyebrow: 'Studi Kasus',
       heading: 'Bagaimana grup usaha multi-industri menyatukan {count} anak perusahaan',
-      body: 'Sebuah konglomerat dengan {count} entitas — dari perbankan, telekomunikasi, hingga otomotif — sebelumnya menggunakan {atsSystems} sistem ATS berbeda. Dalam 90 hari, mereka berpindah ke satu platform RPI dengan tenant terpisah per entitas, tetap mempertahankan branding dan kebijakan masing-masing.',
-      quote: 'Yang membuat RPI berbeda bukan fitur — semua vendor punya fitur. Yang berbeda adalah cara mereka memahami kompleksitas grup kami dan tetap merilis dengan kualitas mingguan.',
+      body: 'Sebuah konglomerat dengan {count} entitas — dari perbankan, telekomunikasi, hingga otomotif — sebelumnya menggunakan {atsSystems} sistem ATS berbeda. Dalam 90 hari, mereka berpindah ke satu platform SSN dengan tenant terpisah per entitas, tetap mempertahankan branding dan kebijakan masing-masing.',
+      quote: 'Yang membuat SSN berbeda bukan fitur — semua vendor punya fitur. Yang berbeda adalah cara mereka memahami kompleksitas grup kami dan tetap merilis dengan kualitas mingguan.',
       quoteAttribution: 'Rina Adriani',
       quoteRole: 'Group Head of Talent Acquisition, salah satu konglomerat top-10 Indonesia',
       ctaReadMore: 'Baca studi kasus lengkap',
@@ -209,7 +209,7 @@ export const formsEnterprise = {
       officeLabel: 'Kantor Enterprise Sales',
       officeCity: 'Jakarta Selatan, Indonesia',
       officeAddress: 'Menara Standard Chartered Lt. 21, Jakarta',
-      officeEmail: 'enterprise@rumahpekerja.id',
+      officeEmail: 'enterprise@pekerja.sainskerta.net',
       officePhone: '+62 21 5000 1010',
       form: {
         fullNameLabel: 'Nama lengkap',
@@ -413,8 +413,8 @@ export const formsEnterprise = {
     caseStudy: {
       eyebrow: 'Case Study',
       heading: 'How a multi-industry business group unified {count} subsidiaries',
-      body: 'A conglomerate with {count} entities — spanning banking, telecoms, and automotive — previously ran {atsSystems} separate ATS systems. Within 90 days they moved to a single RPI platform with isolated tenants per entity, keeping each one\'s branding and policies intact.',
-      quote: "What sets RPI apart isn't the features — every vendor has features. What's different is how they understand our group's complexity while still shipping quality updates every week.",
+      body: 'A conglomerate with {count} entities — spanning banking, telecoms, and automotive — previously ran {atsSystems} separate ATS systems. Within 90 days they moved to a single SSN platform with isolated tenants per entity, keeping each one\'s branding and policies intact.',
+      quote: "What sets SSN apart isn't the features — every vendor has features. What's different is how they understand our group's complexity while still shipping quality updates every week.",
       quoteAttribution: 'Rina Adriani',
       quoteRole: 'Group Head of Talent Acquisition, one of Indonesia\'s top-10 conglomerates',
       ctaReadMore: 'Read the full case study',
@@ -439,7 +439,7 @@ export const formsEnterprise = {
       officeLabel: 'Enterprise Sales Office',
       officeCity: 'South Jakarta, Indonesia',
       officeAddress: 'Menara Standard Chartered Fl. 21, Jakarta',
-      officeEmail: 'enterprise@rumahpekerja.id',
+      officeEmail: 'enterprise@pekerja.sainskerta.net',
       officePhone: '+62 21 5000 1010',
       form: {
         fullNameLabel: 'Full name',

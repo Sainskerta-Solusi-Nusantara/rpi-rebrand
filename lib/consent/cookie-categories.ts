@@ -56,10 +56,10 @@ export const COOKIE_CATEGORIES: CookieCategory[] = [
 export const CONSENT_VERSION = 1
 
 /** Cookie that stores the consent prefs object (JSON-encoded). */
-export const CONSENT_COOKIE_NAME = 'rpi_consent'
+export const CONSENT_COOKIE_NAME = 'ssnpekerjansent'
 
 /** Cookie that stores the anonymous session id (UUID) for DB pinning. */
-export const SESSION_COOKIE_NAME = 'rpi_consent_session'
+export const SESSION_COOKIE_NAME = 'ssnpekerjansent_session'
 
 /** Shape persisted both in the cookie and (via columns) in `cookie_consents`. */
 export type ConsentPrefs = {

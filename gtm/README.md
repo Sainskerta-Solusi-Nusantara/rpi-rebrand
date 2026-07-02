@@ -1,4 +1,4 @@
-# GTM Kit — RPI (Recruitment OS)
+# GTM Kit — SSN (Recruitment OS)
 
 Paket kerja go-to-market untuk wedge **perekrutan volume-tinggi** (outsourcing/staffing/agency +
 end-user ritel/F&B/logistik/BPO). Lihat juga catatan strategi segmen & GTM dari sesi brainstorming.

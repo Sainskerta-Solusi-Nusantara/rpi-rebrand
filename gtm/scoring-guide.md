@@ -1,6 +1,6 @@
-# Panduan Skoring & Kualifikasi Lead — RPI
+# Panduan Skoring & Kualifikasi Lead — SSN
 
-Tujuan: memprioritaskan target rekrutmen volume-tinggi yang paling cocok dengan kekuatan RPI
+Tujuan: memprioritaskan target rekrutmen volume-tinggi yang paling cocok dengan kekuatan SSN
 (white-label multi-tenant + AI screening + kanban/bulk import).
 
 ---

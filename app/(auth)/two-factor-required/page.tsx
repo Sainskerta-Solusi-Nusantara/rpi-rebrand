@@ -7,7 +7,7 @@ import { userMustEnrollTwoFactor } from '@/lib/auth/totp-policy'
 import { LeaveTenantButton } from '@/components/organisms/tenant-member-actions'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
-export const metadata = { title: '2FA Wajib — Rumah Pekerja Indonesia' }
+export const metadata = { title: '2FA Wajib — SSN Pekerja' }
 
 /**
  * Gating page reached when a tenant the user belongs to has

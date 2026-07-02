@@ -53,7 +53,7 @@ export function PartnerLayout({ children, tenant, className }: PartnerLayoutProp
                   <h2 className="font-heading text-xl">{tenant.name}</h2>
                   <Badge tone={PLAN_TONE[tenant.plan]}>{tenant.plan}</Badge>
                 </div>
-                <p className="text-xs text-primary-foreground/70">{tenant.slug}.rumahpekerja.id</p>
+                <p className="text-xs text-primary-foreground/70">{tenant.slug}.pekerja.sainskerta.net</p>
               </div>
             </div>
             <dl className="grid grid-cols-2 gap-6 md:grid-cols-3">

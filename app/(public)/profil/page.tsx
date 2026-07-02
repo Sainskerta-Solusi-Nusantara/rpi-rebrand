@@ -4,8 +4,8 @@ import { UserRound } from 'lucide-react'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata: Metadata = {
-  title: 'Profil RPI',
-  description: 'Profil RPI tidak ditemukan. Masukkan username atau ID profil di URL.',
+  title: 'Profil SSN',
+  description: 'Profil SSN tidak ditemukan. Masukkan username atau ID profil di URL.',
   robots: { index: false, follow: false },
 }
 

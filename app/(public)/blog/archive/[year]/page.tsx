@@ -25,8 +25,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
     return { title: 'Arsip Tidak Ditemukan' }
   }
   return {
-    title: `${yearInt} — Arsip Blog RPI`,
-    description: `Semua artikel blog RPI yang terbit tahun ${yearInt}.`,
+    title: `${yearInt} — Arsip Blog SSN`,
+    description: `Semua artikel blog SSN yang terbit tahun ${yearInt}.`,
   }
 }
 

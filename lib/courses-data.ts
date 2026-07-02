@@ -158,7 +158,7 @@ function transform(row: PrismaCourseWithRelations): DummyCourse {
     })),
   }))
 
-  const instructorName = row.instructor?.name ?? 'Instruktur RPI'
+  const instructorName = row.instructor?.name ?? 'Instruktur SSN'
   const instructorRole = row.instructor?.headline ?? 'Pengajar Bersertifikat'
 
   return {
@@ -185,7 +185,7 @@ function transform(row: PrismaCourseWithRelations): DummyCourse {
       role: instructorRole,
       bio:
         row.instructor?.bio ??
-        `${instructorName} adalah pengajar di RPI Academy dengan pengalaman praktis di industri.`,
+        `${instructorName} adalah pengajar di SSN Academy dengan pengalaman praktis di industri.`,
       initial: initialsFrom(instructorName),
       color: pickByHash(INSTRUCTOR_COLOR_PALETTE, instructorName, 7),
       coursesCount: 1,

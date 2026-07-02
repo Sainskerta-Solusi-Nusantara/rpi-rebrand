@@ -7,11 +7,11 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 export const metadata: Metadata = {
   title: 'Feed XML lowongan — Sindikasi',
   description:
-    'Feed XML publik RPI untuk LinkedIn Jobs, Indeed, dan generic Atom — siap dikonsumsi mitra ATS dan agregator lowongan.',
+    'Feed XML publik SSN untuk LinkedIn Jobs, Indeed, dan generic Atom — siap dikonsumsi mitra ATS dan agregator lowongan.',
   alternates: { canonical: '/jobs/feed-info' },
 }
 
-const BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://rumahpekerja.id').replace(
+const BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://pekerja.sainskerta.net').replace(
   /\/+$/,
   '',
 )

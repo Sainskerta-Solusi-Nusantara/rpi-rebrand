@@ -109,7 +109,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 35_000_000,
     postedAt: '4 hari lalu',
     summary:
-      'Tim mobile RPI baru saja meluncurkan aplikasi untuk pekerja lapangan — konstruksi, logistik, F&B. Kami butuh engineer yang peduli pada UX di koneksi 3G dan tahu cara menulis kode Flutter yang bersih dan teruji.',
+      'Tim mobile SSN baru saja meluncurkan aplikasi untuk pekerja lapangan — konstruksi, logistik, F&B. Kami butuh engineer yang peduli pada UX di koneksi 3G dan tahu cara menulis kode Flutter yang bersih dan teruji.',
     responsibilities: [
       'Membangun fitur baru di aplikasi Flutter kami (iOS + Android)',
       'Mengoptimalkan kinerja dan pemakaian baterai untuk perangkat low-end',
@@ -141,7 +141,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 45_000_000,
     postedAt: '5 hari lalu',
     summary:
-      'Anda akan memiliki pengalaman end-to-end untuk salah satu surface utama kami — pencari kerja, partner dashboard, atau LMS. Designer di RPI tidak menggambar mockup; mereka membentuk produk dari riset hingga launch.',
+      'Anda akan memiliki pengalaman end-to-end untuk salah satu surface utama kami — pencari kerja, partner dashboard, atau LMS. Designer di SSN tidak menggambar mockup; mereka membentuk produk dari riset hingga launch.',
     responsibilities: [
       'Melakukan riset pengguna sendiri (user interview, usability test, surveys)',
       'Mendesain interaksi, alur, dan visual untuk fitur berdampak besar',
@@ -173,9 +173,9 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 26_000_000,
     postedAt: '1 minggu lalu',
     summary:
-      'Anda akan membentuk wajah RPI di luar produk — laporan, kampanye, media sosial, dan event. Peran ini cocok untuk designer yang sama nyamannya mendesain laporan 80 halaman dan post Instagram tunggal.',
+      'Anda akan membentuk wajah SSN di luar produk — laporan, kampanye, media sosial, dan event. Peran ini cocok untuk designer yang sama nyamannya mendesain laporan 80 halaman dan post Instagram tunggal.',
     responsibilities: [
-      'Mendesain laporan riset, whitepaper, dan publikasi RPI Insight',
+      'Mendesain laporan riset, whitepaper, dan publikasi SSN Insight',
       'Membuat aset kampanye lintas channel (sosmed, email, ads, OOH)',
       'Memelihara dan mengembangkan brand guidelines',
       'Berkolaborasi dengan Marketing dan Comms untuk eksekusi visual',
@@ -205,7 +205,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 55_000_000,
     postedAt: '3 hari lalu',
     summary:
-      'Anda memiliki pengalaman pencari kerja — onboarding, profil, pencarian, lamaran, dan komunikasi. Ini adalah surface paling kompleks di RPI: dampaknya menyentuh jutaan pengguna, dan keputusan kecil bisa mengubah angka KPI seketika.',
+      'Anda memiliki pengalaman pencari kerja — onboarding, profil, pencarian, lamaran, dan komunikasi. Ini adalah surface paling kompleks di SSN: dampaknya menyentuh jutaan pengguna, dan keputusan kecil bisa mengubah angka KPI seketika.',
     responsibilities: [
       'Memiliki roadmap untuk surface talent dari discovery sampai delivery',
       'Berkolaborasi dengan Engineering, Design, dan Data untuk membentuk strategi',
@@ -237,7 +237,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 35_000_000,
     postedAt: '6 hari lalu',
     summary:
-      'RPI Academy baru saja diluncurkan dan punya 60.000 pelajar aktif. Anda akan membentuk jalur belajar, sertifikasi, dan integrasi dengan sisi rekrutmen — memastikan kursus yang diambil benar-benar mempengaruhi peluang kerja.',
+      'SSN Academy baru saja diluncurkan dan punya 60.000 pelajar aktif. Anda akan membentuk jalur belajar, sertifikasi, dan integrasi dengan sisi rekrutmen — memastikan kursus yang diambil benar-benar mempengaruhi peluang kerja.',
     responsibilities: [
       'Memiliki produk LMS dari konten ingestion sampai pengalaman pelajar',
       'Berkolaborasi dengan tim Curriculum untuk membentuk struktur kursus',
@@ -268,7 +268,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 28_000_000,
     postedAt: '4 hari lalu',
     summary:
-      'Anda akan menjadi titik kontak utama untuk 80–100 mitra perekrut RPI — memastikan mereka mendapatkan ROI dari platform. Ini bukan akun manajemen reaktif; Anda akan proaktif membantu mitra mencapai target rekrutmen mereka.',
+      'Anda akan menjadi titik kontak utama untuk 80–100 mitra perekrut SSN — memastikan mereka mendapatkan ROI dari platform. Ini bukan akun manajemen reaktif; Anda akan proaktif membantu mitra mencapai target rekrutmen mereka.',
     responsibilities: [
       'Mengelola portofolio mitra dengan ekspansi dan retensi sebagai KPI',
       'Onboard mitra baru dari kontrak sampai go-live aktif',
@@ -369,7 +369,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
       'Mengembangkan konsep video dari brief tim Marketing',
       'Mengelola produksi: storyboard, shoot, edit, sound design',
       'Berkolaborasi dengan freelance crew bila diperlukan',
-      'Memastikan output konsisten dengan brand voice RPI',
+      'Memastikan output konsisten dengan brand voice SSN',
       'Mengukur performa dan iterasi format',
     ],
     requirements: [
@@ -396,7 +396,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 9_000_000,
     postedAt: '1 hari lalu',
     summary:
-      'Tim Support adalah suara RPI ke pengguna sehari-hari. Anda akan menangani tiket dari pencari kerja dan mitra perekrut — bukan dengan template, tapi dengan empati dan problem-solving asli. Tim ini juga sumber utama insight produk.',
+      'Tim Support adalah suara SSN ke pengguna sehari-hari. Anda akan menangani tiket dari pencari kerja dan mitra perekrut — bukan dengan template, tapi dengan empati dan problem-solving asli. Tim ini juga sumber utama insight produk.',
     responsibilities: [
       'Menjawab tiket dari pencari kerja dan mitra (email, chat, telepon)',
       'Eskalasi isu kompleks ke Engineering atau Partner Success',
@@ -428,7 +428,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 22_000_000,
     postedAt: '4 hari lalu',
     summary:
-      'Anda akan mendesain jalur belajar RPI Academy — dari modul individual sampai sertifikasi jenjang. Tujuannya bukan "konten lebih banyak"; tujuannya adalah pelajar mendapatkan skill nyata yang membuat mereka dipekerjakan.',
+      'Anda akan mendesain jalur belajar SSN Academy — dari modul individual sampai sertifikasi jenjang. Tujuannya bukan "konten lebih banyak"; tujuannya adalah pelajar mendapatkan skill nyata yang membuat mereka dipekerjakan.',
     responsibilities: [
       'Mendesain struktur kurikulum dari modul sampai jalur belajar',
       'Berkolaborasi dengan instruktur eksternal dan industri',
@@ -460,7 +460,7 @@ export const CAREER_OPENINGS: CareerOpening[] = [
     salaryMax: 26_000_000,
     postedAt: '6 hari lalu',
     summary:
-      'Anda akan menjadi mata data untuk tim marketplace RPI — kesehatan supply/demand, kualitas matching, dan dampak fitur. Pekerjaan Anda bukan dashboard cantik; pekerjaan Anda adalah membuat keputusan bisnis lebih baik.',
+      'Anda akan menjadi mata data untuk tim marketplace SSN — kesehatan supply/demand, kualitas matching, dan dampak fitur. Pekerjaan Anda bukan dashboard cantik; pekerjaan Anda adalah membuat keputusan bisnis lebih baik.',
     responsibilities: [
       'Mendesain dan menjalankan analisis ad-hoc untuk Product/Ops/Partnership',
       'Membangun dashboard kunci untuk metrik marketplace',

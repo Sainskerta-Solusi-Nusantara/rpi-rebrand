@@ -45,7 +45,7 @@ export const WIZARD_STEPS: WizardStep[] = [
     id: 'welcome',
     index: 0,
     title: 'Selamat datang',
-    description: 'Kenali RPI dan mulai perjalanan karier Anda.',
+    description: 'Kenali SSN dan mulai perjalanan karier Anda.',
     route: '/welcome/0',
     checkCompleted: () => false,
   },

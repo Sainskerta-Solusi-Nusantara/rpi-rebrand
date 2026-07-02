@@ -1,4 +1,4 @@
-# Progress — RumahPekerja SaaS (rpi-rebrand)
+# Progress — SSN Pekerja SaaS (ssn-rebrand)
 
 > **Source of truth progress project. Update setiap kali ada perubahan status fase.**
 
@@ -8,7 +8,7 @@
 
 | Item            | Status                                             |
 | --------------- | -------------------------------------------------- |
-| **Project**     | `RumahPekerja SaaS (rpi-rebrand)`                  |
+| **Project**     | `SSN Pekerja SaaS (ssn-rebrand)`                   |
 | **Fase Aktif**  | `05-AUDIT`                                         |
 | **Status Loop** | `paused — menunggu approval user (gate audit)`     |
 | **Dimulai**     | `2026-06-30 07:49`                                 |

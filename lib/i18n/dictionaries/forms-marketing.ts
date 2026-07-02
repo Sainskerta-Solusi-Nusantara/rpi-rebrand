@@ -34,7 +34,7 @@ export const formsMarketing = {
     newsletter: {
       badge: 'Newsletter Mingguan',
       heading: 'Dapatkan 5 Lowongan Premium Setiap Senin',
-      body: 'Kurasi pilihan dari editor RPI berdasarkan minat dan keahlianmu. Eksklusif untuk pelanggan email.',
+      body: 'Kurasi pilihan dari editor SSN berdasarkan minat dan keahlianmu. Eksklusif untuk pelanggan email.',
       benefits: [
         'Lowongan eksklusif sebelum dipublikasikan',
         'Tips karier dari para ahli',
@@ -50,18 +50,18 @@ export const formsMarketing = {
       ariaSubmit: 'Berlangganan newsletter',
       antiSpam: 'Tanpa spam. Kami hargai privasimu.',
       successTitle: 'Berhasil! Cek email-mu untuk konfirmasi.',
-      successBody: 'Terima kasih telah bergabung dengan newsletter RPI.',
+      successBody: 'Terima kasih telah bergabung dengan newsletter SSN.',
     },
     featuredPartners: {
       badge: 'Mitra Resmi',
       heading: 'Dipercaya 850+ Perusahaan Top Indonesia',
-      body: 'Dari startup unicorn hingga BUMN, perusahaan terkemuka memilih RPI untuk merekrut talenta terbaik.',
+      body: 'Dari startup unicorn hingga BUMN, perusahaan terkemuka memilih SSN untuk merekrut talenta terbaik.',
       openPositions: '{count} posisi terbuka',
       ctaLabel: 'Lihat 850+ Mitra Lainnya',
     },
     heroStorySplit: {
-      eyebrow: 'Rumah Pekerja Indonesia',
-      headline: 'Karier impian dimulai dari Rumah Pekerja Indonesia',
+      eyebrow: 'SSN Pekerja',
+      headline: 'Karier impian dimulai dari SSN Pekerja',
       body: 'Temukan ribuan lowongan terverifikasi, pelatihan bersertifikat, dan komunitas yang mendukung perjalanan profesionalmu — semua di satu rumah.',
       primaryLabel: 'Cari Kerja',
       secondaryLabel: 'Pelatihan',
@@ -105,7 +105,7 @@ export const formsMarketing = {
     newsletter: {
       badge: 'Weekly Newsletter',
       heading: 'Get 5 Premium Jobs Every Monday',
-      body: "Curated picks from RPI editors based on your interests and skills. Exclusive for email subscribers.",
+      body: "Curated picks from SSN editors based on your interests and skills. Exclusive for email subscribers.",
       benefits: [
         'Exclusive vacancies before they go public',
         'Career tips from industry experts',
@@ -121,18 +121,18 @@ export const formsMarketing = {
       ariaSubmit: 'Subscribe to newsletter',
       antiSpam: 'No spam. We respect your privacy.',
       successTitle: 'Done! Check your email to confirm.',
-      successBody: 'Thank you for joining the RPI newsletter.',
+      successBody: 'Thank you for joining the SSN newsletter.',
     },
     featuredPartners: {
       badge: 'Official Partners',
       heading: 'Trusted by 850+ Top Indonesian Companies',
-      body: 'From unicorn startups to state-owned enterprises, leading companies choose RPI to recruit top talent.',
+      body: 'From unicorn startups to state-owned enterprises, leading companies choose SSN to recruit top talent.',
       openPositions: '{count} open positions',
       ctaLabel: 'View 850+ More Partners',
     },
     heroStorySplit: {
-      eyebrow: 'Rumah Pekerja Indonesia',
-      headline: 'Your dream career starts at Rumah Pekerja Indonesia',
+      eyebrow: 'SSN Pekerja',
+      headline: 'Your dream career starts at SSN Pekerja',
       body: 'Discover thousands of verified vacancies, certified training, and a community that supports your professional journey — all in one place.',
       primaryLabel: 'Find Jobs',
       secondaryLabel: 'Training',

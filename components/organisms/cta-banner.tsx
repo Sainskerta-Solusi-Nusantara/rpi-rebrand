@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Building2 } from 'lucide-react'
+import { ArrowRight, Building2, Sparkles } from 'lucide-react'
 
 import { Button } from '@/components/atoms/button'
 import { cn } from '@/lib/utils'
@@ -38,12 +38,25 @@ export function CTABanner({ className }: CTABannerProps) {
       />
 
       <div className="container mx-auto w-full max-w-3xl px-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5 }}
+          className="mb-5 flex justify-center"
+        >
+          <span className="border-secondary/30 bg-secondary/10 text-secondary inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
+            Dipercaya 850+ mitra di Indonesia
+          </span>
+        </motion.div>
+
         <motion.h2
           id="cta-banner-heading"
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
           className="font-heading text-3xl font-semibold tracking-tight md:text-5xl"
         >
           Siap memulai <span className="text-gradient-gold">karier baru?</span>
@@ -57,7 +70,7 @@ export function CTABanner({ className }: CTABannerProps) {
           className="text-primary-foreground/75 mt-4 text-base md:text-lg"
         >
           Bergabunglah dengan 240.000+ pekerja dan 850+ mitra Indonesia yang
-          sudah bertumbuh di Rumah Pekerja Indonesia.
+          sudah bertumbuh di SSN Pekerja.
         </motion.p>
 
         <motion.div

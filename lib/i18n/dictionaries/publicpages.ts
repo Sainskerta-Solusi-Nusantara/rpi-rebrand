@@ -21,14 +21,14 @@ export const publicpages = {
       newsletterEyebrow: 'Newsletter',
       newsletterTitle: '5 lowongan premium setiap Senin.',
       newsletterSubtitle:
-        'Kurasi editor RPI dikirim langsung ke email-mu. Tanpa spam.',
+        'Kurasi editor SSN dikirim langsung ke email-mu. Tanpa spam.',
       newsletterFormLabel: 'Form berlangganan newsletter',
       emailLabel: 'Alamat email',
       emailPlaceholder: 'nama@email.com',
       subscribe: 'Berlangganan',
       forWorkers: 'Untuk Pekerja',
       forCompanies: 'Untuk Perusahaan',
-      aboutCompany: 'Tentang RPI',
+      aboutCompany: 'Tentang SSN',
       tagline:
         'Infrastruktur karier untuk Indonesia — pekerja, perusahaan, dan instansi nasional.',
       workerLinks: {
@@ -45,7 +45,7 @@ export const publicpages = {
       },
       aboutLinks: {
         about: 'Tentang Kami',
-        careers: 'Karier di RPI',
+        careers: 'Karier di SSN',
         partners: 'Mitra',
         contact: 'Kontak',
       },
@@ -86,7 +86,7 @@ export const publicpages = {
     pricing: {
       metaTitle: 'Harga & Paket',
       metaDescription:
-        'Pilih paket Rumah Pekerja Indonesia yang sesuai skala perekrutan Anda — mulai dari gratis hingga enterprise dengan SSO, SLA, dan dedicated success manager.',
+        'Pilih paket SSN Pekerja yang sesuai skala perekrutan Anda — mulai dari gratis hingga enterprise dengan SSO, SLA, dan dedicated success manager.',
       hero: {
         eyebrow: 'Harga',
         title: 'Harga sederhana, tumbuh bersama tim Anda',
@@ -194,11 +194,11 @@ export const publicpages = {
     about: {
       metaTitle: 'Tentang Kami',
       metaDescription:
-        'Rumah Pekerja Indonesia adalah platform SaaS multi-tenant yang menghubungkan pekerja, mitra perekrut, dan pelatihan keterampilan di seluruh Indonesia.',
+        'SSN Pekerja adalah platform SaaS multi-tenant yang menghubungkan pekerja, mitra perekrut, dan pelatihan keterampilan di seluruh Indonesia.',
       hero: {
-        eyebrow: 'Tentang RPI',
+        eyebrow: 'Tentang SSN',
         title: 'Karier Indonesia, dibangun bersama.',
-        body: 'Rumah Pekerja Indonesia adalah platform multi-tenant yang menghubungkan jutaan pencari kerja, ribuan perusahaan, dan ratusan instansi pelatihan dalam satu rumah digital.',
+        body: 'SSN Pekerja adalah platform multi-tenant yang menghubungkan jutaan pencari kerja, ribuan perusahaan, dan ratusan instansi pelatihan dalam satu rumah digital.',
       },
       mission: {
         eyebrow: 'Misi',
@@ -253,11 +253,11 @@ export const publicpages = {
     contact: {
       metaTitle: 'Hubungi Kami',
       metaDescription:
-        'Tim Rumah Pekerja Indonesia siap membantu pencari kerja, mitra perekrut, dan media. Hubungi kami lewat email, telepon, WhatsApp, atau kunjungi kantor di Jakarta.',
+        'Tim SSN Pekerja siap membantu pencari kerja, mitra perekrut, dan media. Hubungi kami lewat email, telepon, WhatsApp, atau kunjungi kantor di Jakarta.',
       hero: {
         eyebrow: 'Kontak',
         title: 'Senang sekali Anda menghubungi kami',
-        body: 'Tim RPI menjawab setiap pesan dalam 1×24 jam kerja. Pilih kanal favorit Anda atau isi formulir di bawah.',
+        body: 'Tim SSN menjawab setiap pesan dalam 1×24 jam kerja. Pilih kanal favorit Anda atau isi formulir di bawah.',
       },
       channels: {
         eyebrow: 'Kanal Kontak',
@@ -280,7 +280,7 @@ export const publicpages = {
           support: 'Dukungan teknis',
           partnership: 'Kemitraan',
           press: 'Pers / media',
-          careers: 'Karier di RPI',
+          careers: 'Karier di SSN',
           other: 'Lainnya',
         },
         messageLabel: 'Pesan',
@@ -288,7 +288,7 @@ export const publicpages = {
         submitting: 'Mengirim…',
         submit: 'Kirim pesan',
         success: 'Pesan terkirim. Tim kami akan membalas dalam 1×24 jam.',
-        failure: 'Gagal mengirim pesan. Coba lagi atau hubungi support@rumahpekerja.id.',
+        failure: 'Gagal mengirim pesan. Coba lagi atau hubungi support@pekerja.sainskerta.net.',
       },
       audience: {
         seekers: { title: 'Pencari kerja', cta: 'Bantuan pencari kerja' },
@@ -302,14 +302,14 @@ export const publicpages = {
     },
 
     // ---------------------------------------------------------------------
-    // Careers (RPI internal jobs)
+    // Careers (SSN internal jobs)
     // ---------------------------------------------------------------------
     careers: {
-      metaTitle: 'Karier di RPI',
+      metaTitle: 'Karier di SSN',
       metaDescription:
-        'Bergabung dengan tim Rumah Pekerja Indonesia. Bangun produk yang mempertemukan jutaan pencari kerja dengan perusahaan terverifikasi di seluruh Indonesia.',
+        'Bergabung dengan tim SSN Pekerja. Bangun produk yang mempertemukan jutaan pencari kerja dengan perusahaan terverifikasi di seluruh Indonesia.',
       hero: {
-        eyebrow: 'Karier di RPI',
+        eyebrow: 'Karier di SSN',
         title: 'Bangun masa depan kerja Indonesia bersama kami',
         body: 'Kami sedang mencari engineer, desainer, recruiter, dan operator yang ingin produknya menyentuh jutaan pekerja.',
         ctaPrimary: 'Lihat lowongan',
@@ -338,7 +338,7 @@ export const publicpages = {
         title: 'Proses rekrutmen kami',
       },
       life: {
-        title: 'Kehidupan di RPI',
+        title: 'Kehidupan di SSN',
       },
       detail: {
         backToList: 'Kembali ke semua lowongan',
@@ -460,7 +460,7 @@ export const publicpages = {
       },
       howToApply: {
         body: 'Klik tombol <strong>Lamar Sekarang</strong> dan unggah CV terbaru Anda. Aplikasi membutuhkan ~5 menit. Tim rekrutmen akan menghubungi Anda kembali dalam 5-7 hari kerja jika profil Anda cocok.',
-        note: 'Lowongan ini dipublikasikan di Rumah Pekerja Indonesia. Pastikan profil Anda lengkap untuk meningkatkan peluang dilirik.',
+        note: 'Lowongan ini dipublikasikan di SSN Pekerja. Pastikan profil Anda lengkap untuk meningkatkan peluang dilirik.',
       },
       sidebar: {
         applyTitle: 'Lamar lowongan ini',
@@ -499,7 +499,7 @@ export const publicpages = {
       },
       cta: {
         title: 'Tertarik dengan posisi ini?',
-        body: 'Klik lamar dan biarkan tim rekrutmen melihat profil Anda. Tidak perlu cover letter formal — profil RPI Anda sudah cukup.',
+        body: 'Klik lamar dan biarkan tim rekrutmen melihat profil Anda. Tidak perlu cover letter formal — profil SSN Anda sudah cukup.',
         applyNow: 'Lamar Sekarang',
         viewMyApplication: 'Lihat lamaran saya',
         viewOtherJobs: 'Lihat lowongan lain',
@@ -567,7 +567,7 @@ export const publicpages = {
     // ---------------------------------------------------------------------
     home: {
       latestArticlesEyebrow: 'Artikel terbaru',
-      latestArticlesTitle: 'Cerita dan panduan dari tim RPI',
+      latestArticlesTitle: 'Cerita dan panduan dari tim SSN',
       viewAllArticles: 'Lihat semua artikel',
     },
     blog: {
@@ -577,7 +577,7 @@ export const publicpages = {
       eyebrow: 'Blog & Insight',
       heroTitle: 'Wawasan praktis untuk pekerja, perekrut, dan pemimpin SDM',
       heroBody:
-        'Tulisan dari tim RPI dan kontributor — riset pasar kerja, panduan karier, dan pelajaran dari ribuan pencari kerja Indonesia.',
+        'Tulisan dari tim SSN dan kontributor — riset pasar kerja, panduan karier, dan pelajaran dari ribuan pencari kerja Indonesia.',
       searchPlaceholder: 'Cari artikel',
       searchCta: 'Cari',
       rss: 'Berlangganan RSS',
@@ -625,7 +625,7 @@ export const publicpages = {
     press: {
       metaTitle: 'Press & Media',
       metaDescription:
-        'Siaran pers, peliputan media, dan press kit Rumah Pekerja Indonesia. Materi resmi untuk jurnalis, peneliti, dan mitra media.',
+        'Siaran pers, peliputan media, dan press kit SSN Pekerja. Materi resmi untuk jurnalis, peneliti, dan mitra media.',
       title: 'Press & Media',
       sortLabels: {
         newest: 'Terbaru',
@@ -647,7 +647,7 @@ export const publicpages = {
       },
       kit: {
         title: 'Unduh press kit',
-        body: 'Logo, foto kantor, screenshot produk, dan factsheet resmi RPI.',
+        body: 'Logo, foto kantor, screenshot produk, dan factsheet resmi SSN.',
         downloadButton: 'Unduh press kit (ZIP)',
       },
       detail: {
@@ -665,7 +665,7 @@ export const publicpages = {
     mitra: {
       metaTitle: 'Mitra Perekrut',
       metaDescription:
-        'Bergabung dengan ratusan mitra perekrut terverifikasi yang memanfaatkan platform Rumah Pekerja Indonesia.',
+        'Bergabung dengan ratusan mitra perekrut terverifikasi yang memanfaatkan platform SSN Pekerja.',
       title: 'Mitra Perekrut',
       counter: {
         partners: 'mitra terverifikasi',
@@ -767,11 +767,11 @@ export const publicpages = {
     feedInfo: {
       metaTitle: 'Feed XML lowongan — Sindikasi',
       metaDescription:
-        'Feed XML publik RPI untuk LinkedIn Jobs, Indeed, dan generic Atom — siap dikonsumsi mitra ATS dan agregator lowongan.',
+        'Feed XML publik SSN untuk LinkedIn Jobs, Indeed, dan generic Atom — siap dikonsumsi mitra ATS dan agregator lowongan.',
       backToJobs: 'Kembali ke daftar lowongan',
       title: 'Feed XML lowongan',
       intro:
-        'RPI menyediakan feed XML publik berisi lowongan terbaru sehingga aplikasi ATS, agregator, dan mitra distribusi seperti LinkedIn dan Indeed dapat menarik data tanpa scraping. Feed di-cache 10 menit di edge — cocok untuk dipoll setiap 15–30 menit.',
+        'SSN menyediakan feed XML publik berisi lowongan terbaru sehingga aplikasi ATS, agregator, dan mitra distribusi seperti LinkedIn dan Indeed dapat menarik data tanpa scraping. Feed di-cache 10 menit di edge — cocok untuk dipoll setiap 15–30 menit.',
       publicFeeds: {
         title: 'Feed publik',
         body: 'Setiap URL di bawah ini mengembalikan paling banyak 500 lowongan terbaru berstatus PUBLISHED, diurutkan menurun berdasarkan tanggal publikasi.',
@@ -824,11 +824,11 @@ export const publicpages = {
     // Status page
     // ---------------------------------------------------------------------
     status: {
-      metaTitle: 'Status sistem — RPI',
+      metaTitle: 'Status sistem — SSN',
       metaDescription:
-        'Status real-time layanan Rumah Pekerja Indonesia, insiden aktif, dan jadwal pemeliharaan.',
+        'Status real-time layanan SSN Pekerja, insiden aktif, dan jadwal pemeliharaan.',
       eyebrow: 'Status sistem',
-      title: 'Status layanan Rumah Pekerja Indonesia',
+      title: 'Status layanan SSN Pekerja',
       updatedEvery: 'Diperbarui setiap 30 detik',
       overallStatus: {
         operational: 'Semua sistem normal',
@@ -995,14 +995,14 @@ export const publicpages = {
       newsletterEyebrow: 'Newsletter',
       newsletterTitle: '5 premium jobs every Monday.',
       newsletterSubtitle:
-        'Curated picks from the RPI editors, straight to your inbox. No spam.',
+        'Curated picks from the SSN editors, straight to your inbox. No spam.',
       newsletterFormLabel: 'Newsletter signup form',
       emailLabel: 'Email address',
       emailPlaceholder: 'name@email.com',
       subscribe: 'Subscribe',
       forWorkers: 'For Workers',
       forCompanies: 'For Companies',
-      aboutCompany: 'About RPI',
+      aboutCompany: 'About SSN',
       tagline:
         'Career infrastructure for Indonesia — for workers, companies, and national institutions.',
       workerLinks: {
@@ -1019,7 +1019,7 @@ export const publicpages = {
       },
       aboutLinks: {
         about: 'About Us',
-        careers: 'Careers at RPI',
+        careers: 'Careers at SSN',
         partners: 'Partners',
         contact: 'Contact',
       },
@@ -1054,7 +1054,7 @@ export const publicpages = {
     pricing: {
       metaTitle: 'Pricing & Plans',
       metaDescription:
-        'Pick the Rumah Pekerja Indonesia plan that matches your hiring scale — from free to enterprise with SSO, SLA, and a dedicated success manager.',
+        'Pick the SSN Pekerja plan that matches your hiring scale — from free to enterprise with SSO, SLA, and a dedicated success manager.',
       hero: {
         eyebrow: 'Pricing',
         title: 'Simple pricing that grows with your team',
@@ -1159,11 +1159,11 @@ export const publicpages = {
     about: {
       metaTitle: 'About Us',
       metaDescription:
-        'Rumah Pekerja Indonesia is a multi-tenant SaaS platform connecting workers, recruiting partners, and skills training across Indonesia.',
+        'SSN Pekerja is a multi-tenant SaaS platform connecting workers, recruiting partners, and skills training across Indonesia.',
       hero: {
-        eyebrow: 'About RPI',
+        eyebrow: 'About SSN',
         title: "Indonesia's careers, built together.",
-        body: "Rumah Pekerja Indonesia is a multi-tenant platform connecting millions of job seekers, thousands of companies, and hundreds of training institutions under one digital roof.",
+        body: "SSN Pekerja is a multi-tenant platform connecting millions of job seekers, thousands of companies, and hundreds of training institutions under one digital roof.",
       },
       mission: {
         eyebrow: 'Mission',
@@ -1215,11 +1215,11 @@ export const publicpages = {
     contact: {
       metaTitle: 'Contact Us',
       metaDescription:
-        'The Rumah Pekerja Indonesia team is ready to help job seekers, recruiting partners, and the press. Reach out by email, phone, WhatsApp, or visit our Jakarta office.',
+        'The SSN Pekerja team is ready to help job seekers, recruiting partners, and the press. Reach out by email, phone, WhatsApp, or visit our Jakarta office.',
       hero: {
         eyebrow: 'Contact',
         title: 'Great to hear from you',
-        body: 'The RPI team replies to every message within one business day. Pick your favourite channel or fill in the form below.',
+        body: 'The SSN team replies to every message within one business day. Pick your favourite channel or fill in the form below.',
       },
       channels: {
         eyebrow: 'Contact Channels',
@@ -1242,7 +1242,7 @@ export const publicpages = {
           support: 'Technical support',
           partnership: 'Partnership',
           press: 'Press / media',
-          careers: 'Careers at RPI',
+          careers: 'Careers at SSN',
           other: 'Other',
         },
         messageLabel: 'Message',
@@ -1250,7 +1250,7 @@ export const publicpages = {
         submitting: 'Sending…',
         submit: 'Send message',
         success: 'Message sent. Our team will reply within one business day.',
-        failure: 'Failed to send. Try again or email support@rumahpekerja.id.',
+        failure: 'Failed to send. Try again or email support@pekerja.sainskerta.net.',
       },
       audience: {
         seekers: { title: 'Job seekers', cta: 'Job seeker help' },
@@ -1264,11 +1264,11 @@ export const publicpages = {
     },
 
     careers: {
-      metaTitle: 'Careers at RPI',
+      metaTitle: 'Careers at SSN',
       metaDescription:
-        'Join the Rumah Pekerja Indonesia team. Build a product that connects millions of job seekers to verified companies across Indonesia.',
+        'Join the SSN Pekerja team. Build a product that connects millions of job seekers to verified companies across Indonesia.',
       hero: {
-        eyebrow: 'Careers at RPI',
+        eyebrow: 'Careers at SSN',
         title: "Help build the future of work in Indonesia",
         body: 'We are looking for engineers, designers, recruiters, and operators who want their work to reach millions of workers.',
         ctaPrimary: 'See open roles',
@@ -1297,7 +1297,7 @@ export const publicpages = {
         title: 'Our hiring process',
       },
       life: {
-        title: 'Life at RPI',
+        title: 'Life at SSN',
       },
       detail: {
         backToList: 'Back to all roles',
@@ -1413,7 +1413,7 @@ export const publicpages = {
       },
       howToApply: {
         body: 'Click <strong>Apply Now</strong> and upload your latest CV. The application takes about 5 minutes. The recruiting team will get back to you within 5–7 business days if your profile is a fit.',
-        note: 'This job is published on Rumah Pekerja Indonesia. Make sure your profile is complete to increase your chances of being noticed.',
+        note: 'This job is published on SSN Pekerja. Make sure your profile is complete to increase your chances of being noticed.',
       },
       sidebar: {
         applyTitle: 'Apply for this job',
@@ -1452,7 +1452,7 @@ export const publicpages = {
       },
       cta: {
         title: 'Interested in this role?',
-        body: 'Hit apply and let the hiring team see your profile. No formal cover letter needed — your RPI profile is enough.',
+        body: 'Hit apply and let the hiring team see your profile. No formal cover letter needed — your SSN profile is enough.',
         applyNow: 'Apply Now',
         viewMyApplication: 'View my application',
         viewOtherJobs: 'See other jobs',
@@ -1514,7 +1514,7 @@ export const publicpages = {
 
     home: {
       latestArticlesEyebrow: 'Latest articles',
-      latestArticlesTitle: 'Stories and guides from the RPI team',
+      latestArticlesTitle: 'Stories and guides from the SSN team',
       viewAllArticles: 'See all articles',
     },
     blog: {
@@ -1524,7 +1524,7 @@ export const publicpages = {
       eyebrow: 'Blog & Insights',
       heroTitle: 'Practical insights for workers, recruiters, and HR leaders',
       heroBody:
-        'Writing from the RPI team and contributors — labour market research, career guides, and lessons from thousands of Indonesian job seekers.',
+        'Writing from the SSN team and contributors — labour market research, career guides, and lessons from thousands of Indonesian job seekers.',
       searchPlaceholder: 'Search articles',
       searchCta: 'Search',
       rss: 'Subscribe via RSS',
@@ -1569,7 +1569,7 @@ export const publicpages = {
     press: {
       metaTitle: 'Press & Media',
       metaDescription:
-        'Press releases, media coverage, and the official Rumah Pekerja Indonesia press kit — for journalists, researchers, and media partners.',
+        'Press releases, media coverage, and the official SSN Pekerja press kit — for journalists, researchers, and media partners.',
       title: 'Press & Media',
       sortLabels: {
         newest: 'Newest',
@@ -1591,7 +1591,7 @@ export const publicpages = {
       },
       kit: {
         title: 'Download our press kit',
-        body: 'Logos, office photos, product screenshots, and the official RPI factsheet.',
+        body: 'Logos, office photos, product screenshots, and the official SSN factsheet.',
         downloadButton: 'Download press kit (ZIP)',
       },
       detail: {
@@ -1606,7 +1606,7 @@ export const publicpages = {
     mitra: {
       metaTitle: 'Recruiting Partners',
       metaDescription:
-        'Join hundreds of verified recruiting partners that use the Rumah Pekerja Indonesia platform.',
+        'Join hundreds of verified recruiting partners that use the SSN Pekerja platform.',
       title: 'Recruiting Partners',
       counter: {
         partners: 'verified partners',
@@ -1693,11 +1693,11 @@ export const publicpages = {
     feedInfo: {
       metaTitle: 'Job XML feed — Syndication',
       metaDescription:
-        "RPI's public XML feed for LinkedIn Jobs, Indeed, and generic Atom — ready to consume for ATS partners and job aggregators.",
+        "SSN's public XML feed for LinkedIn Jobs, Indeed, and generic Atom — ready to consume for ATS partners and job aggregators.",
       backToJobs: 'Back to job list',
       title: 'Job XML feed',
       intro:
-        'RPI offers a public XML feed of the latest jobs so ATS applications, aggregators, and distribution partners like LinkedIn and Indeed can pull data without scraping. The feed is cached for 10 minutes at the edge — ideal for a 15–30 minute polling interval.',
+        'SSN offers a public XML feed of the latest jobs so ATS applications, aggregators, and distribution partners like LinkedIn and Indeed can pull data without scraping. The feed is cached for 10 minutes at the edge — ideal for a 15–30 minute polling interval.',
       publicFeeds: {
         title: 'Public feeds',
         body: 'Each URL below returns up to 500 of the most recent PUBLISHED jobs, ordered by publish date descending.',
@@ -1747,11 +1747,11 @@ export const publicpages = {
     },
 
     status: {
-      metaTitle: 'System status — RPI',
+      metaTitle: 'System status — SSN',
       metaDescription:
-        'Real-time status of Rumah Pekerja Indonesia services, active incidents, and scheduled maintenance.',
+        'Real-time status of SSN Pekerja services, active incidents, and scheduled maintenance.',
       eyebrow: 'System status',
-      title: 'Rumah Pekerja Indonesia service status',
+      title: 'SSN Pekerja service status',
       updatedEvery: 'Updated every 30 seconds',
       overallStatus: {
         operational: 'All systems operational',

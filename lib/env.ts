@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 /**
- * Runtime environment-variable schema for the RPI SaaS.
+ * Runtime environment-variable schema for the SSN SaaS.
  * Fails fast on boot when required values are missing or malformed.
  */
 const optionalUrl = z.preprocess(

@@ -164,9 +164,9 @@ export function ContactChannels() {
     {
       icon: Mail,
       label: 'Email',
-      primary: 'halo@rumahpekerja.id',
+      primary: 'halo@pekerja.sainskerta.net',
       secondary: tc.channels.emailSecondary,
-      href: 'mailto:halo@rumahpekerja.id',
+      href: 'mailto:halo@pekerja.sainskerta.net',
       cta: tc.channels.emailCta,
     },
     {
@@ -451,9 +451,9 @@ export function ContactFormSection() {
 
                 <div className="border-border mt-5 grid grid-cols-2 gap-3 border-t pt-5 text-sm">
                   <InfoLine icon={Phone} label="+62 21 5000 1000" />
-                  <InfoLine icon={Mail} label="halo@rumahpekerja.id" />
+                  <InfoLine icon={Mail} label="halo@pekerja.sainskerta.net" />
                   <InfoLine icon={Clock} label={tc.office.officeHours} />
-                  <InfoLine icon={Globe} label="rumahpekerja.id" />
+                  <InfoLine icon={Globe} label="pekerja.sainskerta.net" />
                 </div>
               </div>
             </div>
@@ -490,10 +490,10 @@ export function ContactFormSection() {
                 <SocialIcon href="https://wa.me/6281100001000" label="WhatsApp">
                   <MessageCircle className="h-4 w-4" aria-hidden />
                 </SocialIcon>
-                <SocialIcon href="mailto:halo@rumahpekerja.id" label="Email">
+                <SocialIcon href="mailto:halo@pekerja.sainskerta.net" label="Email">
                   <Mail className="h-4 w-4" aria-hidden />
                 </SocialIcon>
-                <SocialIcon href="https://rumahpekerja.id" label="Website">
+                <SocialIcon href="https://pekerja.sainskerta.net" label="Website">
                   <Globe className="h-4 w-4" aria-hidden />
                 </SocialIcon>
               </div>
@@ -585,21 +585,21 @@ export function ContactAudience() {
       icon: Users,
       title: tc.audience.jobseekerTitle,
       desc: tc.audience.jobseekerDesc,
-      href: 'mailto:support@rumahpekerja.id',
+      href: 'mailto:support@pekerja.sainskerta.net',
       cta: tc.audience.jobseekerCta,
     },
     {
       icon: Briefcase,
       title: tc.audience.recruiterTitle,
       desc: tc.audience.recruiterDesc,
-      href: 'mailto:partner@rumahpekerja.id',
+      href: 'mailto:partner@pekerja.sainskerta.net',
       cta: tc.audience.recruiterCta,
     },
     {
       icon: Newspaper,
       title: tc.audience.mediaTitle,
       desc: tc.audience.mediaDesc,
-      href: 'mailto:press@rumahpekerja.id',
+      href: 'mailto:press@pekerja.sainskerta.net',
       cta: tc.audience.mediaCta,
     },
     {

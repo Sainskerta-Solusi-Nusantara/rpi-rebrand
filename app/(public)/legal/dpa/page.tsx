@@ -5,7 +5,7 @@ import { LegalDocLayout } from '@/components/organisms/legal-doc-layout'
 export const metadata: Metadata = {
   title: 'Adendum Pemrosesan Data',
   description:
-    'Data Processing Addendum — ketentuan pemrosesan data pribadi antara Rumah Pekerja Indonesia dan mitra perekrut.',
+    'Data Processing Addendum — ketentuan pemrosesan data pribadi antara SSN Pekerja dan mitra perekrut.',
 }
 
 export default function DataProcessingAddendumPage() {
@@ -20,7 +20,7 @@ export default function DataProcessingAddendumPage() {
           {
             heading: '1. Peran Para Pihak',
             paragraphs: [
-              'Mitra perekrut bertindak sebagai pengendali data, sedangkan Rumah Pekerja Indonesia bertindak sebagai pemroses data atas nama mitra untuk keperluan layanan.',
+              'Mitra perekrut bertindak sebagai pengendali data, sedangkan SSN Pekerja bertindak sebagai pemroses data atas nama mitra untuk keperluan layanan.',
             ],
           },
           {

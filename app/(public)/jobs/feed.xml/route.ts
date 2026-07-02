@@ -54,7 +54,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const baseUrl = resolveBaseUrl(req)
 
   let tenantId: string | null = null
-  let feedTitle = 'Rumah Pekerja Indonesia — Lowongan'
+  let feedTitle = 'SSN Pekerja — Lowongan'
   let alternateHref = `${baseUrl}/jobs`
   let selfQuery = `format=${format}`
 

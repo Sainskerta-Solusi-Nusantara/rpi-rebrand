@@ -120,7 +120,7 @@ export async function GET(
 
   const csv = toCsv(headers, data)
   const dateTag = new Date().toISOString().slice(0, 10)
-  const filename = `rpi-tenant-${tenant.slug}-audit-${dateTag}.csv`
+  const filename = `ssn-tenant-${tenant.slug}-audit-${dateTag}.csv`
 
   return new NextResponse(csv, {
     status: 200,

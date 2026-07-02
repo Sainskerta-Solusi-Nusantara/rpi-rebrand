@@ -71,7 +71,7 @@ const RESERVED_USERNAMES = new Set<string>([
   'enterprise',
   'api',
   'app',
-  'rpi',
+  'ssn',
   'system',
   'settings',
   'keamanan',

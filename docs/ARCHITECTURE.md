@@ -1,4 +1,4 @@
-# ARCHITECTURE — Rumah Pekerja Indonesia (RPI)
+# ARCHITECTURE — SSN Pekerja (SSN)
 
 > Arsitektur sistem SaaS multi-tenant untuk platform job seeker + LMS terintegrasi.
 
@@ -25,14 +25,14 @@
 
 ```mermaid
 C4Context
-  title System Context — Rumah Pekerja Indonesia
+  title System Context — SSN Pekerja
 
   Person(seeker, "Job Seeker", "Mencari kerja, ikut kursus, dapat sertifikat")
   Person(partner, "Partner Admin", "Mengelola tenant: post job, kelola peserta LMS")
-  Person(superadmin, "Super Admin RPI", "Global admin, kelola tenant & billing")
+  Person(superadmin, "Super Admin SSN", "Global admin, kelola tenant & billing")
   Person(recruiter, "Recruiter", "Talent search, manage pipeline")
 
-  System(rpi, "RPI Platform", "SaaS multi-tenant job + LMS")
+  System(ssn, "SSN Platform", "SaaS multi-tenant job + LMS")
 
   System_Ext(google, "Google OAuth", "Identity provider")
   System_Ext(resend, "Resend", "Transactional email")
@@ -46,22 +46,22 @@ C4Context
   System_Ext(prakerja, "Kartu Prakerja", "Subsidi pelatihan")
   System_Ext(sentry, "Sentry + PostHog", "Observability")
 
-  Rel(seeker, rpi, "HTTPS")
-  Rel(partner, rpi, "HTTPS (subdomain)")
-  Rel(superadmin, rpi, "HTTPS (admin)")
-  Rel(recruiter, rpi, "HTTPS")
+  Rel(seeker, ssn, "HTTPS")
+  Rel(partner, ssn, "HTTPS (subdomain)")
+  Rel(superadmin, ssn, "HTTPS (admin)")
+  Rel(recruiter, ssn, "HTTPS")
 
-  Rel(rpi, google, "OAuth")
-  Rel(rpi, resend, "SMTP/API")
-  Rel(rpi, stripe, "Payments")
-  Rel(rpi, meili, "Search index")
-  Rel(rpi, r2, "S3 API")
-  Rel(rpi, upstash, "Redis protocol")
-  Rel(rpi, openai, "HTTPS")
-  Rel(rpi, bnsp, "REST API")
-  Rel(rpi, bpjs, "REST API")
-  Rel(rpi, prakerja, "REST API")
-  Rel(rpi, sentry, "telemetry")
+  Rel(ssn, google, "OAuth")
+  Rel(ssn, resend, "SMTP/API")
+  Rel(ssn, stripe, "Payments")
+  Rel(ssn, meili, "Search index")
+  Rel(ssn, r2, "S3 API")
+  Rel(ssn, upstash, "Redis protocol")
+  Rel(ssn, openai, "HTTPS")
+  Rel(ssn, bnsp, "REST API")
+  Rel(ssn, bpjs, "REST API")
+  Rel(ssn, prakerja, "REST API")
+  Rel(ssn, sentry, "telemetry")
 ```
 
 ---
@@ -106,21 +106,21 @@ C4Context
 
 ### Container Responsibilities
 
-| Container | Tech | Tugas |
-|---|---|---|
-| **Web App** | Next.js 14 App Router, TypeScript, Tailwind, Atomic Design | UI rendering, route handlers, server actions |
-| **Edge Middleware** | Next.js Middleware (Edge Runtime) | Resolve tenant dari subdomain, geo-redirect, rate-limit cepat |
-| **DB Primary** | PostgreSQL 15 (Neon serverless) | Source of truth, RLS, transactions |
-| **DB Replica** | Postgres read-replica | Read-heavy queries (job board public) |
-| **Cache** | Upstash Redis (serverless) | Session cache, hot keys, rate-limit counters |
-| **Search** | Meilisearch Cloud | Job + course + profile full-text |
-| **Object Storage** | Cloudflare R2 (S3-compatible) | CV PDF, course video, logo tenant, attachments |
-| **Queue / Workers** | BullMQ + Redis | Email, AI scoring, video transcoding, indexing |
-| **CDN** | Vercel Edge + Cloudflare | Static + image optimization |
-| **Auth** | NextAuth v5 (Auth.js) | Credentials + Google OAuth |
-| **Payments** | Xendit (primary), Midtrans (fallback) | Subscription, one-time payment |
-| **LLM** | Anthropic Claude (primary), OpenAI (fallback) | CV review, matching, screening, course Q&A |
-| **Observability** | OpenTelemetry → Sentry + Axiom logs + PostHog | Tracing, errors, analytics |
+| Container           | Tech                                                       | Tugas                                                         |
+| ------------------- | ---------------------------------------------------------- | ------------------------------------------------------------- |
+| **Web App**         | Next.js 14 App Router, TypeScript, Tailwind, Atomic Design | UI rendering, route handlers, server actions                  |
+| **Edge Middleware** | Next.js Middleware (Edge Runtime)                          | Resolve tenant dari subdomain, geo-redirect, rate-limit cepat |
+| **DB Primary**      | PostgreSQL 15 (Neon serverless)                            | Source of truth, RLS, transactions                            |
+| **DB Replica**      | Postgres read-replica                                      | Read-heavy queries (job board public)                         |
+| **Cache**           | Upstash Redis (serverless)                                 | Session cache, hot keys, rate-limit counters                  |
+| **Search**          | Meilisearch Cloud                                          | Job + course + profile full-text                              |
+| **Object Storage**  | Cloudflare R2 (S3-compatible)                              | CV PDF, course video, logo tenant, attachments                |
+| **Queue / Workers** | BullMQ + Redis                                             | Email, AI scoring, video transcoding, indexing                |
+| **CDN**             | Vercel Edge + Cloudflare                                   | Static + image optimization                                   |
+| **Auth**            | NextAuth v5 (Auth.js)                                      | Credentials + Google OAuth                                    |
+| **Payments**        | Xendit (primary), Midtrans (fallback)                      | Subscription, one-time payment                                |
+| **LLM**             | Anthropic Claude (primary), OpenAI (fallback)              | CV review, matching, screening, course Q&A                    |
+| **Observability**   | OpenTelemetry → Sentry + Axiom logs + PostHog              | Tracing, errors, analytics                                    |
 
 ---
 
@@ -171,11 +171,11 @@ Next.js App
 
 ### 5.1 Strategi: Shared DB + Tenant ID + RLS
 
-| Strategi | Pro | Con | Pilihan RPI |
-|---|---|---|---|
-| Database per tenant | isolasi kuat | mahal, ops complex | NO |
-| Schema per tenant | medium isolation | migration nightmare | NO |
-| **Shared DB + tenant_id + RLS** | cost-effective, scalable, kuat dgn RLS | extra disiplin di kode | **YES** |
+| Strategi                        | Pro                                    | Con                    | Pilihan SSN |
+| ------------------------------- | -------------------------------------- | ---------------------- | ----------- |
+| Database per tenant             | isolasi kuat                           | mahal, ops complex     | NO          |
+| Schema per tenant               | medium isolation                       | migration nightmare    | NO          |
+| **Shared DB + tenant_id + RLS** | cost-effective, scalable, kuat dgn RLS | extra disiplin di kode | **YES**     |
 
 ### 5.2 Tenant Resolution Flow
 
@@ -185,7 +185,7 @@ sequenceDiagram
   participant E as Edge Middleware
   participant W as Web Server
   participant DB as Postgres
-  U->>E: GET https://telkom.rumahpekerja.id/jobs
+  U->>E: GET https://telkom.pekerja.sainskerta.net/jobs
   E->>E: Parse host → subdomain "telkom"
   E->>DB: SELECT id, settings FROM tenants WHERE slug='telkom' (cached Redis)
   E->>W: rewrite + headers x-tenant-id, x-tenant-slug
@@ -199,31 +199,31 @@ sequenceDiagram
 
 ```ts
 // middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getTenantBySlugCached } from '@/lib/tenant/edge-cache';
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { getTenantBySlugCached } from '@/lib/tenant/edge-cache'
 
 export async function middleware(req: NextRequest) {
-  const host = req.headers.get('host') ?? '';
-  const sub = host.split('.')[0];
-  const isApex = sub === 'rumahpekerja' || sub === 'www' || sub === 'localhost:3000';
+  const host = req.headers.get('host') ?? ''
+  const sub = host.split('.')[0]
+  const isApex = sub === 'ssnpekerja' || sub === 'www' || sub === 'localhost:3000'
 
   if (isApex) {
-    const res = NextResponse.next();
-    res.headers.set('x-tenant-id', 'public');
-    return res;
+    const res = NextResponse.next()
+    res.headers.set('x-tenant-id', 'public')
+    return res
   }
 
-  const tenant = await getTenantBySlugCached(sub);
-  if (!tenant) return NextResponse.rewrite(new URL('/tenant-not-found', req.url));
+  const tenant = await getTenantBySlugCached(sub)
+  if (!tenant) return NextResponse.rewrite(new URL('/tenant-not-found', req.url))
 
-  const res = NextResponse.next();
-  res.headers.set('x-tenant-id', tenant.id);
-  res.headers.set('x-tenant-slug', tenant.slug);
-  return res;
+  const res = NextResponse.next()
+  res.headers.set('x-tenant-id', tenant.id)
+  res.headers.set('x-tenant-slug', tenant.slug)
+  return res
 }
 
-export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'] };
+export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'] }
 ```
 
 ### 5.4 Prisma + RLS
@@ -241,20 +241,20 @@ CREATE POLICY tenant_insert_jobs ON jobs
 
 ```ts
 // lib/db/prisma.ts
-import { PrismaClient } from '@prisma/client';
-import { tenantContext } from '@/lib/tenant/context';
+import { PrismaClient } from '@prisma/client'
+import { tenantContext } from '@/lib/tenant/context'
 
 export const prisma = new PrismaClient().$extends({
   query: {
     $allOperations: async ({ args, query }) => {
-      const tenantId = tenantContext.getStore()?.tenantId;
+      const tenantId = tenantContext.getStore()?.tenantId
       if (tenantId) {
-        await prisma.$executeRawUnsafe(`SET LOCAL app.tenant_id = '${tenantId}'`);
+        await prisma.$executeRawUnsafe(`SET LOCAL app.tenant_id = '${tenantId}'`)
       }
-      return query(args);
+      return query(args)
     },
   },
-});
+})
 ```
 
 ### 5.5 Session Augmentation
@@ -284,8 +284,8 @@ Authorization check (RBAC):
 ```ts
 // lib/rbac/can.ts
 export function can(user: SessionUser, action: Action, resource: Resource): boolean {
-  if (user.role === 'superadmin') return true;
-  if (user.tenantId !== resource.tenantId) return false;
+  if (user.role === 'superadmin') return true
+  if (user.tenantId !== resource.tenantId) return false
   // ...granular checks
 }
 ```
@@ -326,15 +326,15 @@ Browser → request /api/v1/courses/[id]/video → presigned R2 URL (5min)
 
 ## 7. Caching Strategy
 
-| Layer | Tech | TTL | Invalidate Trigger |
-|---|---|---|---|
-| Browser HTTP | `Cache-Control` | 60s public, 0 private | header |
-| CDN edge | Vercel + Cloudflare | hours | `revalidateTag` |
-| Next.js segment cache | App Router | per-segment | `revalidatePath`, `revalidateTag` |
-| React `cache()` | per-request memoization | request scope | n/a |
-| Redis (Upstash) | tenant info, hot job, search facets | 60-3600s | publish on update |
-| ISR | Next.js | per-page revalidate | `revalidate` export or webhook |
-| Database query plan | Postgres | session | analyze |
+| Layer                 | Tech                                | TTL                   | Invalidate Trigger                |
+| --------------------- | ----------------------------------- | --------------------- | --------------------------------- |
+| Browser HTTP          | `Cache-Control`                     | 60s public, 0 private | header                            |
+| CDN edge              | Vercel + Cloudflare                 | hours                 | `revalidateTag`                   |
+| Next.js segment cache | App Router                          | per-segment           | `revalidatePath`, `revalidateTag` |
+| React `cache()`       | per-request memoization             | request scope         | n/a                               |
+| Redis (Upstash)       | tenant info, hot job, search facets | 60-3600s              | publish on update                 |
+| ISR                   | Next.js                             | per-page revalidate   | `revalidate` export or webhook    |
+| Database query plan   | Postgres                            | session               | analyze                           |
 
 ### Tag-based Invalidation
 
@@ -343,11 +343,11 @@ Browser → request /api/v1/courses/[id]/video → presigned R2 URL (5min)
 const jobs = await unstable_cache(
   () => prisma.job.findMany({ where: { tenantId } }),
   ['jobs', tenantId],
-  { tags: [`tenant:${tenantId}:jobs`] }
-)();
+  { tags: [`tenant:${tenantId}:jobs`] },
+)()
 
 // Invalidate on write
-revalidateTag(`tenant:${tenantId}:jobs`);
+revalidateTag(`tenant:${tenantId}:jobs`)
 ```
 
 ---
@@ -356,15 +356,15 @@ revalidateTag(`tenant:${tenantId}:jobs`);
 
 ### 8.1 Queues
 
-| Queue | Worker Concurrency | Retry | Pekerjaan |
-|---|---|---|---|
-| `email` | 20 | 3, exp backoff | transactional email via Resend |
-| `ai-cv-review` | 5 | 2 | LLM CV scoring |
-| `ai-match` | 10 | 2 | embed + similarity rank |
-| `index-search` | 5 | 3 | sync ke Meilisearch |
-| `video-transcode` | 2 | 1 | HLS dengan ffmpeg |
-| `webhook-out` | 10 | 5 | partner outbound webhook |
-| `audit-log` | 50 | 5 | bulk insert audit log |
+| Queue             | Worker Concurrency | Retry          | Pekerjaan                      |
+| ----------------- | ------------------ | -------------- | ------------------------------ |
+| `email`           | 20                 | 3, exp backoff | transactional email via Resend |
+| `ai-cv-review`    | 5                  | 2              | LLM CV scoring                 |
+| `ai-match`        | 10                 | 2              | embed + similarity rank        |
+| `index-search`    | 5                  | 3              | sync ke Meilisearch            |
+| `video-transcode` | 2                  | 1              | HLS dengan ffmpeg              |
+| `webhook-out`     | 10                 | 5              | partner outbound webhook       |
+| `audit-log`       | 50                 | 5              | bulk insert audit log          |
 
 ### 8.2 Worker Deployment
 
@@ -374,13 +374,17 @@ revalidateTag(`tenant:${tenantId}:jobs`);
 
 ```ts
 // workers/ai-cv-review.ts
-import { Worker } from 'bullmq';
-import { reviewCV } from '@/lib/ai/cv-review';
+import { Worker } from 'bullmq'
+import { reviewCV } from '@/lib/ai/cv-review'
 
-new Worker('ai-cv-review', async (job) => {
-  const { applicationId, tenantId } = job.data;
-  await tenantContext.run({ tenantId }, () => reviewCV(applicationId));
-}, { connection, concurrency: 5 });
+new Worker(
+  'ai-cv-review',
+  async (job) => {
+    const { applicationId, tenantId } = job.data
+    await tenantContext.run({ tenantId }, () => reviewCV(applicationId))
+  },
+  { connection, concurrency: 5 },
+)
 ```
 
 ---
@@ -402,18 +406,18 @@ CREATE INDEX jobs_search_idx ON jobs USING GIN (search);
 **Scale (Phase 3+):** Meilisearch — typo tolerance, faceting, geo, multi-tenant via `tenantId` filter.
 
 ```ts
-const idx = meili.index('jobs');
+const idx = meili.index('jobs')
 await idx.search(q, {
   filter: `tenantId = "${tenantId}" AND status = "published"`,
   facets: ['category', 'location', 'salaryRange', 'workType'],
-});
+})
 ```
 
 ---
 
 ## 10. File Storage (Cloudflare R2 / S3)
 
-- Bucket structure: `r2://rpi-{env}/{tenantId}/{kind}/{uuid}.{ext}`
+- Bucket structure: `r2://ssn-{env}/{tenantId}/{kind}/{uuid}.{ext}`
 - Kind: `cv`, `logo`, `course-video`, `course-thumb`, `attachment`.
 - Upload via presigned PUT URL (server issues, browser uploads directly).
 - Public bucket untuk logo/thumb; private untuk CV/video — signed URL TTL 5-15 menit.
@@ -422,8 +426,8 @@ await idx.search(q, {
 ```ts
 const url = await s3.getSignedUrl(
   new PutObjectCommand({ Bucket, Key: `${tenantId}/cv/${uuid}.pdf` }),
-  { expiresIn: 300 }
-);
+  { expiresIn: 300 },
+)
 ```
 
 ---
@@ -431,6 +435,7 @@ const url = await s3.getSignedUrl(
 ## 11. Observability
 
 ### 11.1 Stack
+
 - **Tracing:** OpenTelemetry SDK → OTLP → Tempo/Honeycomb (atau Vercel OTel).
 - **Errors:** Sentry (server + browser), source maps upload.
 - **Logs:** Axiom (or Better Stack) — structured JSON, tenant_id sebagai field.
@@ -440,15 +445,16 @@ const url = await s3.getSignedUrl(
 
 ### 11.2 Sample SLO
 
-| Service | Target |
-|---|---|
-| Public web availability | 99.9% / quarter |
-| Auth endpoint p95 latency | <200ms |
-| Job search p95 latency | <400ms |
-| Server action p95 latency | <500ms |
-| Error rate | <0.5% |
+| Service                   | Target          |
+| ------------------------- | --------------- |
+| Public web availability   | 99.9% / quarter |
+| Auth endpoint p95 latency | <200ms          |
+| Job search p95 latency    | <400ms          |
+| Server action p95 latency | <500ms          |
+| Error rate                | <0.5%           |
 
 ### 11.3 Instrumentation Wajib
+
 - `tenant_id`, `user_id`, `request_id` di setiap log/trace.
 - Custom span untuk DB query, LLM call, external API.
 - PostHog event dengan property `tenant_slug`.
@@ -498,12 +504,14 @@ const url = await s3.getSignedUrl(
 ```
 
 ### Environments
+
 - `local` — Docker Compose Postgres + Redis
 - `preview` — Vercel preview per PR + Neon branch (auto)
-- `staging` — staging.rumahpekerja.id, full stack mirror
+- `staging` — staging.pekerja.sainskerta.net, full stack mirror
 - `production` — apex domain & subdomain tenants
 
 ### CI/CD
+
 - GitHub Actions: lint, typecheck, test, build, prisma migrate check
 - Vercel auto-deploy on push to `main`
 - Migration run via `prisma migrate deploy` in pre-deploy script
@@ -514,19 +522,23 @@ const url = await s3.getSignedUrl(
 ## 14. Scaling Considerations
 
 ### 14.1 Read Scaling
+
 - Public job list & detail = ISR-cached (1-5 min revalidate)
 - Read replica Postgres untuk heavy analytics queries
 - Materialized view untuk dashboard partner
 
 ### 14.2 Write Scaling
+
 - Mutation paths instrument; partition `applications` & `audit_log` by `created_at` (monthly) ketika >10M rows
 - Async fan-out via BullMQ (email, AI, index)
 
 ### 14.3 Tenant Scaling
+
 - 1-1000 tenants single DB OK
-- >1000 tenant: pertimbangkan sharding by tenant hash (Citus / read-replica per shard)
+- > 1000 tenant: pertimbangkan sharding by tenant hash (Citus / read-replica per shard)
 
 ### 14.4 LLM Cost
+
 - Prompt caching (Anthropic) untuk system prompt & rubric (>90% hit rate target)
 - Embedding cache (vector DB) — don't re-embed JD/CV unchanged
 - Tiered model: Haiku untuk classification, Sonnet untuk scoring, Opus untuk executive review
@@ -535,13 +547,13 @@ const url = await s3.getSignedUrl(
 
 ## 15. Disaster Recovery
 
-| Asset | RPO | RTO | Strategi |
-|---|---|---|---|
-| Postgres | 5 menit | 1 jam | Neon point-in-time restore (7 hari), daily logical backup ke R2 (30 hari retention) |
-| R2 storage | 1 jam | 4 jam | Versioning enabled, cross-region replication ke region kedua |
-| Redis | n/a (cache) | 5 menit | Cold-warm dari DB on restart |
-| Meilisearch | 1 jam | 2 jam | Daily snapshot ke R2; reindex on-demand from Postgres |
-| Secrets | n/a | 30 menit | 1Password vault + Vercel env backup |
+| Asset       | RPO         | RTO      | Strategi                                                                            |
+| ----------- | ----------- | -------- | ----------------------------------------------------------------------------------- |
+| Postgres    | 5 menit     | 1 jam    | Neon point-in-time restore (7 hari), daily logical backup ke R2 (30 hari retention) |
+| R2 storage  | 1 jam       | 4 jam    | Versioning enabled, cross-region replication ke region kedua                        |
+| Redis       | n/a (cache) | 5 menit  | Cold-warm dari DB on restart                                                        |
+| Meilisearch | 1 jam       | 2 jam    | Daily snapshot ke R2; reindex on-demand from Postgres                               |
+| Secrets     | n/a         | 30 menit | 1Password vault + Vercel env backup                                                 |
 
 **Runbook:** `docs/runbooks/disaster-recovery.md` (akan dibuat tim Ops).
 
@@ -552,27 +564,28 @@ const url = await s3.getSignedUrl(
 ## 16. Cost Model
 
 ### Asumsi
+
 - 10k MAU = ~50k page views/day, 5k authenticated sessions/day, 500 applications/day
 - 100k MAU = ~500k page views/day, 50k auth sessions, 5k applications
 - 1M MAU = ~5M page views/day, 500k auth sessions, 50k applications
 
 ### Estimasi Bulanan (USD)
 
-| Komponen | 10k MAU | 100k MAU | 1M MAU |
-|---|---:|---:|---:|
-| Vercel (Pro / Enterprise) | $20 | $250 | $2,000 |
-| Neon Postgres | $19 | $200 | $1,500 |
-| Upstash Redis | $10 | $80 | $500 |
-| Meilisearch Cloud | $0 (Postgres FTS) | $90 | $700 |
-| R2 storage + egress | $5 | $50 | $400 |
-| Render workers | $25 | $150 | $800 |
-| Sentry | $26 | $80 | $400 |
-| PostHog | $0 (free tier) | $50 | $450 |
-| Resend email | $20 | $100 | $600 |
-| LLM (Anthropic) | $50 | $500 | $4,000 |
-| Domain + Cloudflare | $20 | $20 | $200 |
-| **Total infra** | **~$195** | **~$1,570** | **~$11,550** |
-| Per MAU | $0.020 | $0.016 | $0.012 |
+| Komponen                  |           10k MAU |    100k MAU |       1M MAU |
+| ------------------------- | ----------------: | ----------: | -----------: |
+| Vercel (Pro / Enterprise) |               $20 |        $250 |       $2,000 |
+| Neon Postgres             |               $19 |        $200 |       $1,500 |
+| Upstash Redis             |               $10 |         $80 |         $500 |
+| Meilisearch Cloud         | $0 (Postgres FTS) |         $90 |         $700 |
+| R2 storage + egress       |                $5 |         $50 |         $400 |
+| Render workers            |               $25 |        $150 |         $800 |
+| Sentry                    |               $26 |         $80 |         $400 |
+| PostHog                   |    $0 (free tier) |         $50 |         $450 |
+| Resend email              |               $20 |        $100 |         $600 |
+| LLM (Anthropic)           |               $50 |        $500 |       $4,000 |
+| Domain + Cloudflare       |               $20 |         $20 |         $200 |
+| **Total infra**           |         **~$195** | **~$1,570** | **~$11,550** |
+| Per MAU                   |            $0.020 |      $0.016 |       $0.012 |
 
 **Catatan:** biaya turun per-MAU karena prompt cache, ISR, dan economies of scale.
 

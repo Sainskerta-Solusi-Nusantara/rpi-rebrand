@@ -52,7 +52,7 @@ export default async function CertificateVerifyPage({
   if (!cert) notFound()
 
   const recipientName =
-    cert.user.name ?? cert.user.email?.split('@')[0] ?? 'Peserta RPI'
+    cert.user.name ?? cert.user.email?.split('@')[0] ?? 'Peserta SSN'
 
   // Render the same SVG inline so verifiers see the exact document. We
   // rebuild from authoritative DB values to defeat any tampering with the

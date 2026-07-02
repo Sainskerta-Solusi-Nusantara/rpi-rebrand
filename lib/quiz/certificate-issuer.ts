@@ -3,7 +3,7 @@
  *
  * On a passing quiz attempt that completes a course, we:
  *   1. Look up any existing Certificate for (userId, courseId) — idempotent.
- *   2. Generate a unique certificateNumber `RPI-CERT-{YYYY}-{6char}`.
+ *   2. Generate a unique certificateNumber `SSN-CERT-{YYYY}-{6char}`.
  *      Retries up to 3x on Prisma P2002 (unique collision) before giving up.
  *   3. Render an elegant A4-landscape HTML file with embedded CSS — no
  *      external dependencies, no puppeteer. The user opens it in the browser
@@ -58,7 +58,7 @@ function generateCertificateNumber(year: number = new Date().getFullYear()): str
   for (let i = 0; i < 6; i++) {
     suffix += NUMBER_ALPHABET[buf[i]! % NUMBER_ALPHABET.length]
   }
-  return `RPI-CERT-${year}-${suffix}`
+  return `SSN-CERT-${year}-${suffix}`
 }
 
 function getRequestMeta() {
@@ -108,8 +108,8 @@ function formatDateId(date: Date): string {
  */
 export function renderCertificateHtml(payload: CertificatePayload): string {
   const recipient = escapeHtml(payload.userName || 'Penerima Sertifikat')
-  const course = escapeHtml(payload.courseName || 'Kursus RPI')
-  const issuer = escapeHtml(payload.issuerName || 'Rumah Pekerja Indonesia')
+  const course = escapeHtml(payload.courseName || 'Kursus SSN')
+  const issuer = escapeHtml(payload.issuerName || 'SSN Pekerja')
   const tenant = payload.tenantName ? escapeHtml(payload.tenantName) : null
   const number = escapeHtml(payload.certificateNumber)
   const date = escapeHtml(formatDateId(payload.completionDate))
@@ -349,8 +349,8 @@ export function renderCertificateHtml(payload: CertificatePayload): string {
     <div class="ornament br"></div>
 
     <header class="band">
-      <h1>RUMAH PEKERJA INDONESIA</h1>
-      <p>RPI ACADEMY</p>
+      <h1>SSN Pekerja</h1>
+      <p>SSN ACADEMY</p>
     </header>
 
     <section class="body">
@@ -447,8 +447,8 @@ export async function issueCertificate(
   if (!user) return null
 
   const recipientName =
-    user.name?.trim() || user.email?.split('@')[0] || 'Peserta RPI'
-  const issuerName = course.tenant?.name || 'Rumah Pekerja Indonesia'
+    user.name?.trim() || user.email?.split('@')[0] || 'Peserta SSN'
+  const issuerName = course.tenant?.name || 'SSN Pekerja'
   const tenantName = course.tenant?.name ?? null
   const title = `Sertifikat Penyelesaian: ${course.title}`
   const now = new Date()

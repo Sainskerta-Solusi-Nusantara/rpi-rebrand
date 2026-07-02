@@ -4,7 +4,7 @@ export const pagesTenant4 = {
       backTo: 'Kembali ke {name}',
       heading: 'Webhook',
       description:
-        'Kirim notifikasi otomatis ke sistem eksternal saat event terjadi di tenant {name}. Setiap permintaan ditandatangani HMAC-SHA256 melalui header X-RPI-Signature. Pengiriman yang gagal otomatis dicoba ulang hingga 5 kali (1m, 5m, 30m, 2j).',
+        'Kirim notifikasi otomatis ke sistem eksternal saat event terjadi di tenant {name}. Setiap permintaan ditandatangani HMAC-SHA256 melalui header X-SSN-Signature. Pengiriman yang gagal otomatis dicoba ulang hingga 5 kali (1m, 5m, 30m, 2j).',
       deadLetterBtn: 'Surat mati ({count})',
       sectionEndpoints: 'Daftar webhook',
       sectionEndpointsHeading: 'Endpoint terdaftar ({count})',
@@ -27,7 +27,7 @@ export const pagesTenant4 = {
       thHttp: 'HTTP',
       sectionVerify: 'Cara verifikasi tanda tangan',
       verifyDescription:
-        'Tiap permintaan memuat header X-RPI-Signature: sha256=<hex>. Hitung HMAC-SHA256 dari raw body memakai signing secret, lalu bandingkan dengan nilai header (constant-time compare). Tolak permintaan yang tidak cocok.',
+        'Tiap permintaan memuat header X-SSN-Signature: sha256=<hex>. Hitung HMAC-SHA256 dari raw body memakai signing secret, lalu bandingkan dengan nilai header (constant-time compare). Tolak permintaan yang tidak cocok.',
     },
     webhookDeliveries: {
       backToList: 'Kembali ke daftar webhook',
@@ -117,7 +117,7 @@ export const pagesTenant4 = {
       backTo: 'Back to {name}',
       heading: 'Webhooks',
       description:
-        'Send automatic notifications to external systems when events occur in tenant {name}. Every request is signed with HMAC-SHA256 via the X-RPI-Signature header. Failed deliveries are automatically retried up to 5 times (1m, 5m, 30m, 2h).',
+        'Send automatic notifications to external systems when events occur in tenant {name}. Every request is signed with HMAC-SHA256 via the X-SSN-Signature header. Failed deliveries are automatically retried up to 5 times (1m, 5m, 30m, 2h).',
       deadLetterBtn: 'Dead letter ({count})',
       sectionEndpoints: 'Webhook list',
       sectionEndpointsHeading: 'Registered endpoints ({count})',
@@ -140,7 +140,7 @@ export const pagesTenant4 = {
       thHttp: 'HTTP',
       sectionVerify: 'How to verify the signature',
       verifyDescription:
-        'Each request includes the header X-RPI-Signature: sha256=<hex>. Compute HMAC-SHA256 of the raw body using the signing secret, then compare with the header value (constant-time compare). Reject requests that do not match.',
+        'Each request includes the header X-SSN-Signature: sha256=<hex>. Compute HMAC-SHA256 of the raw body using the signing secret, then compare with the header value (constant-time compare). Reject requests that do not match.',
     },
     webhookDeliveries: {
       backToList: 'Back to webhook list',

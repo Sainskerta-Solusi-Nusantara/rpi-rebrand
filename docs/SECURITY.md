@@ -1,19 +1,19 @@
-# SECURITY.md — Rumah Pekerja Indonesia (RPI)
+# SECURITY.md — SSN Pekerja (SSN)
 
-Dokumen keamanan komprehensif untuk platform SaaS multi-tenant RPI. Sasaran: melindungi data pencari kerja, partner, dan integritas platform sesuai UU PDP (Indonesia) dan praktik GDPR-compatible.
+Dokumen keamanan komprehensif untuk platform SaaS multi-tenant SSN. Sasaran: melindungi data pencari kerja, partner, dan integritas platform sesuai UU PDP (Indonesia) dan praktik GDPR-compatible.
 
 ---
 
 ## 1. Threat Model (STRIDE)
 
-| Kategori | Ancaman | Aset | Mitigasi |
-|---|---|---|---|
-| **S**poofing | Phishing login, session hijack | Akun user/partner | NextAuth JWT signed + httpOnly cookie, 2FA TOTP, SPF/DKIM/DMARC |
-| **T**ampering | SQL inject, mass-assign, parameter tamper | Job, application data | Prisma parameterized, Zod whitelist, RLS, CSRF token |
-| **R**epudiation | Partner menolak telah hapus job | Audit | Append-only `audit_logs` + hash chain |
-| **I**nfo disclosure | Cross-tenant leak, IDOR, S3 public | CV, salary, PII | RLS, presigned URL, no public bucket, scoped queries |
-| **D**oS | Login brute, API flood | Availability | Upstash rate-limit, Vercel WAF, captcha, queue backpressure |
-| **E**oP | User → admin, partner A → tenant B | Privilege | RBAC matrix, `requireRole`, RLS double-check, no eval/dyn-import |
+| Kategori            | Ancaman                                   | Aset                  | Mitigasi                                                         |
+| ------------------- | ----------------------------------------- | --------------------- | ---------------------------------------------------------------- |
+| **S**poofing        | Phishing login, session hijack            | Akun user/partner     | NextAuth JWT signed + httpOnly cookie, 2FA TOTP, SPF/DKIM/DMARC  |
+| **T**ampering       | SQL inject, mass-assign, parameter tamper | Job, application data | Prisma parameterized, Zod whitelist, RLS, CSRF token             |
+| **R**epudiation     | Partner menolak telah hapus job           | Audit                 | Append-only `audit_logs` + hash chain                            |
+| **I**nfo disclosure | Cross-tenant leak, IDOR, S3 public        | CV, salary, PII       | RLS, presigned URL, no public bucket, scoped queries             |
+| **D**oS             | Login brute, API flood                    | Availability          | Upstash rate-limit, Vercel WAF, captcha, queue backpressure      |
+| **E**oP             | User → admin, partner A → tenant B        | Privilege             | RBAC matrix, `requireRole`, RLS double-check, no eval/dyn-import |
 
 ### Aktor & Permukaan Serang
 
@@ -45,24 +45,25 @@ Dokumen keamanan komprehensif untuk platform SaaS multi-tenant RPI. Sasaran: mel
 
 ```ts
 // lib/auth/password.ts
-import bcrypt from "bcrypt";
-import { createHash } from "crypto";
+import bcrypt from 'bcrypt'
+import { createHash } from 'crypto'
 
 export async function hashPassword(pw: string) {
-  return bcrypt.hash(pw, 12);
+  return bcrypt.hash(pw, 12)
 }
 export async function verifyPassword(pw: string, hash: string) {
-  return bcrypt.compare(pw, hash);
+  return bcrypt.compare(pw, hash)
 }
 export async function isPwned(pw: string) {
-  const sha1 = createHash("sha1").update(pw).digest("hex").toUpperCase();
-  const prefix = sha1.slice(0, 5);
-  const suffix = sha1.slice(5);
+  const sha1 = createHash('sha1').update(pw).digest('hex').toUpperCase()
+  const prefix = sha1.slice(0, 5)
+  const suffix = sha1.slice(5)
   const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
-    headers: { "Add-Padding": "true" }, cache: "no-store",
-  });
-  const body = await res.text();
-  return body.split("\n").some((l) => l.startsWith(suffix));
+    headers: { 'Add-Padding': 'true' },
+    cache: 'no-store',
+  })
+  const body = await res.text()
+  return body.split('\n').some((l) => l.startsWith(suffix))
 }
 ```
 
@@ -86,10 +87,10 @@ export async function isPwned(pw: string) {
 
 ```ts
 // lib/auth/throttle.ts
-import { rl } from "@/lib/ratelimit";
+import { rl } from '@/lib/ratelimit'
 export async function checkLoginThrottle(email: string, ip: string) {
-  await rl("anonAuth", `login:${email}`);
-  await rl("anonAuth", `login:ip:${ip}`);
+  await rl('anonAuth', `login:${email}`)
+  await rl('anonAuth', `login:ip:${ip}`)
 }
 ```
 
@@ -112,52 +113,58 @@ superadmin  >  admin (per-tenant)  >  partner (per-tenant owner)  >  recruiter  
 
 ### 3.2 Matriks Izin
 
-| Resource / Action | user | recruiter | partner | admin | superadmin |
-|---|---|---|---|---|---|
-| Branding GET | R | R | R | R | R |
-| Branding PUT | – | – | W | W | W |
-| Job GET | R | R | R | R | R |
-| Job POST/PATCH/DELETE | – | W (own) | W | W | W |
-| Application POST | W | – | – | – | – |
-| Application list (own job) | R (own) | R | R | R | R |
-| Team list | – | – | R | R | R |
-| Team invite | – | – | W | W | W |
-| Course CRUD | – | W (own) | W | W | W |
-| Enrollment | W | – | – | – | – |
-| Tenant config | – | – | W | W | W |
-| Audit log | – | – | R (own action) | R | R (all) |
-| Cross-tenant admin | – | – | – | – | W |
+| Resource / Action          | user    | recruiter | partner        | admin | superadmin |
+| -------------------------- | ------- | --------- | -------------- | ----- | ---------- |
+| Branding GET               | R       | R         | R              | R     | R          |
+| Branding PUT               | –       | –         | W              | W     | W          |
+| Job GET                    | R       | R         | R              | R     | R          |
+| Job POST/PATCH/DELETE      | –       | W (own)   | W              | W     | W          |
+| Application POST           | W       | –         | –              | –     | –          |
+| Application list (own job) | R (own) | R         | R              | R     | R          |
+| Team list                  | –       | –         | R              | R     | R          |
+| Team invite                | –       | –         | W              | W     | W          |
+| Course CRUD                | –       | W (own)   | W              | W     | W          |
+| Enrollment                 | W       | –         | –              | –     | –          |
+| Tenant config              | –       | –         | W              | W     | W          |
+| Audit log                  | –       | –         | R (own action) | R     | R (all)    |
+| Cross-tenant admin         | –       | –         | –              | –     | W          |
 
 ### 3.3 Helper `requireRole` / `requireTenantRole`
 
 ```ts
 // lib/authz.ts
-export type Role = "superadmin"|"admin"|"partner"|"recruiter"|"user";
-export type AuthCtx = { userId: string; tenantId: string | null; role: Role };
+export type Role = 'superadmin' | 'admin' | 'partner' | 'recruiter' | 'user'
+export type AuthCtx = { userId: string; tenantId: string | null; role: Role }
 
 const ORDER: Record<Role, number> = {
-  superadmin: 5, admin: 4, partner: 3, recruiter: 2, user: 1,
-};
+  superadmin: 5,
+  admin: 4,
+  partner: 3,
+  recruiter: 2,
+  user: 1,
+}
 
 export function requireRole(ctx: AuthCtx, allowed: Role[]) {
-  if (!allowed.includes(ctx.role) && ctx.role !== "superadmin") {
-    throw new ApiError("FORBIDDEN", "Role insufficient", 403);
+  if (!allowed.includes(ctx.role) && ctx.role !== 'superadmin') {
+    throw new ApiError('FORBIDDEN', 'Role insufficient', 403)
   }
 }
 
 export function requireTenantRole(ctx: AuthCtx, tenantId: string, min: Role) {
-  if (ctx.role === "superadmin") return;
-  if (ctx.tenantId !== tenantId) throw new ApiError("FORBIDDEN", "Wrong tenant", 403);
-  if (ORDER[ctx.role] < ORDER[min]) throw new ApiError("FORBIDDEN", "Role too low", 403);
+  if (ctx.role === 'superadmin') return
+  if (ctx.tenantId !== tenantId) throw new ApiError('FORBIDDEN', 'Wrong tenant', 403)
+  if (ORDER[ctx.role] < ORDER[min]) throw new ApiError('FORBIDDEN', 'Role too low', 403)
 }
 
 export function requireOwnership<T extends { createdById: string; tenantId: string }>(
-  ctx: AuthCtx, row: T, minRoleOverride: Role = "admin"
+  ctx: AuthCtx,
+  row: T,
+  minRoleOverride: Role = 'admin',
 ) {
-  if (ctx.role === "superadmin") return;
-  if (ctx.tenantId !== row.tenantId) throw new ApiError("FORBIDDEN","tenant",403);
+  if (ctx.role === 'superadmin') return
+  if (ctx.tenantId !== row.tenantId) throw new ApiError('FORBIDDEN', 'tenant', 403)
   if (row.createdById !== ctx.userId && ORDER[ctx.role] < ORDER[minRoleOverride])
-    throw new ApiError("FORBIDDEN","not owner",403);
+    throw new ApiError('FORBIDDEN', 'not owner', 403)
 }
 ```
 
@@ -207,10 +214,7 @@ ALTER POLICY jobs_tenant_isolation ON jobs
 
 ```ts
 // lib/db.ts (excerpt)
-await tx.$executeRawUnsafe(
-  `SELECT set_config('app.current_tenant_id', $1, true)`,
-  tenantId
-);
+await tx.$executeRawUnsafe(`SELECT set_config('app.current_tenant_id', $1, true)`, tenantId)
 ```
 
 Flag `true` (transaction-scoped) memastikan tidak bocor antar koneksi pool.
@@ -257,34 +261,34 @@ Wajib: setiap tabel ber-tenant punya test ini.
 
 ## 5. OWASP Top 10 — Mitigasi Spesifik
 
-| OWASP 2021 | Risiko di RPI | Mitigasi |
-|---|---|---|
-| A01 Broken Access | IDOR job/application | RLS + `requireOwnership`, UUID v7 (tidak ditebak), no incremental ID di URL |
-| A02 Crypto Failures | Resume di S3, password | TLS 1.2+, bcrypt 12, AES-256 at rest (Postgres TDE / managed), presigned 60s |
-| A03 Injection | SQL, NoSQL, command | Prisma parameterized, Zod schema, no `child_process` user-input |
-| A04 Insecure Design | Workflow flaw | Threat model review per fitur baru, abuse case di PR template |
-| A05 Misconfig | CSP, CORS, debug | Helmet headers di middleware, CORS allowlist, `NODE_ENV=production` enforced |
-| A06 Vuln Components | npm CVE | Renovate weekly + `npm audit` di CI, Socket.dev guard |
-| A07 Auth Failures | Brute, session fixate | Throttle, rotasi token, cookie `__Host-`, no session ID di URL |
-| A08 Data Integrity | Supply chain | SLSA build provenance, lockfile required, signed commits |
-| A09 Logging Fail | Tidak detect breach | Audit log + Sentry + alert anomali (CPU, 5xx, login spike) |
-| A10 SSRF | Webhook config, avatar URL fetch | Allowlist scheme `https:`, deny RFC1918/metadata IP, DNS rebinding guard |
+| OWASP 2021          | Risiko di SSN                    | Mitigasi                                                                     |
+| ------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
+| A01 Broken Access   | IDOR job/application             | RLS + `requireOwnership`, UUID v7 (tidak ditebak), no incremental ID di URL  |
+| A02 Crypto Failures | Resume di S3, password           | TLS 1.2+, bcrypt 12, AES-256 at rest (Postgres TDE / managed), presigned 60s |
+| A03 Injection       | SQL, NoSQL, command              | Prisma parameterized, Zod schema, no `child_process` user-input              |
+| A04 Insecure Design | Workflow flaw                    | Threat model review per fitur baru, abuse case di PR template                |
+| A05 Misconfig       | CSP, CORS, debug                 | Helmet headers di middleware, CORS allowlist, `NODE_ENV=production` enforced |
+| A06 Vuln Components | npm CVE                          | Renovate weekly + `npm audit` di CI, Socket.dev guard                        |
+| A07 Auth Failures   | Brute, session fixate            | Throttle, rotasi token, cookie `__Host-`, no session ID di URL               |
+| A08 Data Integrity  | Supply chain                     | SLSA build provenance, lockfile required, signed commits                     |
+| A09 Logging Fail    | Tidak detect breach              | Audit log + Sentry + alert anomali (CPU, 5xx, login spike)                   |
+| A10 SSRF            | Webhook config, avatar URL fetch | Allowlist scheme `https:`, deny RFC1918/metadata IP, DNS rebinding guard     |
 
 ### 5.1 SSRF Guard
 
 ```ts
 // lib/safe-fetch.ts
-import net from "net";
-import dns from "dns/promises";
+import net from 'net'
+import dns from 'dns/promises'
 
-const PRIVATE = [/^10\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./, /^127\./, /^169\.254\./];
+const PRIVATE = [/^10\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./, /^127\./, /^169\.254\./]
 
 export async function safeFetch(url: string) {
-  const u = new URL(url);
-  if (u.protocol !== "https:") throw new Error("scheme");
-  const { address } = await dns.lookup(u.hostname);
-  if (PRIVATE.some(r => r.test(address))) throw new Error("private");
-  return fetch(url, { redirect: "error", signal: AbortSignal.timeout(5000) });
+  const u = new URL(url)
+  if (u.protocol !== 'https:') throw new Error('scheme')
+  const { address } = await dns.lookup(u.hostname)
+  if (PRIVATE.some((r) => r.test(address))) throw new Error('private')
+  return fetch(url, { redirect: 'error', signal: AbortSignal.timeout(5000) })
 }
 ```
 
@@ -296,14 +300,14 @@ CSP per request dengan **nonce** (RSC + script tag). Tidak pakai `unsafe-inline`
 
 ```ts
 // middleware.ts (excerpt)
-const nonce = crypto.randomUUID().replace(/-/g, "");
+const nonce = crypto.randomUUID().replace(/-/g, '')
 const csp = [
   `default-src 'self'`,
   `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
   `style-src 'self' 'nonce-${nonce}'`,
-  `img-src 'self' data: blob: https://*.rpi.id https://lh3.googleusercontent.com`,
+  `img-src 'self' data: blob: https://*.ssn.id https://lh3.googleusercontent.com`,
   `font-src 'self' data:`,
-  `connect-src 'self' https://*.upstash.io https://*.sentry.io https://api.rpi.id wss://*.rpi.id`,
+  `connect-src 'self' https://*.upstash.io https://*.sentry.io https://api.ssn.id wss://*.ssn.id`,
   `frame-src 'self' https://www.google.com`,
   `frame-ancestors 'none'`,
   `form-action 'self'`,
@@ -311,13 +315,14 @@ const csp = [
   `object-src 'none'`,
   `upgrade-insecure-requests`,
   `report-uri /api/csp-report`,
-].join("; ");
+].join('; ')
 
-res.headers.set("Content-Security-Policy", csp);
-res.headers.set("x-nonce", nonce);
+res.headers.set('Content-Security-Policy', csp)
+res.headers.set('x-nonce', nonce)
 ```
 
 Header lain wajib:
+
 - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
 - `X-Content-Type-Options: nosniff`
 - `Referrer-Policy: strict-origin-when-cross-origin`
@@ -331,14 +336,23 @@ Header lain wajib:
 
 ```ts
 // tests/security/tenant-iso.spec.ts
-describe.each(["jobs","applications","branding","courses","enrollments","team_members"])(
-  "tenant isolation: %s", (table) => {
-    it("GET cross-tenant returns 0/404", async () => { /* ... */ });
-    it("PATCH cross-tenant returns 403/404", async () => { /* ... */ });
-    it("DELETE cross-tenant returns 403/404", async () => { /* ... */ });
-    it("INSERT with foreign tenant_id rejected by RLS WITH CHECK", async () => { /* ... */ });
-  }
-);
+describe.each(['jobs', 'applications', 'branding', 'courses', 'enrollments', 'team_members'])(
+  'tenant isolation: %s',
+  (table) => {
+    it('GET cross-tenant returns 0/404', async () => {
+      /* ... */
+    })
+    it('PATCH cross-tenant returns 403/404', async () => {
+      /* ... */
+    })
+    it('DELETE cross-tenant returns 403/404', async () => {
+      /* ... */
+    })
+    it('INSERT with foreign tenant_id rejected by RLS WITH CHECK', async () => {
+      /* ... */
+    })
+  },
+)
 ```
 
 Run di CI dengan tag `security:critical`; gagal = block merge.
@@ -360,9 +374,9 @@ Run di CI dengan tag `security:critical`; gagal = block merge.
 
 ```ts
 // worker: scan upload
-import { fileTypeFromBuffer } from "file-type";
-const t = await fileTypeFromBuffer(buf);
-if (!ALLOWED_MIME[kind].includes(t?.mime)) await s3.deleteObject({ Bucket, Key });
+import { fileTypeFromBuffer } from 'file-type'
+const t = await fileTypeFromBuffer(buf)
+if (!ALLOWED_MIME[kind].includes(t?.mime)) await s3.deleteObject({ Bucket, Key })
 ```
 
 ---
@@ -384,31 +398,31 @@ if (!ALLOWED_MIME[kind].includes(t?.mime)) await s3.deleteObject({ Bucket, Key }
 
 ### 9.3 Retensi Data
 
-| Data | Retensi | Aksi setelah |
-|---|---|---|
-| Akun aktif | Selama aktif | – |
-| Akun tidak aktif > 24 bln | Anonimisasi | Hash email, drop PII |
-| CV / resume | 12 bln setelah lamaran terakhir | Hapus dari S3 |
-| Audit log | 5 tahun (regulator) | Arsip cold storage |
-| Session log | 90 hari | Truncate |
-| Backup | 30 hari rolling | Overwrite |
+| Data                      | Retensi                         | Aksi setelah         |
+| ------------------------- | ------------------------------- | -------------------- |
+| Akun aktif                | Selama aktif                    | –                    |
+| Akun tidak aktif > 24 bln | Anonimisasi                     | Hash email, drop PII |
+| CV / resume               | 12 bln setelah lamaran terakhir | Hapus dari S3        |
+| Audit log                 | 5 tahun (regulator)             | Arsip cold storage   |
+| Session log               | 90 hari                         | Truncate             |
+| Backup                    | 30 hari rolling                 | Overwrite            |
 
 Job cron harian `retention-sweep` menjalankan policy.
 
 ### 9.4 Hak Subjek Data
 
-| Hak (UU PDP Pasal 5–11) | Endpoint |
-|---|---|
-| Akses & salinan | `GET /api/v1/users/me/export` → ZIP dalam 72 jam, link presigned 7 hari |
-| Pembetulan | `PATCH /api/v1/users/me` |
+| Hak (UU PDP Pasal 5–11)        | Endpoint                                                                   |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| Akses & salinan                | `GET /api/v1/users/me/export` → ZIP dalam 72 jam, link presigned 7 hari    |
+| Pembetulan                     | `PATCH /api/v1/users/me`                                                   |
 | Penghapusan (right to erasure) | `DELETE /api/v1/users/me` → soft 30 hari → hard delete (anonimisasi audit) |
-| Penarikan consent | `POST /api/v1/users/me/consents/withdraw` |
-| Portabilitas | Export JSON + CSV |
-| Keberatan profiling | Toggle di settings (matikan recommender) |
+| Penarikan consent              | `POST /api/v1/users/me/consents/withdraw`                                  |
+| Portabilitas                   | Export JSON + CSV                                                          |
+| Keberatan profiling            | Toggle di settings (matikan recommender)                                   |
 
 ### 9.5 DPO (Data Protection Officer)
 
-- Kontak publik: `dpo@rpi.id`.
+- Kontak publik: `dpo@ssn.id`.
 - SLA respon permintaan subjek: 3 hari kerja akui, 30 hari kerja selesai.
 - Catatan permintaan: `dsr_requests` table dengan status workflow.
 
@@ -478,21 +492,21 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ### 11.1 Penyimpanan
 
 - **Vercel Encrypted Env** untuk production runtime.
-- **1Password Vault `RPI-prod`** sebagai source of truth manusiawi.
+- **1Password Vault `SSN-prod`** sebagai source of truth manusiawi.
 - **Doppler / Infisical** (opsional post-MVP) untuk rotasi otomatis.
 - Tidak ada secret di repo; pre-commit hook `gitleaks` + GitHub push protection.
 
 ### 11.2 Rotation Calendar
 
-| Secret | Frekuensi | Pemicu darurat |
-|---|---|---|
-| `NEXTAUTH_SECRET` | 12 bulan | Suspek leak → segera (logout massal) |
-| `DATABASE_URL` password | 6 bulan | Insider keluar |
-| R2/S3 keys | 6 bulan | Bucket policy change |
-| OAuth client secret | 12 bulan | Suspek phishing |
-| Webhook signing secret | 6 bulan per endpoint | Compromise partner |
-| Sentry DSN | – (low risk) | Rotasi 24 bln |
-| Encryption KMS key | 12 bulan (CMK rotation) | Auto |
+| Secret                  | Frekuensi               | Pemicu darurat                       |
+| ----------------------- | ----------------------- | ------------------------------------ |
+| `NEXTAUTH_SECRET`       | 12 bulan                | Suspek leak → segera (logout massal) |
+| `DATABASE_URL` password | 6 bulan                 | Insider keluar                       |
+| R2/S3 keys              | 6 bulan                 | Bucket policy change                 |
+| OAuth client secret     | 12 bulan                | Suspek phishing                      |
+| Webhook signing secret  | 6 bulan per endpoint    | Compromise partner                   |
+| Sentry DSN              | – (low risk)            | Rotasi 24 bln                        |
+| Encryption KMS key      | 12 bulan (CMK rotation) | Auto                                 |
 
 Rotasi dijadwalkan di kalender ops; runbook `/docs/runbooks/secret-rotation.md` (post-MVP).
 
@@ -507,12 +521,12 @@ Rotasi dijadwalkan di kalender ops; runbook `/docs/runbooks/secret-rotation.md` 
 
 ### 12.1 Severity
 
-| SEV | Definisi | Respon |
-|---|---|---|
+| SEV  | Definisi                                 | Respon                                          |
+| ---- | ---------------------------------------- | ----------------------------------------------- |
 | SEV1 | Outage total / breach data PII confirmed | On-call ≤ 15 menit, war room, post-mortem wajib |
-| SEV2 | Degradasi major / suspected breach | ≤ 30 menit |
-| SEV3 | Bug serius non-data | ≤ 4 jam |
-| SEV4 | Minor | Next business day |
+| SEV2 | Degradasi major / suspected breach       | ≤ 30 menit                                      |
+| SEV3 | Bug serius non-data                      | ≤ 4 jam                                         |
+| SEV4 | Minor                                    | Next business day                               |
 
 ### 12.2 Runbook (Ringkas)
 
@@ -544,7 +558,7 @@ Rotasi dijadwalkan di kalender ops; runbook `/docs/runbooks/secret-rotation.md` 
 ### 12.4 Komunikasi
 
 - Internal: Slack `#incident-<id>`.
-- Eksternal: status page `status.rpi.id`.
+- Eksternal: status page `status.ssn.id`.
 - Regulator/subjek: lihat 9.6.
 
 ---
@@ -554,15 +568,15 @@ Rotasi dijadwalkan di kalender ops; runbook `/docs/runbooks/secret-rotation.md` 
 ### 13.1 Program (Soft Launch Post-MVP)
 
 - Halaman publik: `/security` + `security.txt` (RFC 9116).
-- Email: `security@rpi.id` (PGP key publik di halaman).
+- Email: `security@ssn.id` (PGP key publik di halaman).
 - SLA triase: 3 hari kerja; reward bracket:
 
-| Severity | Reward (IDR) |
-|---|---|
-| Critical (RCE, mass data exfil, cross-tenant) | 15jt – 50jt |
-| High (auth bypass, IDOR sensitif) | 5jt – 15jt |
-| Medium (stored XSS auth, SSRF terbatas) | 1jt – 5jt |
-| Low (info disclosure minor) | 250rb – 1jt |
+| Severity                                      | Reward (IDR) |
+| --------------------------------------------- | ------------ |
+| Critical (RCE, mass data exfil, cross-tenant) | 15jt – 50jt  |
+| High (auth bypass, IDOR sensitif)             | 5jt – 15jt   |
+| Medium (stored XSS auth, SSRF terbatas)       | 1jt – 5jt    |
+| Low (info disclosure minor)                   | 250rb – 1jt  |
 
 ### 13.2 Safe Harbor
 
@@ -571,13 +585,13 @@ Riset white-hat sesuai panduan tidak akan dipersangkakan. Larangan: DoS aktif, s
 ### 13.3 `security.txt`
 
 ```
-Contact: mailto:security@rpi.id
-Contact: https://rpi.id/security/report
+Contact: mailto:security@ssn.id
+Contact: https://ssn.id/security/report
 Expires: 2027-01-01T00:00:00.000Z
 Preferred-Languages: id, en
-Canonical: https://rpi.id/.well-known/security.txt
-Policy: https://rpi.id/security
-Acknowledgments: https://rpi.id/security/hall-of-fame
+Canonical: https://ssn.id/.well-known/security.txt
+Policy: https://ssn.id/security
+Acknowledgments: https://ssn.id/security/hall-of-fame
 ```
 
 ---
@@ -605,8 +619,8 @@ rules:
     patterns:
       - pattern: prisma.$X.$Y(...)
     paths:
-      include: ["app/api/**/route.ts", "app/**/actions.ts"]
-    message: "Akses Prisma harus via service layer dengan withTenant()."
+      include: ['app/api/**/route.ts', 'app/**/actions.ts']
+    message: 'Akses Prisma harus via service layer dengan withTenant().'
     severity: ERROR
 ```
 
@@ -614,26 +628,26 @@ rules:
 
 ## 15. Cryptography Cheatsheet
 
-| Use | Algoritma |
-|---|---|
-| Password hash | bcrypt cost 12 |
-| Token random | `crypto.randomBytes(32)` base64url |
-| Token storage | SHA-256 hash (one-way) |
-| Webhook signature | HMAC-SHA256 with rotating secret |
-| Session JWT | HS512 (NEXTAUTH_SECRET 64B) |
-| TLS | TLS 1.2+, modern ciphers (Vercel default) |
-| At rest | AES-256 managed (Neon/RDS); R2 SSE-S3 |
-| Field-level (NIK, NPWP jika disimpan) | AES-256-GCM via libsodium, key di KMS |
+| Use                                   | Algoritma                                 |
+| ------------------------------------- | ----------------------------------------- |
+| Password hash                         | bcrypt cost 12                            |
+| Token random                          | `crypto.randomBytes(32)` base64url        |
+| Token storage                         | SHA-256 hash (one-way)                    |
+| Webhook signature                     | HMAC-SHA256 with rotating secret          |
+| Session JWT                           | HS512 (NEXTAUTH_SECRET 64B)               |
+| TLS                                   | TLS 1.2+, modern ciphers (Vercel default) |
+| At rest                               | AES-256 managed (Neon/RDS); R2 SSE-S3     |
+| Field-level (NIK, NPWP jika disimpan) | AES-256-GCM via libsodium, key di KMS     |
 
 ```ts
 // lib/crypto/field.ts
-import sodium from "libsodium-wrappers";
+import sodium from 'libsodium-wrappers'
 export async function encryptField(plain: string, keyHex: string) {
-  await sodium.ready;
-  const key = sodium.from_hex(keyHex);
-  const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
-  const ct = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(plain, null, null, nonce, key);
-  return sodium.to_base64(new Uint8Array([...nonce, ...ct]));
+  await sodium.ready
+  const key = sodium.from_hex(keyHex)
+  const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
+  const ct = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(plain, null, null, nonce, key)
+  return sodium.to_base64(new Uint8Array([...nonce, ...ct]))
 }
 ```
 
@@ -652,7 +666,9 @@ export async function encryptField(plain: string, keyHex: string) {
 
 ```ts
 // lib/log.ts
-export const log = pino({ redact: ["req.headers.authorization","req.headers.cookie","*.password","*.email"] });
+export const log = pino({
+  redact: ['req.headers.authorization', 'req.headers.cookie', '*.password', '*.email'],
+})
 ```
 
 ---
@@ -685,7 +701,7 @@ Sebelum tag `vX.Y.0`:
 
 ## 19. Kontak
 
-- Security: `security@rpi.id`
-- DPO: `dpo@rpi.id`
-- On-call: PagerDuty schedule `rpi-security`
-- Halaman publik: `https://rpi.id/security`
+- Security: `security@ssn.id`
+- DPO: `dpo@ssn.id`
+- On-call: PagerDuty schedule `ssn-security`
+- Halaman publik: `https://ssn.id/security`

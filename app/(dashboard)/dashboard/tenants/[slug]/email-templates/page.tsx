@@ -116,7 +116,7 @@ export default async function TenantEmailTemplatesPage({
           Sesuaikan isi email otomatis yang dikirim ke kandidat saat status lamaran
           mereka di{' '}
           <span className="font-medium text-foreground">{tenant.name}</span> berubah.
-          Jika sebuah status tidak memiliki template kustom, RPI akan memakai template
+          Jika sebuah status tidak memiliki template kustom, SSN akan memakai template
           default kami.
         </p>
       </header>
@@ -129,7 +129,7 @@ export default async function TenantEmailTemplatesPage({
         <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
           <li>
             Setiap status di bawah dapat memiliki satu template kustom. Saat Anda
-            mengubah status lamaran kandidat, RPI akan mengirimkan email memakai
+            mengubah status lamaran kandidat, SSN akan mengirimkan email memakai
             template kustom (jika diaktifkan) atau template default.
           </li>
           <li>
@@ -157,7 +157,7 @@ export default async function TenantEmailTemplatesPage({
         </ul>
         <p className="text-muted-foreground mt-3 text-xs">
           {customCount === 0
-            ? 'Belum ada template kustom — semua status memakai default RPI.'
+            ? 'Belum ada template kustom — semua status memakai default SSN.'
             : `${customCount} template kustom tersimpan (${enabledCount} aktif).`}
         </p>
       </section>

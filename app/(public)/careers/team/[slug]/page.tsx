@@ -21,7 +21,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const team = findCareerTeam(params.slug)
   if (!team) return { title: 'Tim Tidak Ditemukan' }
   return {
-    title: `${team.name} — Karier di RPI`,
+    title: `${team.name} — Karier di SSN`,
     description: team.tagline,
   }
 }

@@ -28,7 +28,7 @@ function formatPublishedAt(value: Date | null): string {
  */
 export function ArticleCard({ article }: { article: ArticleListItem }) {
   const href = `/blog/${article.slug}`
-  const author = article.author?.name ?? 'Tim RPI'
+  const author = article.author?.name ?? 'Tim SSN'
   const visibleTags = (article.tags ?? []).slice(0, 3)
   const published = formatPublishedAt(article.publishedAt ?? article.createdAt)
 

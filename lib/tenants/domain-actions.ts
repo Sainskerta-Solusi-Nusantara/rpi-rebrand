@@ -21,7 +21,7 @@ const DOMAIN_RE =
   /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/
 
 const TXT_RECORD_PREFIX = '_rpi-verify'
-const TOKEN_PREFIX = 'rpi-verify-'
+const TOKEN_PREFIX = 'ssn-verify-'
 const DNS_LOOKUP_TIMEOUT_MS = 3000
 
 function getRequestMeta() {
@@ -95,7 +95,7 @@ function generateVerificationToken(): string {
 /**
  * Set or update the tenant's custom domain.
  *
- * Generates a verification token shaped `rpi-verify-<base64url(16)>` that
+ * Generates a verification token shaped `ssn-verify-<base64url(16)>` that
  * the tenant must publish as a TXT record under `_rpi-verify.<domain>`.
  * Resets `domainVerifiedAt` so the new value must be re-verified.
  */

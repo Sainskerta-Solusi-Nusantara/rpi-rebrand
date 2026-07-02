@@ -31,7 +31,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const cat = findCategory(params.slug)
   if (!cat || cat.slug === 'all') return { title: 'Topik Tidak Ditemukan' }
   return {
-    title: `${cat.label} — Blog RPI`,
+    title: `${cat.label} — Blog SSN`,
     description: cat.description ?? `Artikel di topik ${cat.label}`,
   }
 }

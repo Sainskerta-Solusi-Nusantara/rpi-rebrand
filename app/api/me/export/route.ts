@@ -184,7 +184,7 @@ export async function GET(req: NextRequest) {
     const payload = {
       meta: {
         exportedAt: new Date().toISOString(),
-        format: 'rpi-user-export@v1',
+        format: 'ssn-user-export@v1',
         note: 'Personal data export. Lihat profile, memberships, applications, dst.',
       },
       profile: user,
@@ -200,7 +200,7 @@ export async function GET(req: NextRequest) {
 
     const json = JSON.stringify(payload, null, 2)
     const dateTag = new Date().toISOString().slice(0, 10)
-    const filename = `rpi-export-${user.email.replace(/[^a-z0-9]/gi, '_')}-${dateTag}.json`
+    const filename = `ssn-export-${user.email.replace(/[^a-z0-9]/gi, '_')}-${dateTag}.json`
 
     return new NextResponse(json, {
       status: 200,

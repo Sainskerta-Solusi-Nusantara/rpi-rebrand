@@ -77,7 +77,7 @@ function buildJobElement(job: FeedJob, baseUrl: string): string {
     textEl('requisitionid', job.id),
     textEl('url', url),
     textEl('company', job.tenant.name),
-    textEl('sourcename', 'Rumah Pekerja Indonesia'),
+    textEl('sourcename', 'SSN Pekerja'),
     textEl('city', city),
     textEl('state', state),
     textEl('country', 'Indonesia'),
@@ -100,7 +100,7 @@ export function buildIndeedXml(jobs: FeedJob[], baseUrl: string): string {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <source>
-  <publisher>${escapeXml('Rumah Pekerja Indonesia')}</publisher>
+  <publisher>${escapeXml('SSN Pekerja')}</publisher>
   <publisherurl>${escapeXml(baseUrl)}</publisherurl>
   <lastBuildDate>${escapeXml(lastBuildDate)}</lastBuildDate>
 ${jobsXml}

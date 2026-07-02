@@ -120,7 +120,7 @@ export function LMSPathTimeline({ courses, className }: LMSPathTimelineProps) {
             const level = course.level || 'Pemula'
             const duration = course.durationHours ?? 0
             const enrollments = course._count?.enrollments ?? 0
-            const instructorName = course.instructor?.name || 'Instruktur RPI'
+            const instructorName = course.instructor?.name || 'Instruktur SSN'
             const href = (course.slug ? `/courses/${course.slug}` : '/courses') as Route
 
             return (

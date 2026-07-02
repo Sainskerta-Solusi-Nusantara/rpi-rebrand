@@ -30,7 +30,7 @@ export const AVAILABLE_VARIABLES: { name: string; description: string; sample: s
   {
     name: 'applicationUrl',
     description: 'Tautan ke dashboard lamaran kandidat',
-    sample: 'https://app.rumahpekerja.id/dashboard/lamaran',
+    sample: 'https://app.pekerja.sainskerta.net/dashboard/lamaran',
   },
   {
     name: 'recruiterNote',

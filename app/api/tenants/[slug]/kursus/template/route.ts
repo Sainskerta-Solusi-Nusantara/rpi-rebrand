@@ -56,7 +56,7 @@ export async function GET(
   }
 
   const csv = toCsv([...HEADERS], [SAMPLE_ROW])
-  const filename = `rpi-courses-template.csv`
+  const filename = `ssn-courses-template.csv`
 
   return new NextResponse(csv, {
     status: 200,

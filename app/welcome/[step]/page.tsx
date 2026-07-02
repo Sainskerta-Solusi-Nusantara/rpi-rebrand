@@ -133,7 +133,7 @@ export default async function WelcomeStepPage({ params }: PageProps) {
             href={'/dashboard' as any}
             className="font-heading text-primary text-lg font-semibold"
           >
-            RPI
+            SSN
           </Link>
           <OnboardingSkipButton />
         </div>

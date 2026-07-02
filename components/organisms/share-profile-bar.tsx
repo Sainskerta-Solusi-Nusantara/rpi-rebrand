@@ -34,9 +34,9 @@ export function ShareProfileBar({
     }
   }
 
-  const mailSubject = encodeURIComponent(`Profil ${displayName} di RPI`)
+  const mailSubject = encodeURIComponent(`Profil ${displayName} di SSN`)
   const mailBody = encodeURIComponent(
-    `Halo, saya ingin membagikan profil ${displayName} dari RPI:\n\n${url}\n`,
+    `Halo, saya ingin membagikan profil ${displayName} dari SSN:\n\n${url}\n`,
   )
 
   return (

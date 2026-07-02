@@ -4,8 +4,8 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 import { ResetForm } from './reset-form'
 
 export const metadata = {
-  title: 'Reset Password · Rumah Pekerja Indonesia',
-  description: 'Atur password baru untuk akun RPI Anda.',
+  title: 'Reset Password · SSN Pekerja',
+  description: 'Atur password baru untuk akun SSN Anda.',
 }
 
 export default async function ResetTokenPage({

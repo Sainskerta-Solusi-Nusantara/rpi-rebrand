@@ -3,7 +3,7 @@
  *
  * Anyone with a certificate number can land here to confirm the cert is real.
  * We do NOT require login — verification is by design a public lookup so an
- * employer can scan and verify without an RPI account.
+ * employer can scan and verify without an SSN account.
  *
  * On 404 (unknown number) Next renders the closest not-found boundary.
  */
@@ -133,7 +133,7 @@ export default async function VerifyCertificatePage({
 
         <p className="text-muted-foreground mt-6 text-center text-xs">
           Halaman ini dapat diakses publik untuk memverifikasi keaslian
-          sertifikat RPI Academy.
+          sertifikat SSN Academy.
         </p>
       </div>
     </main>

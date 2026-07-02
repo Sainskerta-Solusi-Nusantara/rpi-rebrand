@@ -106,7 +106,7 @@ export const admin = {
     },
     branding: {
       title: 'Branding Platform',
-      subtitle: 'Atur identitas visual default RPI yang digunakan di domain utama.',
+      subtitle: 'Atur identitas visual default SSN yang digunakan di domain utama.',
     },
     users: {
       title: 'Manajemen Pengguna',
@@ -488,7 +488,7 @@ export const admin = {
     },
     branding: {
       title: 'Platform Branding',
-      subtitle: 'Set the default RPI visual identity used on the main domain.',
+      subtitle: 'Set the default SSN visual identity used on the main domain.',
     },
     users: {
       title: 'User Management',

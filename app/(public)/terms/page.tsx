@@ -5,7 +5,7 @@ import { LegalDocLayout } from '@/components/organisms/legal-doc-layout'
 export const metadata: Metadata = {
   title: 'Syarat & Ketentuan',
   description:
-    'Ketentuan penggunaan platform Rumah Pekerja Indonesia bagi pencari kerja dan mitra perekrut.',
+    'Ketentuan penggunaan platform SSN Pekerja bagi pencari kerja dan mitra perekrut.',
 }
 
 export default function TermsPage() {
@@ -14,7 +14,7 @@ export default function TermsPage() {
       <LegalDocLayout
         eyebrow="Legal"
         title="Syarat & Ketentuan"
-        intro="Dengan mengakses dan menggunakan Rumah Pekerja Indonesia, Anda menyetujui ketentuan berikut. Mohon dibaca dengan saksama."
+        intro="Dengan mengakses dan menggunakan SSN Pekerja, Anda menyetujui ketentuan berikut. Mohon dibaca dengan saksama."
         lastUpdated="30 Juni 2026"
         sections={[
           {

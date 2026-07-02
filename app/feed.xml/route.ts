@@ -28,7 +28,7 @@ function wrapCdata(input: string): string {
 
 export async function GET(): Promise<Response> {
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? 'https://rumahpekerja.id'
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://pekerja.sainskerta.net'
   const { items } = await listPublishedArticles({ page: 1, pageSize: 20 })
 
   const lastBuildDate = (
@@ -37,7 +37,7 @@ export async function GET(): Promise<Response> {
     new Date()
   ).toUTCString()
 
-  const channelTitle = 'Rumah Pekerja Indonesia — Blog'
+  const channelTitle = 'SSN Pekerja — Blog'
   const channelDescription =
     'Wawasan, riset, dan panduan praktis dari dunia kerja Indonesia.'
 
@@ -46,7 +46,7 @@ export async function GET(): Promise<Response> {
       const link = `${baseUrl}/blog/${a.slug}`
       const pubDate = (a.publishedAt ?? a.createdAt).toUTCString()
       const description = a.summary ?? a.title
-      const authorName = a.author?.name ?? 'Tim RPI'
+      const authorName = a.author?.name ?? 'Tim SSN'
       const categories = a.tags
         .map((t) => `      <category>${xmlEscape(t)}</category>`)
         .join('\n')

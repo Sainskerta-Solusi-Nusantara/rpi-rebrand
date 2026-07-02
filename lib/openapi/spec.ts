@@ -40,14 +40,14 @@ export function buildOpenApiSpec({
   return {
     openapi: '3.0.3',
     info: {
-      title: `Rumah Pekerja Indonesia — Tenant API (${slug})`,
+      title: `SSN Pekerja — Tenant API (${slug})`,
       version: '1.0.0',
       description:
-        'API tenant Rumah Pekerja Indonesia. Gunakan Tenant API Key dengan ' +
+        'API tenant SSN Pekerja. Gunakan Tenant API Key dengan ' +
         'format `rpi_t_<token>` dikirim sebagai header `Authorization: Bearer <key>`. ' +
         'Kunci dibatasi pada tenant penerbit; permintaan ke slug tenant lain ditolak.',
       contact: {
-        name: 'Rumah Pekerja Indonesia',
+        name: 'SSN Pekerja',
         url: `${normalisedBase}/dashboard/tenants/${slug}/api-keys`,
       },
     },

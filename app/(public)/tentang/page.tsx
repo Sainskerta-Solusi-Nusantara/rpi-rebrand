@@ -13,7 +13,7 @@ import { CTABanner } from '@/components/organisms/cta-banner'
 export const metadata: Metadata = {
   title: 'Tentang Kami',
   description:
-    'Rumah Pekerja Indonesia adalah platform SaaS multi-tenant yang menghubungkan pekerja, mitra perekrut, dan pelatihan keterampilan di seluruh Indonesia.',
+    'SSN Pekerja adalah platform SaaS multi-tenant yang menghubungkan pekerja, mitra perekrut, dan pelatihan keterampilan di seluruh Indonesia.',
 }
 
 export default async function TentangPage() {

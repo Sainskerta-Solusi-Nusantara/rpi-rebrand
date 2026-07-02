@@ -9,7 +9,7 @@ export const pagesPublicMisc = {
   id: {
     // ------------------------------------------------------------------ profil
     profil: {
-      heading: 'Profil RPI tidak ditemukan',
+      heading: 'Profil SSN tidak ditemukan',
       body: 'Masukkan {usernameCode} atau ID profil di URL, contoh {exampleCode}.',
       ctaBrowse: 'Jelajahi mitra',
       ctaHome: 'Kembali ke beranda',
@@ -18,7 +18,7 @@ export const pagesPublicMisc = {
     mitra: {
       heading: 'Mitra Perekrut Kami',
       statsDesc:
-        '{activeTenants} perusahaan mempercayakan rekrutmen mereka kepada Rumah Pekerja Indonesia, dengan {publishedJobs} lowongan aktif.',
+        '{activeTenants} perusahaan mempercayakan rekrutmen mereka kepada SSN Pekerja, dengan {publishedJobs} lowongan aktif.',
       searchPlaceholder: 'Cari nama mitra…',
       searchButton: 'Cari',
       clearSearch: 'Bersihkan',
@@ -71,7 +71,7 @@ export const pagesPublicMisc = {
   en: {
     // ------------------------------------------------------------------ profil
     profil: {
-      heading: 'RPI profile not found',
+      heading: 'SSN profile not found',
       body: 'Enter the {usernameCode} or profile ID in the URL, e.g. {exampleCode}.',
       ctaBrowse: 'Browse partners',
       ctaHome: 'Back to home',
@@ -80,7 +80,7 @@ export const pagesPublicMisc = {
     mitra: {
       heading: 'Our Recruiting Partners',
       statsDesc:
-        '{activeTenants} companies trust their recruitment to Rumah Pekerja Indonesia, with {publishedJobs} active jobs.',
+        '{activeTenants} companies trust their recruitment to SSN Pekerja, with {publishedJobs} active jobs.',
       searchPlaceholder: 'Search partner name…',
       searchButton: 'Search',
       clearSearch: 'Clear',

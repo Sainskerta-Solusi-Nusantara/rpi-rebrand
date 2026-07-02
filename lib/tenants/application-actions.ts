@@ -255,7 +255,7 @@ export async function updateApplicationStatus(input: {
             // note would break the markup). `white-space: pre-wrap`
             // preserves the line breaks the tenant wrote.
             const safeBody = escapeHtmlForTemplate(mailText)
-            const footer = `— Tim ${escapeHtmlForTemplate(detail.tenant.name)} (via RPI)`
+            const footer = `— Tim ${escapeHtmlForTemplate(detail.tenant.name)} (via SSN)`
             mailHtml = `<!doctype html>
 <html><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:24px auto;color:#0f172a;line-height:1.6">
   <div style="white-space:pre-wrap">${safeBody}</div>

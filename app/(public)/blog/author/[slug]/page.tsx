@@ -22,7 +22,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const author = findBlogAuthor(params.slug)
   if (!author) return { title: 'Penulis Tidak Ditemukan' }
   return {
-    title: `${author.name} — Penulis di RPI Blog`,
+    title: `${author.name} — Penulis di SSN Blog`,
     description: `Semua artikel oleh ${author.name}, ${author.role}.`,
   }
 }

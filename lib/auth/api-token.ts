@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { prisma } from '@/lib/db'
 
-export const API_TOKEN_PREFIX = 'rpi'
+export const API_TOKEN_PREFIX = 'ssn'
 export const API_TOKEN_SCOPES = ['read', 'write'] as const
 export type ApiTokenScope = (typeof API_TOKEN_SCOPES)[number]
 

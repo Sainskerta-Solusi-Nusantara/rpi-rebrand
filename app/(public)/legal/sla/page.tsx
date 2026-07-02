@@ -5,7 +5,7 @@ import { LegalDocLayout } from '@/components/organisms/legal-doc-layout'
 export const metadata: Metadata = {
   title: 'Perjanjian Tingkat Layanan',
   description:
-    'Service Level Agreement — komitmen ketersediaan, dukungan, dan kinerja layanan Rumah Pekerja Indonesia.',
+    'Service Level Agreement — komitmen ketersediaan, dukungan, dan kinerja layanan SSN Pekerja.',
 }
 
 export default function ServiceLevelAgreementPage() {

@@ -79,7 +79,7 @@ export async function GET(
     }
 
     const dateTag = new Date().toISOString().slice(0, 10)
-    const filename = `rpi-tenant-${tenant.slug}-export-${dateTag}.json`
+    const filename = `ssn-tenant-${tenant.slug}-export-${dateTag}.json`
 
     return new NextResponse(json, {
       status: 200,

@@ -25,7 +25,7 @@ export type AssessmentBadgeProps = {
 /**
  * Display a passed-assessment badge on the public profile. Renders as a chip
  * by default. Category drives the colour tone. Includes a verification
- * checkmark icon to convey "verified by RPI".
+ * checkmark icon to convey "verified by SSN".
  */
 export function AssessmentBadge({
   title,

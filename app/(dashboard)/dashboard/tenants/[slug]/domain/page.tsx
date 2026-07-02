@@ -131,7 +131,7 @@ export default async function TenantDomainPage({
           <li>{t.pagesTenant1.domain.dnsStep5}</li>
         </ol>
         <p className="text-muted-foreground mt-3 text-xs">
-          {t.pagesTenant1.domain.dnsNote.replace('{prefix}', 'rpi-verify-')}
+          {t.pagesTenant1.domain.dnsNote.replace('{prefix}', 'ssn-verify-')}
         </p>
       </section>
     </div>

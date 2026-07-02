@@ -17,11 +17,11 @@ import { getRecentArticles } from '@/lib/blog/queries'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata: Metadata = {
-  title: 'Karier, Kursus & Mitra Kerja — Rumah Pekerja Indonesia',
+  title: 'Karier, Kursus & Mitra Kerja — SSN Pekerja',
   description:
-    'Temukan lowongan kerja terverifikasi, ikuti kursus keterampilan, dan terhubung dengan mitra perekrut di seluruh Indonesia melalui Rumah Pekerja Indonesia.',
+    'Temukan lowongan kerja terverifikasi, ikuti kursus keterampilan, dan terhubung dengan mitra perekrut di seluruh Indonesia melalui SSN Pekerja.',
   openGraph: {
-    title: 'Rumah Pekerja Indonesia — Karier & Kursus',
+    title: 'SSN Pekerja — Karier & Kursus',
     description:
       'Platform multi-tenant untuk pekerja Indonesia: lowongan terverifikasi, pelatihan, sertifikat, dan mitra terpercaya.',
   },
@@ -129,7 +129,7 @@ export default async function HomePage() {
     '@graph': [
       {
         '@type': 'WebSite',
-        name: 'Rumah Pekerja Indonesia',
+        name: 'SSN Pekerja',
         url: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
         potentialAction: {
           '@type': 'SearchAction',
@@ -142,7 +142,7 @@ export default async function HomePage() {
       },
       {
         '@type': 'Organization',
-        name: 'Rumah Pekerja Indonesia',
+        name: 'SSN Pekerja',
         url: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
         logo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/logo.png`,
       },
@@ -150,7 +150,7 @@ export default async function HomePage() {
         '@type': 'JobPosting',
         title: j.title,
         datePosted: j.publishedAt?.toISOString(),
-        hiringOrganization: { '@type': 'Organization', name: j.tenant?.name ?? 'RPI' },
+        hiringOrganization: { '@type': 'Organization', name: j.tenant?.name ?? 'SSN' },
         jobLocation: {
           '@type': 'Place',
           address: { '@type': 'PostalAddress', addressLocality: j.location, addressCountry: 'ID' },
@@ -198,7 +198,7 @@ export default async function HomePage() {
       {/* 3. How it works — 4 linear steps */}
       <HowItWorks />
 
-      {/* 4. Why RPI — 4 value props */}
+      {/* 4. Why SSN — 4 value props */}
       <WhyChooseUs />
 
       {/* 5. LMS — 3 featured courses */}

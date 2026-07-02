@@ -1,4 +1,4 @@
-# Sequence Outbound — RPI (Recruitment OS untuk perekrutan volume tinggi)
+# Sequence Outbound — SSN (Recruitment OS untuk perekrutan volume tinggi)
 
 Prinsip: **jangan jualan fitur, pancing pain.** Hook utama = satu momen "wow":
 import massal → AI screening → kanban → update kandidat via WhatsApp.
@@ -26,7 +26,7 @@ Placeholder: `[Nama]` `[Perusahaan]` `[role]` `[kota]` `[Namamu]` `[link-demo]` 
 > Biasanya di volume rekrut seperti [Perusahaan], pelamar gampang "hilang" di antara WhatsApp,
 > email, dan spreadsheet — dan screening manual makan waktu tim.
 >
-> RPI bantu HRD volume-tinggi: **import ratusan pelamar sekali klik → AI screening kasih skor +
+> SSN bantu HRD volume-tinggi: **import ratusan pelamar sekali klik → AI screening kasih skor +
 > alasan → masuk kanban pipeline → kandidat dapat update otomatis (termasuk via WhatsApp)** —
 > semua dalam brand [Perusahaan] sendiri.
 >
@@ -56,7 +56,7 @@ Lebih singkat, bicara hasil bisnis (bukan fitur).
 **Subjek:** Percepat time-to-hire tim [Perusahaan] tanpa tambah headcount HRD
 
 > Halo [Nama], untuk perusahaan yang merekrut [volume]+ orang/bulan, bottleneck-nya biasanya
-> screening manual dan pelamar yang tercecer. RPI mempersingkat itu: pipeline terpusat + AI
+> screening manual dan pelamar yang tercecer. SSN mempersingkat itu: pipeline terpusat + AI
 > screening + laporan per klien/cabang, dalam brand sendiri. Klien sejenis memangkas waktu
 > screening drastis. Boleh saya tunjukkan dampaknya ke tim [Nama Champion] 20 menit?
 

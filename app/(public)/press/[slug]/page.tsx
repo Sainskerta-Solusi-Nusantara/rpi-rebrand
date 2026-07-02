@@ -39,7 +39,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const r = findRelease(params.slug)
   if (!r) return { title: 'Siaran Pers Tidak Ditemukan' }
   return {
-    title: `${r.title} — Press RPI`,
+    title: `${r.title} — Press SSN`,
     description: r.subtitle.slice(0, 160),
     openGraph: {
       title: r.title,
@@ -67,11 +67,11 @@ export default async function PressDetailPage({ params }: { params: Params }) {
     datePublished: release.dateIso,
     author: {
       '@type': 'Organization',
-      name: 'Rumah Pekerja Indonesia',
+      name: 'SSN Pekerja',
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Rumah Pekerja Indonesia',
+      name: 'SSN Pekerja',
     },
     keywords: release.tags.join(', '),
   }
@@ -386,7 +386,7 @@ export default async function PressDetailPage({ params }: { params: Params }) {
                   </Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <a href="/press-kit/RPI-Press-Kit-Full.zip">
+                  <a href="/press-kit/SSN-Press-Kit-Full.zip">
                     <Download className="mr-2 h-4 w-4" aria-hidden />
                     Press Kit
                   </a>

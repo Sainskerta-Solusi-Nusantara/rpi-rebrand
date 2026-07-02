@@ -1,7 +1,7 @@
 import * as OTPAuth from 'otpauth'
 import { createHash, randomBytes } from 'node:crypto'
 
-export const TOTP_ISSUER = 'Rumah Pekerja Indonesia'
+export const TOTP_ISSUER = 'SSN Pekerja'
 export const TOTP_PERIOD = 30
 export const TOTP_DIGITS = 6
 export const TOTP_ALGORITHM = 'SHA1'

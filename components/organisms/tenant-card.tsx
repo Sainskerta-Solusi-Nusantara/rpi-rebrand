@@ -58,7 +58,7 @@ export function TenantCard({ tenant, className }: TenantCardProps) {
         />
         <div className="min-w-0 flex-1">
           <p className="truncate font-heading text-lg">{tenant.name}</p>
-          <p className="truncate text-xs text-muted-foreground">{tenant.slug}.rumahpekerja.id</p>
+          <p className="truncate text-xs text-muted-foreground">{tenant.slug}.pekerja.sainskerta.net</p>
         </div>
         {tenant.href ? (
           <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />

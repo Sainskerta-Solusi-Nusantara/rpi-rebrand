@@ -35,7 +35,7 @@ const socials = [
 ]
 
 export function FooterPublic({
-  tenantName = 'Rumah Pekerja Indonesia',
+  tenantName = 'SSN Pekerja',
   tenantLogoUrl,
   className,
 }: FooterPublicProps) {
@@ -175,10 +175,10 @@ export function FooterPublic({
                   className="h-4 w-4 shrink-0 text-[color:var(--ring)]"
                 />
                 <a
-                  href="mailto:hello@rumahpekerja.id"
+                  href="mailto:hello@pekerja.sainskerta.net"
                   className="transition-colors hover:text-foreground"
                 >
-                  hello@rumahpekerja.id
+                  hello@pekerja.sainskerta.net
                 </a>
               </li>
             </ul>

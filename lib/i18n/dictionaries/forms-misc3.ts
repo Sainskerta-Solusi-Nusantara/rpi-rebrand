@@ -21,7 +21,7 @@ export const formsMisc3 = {
     referralShare: {
       // activate state
       activateHeading: 'Aktifkan referral',
-      activateBody: 'Buat kode unik Anda untuk mengundang teman bergabung di RPI. Anda akan mendapat poin reputasi setiap kali kode dipakai.',
+      activateBody: 'Buat kode unik Anda untuk mengundang teman bergabung di SSN. Anda akan mendapat poin reputasi setiap kali kode dipakai.',
       activatePending: 'Memproses…',
       activateBtn: 'Aktifkan referral',
       // active state
@@ -40,10 +40,10 @@ export const formsMisc3 = {
       shareX: 'X / Twitter',
       shareMail: 'Email',
       // share text templates
-      shareText: 'Yuk gabung Rumah Pekerja Indonesia (RPI) lewat undangan saya: {url}',
-      tgText: 'Yuk gabung RPI lewat undangan saya!',
-      mailSubject: 'Undangan bergabung di RPI',
-      mailBody: 'Halo,\n\nSaya mengundang Anda bergabung di Rumah Pekerja Indonesia (RPI) lewat tautan referral berikut:\n\n{url}\n\nKode referral saya: {code}\n',
+      shareText: 'Yuk gabung SSN Pekerja (SSN) lewat undangan saya: {url}',
+      tgText: 'Yuk gabung SSN lewat undangan saya!',
+      mailSubject: 'Undangan bergabung di SSN',
+      mailBody: 'Halo,\n\nSaya mengundang Anda bergabung di SSN Pekerja (SSN) lewat tautan referral berikut:\n\n{url}\n\nKode referral saya: {code}\n',
     },
   },
   en: {
@@ -68,7 +68,7 @@ export const formsMisc3 = {
     referralShare: {
       // activate state
       activateHeading: 'Activate referral',
-      activateBody: 'Create your unique code to invite friends to join RPI. You will earn reputation points every time the code is used.',
+      activateBody: 'Create your unique code to invite friends to join SSN. You will earn reputation points every time the code is used.',
       activatePending: 'Processing…',
       activateBtn: 'Activate referral',
       // active state
@@ -87,10 +87,10 @@ export const formsMisc3 = {
       shareX: 'X / Twitter',
       shareMail: 'Email',
       // share text templates
-      shareText: 'Join Rumah Pekerja Indonesia (RPI) through my invitation: {url}',
-      tgText: 'Join RPI through my invitation!',
-      mailSubject: 'Invitation to join RPI',
-      mailBody: 'Hello,\n\nI would like to invite you to join Rumah Pekerja Indonesia (RPI) via my referral link:\n\n{url}\n\nMy referral code: {code}\n',
+      shareText: 'Join SSN Pekerja (SSN) through my invitation: {url}',
+      tgText: 'Join SSN through my invitation!',
+      mailSubject: 'Invitation to join SSN',
+      mailBody: 'Hello,\n\nI would like to invite you to join SSN Pekerja (SSN) via my referral link:\n\n{url}\n\nMy referral code: {code}\n',
     },
   },
 } as const

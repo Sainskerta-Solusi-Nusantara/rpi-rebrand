@@ -48,7 +48,7 @@ export async function pwnedCount(password: string): Promise<number> {
     const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
       headers: {
         'Add-Padding': 'true', // privacy: pad response so traffic size doesn't leak
-        'User-Agent': 'rpi-rebrand/1.0 (Indonesia recruitment platform)',
+        'User-Agent': 'ssn-rebrand/1.0 (Indonesia recruitment platform)',
       },
       // Server-side cache for 1 hour — same prefix is hot
       next: { revalidate: 3600 },

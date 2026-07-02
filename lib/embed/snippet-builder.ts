@@ -12,7 +12,7 @@
  *
  *   2. buildScriptSnippet — a <div id="..."></div> + <script> that injects
  *      the iframe at runtime, auto-sizes it to the host container width,
- *      and listens for postMessage("rpi-embed-height", N) from the iframe
+ *      and listens for postMessage("ssn-embed-height", N) from the iframe
  *      to resize itself when the inner content grows/shrinks. Use this for
  *      a more responsive integration on host sites that allow inline JS.
  *
@@ -24,7 +24,7 @@ export type SnippetOptions = {
   /** Tenant slug (subdomain identifier) — used to build the embed URL. */
   slug: string
   /**
-   * Absolute base URL for the RPI app (e.g. https://rumahpekerja.id).
+   * Absolute base URL for the SSN app (e.g. https://pekerja.sainskerta.net).
    * Trailing slashes are tolerated; the helper normalizes them.
    */
   baseUrl: string
@@ -77,7 +77,7 @@ export function buildIframeSnippet(opts: SnippetOptions): string {
  * Build a <div> + <script> snippet that creates the iframe at runtime.
  * The injected script:
  *   - sizes the iframe to the container width
- *   - listens for window.postMessage({ type: 'rpi-embed-height', height })
+ *   - listens for window.postMessage({ type: 'ssn-embed-height', height })
  *     so the embed page can ask the host to resize
  *
  * IMPORTANT: this snippet must execute in the host page. Some CMSes strip
@@ -87,7 +87,7 @@ export function buildIframeSnippet(opts: SnippetOptions): string {
 export function buildScriptSnippet(opts: SnippetOptions): string {
   const url = buildEmbedUrl(opts)
   // Use a slug-suffixed container id so multiple embeds on one page coexist.
-  const containerId = `rpi-embed-${opts.slug}`
+  const containerId = `ssn-embed-${opts.slug}`
   // Single-quoted strings inside the script avoid clashing with the outer
   // double-quoted attributes that recruiters might wrap this in.
   const script = [
@@ -104,7 +104,7 @@ export function buildScriptSnippet(opts: SnippetOptions): string {
     `  c.innerHTML = '';`,
     `  c.appendChild(f);`,
     `  window.addEventListener('message', function(e){`,
-    `    if (!e || !e.data || e.data.type !== 'rpi-embed-height') return;`,
+    `    if (!e || !e.data || e.data.type !== 'ssn-embed-height') return;`,
     `    if (e.source !== f.contentWindow) return;`,
     `    var h = parseInt(e.data.height, 10);`,
     `    if (h > 0) f.style.height = h + 'px';`,

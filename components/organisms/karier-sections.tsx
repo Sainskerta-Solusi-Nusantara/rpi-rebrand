@@ -340,7 +340,7 @@ const STORIES: GrowthStory[] = [
     to: 'Product Manager, LMS (2026)',
     duration: '3 tahun',
     quote:
-      'Saya pindah lintas fungsi — dari support ke product. Bukan jalur biasa, tapi RPI mendukungnya dengan mentor PM dan kursus internal.',
+      'Saya pindah lintas fungsi — dari support ke product. Bukan jalur biasa, tapi SSN mendukungnya dengan mentor PM dan kursus internal.',
   },
   {
     initial: 'MR',
@@ -572,7 +572,7 @@ const ALUMNI: Alumnus[] = [
     current: 'Engineering Manager, Stripe Singapore',
     yearLeft: 'Alumni 2024',
     quote:
-      '2 tahun di RPI mempersiapkan saya untuk peran ini di Stripe. Saya merasa siap memimpin tim yang lebih besar.',
+      '2 tahun di SSN mempersiapkan saya untuk peran ini di Stripe. Saya merasa siap memimpin tim yang lebih besar.',
   },
   {
     initial: 'FN',
@@ -581,7 +581,7 @@ const ALUMNI: Alumnus[] = [
     current: 'Founder, kelas.id',
     yearLeft: 'Alumni 2023',
     quote:
-      'Saya keluar untuk membangun startup sendiri. Tim RPI adalah investor angel pertama saya — dan masih jadi mentor.',
+      'Saya keluar untuk membangun startup sendiri. Tim SSN adalah investor angel pertama saya — dan masih jadi mentor.',
   },
   {
     initial: 'YT',
@@ -590,7 +590,7 @@ const ALUMNI: Alumnus[] = [
     current: 'Senior PM, Gojek',
     yearLeft: 'Alumni 2025',
     quote:
-      'Network alumni RPI sangat aktif. Sekarang kami sering kolaborasi di proyek lintas perusahaan tanpa kompetisi.',
+      'Network alumni SSN sangat aktif. Sekarang kami sering kolaborasi di proyek lintas perusahaan tanpa kompetisi.',
   },
 ]
 
@@ -751,7 +751,7 @@ export function KarierOpeningsCTA() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="mailto:careers@rumahpekerja.id">
+                <a href="mailto:careers@pekerja.sainskerta.net">
                   <BookOpen className="mr-2 h-4 w-4" aria-hidden />
                   {s.ctaRecruiter}
                 </a>

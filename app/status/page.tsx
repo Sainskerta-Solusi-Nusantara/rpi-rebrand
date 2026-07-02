@@ -19,8 +19,8 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 // thundering herd from external monitoring tools polling the page.
 export const revalidate = 30
 export const metadata = {
-  title: 'Status sistem — RPI',
-  description: 'Status real-time layanan Rumah Pekerja Indonesia, insiden aktif, dan jadwal pemeliharaan.',
+  title: 'Status sistem — SSN',
+  description: 'Status real-time layanan SSN Pekerja, insiden aktif, dan jadwal pemeliharaan.',
 }
 
 const OVERALL_VARIANT: Record<OverallStatus, StatusBadgeVariant> = {

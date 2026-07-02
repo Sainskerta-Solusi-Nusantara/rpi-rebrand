@@ -28,7 +28,7 @@ const items: {
     key: 'emailInvitation',
     label: 'Undangan tenant',
     description:
-      'Email saat Anda diundang bergabung ke tenant atau organisasi lain di RPI.',
+      'Email saat Anda diundang bergabung ke tenant atau organisasi lain di SSN.',
   },
   {
     key: 'emailMarketing',

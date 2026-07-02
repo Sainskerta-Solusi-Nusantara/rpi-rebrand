@@ -5,7 +5,7 @@ import { LegalDocLayout } from '@/components/organisms/legal-doc-layout'
 export const metadata: Metadata = {
   title: 'Kebijakan Cookie',
   description:
-    'Bagaimana Rumah Pekerja Indonesia menggunakan cookie dan teknologi serupa, serta cara Anda mengelola preferensinya.',
+    'Bagaimana SSN Pekerja menggunakan cookie dan teknologi serupa, serta cara Anda mengelola preferensinya.',
 }
 
 export default function CookiesPage() {
@@ -46,7 +46,7 @@ export default function CookiesPage() {
           {
             heading: '5. Hubungi Kami',
             paragraphs: [
-              'Untuk pertanyaan terkait kebijakan cookie, hubungi kami di hello@rumahpekerja.id.',
+              'Untuk pertanyaan terkait kebijakan cookie, hubungi kami di hello@pekerja.sainskerta.net.',
             ],
           },
         ]}

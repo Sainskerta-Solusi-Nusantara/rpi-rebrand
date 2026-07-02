@@ -10,7 +10,7 @@ import {
 export const metadata: Metadata = {
   title: 'Harga & Paket',
   description:
-    'Pilih paket Rumah Pekerja Indonesia yang sesuai skala perekrutan Anda — mulai dari gratis hingga enterprise dengan SSO, SLA, dan dedicated success manager.',
+    'Pilih paket SSN Pekerja yang sesuai skala perekrutan Anda — mulai dari gratis hingga enterprise dengan SSO, SLA, dan dedicated success manager.',
 }
 
 export default function PricingPage() {

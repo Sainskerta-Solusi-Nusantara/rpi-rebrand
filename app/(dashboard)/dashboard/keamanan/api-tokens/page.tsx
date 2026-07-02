@@ -64,7 +64,7 @@ export default async function ApiTokensPage() {
       <header>
         <h1 className="font-heading text-2xl md:text-3xl">Personal API Tokens</h1>
         <p className="text-muted-foreground mt-1">
-          Untuk akses programatik ke API RPI dengan kredensial Anda. Token
+          Untuk akses programatik ke API SSN dengan kredensial Anda. Token
           memiliki scopes terbatas dan dapat dicabut kapan saja.
         </p>
       </header>
@@ -181,7 +181,7 @@ export default async function ApiTokensPage() {
           Kirim token sebagai header <code className="bg-background rounded px-1">Authorization: Bearer &lt;token&gt;</code> pada setiap permintaan API.
         </p>
         <pre className="bg-background border-border overflow-x-auto rounded-md border p-3 text-xs"><code>{`curl -H "Authorization: Bearer rpi_xxxxx..." \\
-     ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.rumahpekerja.id'}/api/me/export`}</code></pre>
+     ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.pekerja.sainskerta.net'}/api/me/export`}</code></pre>
       </section>
     </div>
   )

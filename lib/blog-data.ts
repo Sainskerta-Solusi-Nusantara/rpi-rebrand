@@ -84,9 +84,9 @@ export type BlogAuthor = {
 
 const AUTHORS = {
   riset: {
-    name: 'Tim Riset RPI',
+    name: 'Tim Riset SSN',
     role: 'Insight Editorial',
-    bio: 'Tim editorial dan riset Rumah Pekerja Indonesia menerbitkan studi tahunan dan laporan industri berbasis data dari jutaan pengguna platform.',
+    bio: 'Tim editorial dan riset SSN Pekerja menerbitkan studi tahunan dan laporan industri berbasis data dari jutaan pengguna platform.',
     initial: 'RP',
     color: '#0A2540',
   },
@@ -99,15 +99,15 @@ const AUTHORS = {
   },
   citra: {
     name: 'Citra Lestari',
-    role: 'Head of TA, RPI',
-    bio: 'Memimpin Talent Acquisition di RPI. Sebelumnya membangun fungsi TA dari nol di tiga unicorn Indonesia.',
+    role: 'Head of TA, SSN',
+    bio: 'Memimpin Talent Acquisition di SSN. Sebelumnya membangun fungsi TA dari nol di tiga unicorn Indonesia.',
     initial: 'CL',
     color: '#EC4899',
   },
   data: {
-    name: 'Tim Data RPI',
+    name: 'Tim Data SSN',
     role: 'Compensation Research',
-    bio: 'Tim riset gaji dan kompensasi RPI menerbitkan benchmark industri kuartalan berbasis data anonim dari ribuan perusahaan mitra.',
+    bio: 'Tim riset gaji dan kompensasi SSN menerbitkan benchmark industri kuartalan berbasis data anonim dari ribuan perusahaan mitra.',
     initial: 'TD',
     color: '#F59E0B',
   },
@@ -135,7 +135,7 @@ const AUTHORS = {
   dewi: {
     name: 'Dewi Anggraini',
     role: 'Talent Brand Lead',
-    bio: 'Spesialis employer branding dengan latar belakang content marketing. Membantu mitra RPI membangun talent funnel yang berkualitas.',
+    bio: 'Spesialis employer branding dengan latar belakang content marketing. Membantu mitra SSN membangun talent funnel yang berkualitas.',
     initial: 'DA',
     color: '#10B981',
   },
@@ -217,7 +217,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     body: [
       {
         type: 'p',
-        text: 'Selama tiga bulan terakhir, tim riset RPI bekerja sama dengan 480 perekrut di 12 industri dan menyurvei 12.400 pekerja aktif di seluruh provinsi Indonesia. Hasilnya: tiga pergeseran besar yang akan menentukan strategi rekrutmen dan retensi di sisa 2026 dan masuk 2027.',
+        text: 'Selama tiga bulan terakhir, tim riset SSN bekerja sama dengan 480 perekrut di 12 industri dan menyurvei 12.400 pekerja aktif di seluruh provinsi Indonesia. Hasilnya: tiga pergeseran besar yang akan menentukan strategi rekrutmen dan retensi di sisa 2026 dan masuk 2027.',
       },
       {
         type: 'callout',
@@ -250,7 +250,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       {
         type: 'quote',
         text: 'Banyak perekrut belum menyesuaikan band gaji dengan ekspektasi pasar 2026. Kami melihat 6 dari 10 ofertura ditolak karena di bawah ekspektasi kandidat junior.',
-        author: 'Citra Lestari, Head of TA RPI',
+        author: 'Citra Lestari, Head of TA SSN',
       },
       { type: 'h2', text: '3. Manfaat non-tunai jadi pembeda' },
       {
@@ -279,7 +279,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       },
       {
         type: 'p',
-        text: 'Riset lengkap tersedia gratis untuk semua mitra RPI di dashboard mereka. Jika Anda bukan mitra, ringkasan PDF (24 halaman) dapat diunduh dari halaman press kit kami.',
+        text: 'Riset lengkap tersedia gratis untuk semua mitra SSN di dashboard mereka. Jika Anda bukan mitra, ringkasan PDF (24 halaman) dapat diunduh dari halaman press kit kami.',
       },
     ],
   },
@@ -347,7 +347,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       { type: 'h2', text: 'Bukti dari A/B test' },
       {
         type: 'p',
-        text: 'Setelah studi eye-tracking, kami meminta 30 alumni RPI Academy untuk merevisi CV mereka sesuai panduan ini lalu mengirim ulang ke role yang sama. Hasilnya: callback rate naik dari 12% menjadi 31% — peningkatan 2,6×.',
+        text: 'Setelah studi eye-tracking, kami meminta 30 alumni SSN Academy untuk merevisi CV mereka sesuai panduan ini lalu mengirim ulang ke role yang sama. Hasilnya: callback rate naik dari 12% menjadi 31% — peningkatan 2,6×.',
       },
     ],
   },
@@ -444,7 +444,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       {
         type: 'quote',
         text: 'Saya bisa beri saya 10 menit dan saya akan menulis cerita STAR yang sempurna untuk pertanyaan apapun. Yang membedakan kandidat hebat dari yang baik adalah saat saya keluar dari skenario — saat saya tanya "bagaimana kalau bos Anda menentang keputusan tersebut?"',
-        author: 'Citra Lestari, Head of TA RPI',
+        author: 'Citra Lestari, Head of TA SSN',
       },
       { type: 'h2', text: 'Framework baru: ASTRO' },
       {
@@ -476,7 +476,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       },
       {
         type: 'p',
-        text: 'Test ASTRO di tim TA Stripe Singapore menunjukkan korelasi hire-to-performance yang 1,4× lebih tinggi dibandingkan STAR setelah 6 bulan. Kami sedang menulis playbook lengkap untuk mitra RPI — keluar akhir bulan ini.',
+        text: 'Test ASTRO di tim TA Stripe Singapore menunjukkan korelasi hire-to-performance yang 1,4× lebih tinggi dibandingkan STAR setelah 6 bulan. Kami sedang menulis playbook lengkap untuk mitra SSN — keluar akhir bulan ini.',
       },
     ],
   },
@@ -713,7 +713,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     body: [
       {
         type: 'p',
-        text: 'Kami menjalankan A/B test pada 240 job description di platform RPI selama 4 bulan terakhir. Hasilnya: ada tiga elemen yang konsisten meningkatkan apply rate 3,4× — dan tidak satupun melibatkan kata "fast-paced", "rockstar", atau "ninja".',
+        text: 'Kami menjalankan A/B test pada 240 job description di platform SSN selama 4 bulan terakhir. Hasilnya: ada tiga elemen yang konsisten meningkatkan apply rate 3,4× — dan tidak satupun melibatkan kata "fast-paced", "rockstar", atau "ninja".',
       },
       { type: 'h2', text: '1. Tulis impact, bukan tugas' },
       {
@@ -802,7 +802,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       {
         type: 'quote',
         text: 'Pertanyaan untuk perekrut bukan "remote atau on-site" tapi "apa kombinasi yang menarik kandidat berkualitas tertinggi untuk peran ini". Untuk engineer senior: hybrid 2 hari menang. Untuk junior: hybrid 3-4 hari menang karena mereka butuh mentoring langsung.',
-        author: 'Tim Riset RPI',
+        author: 'Tim Riset SSN',
       },
       { type: 'h2', text: 'Implikasi untuk pekerja' },
       {
@@ -941,10 +941,10 @@ export const BLOG_ARTICLES: BlogArticle[] = [
           'Apakah alumni terbukti mendapatkan outcome? (Cari LinkedIn alumni)',
         ],
       },
-      { type: 'h2', text: 'Tentang RPI Academy' },
+      { type: 'h2', text: 'Tentang SSN Academy' },
       {
         type: 'p',
-        text: 'Saya juga mendesain kurikulum RPI Academy — saya akan menyebutkan ini untuk transparansi. Kami dirancang dengan 4 kriteria di atas. Tapi penting: kursus terbaik untuk Anda adalah yang paling relevan dengan target karir Anda, bukan yang paling banyak followers atau yang gratis.',
+        text: 'Saya juga mendesain kurikulum SSN Academy — saya akan menyebutkan ini untuk transparansi. Kami dirancang dengan 4 kriteria di atas. Tapi penting: kursus terbaik untuk Anda adalah yang paling relevan dengan target karir Anda, bukan yang paling banyak followers atau yang gratis.',
       },
     ],
   },

@@ -114,7 +114,7 @@ export function EnterpriseHero() {
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <a href="/RPI-Enterprise-Brochure.pdf" target="_blank" rel="noopener noreferrer">
+            <a href="/SSN-Enterprise-Brochure.pdf" target="_blank" rel="noopener noreferrer">
               {tl.ctaSecondary}
             </a>
           </Button>

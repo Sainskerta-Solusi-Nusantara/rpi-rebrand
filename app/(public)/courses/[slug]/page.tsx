@@ -53,7 +53,7 @@ export async function generateMetadata({
   const c = await findCourse(params.slug)
   if (!c) return { title: 'Kursus Tidak Ditemukan' }
   return {
-    title: `${c.title} — RPI Academy`,
+    title: `${c.title} — SSN Academy`,
     description: c.description.slice(0, 160),
     openGraph: {
       title: c.title,
@@ -140,7 +140,7 @@ export default async function CourseDetailPage({ params }: { params: Params }) {
     description: course.description,
     provider: {
       '@type': 'Organization',
-      name: 'Rumah Pekerja Indonesia',
+      name: 'SSN Pekerja',
     },
     instructor: {
       '@type': 'Person',

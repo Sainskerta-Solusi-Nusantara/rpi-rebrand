@@ -161,7 +161,7 @@ export function CareersHero({ openingCount }: CareersHeroProps) {
 }
 
 // ---------------------------------------------------------------------------
-// Why RPI
+// Why SSN
 // ---------------------------------------------------------------------------
 
 export function CareersWhy() {
@@ -252,7 +252,7 @@ export function CareersWhy() {
 }
 
 // ---------------------------------------------------------------------------
-// Life at RPI — Benefits & Culture
+// Life at SSN — Benefits & Culture
 // ---------------------------------------------------------------------------
 
 export function CareersLife() {
@@ -822,9 +822,9 @@ export function CareersOpenings(props: CareersOpeningsProps) {
             {tc.openings.cta.body}
           </p>
           <Button asChild variant="outline" className="mt-5">
-            <a href="mailto:careers@rumahpekerja.id">
+            <a href="mailto:careers@pekerja.sainskerta.net">
               <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
-              careers@rumahpekerja.id
+              careers@pekerja.sainskerta.net
             </a>
           </Button>
         </div>

@@ -91,7 +91,7 @@ export function OnboardingForm() {
           id="name"
           type="text"
           autoComplete="organization"
-          placeholder="Contoh: Akademi RPI"
+          placeholder="Contoh: Akademi SSN"
           aria-invalid={Boolean(errors.name)}
           className={inputClass}
           {...register('name')}
@@ -107,7 +107,7 @@ export function OnboardingForm() {
           <input
             id="slug"
             type="text"
-            placeholder="akademi-rpi"
+            placeholder="akademi-ssn"
             autoComplete="off"
             spellCheck={false}
             aria-invalid={Boolean(errors.slug)}

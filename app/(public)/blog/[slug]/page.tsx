@@ -37,7 +37,7 @@ export async function generateMetadata({
   }
   const description = (a.summary ?? a.title).slice(0, 160)
   return {
-    title: `${a.title} — Blog RPI`,
+    title: `${a.title} — Blog SSN`,
     description,
     openGraph: {
       title: a.title,
@@ -72,7 +72,7 @@ export default async function ArticleDetailPage({
   })
 
   const body = renderMarkdownToHtml(article.body)
-  const author = article.author?.name ?? 'Tim RPI'
+  const author = article.author?.name ?? 'Tim SSN'
   const publishedAt = article.publishedAt ?? article.createdAt
   const publishedLabel = (() => {
     try {
@@ -83,7 +83,7 @@ export default async function ArticleDetailPage({
   })()
 
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? 'https://rumahpekerja.id'
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://pekerja.sainskerta.net'
   const shareUrl = `${appUrl}/blog/${article.slug}`
   const shareText = encodeURIComponent(`${article.title} — ${appUrl}/blog/${article.slug}`)
 
@@ -97,7 +97,7 @@ export default async function ArticleDetailPage({
     author: { '@type': 'Person', name: author },
     publisher: {
       '@type': 'Organization',
-      name: 'Rumah Pekerja Indonesia',
+      name: 'SSN Pekerja',
     },
     image: article.coverImage ?? undefined,
     keywords: article.tags.join(', '),

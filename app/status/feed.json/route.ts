@@ -26,14 +26,14 @@ export const revalidate = 60
 
 export async function GET(): Promise<Response> {
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? 'https://rumahpekerja.id'
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://pekerja.sainskerta.net'
   const [{ status, activeIncidents }, upcomingMaintenance] = await Promise.all([
     getOverallStatus(),
     getUpcomingMaintenance(),
   ])
 
   const payload = {
-    title: 'Rumah Pekerja Indonesia — Status',
+    title: 'SSN Pekerja — Status',
     generatedAt: new Date().toISOString(),
     status,
     statusPageUrl: `${baseUrl}/status`,

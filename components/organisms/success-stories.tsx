@@ -68,7 +68,7 @@ export function SuccessStories({ testimonial, className }: SuccessStoriesProps):
           transition={{ duration: 0.5 }}
           className="font-heading max-w-2xl text-3xl font-semibold tracking-tight text-foreground md:text-4xl"
         >
-          Dari ribuan yang bertumbuh bersama RPI.
+          Dari ribuan yang bertumbuh bersama SSN.
         </motion.h2>
 
         {/* Video card (left) + 2 quote cards (right) */}
@@ -109,7 +109,7 @@ export function SuccessStories({ testimonial, className }: SuccessStoriesProps):
               {/* Caption */}
               <div className="absolute inset-x-0 bottom-0 p-6 text-background dark:text-foreground">
                 <p className="font-heading text-lg font-semibold leading-tight md:text-xl">
-                  &ldquo;Saya berubah karena RPI.&rdquo;
+                  &ldquo;Saya berubah karena SSN.&rdquo;
                 </p>
                 <p className="mt-2 text-sm opacity-90">
                   — {userName}, {userHeadline}

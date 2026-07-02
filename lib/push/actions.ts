@@ -206,7 +206,7 @@ export async function sendTestPush(): Promise<TestPushResult> {
       title: t.srvAuth4.push.testTitle,
       body: t.srvAuth4.push.testBody,
       url: '/dashboard/notifikasi',
-      tag: 'rpi-test',
+      tag: 'ssn-test',
     }
 
     let sent = 0

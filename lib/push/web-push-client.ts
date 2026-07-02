@@ -10,7 +10,7 @@
  *   3. Set env vars in .env.local (see lib/env.ts):
  *        NEXT_PUBLIC_VAPID_PUBLIC_KEY=...   # public key, URL-safe base64
  *        VAPID_PRIVATE_KEY=...              # private key, URL-safe base64
- *        VAPID_SUBJECT=mailto:ops@rumahpekerjaindonesia.com
+ *        VAPID_SUBJECT=mailto:ops@pekerja.sainskerta.net
  *
  * If `web-push` is NOT installed yet, this module falls back to a no-op stub
  * that logs once per send. This keeps the dashboard and server actions usable

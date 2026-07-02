@@ -16,7 +16,7 @@ interface FAQItem {
 
 const FAQ_ITEMS: FAQItem[] = [
   {
-    question: 'Apakah RPI gratis untuk pencari kerja?',
+    question: 'Apakah SSN gratis untuk pencari kerja?',
     answer:
       'Ya, 100% gratis dan akan selalu gratis. Tidak ada biaya tersembunyi, tidak perlu kartu kredit, dan semua fitur tersedia tanpa batas untuk pencari kerja.',
   },
@@ -28,7 +28,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: 'Apakah sertifikat kursus diakui industri?',
     answer:
-      'Ya. Kursus RPI Academy tervalidasi mitra industri dan beberapa diakui oleh lembaga sertifikasi pemerintah. Banyak alumni menggunakannya sebagai nilai tambah saat melamar.',
+      'Ya. Kursus SSN Academy tervalidasi mitra industri dan beberapa diakui oleh lembaga sertifikasi pemerintah. Banyak alumni menggunakannya sebagai nilai tambah saat melamar.',
   },
   {
     question: 'Bagaimana cara mitra mendaftarkan perusahaan?',

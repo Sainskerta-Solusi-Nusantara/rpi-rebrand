@@ -4,8 +4,8 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 import { ConfirmEmailChangeButton } from './confirm-button'
 
 export const metadata = {
-  title: 'Konfirmasi Email Baru · Rumah Pekerja Indonesia',
-  description: 'Konfirmasi perubahan alamat email akun RPI Anda.',
+  title: 'Konfirmasi Email Baru · SSN Pekerja',
+  description: 'Konfirmasi perubahan alamat email akun SSN Anda.',
 }
 
 export default async function VerifyEmailChangePage({

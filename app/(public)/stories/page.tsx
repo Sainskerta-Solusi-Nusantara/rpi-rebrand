@@ -7,7 +7,7 @@ import { CTABanner } from '@/components/organisms/cta-banner'
 export const metadata: Metadata = {
   title: 'Cerita Sukses',
   description:
-    'Kisah nyata pekerja Indonesia yang menemukan karier impian, meningkatkan keterampilan, dan bertumbuh bersama Rumah Pekerja Indonesia.',
+    'Kisah nyata pekerja Indonesia yang menemukan karier impian, meningkatkan keterampilan, dan bertumbuh bersama SSN Pekerja.',
 }
 
 const stories = [

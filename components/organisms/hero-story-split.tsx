@@ -70,11 +70,11 @@ export function HeroStorySplit({
           </span>
 
           <h1 className="font-heading text-4xl leading-tight md:text-5xl lg:text-6xl">
-            {resolvedHeadline.split('Rumah Pekerja Indonesia').map((seg, i, arr) => (
+            {resolvedHeadline.split('SSN Pekerja').map((seg, i, arr) => (
               <React.Fragment key={i}>
                 {seg}
                 {i < arr.length - 1 ? (
-                  <span className="text-secondary italic"> Rumah Pekerja Indonesia</span>
+                  <span className="text-secondary italic"> SSN Pekerja</span>
                 ) : null}
               </React.Fragment>
             ))}

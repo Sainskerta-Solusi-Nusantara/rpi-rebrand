@@ -22,8 +22,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const tag = findPressTag(params.slug)
   if (!tag) return { title: 'Tag Tidak Ditemukan' }
   return {
-    title: `#${tag.name} — Press RPI`,
-    description: `Semua siaran pers RPI dengan tag ${tag.name}.`,
+    title: `#${tag.name} — Press SSN`,
+    description: `Semua siaran pers SSN dengan tag ${tag.name}.`,
   }
 }
 

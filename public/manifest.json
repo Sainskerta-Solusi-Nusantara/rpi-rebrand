@@ -1,7 +1,7 @@
 {
-  "name": "Rumah Pekerja Indonesia",
-  "short_name": "RPI",
-  "description": "Platform karier RPI",
+  "name": "SSN Pekerja",
+  "short_name": "SSN",
+  "description": "Platform karier SSN",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",

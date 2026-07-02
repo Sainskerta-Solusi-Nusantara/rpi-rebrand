@@ -5,7 +5,7 @@ import { LegalDocLayout } from '@/components/organisms/legal-doc-layout'
 export const metadata: Metadata = {
   title: 'Ketentuan Penagihan',
   description:
-    'Ketentuan penagihan, pembayaran, pengembalian dana, dan pajak untuk langganan Rumah Pekerja Indonesia.',
+    'Ketentuan penagihan, pembayaran, pengembalian dana, dan pajak untuk langganan SSN Pekerja.',
 }
 
 export default function BillingTermsPage() {
@@ -51,7 +51,7 @@ export default function BillingTermsPage() {
           {
             heading: '6. Pertanyaan Tagihan',
             paragraphs: [
-              'Untuk pertanyaan terkait tagihan, hubungi kami di hello@rumahpekerja.id.',
+              'Untuk pertanyaan terkait tagihan, hubungi kami di hello@pekerja.sainskerta.net.',
             ],
           },
         ]}

@@ -88,7 +88,7 @@ export function TestimonialVideo({ testimonial, className }: TestimonialVideoPro
             {/* Top-right badge */}
             <div className="absolute right-4 top-4 z-10">
               <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground shadow-lg">
-                Lulusan RPI Academy
+                Lulusan SSN Academy
               </span>
             </div>
 
@@ -173,7 +173,7 @@ export function TestimonialVideo({ testimonial, className }: TestimonialVideoPro
               className="absolute -left-1 -top-2 h-8 w-8 text-secondary/30"
             />
             <blockquote className="relative pl-8 text-base leading-relaxed text-muted-foreground md:text-lg">
-              &ldquo;RPI memberi saya keterampilan dan koneksi yang saya
+              &ldquo;SSN memberi saya keterampilan dan koneksi yang saya
               butuhkan. Dalam 3 bulan setelah lulus kursus, saya mendapat
               tawaran kerja dengan gaji 2x lipat dari sebelumnya.&rdquo;
             </blockquote>

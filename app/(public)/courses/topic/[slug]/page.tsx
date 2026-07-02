@@ -29,7 +29,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const topic = findCourseTopic(params.slug)
   if (!topic) return { title: 'Topik Tidak Ditemukan' }
   return {
-    title: `${topic.name} — Kursus RPI`,
+    title: `${topic.name} — Kursus SSN`,
     description: topic.description,
   }
 }

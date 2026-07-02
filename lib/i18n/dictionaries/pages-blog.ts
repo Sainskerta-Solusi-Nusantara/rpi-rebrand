@@ -11,7 +11,7 @@ export const pagesBlog = {
     archive: {
       eyebrow: 'Arsip Tahunan',
       heading: 'Arsip {year}',
-      subtitle: 'Semua artikel blog RPI yang terbit sepanjang tahun {year}.',
+      subtitle: 'Semua artikel blog SSN yang terbit sepanjang tahun {year}.',
       articlesInArchive: 'artikel di arsip ini',
       otherYears: 'Tahun lain',
       otherYearsAriaLabel: 'Tahun lain',
@@ -35,7 +35,7 @@ export const pagesBlog = {
       exploreOtherTags: 'Jelajahi tag lain',
       exploreOtherTagsAriaLabel: 'Tag lainnya',
       emptyHeading: 'Belum ada artikel dengan tag ini',
-      emptyBody: 'Jelajahi semua artikel di blog RPI.',
+      emptyBody: 'Jelajahi semua artikel di blog SSN.',
     },
     topic: {
       eyebrow: 'Topik',
@@ -59,7 +59,7 @@ export const pagesBlog = {
     archive: {
       eyebrow: 'Yearly Archive',
       heading: 'Archive {year}',
-      subtitle: 'All RPI blog articles published in {year}.',
+      subtitle: 'All SSN blog articles published in {year}.',
       articlesInArchive: 'articles in this archive',
       otherYears: 'Other years',
       otherYearsAriaLabel: 'Other years',
@@ -83,7 +83,7 @@ export const pagesBlog = {
       exploreOtherTags: 'Explore other tags',
       exploreOtherTagsAriaLabel: 'Other tags',
       emptyHeading: 'No articles with this tag yet',
-      emptyBody: 'Browse all articles on the RPI blog.',
+      emptyBody: 'Browse all articles on the SSN blog.',
     },
     topic: {
       eyebrow: 'Topic',

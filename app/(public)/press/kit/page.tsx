@@ -3,9 +3,9 @@ import type { ReactNode } from 'react'
 import { Download, Mail, Phone, Quote } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Press Kit — RPI',
+  title: 'Press Kit — SSN',
   description:
-    'Press kit resmi Rumah Pekerja Indonesia: boilerplate, logo, statistik kunci, dan profil leadership untuk jurnalis dan mitra media.',
+    'Press kit resmi SSN Pekerja: boilerplate, logo, statistik kunci, dan profil leadership untuk jurnalis dan mitra media.',
 }
 
 // ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ const FACTS: ReadonlyArray<readonly [string, string]> = [
   ['USD 85 juta', 'Total pendanaan Seri C'],
   ['2021', 'Tahun didirikan'],
   ['200+', 'Karyawan tetap'],
-  ['60.000+', 'Pelajar di RPI Academy'],
+  ['60.000+', 'Pelajar di SSN Academy'],
   ['5 kota', 'Ekspansi 2026'],
 ]
 
@@ -28,19 +28,19 @@ const BOILERPLATES: ReadonlyArray<{ label: string; meta: string; body: string }>
     label: 'Boilerplate Pendek',
     meta: '~50 kata',
     body:
-      'Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan untuk perekrutan dan pelatihan di Indonesia. Sejak 2021, RPI melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh 34 provinsi, dengan dukungan dari East Ventures, Sequoia SEA, MDI, dan BRI Ventures.',
+      'SSN Pekerja (SSN) adalah platform multi-tenant terdepan untuk perekrutan dan pelatihan di Indonesia. Sejak 2021, SSN melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh 34 provinsi, dengan dukungan dari East Ventures, Sequoia SEA, MDI, dan BRI Ventures.',
   },
   {
     label: 'Boilerplate Sedang',
     meta: '~120 kata',
     body:
-      'Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan untuk perekrutan dan pelatihan di Indonesia. Sejak 2021, RPI menghubungkan 2,4 juta+ pekerja dengan 12.000+ mitra perekrut terverifikasi di seluruh 34 provinsi. Lewat sistem AI-powered matching, RPI memangkas waktu rekrutmen rata-rata dari 38 hari menjadi 11 hari. Program RPI Academy telah meluluskan 60.000+ pelajar dengan kurikulum vokasi yang diakui industri. Arsitektur multi-tenant kami memungkinkan mitra perekrut besar untuk meluncurkan portal white-label sendiri di atas infrastruktur RPI. Pada Q1 2026, RPI menutup pendanaan Seri C senilai USD 85 juta yang dipimpin Sequoia SEA, mempercepat ekspansi ke 5 kota tier-2 dan investasi produk berikutnya.',
+      'SSN Pekerja (SSN) adalah platform multi-tenant terdepan untuk perekrutan dan pelatihan di Indonesia. Sejak 2021, SSN menghubungkan 2,4 juta+ pekerja dengan 12.000+ mitra perekrut terverifikasi di seluruh 34 provinsi. Lewat sistem AI-powered matching, SSN memangkas waktu rekrutmen rata-rata dari 38 hari menjadi 11 hari. Program SSN Academy telah meluluskan 60.000+ pelajar dengan kurikulum vokasi yang diakui industri. Arsitektur multi-tenant kami memungkinkan mitra perekrut besar untuk meluncurkan portal white-label sendiri di atas infrastruktur SSN. Pada Q1 2026, SSN menutup pendanaan Seri C senilai USD 85 juta yang dipimpin Sequoia SEA, mempercepat ekspansi ke 5 kota tier-2 dan investasi produk berikutnya.',
   },
   {
     label: 'Boilerplate Panjang',
     meta: '~250 kata',
     body:
-      'Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan yang menghubungkan pekerja Indonesia dengan kesempatan kerja dan pelatihan yang adil. RPI didirikan pada 2021 oleh Naufal Hakim (ex-Gojek), Putri Anggraini (ex-Tokopedia), dan Dimas Wijaya (ex-Bukalapak, ex-Stripe) atas keprihatinan bahwa pasar kerja Indonesia masih bergantung pada jaringan personal yang lambat, tidak transparan, dan tidak terjangkau bagi pekerja di luar Jabodetabek. Misi RPI adalah membangun infrastruktur kerja digital yang adil dan transparan untuk semua provinsi. Saat ini, RPI melayani lebih dari 2,4 juta pekerja terdaftar dan 12.000+ mitra perekrut terverifikasi di 34 provinsi, dengan tiga lini produk utama: marketplace lowongan kerja (Jobs), program pelatihan vokasi bersertifikat (RPI Academy / Courses), dan dashboard rekrutmen white-label untuk mitra (Mitra). Platform RPI ditenagai oleh sistem AI matching domestik yang dilatih dengan data pasar kerja Indonesia, dan arsitektur multi-tenant yang memungkinkan korporasi besar serta dinas tenaga kerja untuk meluncurkan portal sendiri. RPI didukung oleh East Ventures, Sequoia SEA, MDI Ventures, dan BRI Ventures, dengan total pendanaan USD 142 juta sejak berdiri — termasuk Seri C senilai USD 85 juta pada Q1 2026. Kemitraan strategis mencakup Kementerian Ketenagakerjaan, Kadin, Telkom Group, dan 40+ universitas. Yang membedakan RPI: fokus Indonesia-first (bukan lokalisasi), arsitektur multi-tenant siap-skala, dan komitmen terbuka terhadap riset publik tentang pasar kerja domestik.',
+      'SSN Pekerja (SSN) adalah platform multi-tenant terdepan yang menghubungkan pekerja Indonesia dengan kesempatan kerja dan pelatihan yang adil. SSN didirikan pada 2021 oleh Naufal Hakim (ex-Gojek), Putri Anggraini (ex-Tokopedia), dan Dimas Wijaya (ex-Bukalapak, ex-Stripe) atas keprihatinan bahwa pasar kerja Indonesia masih bergantung pada jaringan personal yang lambat, tidak transparan, dan tidak terjangkau bagi pekerja di luar Jabodetabek. Misi SSN adalah membangun infrastruktur kerja digital yang adil dan transparan untuk semua provinsi. Saat ini, SSN melayani lebih dari 2,4 juta pekerja terdaftar dan 12.000+ mitra perekrut terverifikasi di 34 provinsi, dengan tiga lini produk utama: marketplace lowongan kerja (Jobs), program pelatihan vokasi bersertifikat (SSN Academy / Courses), dan dashboard rekrutmen white-label untuk mitra (Mitra). Platform SSN ditenagai oleh sistem AI matching domestik yang dilatih dengan data pasar kerja Indonesia, dan arsitektur multi-tenant yang memungkinkan korporasi besar serta dinas tenaga kerja untuk meluncurkan portal sendiri. SSN didukung oleh East Ventures, Sequoia SEA, MDI Ventures, dan BRI Ventures, dengan total pendanaan USD 142 juta sejak berdiri — termasuk Seri C senilai USD 85 juta pada Q1 2026. Kemitraan strategis mencakup Kementerian Ketenagakerjaan, Kadin, Telkom Group, dan 40+ universitas. Yang membedakan SSN: fokus Indonesia-first (bukan lokalisasi), arsitektur multi-tenant siap-skala, dan komitmen terbuka terhadap riset publik tentang pasar kerja domestik.',
   },
 ]
 
@@ -58,34 +58,34 @@ const LEADERS: ReadonlyArray<{ name: string; initial: string; role: string; colo
     initial: 'N',
     role: 'Founder & CEO',
     color: '#0A2540',
-    bio: 'Mantan engineer di Gojek dan Stripe. Mendirikan RPI pada 2021 dengan misi membangun infrastruktur kerja yang adil untuk Indonesia. Memimpin strategi produk dan visi jangka panjang perusahaan.',
+    bio: 'Mantan engineer di Gojek dan Stripe. Mendirikan SSN pada 2021 dengan misi membangun infrastruktur kerja yang adil untuk Indonesia. Memimpin strategi produk dan visi jangka panjang perusahaan.',
   },
   {
     name: 'Putri Anggraini',
     initial: 'P',
     role: 'Co-Founder & COO',
     color: '#635BFF',
-    bio: 'Eks-Operations Lead di Tokopedia. Membangun mesin pertumbuhan mitra RPI dari nol hingga 12.000+ perekrut terverifikasi. Bertanggung jawab atas operasi nasional dan kemitraan strategis.',
+    bio: 'Eks-Operations Lead di Tokopedia. Membangun mesin pertumbuhan mitra SSN dari nol hingga 12.000+ perekrut terverifikasi. Bertanggung jawab atas operasi nasional dan kemitraan strategis.',
   },
   {
     name: 'Dimas Wijaya',
     initial: 'D',
     role: 'Co-Founder & CTO',
     color: '#10B981',
-    bio: 'Sebelumnya Staff Engineer di Bukalapak. Mengarsiteki infrastruktur multi-tenant RPI yang melayani jutaan pengguna. Memimpin tim engineering yang tersebar di Jakarta, Bandung, dan Yogyakarta.',
+    bio: 'Sebelumnya Staff Engineer di Bukalapak. Mengarsiteki infrastruktur multi-tenant SSN yang melayani jutaan pengguna. Memimpin tim engineering yang tersebar di Jakarta, Bandung, dan Yogyakarta.',
   },
   {
     name: 'Maya Pratiwi',
     initial: 'M',
     role: 'VP Communications',
     color: '#EC4899',
-    bio: 'Mantan tim komunikasi Traveloka. Memimpin hubungan media, narasi publik, dan riset terbuka RPI. Kontak resmi untuk seluruh permintaan press dan wawancara.',
+    bio: 'Mantan tim komunikasi Traveloka. Memimpin hubungan media, narasi publik, dan riset terbuka SSN. Kontak resmi untuk seluruh permintaan press dan wawancara.',
   },
 ]
 
 const LOGO_VARIANTS: ReadonlyArray<{ label: string; bg: string; fg: string; text: string }> = [
-  { label: 'Logo Penuh (Light Background)', bg: '#ffffff', fg: '#0A2540', text: 'RPI' },
-  { label: 'Logo Penuh (Dark Background)', bg: '#0A2540', fg: '#ffffff', text: 'RPI' },
+  { label: 'Logo Penuh (Light Background)', bg: '#ffffff', fg: '#0A2540', text: 'SSN' },
+  { label: 'Logo Penuh (Dark Background)', bg: '#0A2540', fg: '#ffffff', text: 'SSN' },
   { label: 'Logo Mark (Tanpa Teks)', bg: '#635BFF', fg: '#ffffff', text: 'R' },
   { label: 'Logo Mark Mono', bg: '#ffffff', fg: '#0A0A0A', text: 'R' },
 ]
@@ -147,21 +147,21 @@ export default function PressKitPage() {
           </h1>
 
           <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg md:text-xl">
-            Semua yang Anda butuhkan untuk meliput Rumah Pekerja Indonesia —
+            Semua yang Anda butuhkan untuk meliput SSN Pekerja —
             dari logo, boilerplate, hingga statistik resmi dan profil
             leadership.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
-              href="mailto:press@rumahpekerja.id?subject=Permintaan Boilerplate ZIP"
+              href="mailto:press@pekerja.sainskerta.net?subject=Permintaan Boilerplate ZIP"
               className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-base font-medium shadow-sm transition-colors"
             >
               <Download className="h-4 w-4" aria-hidden />
               Download Boilerplate ZIP
             </a>
             <a
-              href="mailto:press@rumahpekerja.id?subject=Hubungi Tim Press"
+              href="mailto:press@pekerja.sainskerta.net?subject=Hubungi Tim Press"
               className="border-input bg-background hover:bg-muted hover:text-foreground inline-flex h-12 items-center justify-center gap-2 rounded-lg border px-6 text-base font-medium transition-colors"
             >
               <Mail className="h-4 w-4" aria-hidden />
@@ -187,7 +187,7 @@ export default function PressKitPage() {
             </h2>
             <p className="text-muted-foreground mt-3 max-w-2xl text-sm">
               Statistik resmi per Mei 2026. Semua angka dapat dikutip dengan
-              atribusi &ldquo;Rumah Pekerja Indonesia&rdquo;.
+              atribusi &ldquo;SSN Pekerja&rdquo;.
             </p>
           </div>
 
@@ -316,7 +316,7 @@ export default function PressKitPage() {
               Palet Warna
             </h3>
             <p className="text-muted-foreground mt-1 mb-5 text-sm">
-              Lima warna utama brand RPI.
+              Lima warna utama brand SSN.
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
               {PALETTE.map(([name, hex]) => (
@@ -343,7 +343,7 @@ export default function PressKitPage() {
               Cerita kerja Indonesia, ditulis bersama.
             </p>
             <p className="text-muted-foreground mt-3 text-base leading-relaxed">
-              Body text — Rumah Pekerja Indonesia membangun infrastruktur kerja
+              Body text — SSN Pekerja membangun infrastruktur kerja
               digital yang adil dan transparan untuk semua provinsi.
             </p>
           </div>
@@ -429,7 +429,7 @@ export default function PressKitPage() {
                   Maya Pratiwi
                 </h2>
                 <p className="text-[color:var(--ring)] mt-1 text-sm font-medium uppercase tracking-wider">
-                  VP Communications, RPI
+                  VP Communications, SSN
                 </p>
                 <ul className="text-muted-foreground mt-6 space-y-3 text-sm">
                   <li className="flex items-center gap-3">
@@ -438,10 +438,10 @@ export default function PressKitPage() {
                       aria-hidden
                     />
                     <a
-                      href="mailto:press@rumahpekerja.id"
+                      href="mailto:press@pekerja.sainskerta.net"
                       className="text-foreground font-medium hover:underline"
                     >
-                      press@rumahpekerja.id
+                      press@pekerja.sainskerta.net
                     </a>
                   </li>
                   <li className="flex items-center gap-3">
@@ -463,7 +463,7 @@ export default function PressKitPage() {
               </div>
               <div className="flex flex-col gap-3">
                 <a
-                  href="mailto:press@rumahpekerja.id?subject=Permintaan Press"
+                  href="mailto:press@pekerja.sainskerta.net?subject=Permintaan Press"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-base font-medium shadow-sm transition-colors"
                 >
                   <Mail className="h-4 w-4" aria-hidden />

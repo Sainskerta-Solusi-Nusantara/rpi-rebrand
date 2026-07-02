@@ -49,7 +49,7 @@ export function WhyChooseUs({ className }: WhyChooseUsProps): JSX.Element {
         'bg-primary text-primary-foreground relative isolate overflow-hidden py-20 md:py-28',
         className,
       )}
-      aria-labelledby="why-rpi-heading"
+      aria-labelledby="why-ssn-heading"
     >
       {/* Aurora wash on the dark band — gold + constant purple accent */}
       <div
@@ -68,12 +68,12 @@ export function WhyChooseUs({ className }: WhyChooseUsProps): JSX.Element {
         <div className="mb-6 flex items-center gap-3">
           <span aria-hidden className="bg-secondary h-px w-8" />
           <span className="text-primary-foreground/70 text-xs font-medium uppercase tracking-[0.2em]">
-            Mengapa RPI
+            Mengapa SSN
           </span>
         </div>
 
         <motion.h2
-          id="why-rpi-heading"
+          id="why-ssn-heading"
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}

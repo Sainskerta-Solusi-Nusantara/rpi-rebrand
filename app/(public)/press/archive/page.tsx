@@ -28,7 +28,7 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 export const metadata = {
   title: 'Arsip Siaran Pers',
   description:
-    'Telusuri seluruh siaran pers Rumah Pekerja Indonesia. Saring berdasarkan kategori, tahun, atau cari berdasarkan kata kunci.',
+    'Telusuri seluruh siaran pers SSN Pekerja. Saring berdasarkan kategori, tahun, atau cari berdasarkan kata kunci.',
 }
 
 type ArchiveState = {
@@ -432,11 +432,11 @@ export default async function PressArchivePage({
                 </p>
                 <div className="mt-4 space-y-2 text-sm">
                   <a
-                    href="mailto:press@rumahpekerja.id"
+                    href="mailto:press@pekerja.sainskerta.net"
                     className="text-foreground hover:text-[color:var(--ring)] inline-flex items-center gap-2 font-medium transition"
                   >
                     <Mail className="text-[color:var(--ring)] h-3.5 w-3.5" aria-hidden />
-                    press@rumahpekerja.id
+                    press@pekerja.sainskerta.net
                   </a>
                 </div>
                 <Button asChild size="sm" className="mt-5 w-full">
@@ -453,7 +453,7 @@ export default async function PressArchivePage({
                   {t.pagesPress.archive.sidebarPressKitBody}
                 </p>
                 <Button asChild size="sm" className="mt-4 w-full">
-                  <a href="/press-kit/RPI-Press-Kit-Full.zip">
+                  <a href="/press-kit/SSN-Press-Kit-Full.zip">
                     <Download className="mr-2 h-3.5 w-3.5" aria-hidden />
                     {t.pagesPress.archive.sidebarDownload}
                   </a>

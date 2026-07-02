@@ -34,7 +34,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const o = findOpening(params.slug)
   if (!o) return { title: 'Posisi Tidak Ditemukan' }
   return {
-    title: `${o.title} — Karier RPI`,
+    title: `${o.title} — Karier SSN`,
     description: o.summary.slice(0, 160),
   }
 }
@@ -206,7 +206,7 @@ export default function CareerDetailPage({ params }: { params: Params }) {
 
               <Block heading="Pernyataan kesetaraan">
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  RPI adalah pemberi kerja yang setara. Kami merayakan
+                  SSN adalah pemberi kerja yang setara. Kami merayakan
                   keberagaman dan berkomitmen menciptakan lingkungan inklusif —
                   tidak peduli gender, identitas, asal, agama, status keluarga,
                   atau disabilitas. Jika Anda butuh akomodasi selama proses
@@ -227,13 +227,13 @@ export default function CareerDetailPage({ params }: { params: Params }) {
                 </p>
 
                 <Button asChild size="lg" className="mt-5 w-full">
-                  <a href={`mailto:careers@rumahpekerja.id?subject=Lamaran: ${encodeURIComponent(opening.title)}`}>
+                  <a href={`mailto:careers@pekerja.sainskerta.net?subject=Lamaran: ${encodeURIComponent(opening.title)}`}>
                     <Send className="mr-2 h-4 w-4" aria-hidden />
                     Kirim Lamaran
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="mt-3 w-full">
-                  <a href={`mailto:careers@rumahpekerja.id?subject=Tanya tentang ${encodeURIComponent(opening.title)}`}>
+                  <a href={`mailto:careers@pekerja.sainskerta.net?subject=Tanya tentang ${encodeURIComponent(opening.title)}`}>
                     <Mail className="mr-2 h-4 w-4" aria-hidden />
                     Tanya recruiter
                   </a>
@@ -283,7 +283,7 @@ export default function CareerDetailPage({ params }: { params: Params }) {
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <a href={`mailto:careers@rumahpekerja.id?subject=Lamaran: ${encodeURIComponent(opening.title)}`}>
+              <a href={`mailto:careers@pekerja.sainskerta.net?subject=Lamaran: ${encodeURIComponent(opening.title)}`}>
                 <Send className="mr-2 h-4 w-4" aria-hidden />
                 Kirim Lamaran
               </a>

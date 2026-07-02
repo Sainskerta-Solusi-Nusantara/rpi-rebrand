@@ -67,7 +67,7 @@ export async function GET(
   const origin =
     req.nextUrl.origin ||
     process.env.NEXT_PUBLIC_APP_URL ||
-    'https://app.rumahpekerja.id'
+    'https://app.pekerja.sainskerta.net'
 
   const spec = buildOpenApiSpec({ slug: tenant.slug, baseUrl: origin })
 

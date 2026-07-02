@@ -12,7 +12,7 @@ import {
 export const metadata: Metadata = {
   title: 'Nilai-Nilai Kami',
   description:
-    'Empat prinsip yang memandu setiap keputusan di Rumah Pekerja Indonesia — adil, transparan, berpihak pada pekerja, dan bertumbuh bersama. Bukan poster, tapi pegangan harian.',
+    'Empat prinsip yang memandu setiap keputusan di SSN Pekerja — adil, transparan, berpihak pada pekerja, dan bertumbuh bersama. Bukan poster, tapi pegangan harian.',
 }
 
 export default function ValuesPage() {

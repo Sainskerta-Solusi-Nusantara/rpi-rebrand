@@ -5,7 +5,7 @@ import { FeatureLanding } from '@/components/organisms/feature-landing'
 export const metadata: Metadata = {
   title: 'Pembuat CV',
   description:
-    'Buat CV profesional yang lolos seleksi ATS dalam hitungan menit dengan template gratis dari Rumah Pekerja Indonesia.',
+    'Buat CV profesional yang lolos seleksi ATS dalam hitungan menit dengan template gratis dari SSN Pekerja.',
 }
 
 export default function CvBuilderPage() {

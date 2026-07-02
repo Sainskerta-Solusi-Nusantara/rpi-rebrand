@@ -17,7 +17,7 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 export const metadata: Metadata = {
   title: 'Mitra Perekrut',
   description:
-    'Bergabung dengan ratusan mitra perekrut terverifikasi yang memanfaatkan platform Rumah Pekerja Indonesia.',
+    'Bergabung dengan ratusan mitra perekrut terverifikasi yang memanfaatkan platform SSN Pekerja.',
 }
 
 type FilterState = {

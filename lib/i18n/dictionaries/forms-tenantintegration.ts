@@ -3,7 +3,7 @@ export const formsTenantIntegration = {
     webhooks: {
       // OneTimeSecretBox
       secretBoxHint:
-        'Ini satu-satunya kesempatan menampilkan signing secret. Salin dan simpan di tempat aman sekarang — secret tidak dapat dilihat lagi. Gunakan untuk memverifikasi header X-RPI-Signature.',
+        'Ini satu-satunya kesempatan menampilkan signing secret. Salin dan simpan di tempat aman sekarang — secret tidak dapat dilihat lagi. Gunakan untuk memverifikasi header X-SSN-Signature.',
       copied: 'Tersalin',
       copyToClipboard: 'Salin ke clipboard',
       done: 'Selesai',
@@ -13,7 +13,7 @@ export const formsTenantIntegration = {
       nameLabel: 'Nama / label',
       namePlaceholder: 'Produksi Zapier, Slack notify, dst.',
       urlLabel: 'URL endpoint',
-      urlPlaceholder: 'https://contoh.com/webhooks/rpi',
+      urlPlaceholder: 'https://contoh.com/webhooks/ssn',
       urlHint: 'Harus HTTPS. URL http://localhost diizinkan untuk pengujian lokal.',
       eventsLegend: 'Event',
       eventsHint: 'Pilih event yang akan dikirim ke URL ini.',
@@ -132,7 +132,7 @@ export const formsTenantIntegration = {
     webhooks: {
       // OneTimeSecretBox
       secretBoxHint:
-        'This is the only opportunity to display the signing secret. Copy and store it somewhere safe now — the secret cannot be viewed again. Use it to verify the X-RPI-Signature header.',
+        'This is the only opportunity to display the signing secret. Copy and store it somewhere safe now — the secret cannot be viewed again. Use it to verify the X-SSN-Signature header.',
       copied: 'Copied',
       copyToClipboard: 'Copy to clipboard',
       done: 'Done',
@@ -142,7 +142,7 @@ export const formsTenantIntegration = {
       nameLabel: 'Name / label',
       namePlaceholder: 'Production Zapier, Slack notify, etc.',
       urlLabel: 'Endpoint URL',
-      urlPlaceholder: 'https://example.com/webhooks/rpi',
+      urlPlaceholder: 'https://example.com/webhooks/ssn',
       urlHint: 'Must be HTTPS. http://localhost URLs are allowed for local testing.',
       eventsLegend: 'Events',
       eventsHint: 'Select the events to be sent to this URL.',

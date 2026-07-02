@@ -51,7 +51,7 @@ export const dashboard = {
       noEnrollments: 'Belum mendaftar kursus apa pun.',
       personalRecommendations: 'Rekomendasi Personal',
       referralCard: {
-        title: 'Undang teman ke RPI',
+        title: 'Undang teman ke SSN',
         description: 'Bagikan kode referral Anda dan lacak undangan yang berhasil.',
         cta: 'Buka →',
       },
@@ -188,7 +188,7 @@ export const dashboard = {
       apiTokensLabel: 'API tokens',
       apiTokensTitle: 'Personal API Tokens',
       apiTokensDesc:
-        'Buat token untuk akses programatik ke API RPI. Scope dapat dibatasi dan token bisa dicabut kapan saja.',
+        'Buat token untuk akses programatik ke API SSN. Scope dapat dibatasi dan token bisa dicabut kapan saja.',
       apiTokensCta: 'Kelola token',
       dataLabel: 'Data dan akun',
       dataTitle: 'Data Anda',
@@ -220,7 +220,7 @@ export const dashboard = {
     notifications: {
       pageTitle: 'Notifikasi — Dasbor',
       title: 'Preferensi Notifikasi',
-      subtitle: 'Atur email mana saja yang ingin Anda terima dari RPI.',
+      subtitle: 'Atur email mana saja yang ingin Anda terima dari SSN.',
       pushTitle: 'Notifikasi push',
       pushDesc:
         'Terima notifikasi langsung di perangkat ini saat ada pesan baru, perubahan status lamaran, atau jadwal wawancara.',
@@ -473,7 +473,7 @@ export const dashboard = {
       noEnrollments: 'You have not enrolled in any courses yet.',
       personalRecommendations: 'Personal Recommendations',
       referralCard: {
-        title: 'Invite friends to RPI',
+        title: 'Invite friends to SSN',
         description: 'Share your referral code and track successful invites.',
         cta: 'Open →',
       },
@@ -610,7 +610,7 @@ export const dashboard = {
       apiTokensLabel: 'API tokens',
       apiTokensTitle: 'Personal API Tokens',
       apiTokensDesc:
-        'Create tokens for programmatic access to the RPI API. Scopes can be restricted and tokens revoked anytime.',
+        'Create tokens for programmatic access to the SSN API. Scopes can be restricted and tokens revoked anytime.',
       apiTokensCta: 'Manage tokens',
       dataLabel: 'Data and account',
       dataTitle: 'Your data',
@@ -642,7 +642,7 @@ export const dashboard = {
     notifications: {
       pageTitle: 'Notifications — Dashboard',
       title: 'Notification Preferences',
-      subtitle: 'Choose which emails you want to receive from RPI.',
+      subtitle: 'Choose which emails you want to receive from SSN.',
       pushTitle: 'Push notifications',
       pushDesc:
         'Receive notifications directly on this device when there is a new message, application status change, or interview schedule.',

@@ -1,4 +1,4 @@
-# Laporan Audit — RumahPekerja SaaS (rpi-rebrand)
+# Laporan Audit — SSN Pekerja SaaS (ssn-rebrand)
 
 **Tanggal:** 2026-06-30 07:49
 **Auditor:** Sainskerta Loop Workflow — Phase 05 (AUDIT)

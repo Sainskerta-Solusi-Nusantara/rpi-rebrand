@@ -5,7 +5,7 @@ import { LegalDocLayout } from '@/components/organisms/legal-doc-layout'
 export const metadata: Metadata = {
   title: 'Kebijakan Privasi',
   description:
-    'Bagaimana Rumah Pekerja Indonesia mengumpulkan, menggunakan, dan melindungi data pribadi pencari kerja dan mitra perekrut.',
+    'Bagaimana SSN Pekerja mengumpulkan, menggunakan, dan melindungi data pribadi pencari kerja dan mitra perekrut.',
 }
 
 export default function PrivacyPage() {
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
           {
             heading: '6. Hubungi Kami',
             paragraphs: [
-              'Untuk pertanyaan terkait privasi, hubungi kami di hello@rumahpekerja.id.',
+              'Untuk pertanyaan terkait privasi, hubungi kami di hello@pekerja.sainskerta.net.',
             ],
           },
         ]}

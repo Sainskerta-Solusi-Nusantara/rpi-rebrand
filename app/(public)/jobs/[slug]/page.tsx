@@ -339,7 +339,7 @@ export default async function JobDetailPage({ params }: { params: Params }) {
                   kerja jika profil Anda cocok.
                 </p>
                 <p className="text-muted-foreground mt-3 text-xs">
-                  Lowongan ini dipublikasikan di Rumah Pekerja Indonesia.
+                  Lowongan ini dipublikasikan di SSN Pekerja.
                   Pastikan profil Anda lengkap untuk meningkatkan peluang dilirik.
                 </p>
               </Block>
@@ -479,7 +479,7 @@ export default async function JobDetailPage({ params }: { params: Params }) {
           </h2>
           <p className="text-muted-foreground mx-auto mt-3 max-w-xl text-sm">
             Klik lamar dan biarkan {job.company} melihat profil Anda. Tidak
-            perlu cover letter formal — profil RPI Anda sudah cukup.
+            perlu cover letter formal — profil SSN Anda sudah cukup.
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             {userId && existingApplicationStatus ? (

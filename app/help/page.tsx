@@ -2,9 +2,9 @@ import Link from 'next/link'
 import { LifeBuoy, Mail, ChevronRight } from 'lucide-react'
 
 export const metadata = {
-  title: 'Bantuan & FAQ — RumahPekerja',
+  title: 'Bantuan & FAQ — SSN Pekerja',
   description:
-    'Pusat bantuan RumahPekerja: jawaban atas pertanyaan umum seputar lowongan, lamaran, kursus, dan akun.',
+    'Pusat bantuan SSN Pekerja: jawaban atas pertanyaan umum seputar lowongan, lamaran, kursus, dan akun.',
 }
 
 type Faq = { q: string; a: string }

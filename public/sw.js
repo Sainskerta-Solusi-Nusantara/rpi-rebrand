@@ -1,6 +1,6 @@
 /* eslint-disable */
 /**
- * RPI Service Worker — minimal Web Push handler.
+ * SSN Service Worker — minimal Web Push handler.
  *
  * No caching/offline strategy is implemented yet; this worker exists solely to
  * deliver Web Push notifications. It is intentionally pure JS so it requires
@@ -29,14 +29,14 @@ self.addEventListener('push', (event) => {
       payload = event.data.json()
     } catch (err) {
       try {
-        payload = { title: 'RPI', body: event.data.text() }
+        payload = { title: 'SSN', body: event.data.text() }
       } catch (_) {
-        payload = { title: 'RPI', body: 'Anda memiliki notifikasi baru.' }
+        payload = { title: 'SSN', body: 'Anda memiliki notifikasi baru.' }
       }
     }
   }
 
-  const title = payload.title || 'Rumah Pekerja Indonesia'
+  const title = payload.title || 'SSN Pekerja'
   const options = {
     body: payload.body || '',
     icon: payload.icon || '/icon-192.png',

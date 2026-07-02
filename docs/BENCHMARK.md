@@ -1,4 +1,4 @@
-# BENCHMARK — Rumah Pekerja Indonesia (RPI)
+# BENCHMARK — SSN Pekerja (SSN)
 
 > Analisis pasar, kompetitor, dan strategi diferensiasi untuk platform SaaS Job Seeker + LMS terintegrasi di Indonesia.
 
@@ -10,9 +10,10 @@
 
 ## 1. Ringkasan Eksekutif
 
-Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platform multi-tenant** yang menjembatani sektor pemerintah, BUMN, dan swasta — dilengkapi **Learning Management System (LMS) terintegrasi** dengan jalur sertifikasi BNSP. Kompetitor existing (Glints, Jobstreet, Indeed, LinkedIn) berfokus pada job matching murni; pemain LMS (Skill Academy, Pintaria, RevoU) berfokus pada pelatihan saja. RPI menutup *gap* dengan **single-funnel discover-learn-certify-hire** sekaligus **white-label SaaS untuk partner** (universitas, BLK, dinas tenaga kerja, korporasi).
+SSN Pekerja (SSN) memposisikan diri sebagai **SaaS job-seeker platform multi-tenant** yang menjembatani sektor pemerintah, BUMN, dan swasta — dilengkapi **Learning Management System (LMS) terintegrasi** dengan jalur sertifikasi BNSP. Kompetitor existing (Glints, Jobstreet, Indeed, LinkedIn) berfokus pada job matching murni; pemain LMS (Skill Academy, Pintaria, RevoU) berfokus pada pelatihan saja. SSN menutup _gap_ dengan **single-funnel discover-learn-certify-hire** sekaligus **white-label SaaS untuk partner** (universitas, BLK, dinas tenaga kerja, korporasi).
 
 **TAM (Total Addressable Market) Indonesia 2026:**
+
 - 144 juta angkatan kerja (BPS)
 - ~9.9 juta pengangguran terbuka
 - ~64 juta tenaga kerja di sektor informal yang ingin formalisasi
@@ -27,14 +28,14 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 
 ## 2. Segmentasi Pasar
 
-| Segmen | Estimasi Populasi | Pain Point Utama | Willingness to Pay | Channel |
-|---|---|---|---|---|
-| **Fresh Graduate (D3/S1)** | ~12 jt/tahun | Pengalaman nol, CV lemah, butuh sertifikasi | Rendah (gratis + freemium course) | Kampus, social media, BEM |
-| **Blue-collar / Vocational** | ~40 jt | Akses lowongan terbatas, sertifikasi BNSP mahal | Sangat rendah (subsidi pemerintah/CSR) | BLK, dinas, agen TKI |
-| **Mid-career Professional** | ~18 jt | Career switch, upskilling, headhunt visibility | Sedang (Rp 99-499k/bulan untuk premium) | LinkedIn, alumni network |
-| **Executive / Senior** | ~2 jt | Konfidensialitas, executive search, board roles | Tinggi (Rp 1-5 jt/bulan) | Private network, headhunter |
-| **Tenaga Kerja Migran (PMI)** | ~9 jt | Verifikasi penyalur, pelatihan bahasa, legalitas | Rendah (subsidi BP2MI) | BP2MI, P3MI |
-| **UMKM Owner Hiring** | ~64 jt UMKM | Akses talenta terjangkau, no HR team | Rendah (Rp 99-299k untuk post) | Marketplace, komunitas |
+| Segmen                        | Estimasi Populasi | Pain Point Utama                                 | Willingness to Pay                      | Channel                     |
+| ----------------------------- | ----------------- | ------------------------------------------------ | --------------------------------------- | --------------------------- |
+| **Fresh Graduate (D3/S1)**    | ~12 jt/tahun      | Pengalaman nol, CV lemah, butuh sertifikasi      | Rendah (gratis + freemium course)       | Kampus, social media, BEM   |
+| **Blue-collar / Vocational**  | ~40 jt            | Akses lowongan terbatas, sertifikasi BNSP mahal  | Sangat rendah (subsidi pemerintah/CSR)  | BLK, dinas, agen TKI        |
+| **Mid-career Professional**   | ~18 jt            | Career switch, upskilling, headhunt visibility   | Sedang (Rp 99-499k/bulan untuk premium) | LinkedIn, alumni network    |
+| **Executive / Senior**        | ~2 jt             | Konfidensialitas, executive search, board roles  | Tinggi (Rp 1-5 jt/bulan)                | Private network, headhunter |
+| **Tenaga Kerja Migran (PMI)** | ~9 jt             | Verifikasi penyalur, pelatihan bahasa, legalitas | Rendah (subsidi BP2MI)                  | BP2MI, P3MI                 |
+| **UMKM Owner Hiring**         | ~64 jt UMKM       | Akses talenta terjangkau, no HR team             | Rendah (Rp 99-299k untuk post)          | Marketplace, komunitas      |
 
 ---
 
@@ -64,7 +65,7 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 ### 3.2 Glints
 
 - **Positioning:** Career discovery platform untuk Gen-Z & Millennials Asia Tenggara.
-- **USP:** UI/UX modern, komunitas aktif, kategori jobs untuk fresh grad & part-time, *Glints ExpertClass* untuk live learning.
+- **USP:** UI/UX modern, komunitas aktif, kategori jobs untuk fresh grad & part-time, _Glints ExpertClass_ untuk live learning.
 - **Pricing (Employer):**
   - Job Post Basic: Rp 0 (limited visibility)
   - Job Post Boost: Rp 199k-499k per post
@@ -179,27 +180,27 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 
 ## 4. Matriks Fitur Komparatif
 
-| Fitur | Glints | Jobstreet | Indeed | LinkedIn | Kalibrr | Skill Academy | RPI (target) |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Job board public | YES | YES | YES | YES | YES | NO | YES |
-| AI job matching | YES | partial | YES | YES | YES | NO | YES |
-| ATS untuk employer | partial | YES | partial | YES | YES | NO | YES |
-| Talent search | YES | YES | YES | YES | YES | NO | YES |
-| LMS native | partial | NO | NO | YES (global) | NO | YES | YES |
-| Sertifikasi BNSP | NO | NO | NO | NO | NO | partial | YES |
-| Kartu Prakerja integration | NO | NO | NO | NO | NO | YES | YES |
-| Multi-tenant / White-label | NO | NO | NO | NO | NO | NO | YES |
-| Partner SaaS (univ/BLK/dinas) | NO | NO | NO | NO | NO | NO | YES |
-| Komunitas / forum | YES | NO | NO | YES | NO | partial | YES |
-| Mentor / coaching | partial | NO | NO | YES | NO | YES | YES |
-| Job fair virtual | partial | YES | NO | partial | NO | NO | YES |
-| NIK / KTP verification | NO | NO | NO | NO | NO | NO | YES |
-| BPJS / payroll integration | NO | NO | NO | NO | NO | NO | YES (v1.5) |
-| Multi-language (id/en) | partial | YES | YES | YES | YES | YES (id) | YES |
-| Blue-collar focus | partial | partial | partial | NO | NO | NO | YES |
-| Executive search | partial | YES | partial | YES | partial | NO | YES (v2.0) |
-| Mobile-first PWA | partial | partial | YES | YES | partial | YES | YES |
-| Programmatic SEO | partial | YES | YES | YES | partial | YES | YES |
+| Fitur                         | Glints  | Jobstreet | Indeed  |   LinkedIn   | Kalibrr | Skill Academy | SSN (target) |
+| ----------------------------- | :-----: | :-------: | :-----: | :----------: | :-----: | :-----------: | :----------: |
+| Job board public              |   YES   |    YES    |   YES   |     YES      |   YES   |      NO       |     YES      |
+| AI job matching               |   YES   |  partial  |   YES   |     YES      |   YES   |      NO       |     YES      |
+| ATS untuk employer            | partial |    YES    | partial |     YES      |   YES   |      NO       |     YES      |
+| Talent search                 |   YES   |    YES    |   YES   |     YES      |   YES   |      NO       |     YES      |
+| LMS native                    | partial |    NO     |   NO    | YES (global) |   NO    |      YES      |     YES      |
+| Sertifikasi BNSP              |   NO    |    NO     |   NO    |      NO      |   NO    |    partial    |     YES      |
+| Kartu Prakerja integration    |   NO    |    NO     |   NO    |      NO      |   NO    |      YES      |     YES      |
+| Multi-tenant / White-label    |   NO    |    NO     |   NO    |      NO      |   NO    |      NO       |     YES      |
+| Partner SaaS (univ/BLK/dinas) |   NO    |    NO     |   NO    |      NO      |   NO    |      NO       |     YES      |
+| Komunitas / forum             |   YES   |    NO     |   NO    |     YES      |   NO    |    partial    |     YES      |
+| Mentor / coaching             | partial |    NO     |   NO    |     YES      |   NO    |      YES      |     YES      |
+| Job fair virtual              | partial |    YES    |   NO    |   partial    |   NO    |      NO       |     YES      |
+| NIK / KTP verification        |   NO    |    NO     |   NO    |      NO      |   NO    |      NO       |     YES      |
+| BPJS / payroll integration    |   NO    |    NO     |   NO    |      NO      |   NO    |      NO       |  YES (v1.5)  |
+| Multi-language (id/en)        | partial |    YES    |   YES   |     YES      |   YES   |   YES (id)    |     YES      |
+| Blue-collar focus             | partial |  partial  | partial |      NO      |   NO    |      NO       |     YES      |
+| Executive search              | partial |    YES    | partial |     YES      | partial |      NO       |  YES (v2.0)  |
+| Mobile-first PWA              | partial |  partial  |   YES   |     YES      | partial |      YES      |     YES      |
+| Programmatic SEO              | partial |    YES    |   YES   |     YES      | partial |      YES      |     YES      |
 
 ---
 
@@ -213,32 +214,38 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 
 ---
 
-## 6. Strategi Diferensiasi RPI
+## 6. Strategi Diferensiasi SSN
 
 ### 6.1 Bridge Pemerintah-Swasta
+
 - Partnership formal dengan Kemnaker (BPJS Ketenagakerjaan, BLK, Kartu Prakerja).
 - Integrasi data sertifikasi BNSP — kandidat dapat menampilkan sertifikat resmi langsung di profil.
 - API publik untuk dinas tenaga kerja daerah & BP2MI.
 
 ### 6.2 LMS Terintegrasi — "Learn to Earn"
-- Setiap job listing dapat menyarankan *learning path* untuk skill yang missing.
+
+- Setiap job listing dapat menyarankan _learning path_ untuk skill yang missing.
 - Sertifikat hasil training auto-attach ke CV.
 - Partnership BNSP & LSP untuk sertifikasi resmi end-to-end (asesmen, hasil, blockchain credential).
 
 ### 6.3 White-Label SaaS untuk Partner
-- Setiap partner (universitas, BLK, korporasi) mendapat **subdomain** (e.g. `telkom.rumahpekerja.id`, `ui.rumahpekerja.id`).
+
+- Setiap partner (universitas, BLK, korporasi) mendapat **subdomain** (e.g. `telkom.pekerja.sainskerta.net`, `ui.pekerja.sainskerta.net`).
 - Branding partner (logo, warna), namun infrastruktur shared.
 - Partner mengelola alumni/karyawan/peserta sendiri dengan privacy isolation (Postgres RLS).
 
 ### 6.4 Multi-tenant Native
+
 - Tenant_id everywhere, Postgres RLS untuk isolasi data.
 - Single codebase, single deployment — economies of scale.
 
 ### 6.5 AI-Native Matching
+
 - Embedding-based semantic search (vector DB), LLM untuk JD-to-CV scoring & feedback.
 - Personalized learning recommendation per kandidat.
 
 ### 6.6 Localized Hyper-Verticals
+
 - Hyper-vertical untuk: PMI (Pekerja Migran Indonesia), Tenaga Kesehatan, IT/Tech, F&B, Manufaktur, Kreatif.
 
 ---
@@ -247,14 +254,15 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 
 ### 7.1 Partner SaaS Tier (B2B2C Multi-tenant)
 
-| Tier | Harga / bulan | Target | Fitur Utama |
-|---|---|---|---|
-| **Free** | Rp 0 | Komunitas kecil, UMKM, BEM | 1 admin, 10 job post/bln, 100 user, branding RPI |
-| **Pro** | Rp 990k | UMKM growing, sekolah vokasi | 3 admin, 50 job post, 1k user, custom subdomain, basic ATS |
-| **Business** | Rp 3.9 jt | Universitas, BLK, korporasi medium | 10 admin, unlimited job post, 10k user, full ATS, talent search, LMS, custom branding |
-| **Enterprise** | Custom (mulai Rp 15 jt) | BUMN, korporasi besar, dinas | Unlimited, SSO/SAML, SLA 99.9%, dedicated CSM, custom integration, on-prem option |
+| Tier           | Harga / bulan           | Target                             | Fitur Utama                                                                           |
+| -------------- | ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------------- |
+| **Free**       | Rp 0                    | Komunitas kecil, UMKM, BEM         | 1 admin, 10 job post/bln, 100 user, branding SSN                                      |
+| **Pro**        | Rp 990k                 | UMKM growing, sekolah vokasi       | 3 admin, 50 job post, 1k user, custom subdomain, basic ATS                            |
+| **Business**   | Rp 3.9 jt               | Universitas, BLK, korporasi medium | 10 admin, unlimited job post, 10k user, full ATS, talent search, LMS, custom branding |
+| **Enterprise** | Custom (mulai Rp 15 jt) | BUMN, korporasi besar, dinas       | Unlimited, SSO/SAML, SLA 99.9%, dedicated CSM, custom integration, on-prem option     |
 
 ### 7.2 Add-on Per-tenant
+
 - **Job Boost:** Rp 99k-299k per posting untuk top-of-feed
 - **Talent Search seat:** Rp 1.9 jt/seat/bulan
 - **AI Screening Add-on:** Rp 990k/bulan untuk auto-shortlist
@@ -262,15 +270,18 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 - **Sertifikasi BNSP Brokering:** Rp 500k-2 jt/sertifikasi (commission)
 
 ### 7.3 Direct B2C (Job Seeker)
+
 - **Free:** Apply unlimited, basic profile
 - **Premium Rp 49k/bulan:** Profile boost, AI CV review, mock interview AI, no-ads
 - **Premium Pro Rp 149k/bulan:** Career coaching call, salary benchmark, executive privacy mode
 
 ### 7.4 LMS Revenue Share
-- Course price ditetapkan instructor; RPI ambil 30% commission.
+
+- Course price ditetapkan instructor; SSN ambil 30% commission.
 - Bundle subscription "All-access" Rp 199k/bulan dengan revenue distribution per-completion.
 
 ### 7.5 Estimasi Revenue Mix (Y3 target)
+
 - Partner SaaS subscription: 55%
 - Job posting add-on (per-tenant): 20%
 - LMS revenue share: 12%
@@ -282,6 +293,7 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 ## 8. Roadmap 4 Fase
 
 ### Phase 1 — MVP (Bulan 0-3)
+
 - Auth (NextAuth credentials + Google)
 - Multi-tenant base: subdomain routing, tenant_id, RLS dasar
 - Job board: list, detail, apply
@@ -292,6 +304,7 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 - **Tujuan:** Validate product-market fit, 1k DAU
 
 ### Phase 2 — v1.0 (Bulan 4-7)
+
 - LMS module: course catalog, video lessons, quiz, sertifikat
 - AI CV review (LLM)
 - AI job matching (embedding)
@@ -302,6 +315,7 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 - **Tujuan:** 10k DAU, 50 paying partner, MRR Rp 200 jt
 
 ### Phase 3 — v1.5 (Bulan 8-12)
+
 - BNSP sertifikasi integration
 - Kartu Prakerja partnership
 - Talent Search untuk recruiter
@@ -313,6 +327,7 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 - **Tujuan:** 50k DAU, 200 partner, MRR Rp 1 M
 
 ### Phase 4 — v2.0 (Bulan 13-24)
+
 - Enterprise tier (SSO, SLA, dedicated)
 - Executive search confidential mode
 - Marketplace freelance / project-based
@@ -327,42 +342,44 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 
 ## 9. Risiko & Mitigasi
 
-| Risiko | Likelihood | Impact | Mitigasi |
-|---|---|---|---|
-| Kompetitor incumbent (Glints, Jobstreet) replikasi LMS+job | High | High | Speed-to-market, partnership pemerintah eksklusif, network effect partner |
-| Regulasi data privacy (UU PDP) | Medium | High | DPO sejak hari-1, audit kepatuhan, enkripsi at-rest, RLS, data residency Jakarta |
-| Customer acquisition cost (CAC) tinggi B2C | High | Medium | Channel B2B2C via partner — partner bring users |
-| Multi-tenant data leak | Low | Critical | RLS strict, automated tenant isolation tests, pentest tahunan |
-| Konten LMS kurang quality | Medium | Medium | Kurasi instruktur, partnership BNSP/LSP, peer review |
-| Kandidat fraud (fake CV) | High | Medium | KTP/NIK verifikasi, BPJS check, mutual rating |
-| Partner churn | Medium | High | Onboarding success team, quarterly business review, value-add features |
+| Risiko                                                     | Likelihood | Impact   | Mitigasi                                                                         |
+| ---------------------------------------------------------- | ---------- | -------- | -------------------------------------------------------------------------------- |
+| Kompetitor incumbent (Glints, Jobstreet) replikasi LMS+job | High       | High     | Speed-to-market, partnership pemerintah eksklusif, network effect partner        |
+| Regulasi data privacy (UU PDP)                             | Medium     | High     | DPO sejak hari-1, audit kepatuhan, enkripsi at-rest, RLS, data residency Jakarta |
+| Customer acquisition cost (CAC) tinggi B2C                 | High       | Medium   | Channel B2B2C via partner — partner bring users                                  |
+| Multi-tenant data leak                                     | Low        | Critical | RLS strict, automated tenant isolation tests, pentest tahunan                    |
+| Konten LMS kurang quality                                  | Medium     | Medium   | Kurasi instruktur, partnership BNSP/LSP, peer review                             |
+| Kandidat fraud (fake CV)                                   | High       | Medium   | KTP/NIK verifikasi, BPJS check, mutual rating                                    |
+| Partner churn                                              | Medium     | High     | Onboarding success team, quarterly business review, value-add features           |
 
 ---
 
 ## 10. Success Metrics (North Star + Driver)
 
 ### North Star
-**Active Successful Placements per Month** — jumlah job seeker yang mendapat pekerjaan terverifikasi via RPI tiap bulan.
+
+**Active Successful Placements per Month** — jumlah job seeker yang mendapat pekerjaan terverifikasi via SSN tiap bulan.
 
 ### Driver Metrics
-| Kategori | Metric | Target Y1 | Target Y3 |
-|---|---|---|---|
-| Growth | MAU | 50k | 1 M |
-| Growth | DAU | 10k | 200k |
-| Engagement | DAU/MAU ratio | 20% | 25% |
-| Engagement | Avg session/user/bln | 3 | 8 |
-| Conversion | Apply rate (view → apply) | 8% | 15% |
-| Conversion | Application → interview rate | 12% | 20% |
-| Conversion | Interview → hire rate | 30% | 35% |
-| Quality | Time-to-hire (median) | 28 hari | 14 hari |
-| Quality | Fill rate (jobs filled %) | 35% | 60% |
-| LMS | Course completion rate | 25% | 45% |
-| LMS | Cert → job placement % | 15% | 30% |
-| Monetisasi | Paying partner count | 50 | 1000 |
-| Monetisasi | MRR | Rp 200 jt | Rp 5 M |
-| Retention | Partner net retention | 95% | 115% |
-| NPS | Job seeker NPS | 30 | 55 |
-| NPS | Partner NPS | 35 | 60 |
+
+| Kategori   | Metric                       | Target Y1 | Target Y3 |
+| ---------- | ---------------------------- | --------- | --------- |
+| Growth     | MAU                          | 50k       | 1 M       |
+| Growth     | DAU                          | 10k       | 200k      |
+| Engagement | DAU/MAU ratio                | 20%       | 25%       |
+| Engagement | Avg session/user/bln         | 3         | 8         |
+| Conversion | Apply rate (view → apply)    | 8%        | 15%       |
+| Conversion | Application → interview rate | 12%       | 20%       |
+| Conversion | Interview → hire rate        | 30%       | 35%       |
+| Quality    | Time-to-hire (median)        | 28 hari   | 14 hari   |
+| Quality    | Fill rate (jobs filled %)    | 35%       | 60%       |
+| LMS        | Course completion rate       | 25%       | 45%       |
+| LMS        | Cert → job placement %       | 15%       | 30%       |
+| Monetisasi | Paying partner count         | 50        | 1000      |
+| Monetisasi | MRR                          | Rp 200 jt | Rp 5 M    |
+| Retention  | Partner net retention        | 95%       | 115%      |
+| NPS        | Job seeker NPS               | 30        | 55        |
+| NPS        | Partner NPS                  | 35        | 60        |
 
 ---
 
@@ -370,16 +387,16 @@ Rumah Pekerja Indonesia (RPI) memposisikan diri sebagai **SaaS job-seeker platfo
 
 ### 11.1 Channel Acquisition
 
-| Channel | Segmen Target | Biaya | KPI |
-|---|---|---|---|
-| **Partnership B2B2C** (univ, BLK, dinas, korporasi) | Fresh grad, vocational, alumni | Sales-led, deal-based | Partner signed, MAU per partner |
-| **SEO programmatic** | Mass-market jobseeker | Low (konten + dev) | Organic sessions, indexed pages |
-| **Konten Instagram/TikTok** | Gen-Z, fresh grad | Medium (creator fees) | Followers, engagement, sign-up |
-| **Komunitas / event kampus** | Mahasiswa tingkat akhir | Medium (event ops) | Hadirin, lead capture |
-| **Performance marketing** (Meta, Google Ads) | Active jobseeker | High (CAC Rp 30-80k/sign-up) | CAC, LTV ratio |
-| **Influencer / KOL** | Profesional muda | Medium-high | Reach, brand recall |
-| **Referral / loyalty** | Existing user | Low | Viral coefficient |
-| **PR & thought leadership** | B2B decision maker | Medium | Press mentions, demo request |
+| Channel                                             | Segmen Target                  | Biaya                        | KPI                             |
+| --------------------------------------------------- | ------------------------------ | ---------------------------- | ------------------------------- |
+| **Partnership B2B2C** (univ, BLK, dinas, korporasi) | Fresh grad, vocational, alumni | Sales-led, deal-based        | Partner signed, MAU per partner |
+| **SEO programmatic**                                | Mass-market jobseeker          | Low (konten + dev)           | Organic sessions, indexed pages |
+| **Konten Instagram/TikTok**                         | Gen-Z, fresh grad              | Medium (creator fees)        | Followers, engagement, sign-up  |
+| **Komunitas / event kampus**                        | Mahasiswa tingkat akhir        | Medium (event ops)           | Hadirin, lead capture           |
+| **Performance marketing** (Meta, Google Ads)        | Active jobseeker               | High (CAC Rp 30-80k/sign-up) | CAC, LTV ratio                  |
+| **Influencer / KOL**                                | Profesional muda               | Medium-high                  | Reach, brand recall             |
+| **Referral / loyalty**                              | Existing user                  | Low                          | Viral coefficient               |
+| **PR & thought leadership**                         | B2B decision maker             | Medium                       | Press mentions, demo request    |
 
 ### 11.2 Phase-wise Channel Mix
 
@@ -407,6 +424,7 @@ Target conversion rate end-to-end: ~4% di Phase 2; 8% di Phase 3 setelah case st
 - **Enterprise (Custom 15 jt+)** = ruang negosiasi untuk procurement; tampilkan "starting from" tanpa cap.
 
 ### 12.1 Discount Strategy
+
 - Annual prepay: -15%
 - Komitmen 3 tahun: -25%
 - Non-profit / pemerintah daerah: -30% (CSR positioning)

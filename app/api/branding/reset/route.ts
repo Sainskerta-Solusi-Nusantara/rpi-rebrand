@@ -1,7 +1,7 @@
 /**
  * POST /api/branding/reset
  *
- * Resets the current tenant's branding to RPI defaults by deleting the
+ * Resets the current tenant's branding to SSN defaults by deleting the
  * Branding row (Prisma will recreate with column defaults on next upsert)
  * or re-writing to defaults explicitly. We chose to upsert with defaults
  * so the row remains for audit and consistent reads.

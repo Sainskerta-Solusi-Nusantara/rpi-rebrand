@@ -6,7 +6,7 @@
  * Wraps the app and:
  *   1. Holds the active token set in React state.
  *   2. Generates a `:root { ... }` CSS string via `generateBrandingCss`.
- *   3. Injects (or updates) a single <style id="rpi-branding"> tag in <head>.
+ *   3. Injects (or updates) a single <style id="ssn-branding"> tag in <head>.
  *
  * The `initial` prop is normally seeded from the server using tokens from
  * `getTenantBranding`. Children can call `useBranding()` to read or mutate
@@ -77,7 +77,7 @@ export function ThemeProvider({ initial, customCss, children }: ThemeProviderPro
         without remounting.
       */}
       <style
-        id="rpi-branding"
+        id="ssn-branding"
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: css }}
       />

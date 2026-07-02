@@ -78,7 +78,7 @@ export async function ReferralLeaderboard({
                           </span>
                         )}
                         <span className="font-medium">
-                          {r.userName ?? 'Pengguna RPI'}
+                          {r.userName ?? 'Pengguna SSN'}
                           {isMe && (
                             <span className="text-primary ml-1 text-xs">
                               (Anda)

@@ -31,7 +31,7 @@ import {
 export const metadata: Metadata = {
   title: 'Press & Media',
   description:
-    'Siaran pers, peliputan media, dan press kit Rumah Pekerja Indonesia. Materi resmi untuk jurnalis, peneliti, dan mitra media.',
+    'Siaran pers, peliputan media, dan press kit SSN Pekerja. Materi resmi untuk jurnalis, peneliti, dan mitra media.',
 }
 
 const SORT_LABEL: Record<PressSort, string> = {
@@ -279,7 +279,7 @@ export default function PressPage({
                   Arsip Lengkap
                 </div>
                 <p className="text-muted-foreground mt-1 text-sm">
-                  Semua siaran pers RPI dikelompokkan per tahun.
+                  Semua siaran pers SSN dikelompokkan per tahun.
                 </p>
               </div>
             </Link>

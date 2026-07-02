@@ -1,8 +1,9 @@
-# WIREFRAME.md — Rumah Pekerja Indonesia (RPI)
+# WIREFRAME.md — SSN Pekerja (SSN)
 
-Kumpulan wireframe ASCII untuk seluruh halaman & alur RPI. Setiap blok diikuti **anotasi**: interaksi, breakpoint, komponen yang dipakai. Layout di sini bersifat indikatif — proporsi presisi mengikuti UIUX.md & FRONTEND.md.
+Kumpulan wireframe ASCII untuk seluruh halaman & alur SSN. Setiap blok diikuti **anotasi**: interaksi, breakpoint, komponen yang dipakai. Layout di sini bersifat indikatif — proporsi presisi mengikuti UIUX.md & FRONTEND.md.
 
 Legend:
+
 ```
 [ Button ]     button
 ( Input    )   input
@@ -20,14 +21,14 @@ Legend:
 
 ```
 +--------------------------------------------------------------------------------+
-| < RPI logo >   Lowongan   Kursus   Partner   Tentang   Harga      [Masuk] [Daftar] |
+| < SSN logo >   Lowongan   Kursus   Partner   Tentang   Harga      [Masuk] [Daftar] |
 +================================================================================+
 |                                          |                                     |
 |  Eyebrow:  PLATFORM KARIR INDONESIA       |   < Live Job Ticker >              |
 |                                          |   +-------------------------------+ |
 |  Heading (Playfair display-2xl):         |   | < Logo > PT Maju Jaya         | |
 |  "Bangun Karir Anda,                     |   |   Frontend Engineer · Jakarta | |
-|   dari Rumah Pekerja                     |   |   Rp 12-18 jt · 2 menit lalu  | |
+|   dari SSN Pekerja                     |   |   Rp 12-18 jt · 2 menit lalu  | |
 |   Indonesia."                            |   +-------------------------------+ |
 |                                          |   +-------------------------------+ |
 |  Sub (body-lg, max-w-prose):             |   | < Logo > Tokopedia            | |
@@ -71,11 +72,12 @@ Legend:
 |   Sub. [ Jadi Partner ]   [ Lihat Harga ]                                      |
 +================================================================================+
 |   < FOOTER >                                                                   |
-|   logo | Tentang | Karir | Blog | Privasi | Kontak     © 2026 RPI · id / en   |
+|   logo | Tentang | Karir | Blog | Privasi | Kontak     © 2026 SSN · id / en   |
 +--------------------------------------------------------------------------------+
 ```
 
 **Anotasi**:
+
 - Komponen: `Navbar Public`, `HeroSplitScreen`, `LiveJobTicker`, `StoryTestimonial`, `LmsPathTimeline`, `StatsBand`, `PartnerCta`, `FooterPublic`.
 - Hero kiri: heading Playfair `display-2xl`, sub `body-lg`, CTA primary (navy) + secondary (gold outline → terisi).
 - Live ticker (kanan): SWR poll 30 detik, scroll auto vertikal CSS keyframe, jeda saat hover.
@@ -87,11 +89,11 @@ Legend:
 
 ```
 +----------------------------+
-| < hamburger > RPI   [Masuk]|
+| < hamburger > SSN   [Masuk]|
 +----------------------------+
 | PLATFORM KARIR INDONESIA   |
 | Bangun Karir Anda,         |
-| dari Rumah Pekerja         |
+| dari SSN Pekerja         |
 | Indonesia.                 |
 |                            |
 | Temukan lowongan, ikuti... |
@@ -134,6 +136,7 @@ Legend:
 ```
 
 **Anotasi**:
+
 - Stack vertikal. Hero ticker jadi card horizontal scroll.
 - Bottom-nav hanya untuk user terotentikasi.
 - Hamburger membuka drawer kiri.
@@ -172,6 +175,7 @@ Legend:
 ```
 
 **Anotasi**:
+
 - Komponen: `JobList`, `JobCard`, `FilterPanel`, `Pagination`, `SearchBar`.
 - Filter via URL searchParams (`?loc=jakarta&type=full-time`).
 - Card hover: shadow-md + border darker.
@@ -213,6 +217,7 @@ Legend:
 ```
 
 **Anotasi**:
+
 - 2 kolom desktop (8:4). Kanan sticky.
 - `[Lamar Sekarang]` memicu intercepting modal `/jobs/[slug]/apply`.
 - Mobile: ringkasan jadi accordion atas, deskripsi di bawah.
@@ -240,6 +245,7 @@ Legend:
 ```
 
 **Anotasi**:
+
 - Grid 4 kolom xl, 3 lg, 2 md, 1 sm.
 - Thumbnail aspect 16:9.
 
@@ -274,14 +280,15 @@ Legend:
 ```
 
 **Anotasi**:
+
 - Komponen: `CoursePlayer` (preview), `Tabs`, `CurriculumTree`, `ReviewList`.
 - Kanan card sticky.
 
-### A7. Partner Career Page (subdomain `tokopedia.rpi.id`)
+### A7. Partner Career Page (subdomain `tokopedia.ssn.id`)
 
 ```
 +--------------------------------------------------------------------------------+
-| < Tenant Logo > Tokopedia Careers   [Lowongan] [Tentang Kami]  [Powered by RPI]|
+| < Tenant Logo > Tokopedia Careers   [Lowongan] [Tentang Kami]  [Powered by SSN]|
 +================================================================================+
 | Hero penuh tenant warna brand                                                  |
 | H1: "Bangun Indonesia bersama Tokopedia"                                       |
@@ -291,13 +298,14 @@ Legend:
 | Section: Kultur & Benefit (carousel image)                                     |
 | Section: Lowongan Aktif — list job card                                        |
 +--------------------------------------------------------------------------------+
-| Footer minimal: powered by Rumah Pekerja Indonesia                             |
+| Footer minimal: powered by SSN Pekerja                             |
 +--------------------------------------------------------------------------------+
 ```
 
 **Anotasi**:
+
 - ThemeProvider override warna brand tenant.
-- Footer tetap pakai jejak "Powered by RPI" sebagai trust signal.
+- Footer tetap pakai jejak "Powered by SSN" sebagai trust signal.
 
 ### A8. About
 
@@ -336,6 +344,7 @@ Legend:
 ```
 
 **Anotasi**:
+
 - Card "Growth" diberi border gold + badge "Paling Populer".
 
 ### A10. Help Center
@@ -357,7 +366,7 @@ Legend:
 
 ```
 +--------------------------------------------------------------------------------+
-|                          < RPI logo >                                          |
+|                          < SSN logo >                                          |
 |                                                                                |
 |              +----------------------------------------+                        |
 |              | H2: Masuk ke Akun Anda                  |                        |
@@ -382,6 +391,7 @@ Legend:
 ```
 
 **Anotasi**:
+
 - Form: react-hook-form + Zod. Error inline di bawah field.
 - Submit memanggil server action `signIn()` → redirect role-aware.
 
@@ -473,6 +483,7 @@ Mini-sidebar kolom 56px. Hover/pin expand ke 240px dengan label di samping ikon.
 ```
 
 **Anotasi**:
+
 - Drag & drop antar kolom (react-dnd). Update via server action.
 - Card menampilkan logo, posisi, perusahaan, tanggal, badge urgensi.
 
@@ -524,6 +535,7 @@ Mini-sidebar kolom 56px. Hover/pin expand ke 240px dengan label di samping ikon.
 ```
 
 **Anotasi**:
+
 - Form left, preview right (sticky). Mobile: tab Form / Preview.
 - Autosave per 5 detik via server action debounced.
 
@@ -577,7 +589,7 @@ Mini-sidebar kolom 56px. Hover/pin expand ke 240px dengan label di samping ikon.
 | FE Eng | JKT    | 42      | Aktif  | [Lihat] [Pause] [Tutup]                   |
 | ...                                                                            |
 +--------------------------------------------------------------------------------+
-| { ACTIVITY FEED }                          { TIPS DARI RPI }                   |
+| { ACTIVITY FEED }                          { TIPS DARI SSN }                   |
 | - 5 lamaran baru                            - Tips menulis JD efektif          |
 +--------------------------------------------------------------------------------+
 ```
@@ -619,6 +631,7 @@ Mini-sidebar kolom 56px. Hover/pin expand ke 240px dengan label di samping ikon.
 ```
 
 **Anotasi**:
+
 - Privasi: kontak hidden sampai partner klik [Hubungi] (kredit dipotong).
 - SWR untuk live result count saat filter berubah.
 
@@ -674,7 +687,7 @@ Mini-sidebar kolom 56px. Hover/pin expand ke 240px dengan label di samping ikon.
 |  Body:    [Inter v]    |                                                       |
 |                        |                                                       |
 | Subdomain              |                                                       |
-|  ( tokopedia ).rpi.id  |                                                       |
+|  ( tokopedia ).ssn.id  |                                                       |
 |                        |                                                       |
 | [ Simpan Perubahan ]   |                                                       |
 | [ Reset ke Default ]   |                                                       |
@@ -682,6 +695,7 @@ Mini-sidebar kolom 56px. Hover/pin expand ke 240px dengan label di samping ikon.
 ```
 
 **Anotasi**:
+
 - Live preview via Zustand `useBrandingPreview` patching CSS vars di iframe.
 - Submit → server action update tenant theme + revalidateTag.
 
@@ -774,7 +788,7 @@ Mini-sidebar kolom 56px. Hover/pin expand ke 240px dengan label di samping ikon.
 ```
 +--------------------------------------------------------------------------------+
 | H2: Branding Default Platform                                                  |
-| Editor warna + preview (sama dengan partner branding namun untuk seluruh RPI). |
+| Editor warna + preview (sama dengan partner branding namun untuk seluruh SSN). |
 | Hanya superadmin.                                                              |
 +--------------------------------------------------------------------------------+
 ```
@@ -844,7 +858,7 @@ Step 4: ringkasan + checkbox setuju + [ Kirim Lamaran ].
 | Peran: ( ) Admin  ( ) Recruiter  ( ) Viewer                 |
 |                                                             |
 | Pesan opsional:                                             |
-| ( Halo, mari bergabung di RPI dashboard kami...           )|
+| ( Halo, mari bergabung di SSN dashboard kami...           )|
 |                                                             |
 | [ Batal ]                       [ Kirim Undangan ]          |
 +-------------------------------------------------------------+
@@ -912,6 +926,7 @@ Step 4: ringkasan + checkbox setuju + [ Kirim Lamaran ].
 ```
 
 **Anotasi**:
+
 - Trigger global: Cmd+K / Ctrl+K.
 - Width 640px, top 20vh, shadow-2xl.
 - Fuzzy search (cmdk lib).
@@ -933,6 +948,7 @@ Step 4: ringkasan + checkbox setuju + [ Kirim Lamaran ].
 ```
 
 **Anotasi**:
+
 - Tinggi 64px + safe-area-inset-bottom.
 - Tombol tengah `[+]` floating gold — context-aware:
   - User: lamar cepat (jobs picker).

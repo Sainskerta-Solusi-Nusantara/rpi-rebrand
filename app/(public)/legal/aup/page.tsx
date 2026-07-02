@@ -5,7 +5,7 @@ import { LegalDocLayout } from '@/components/organisms/legal-doc-layout'
 export const metadata: Metadata = {
   title: 'Kebijakan Penggunaan yang Wajar',
   description:
-    'Acceptable Use Policy — batasan penggunaan platform Rumah Pekerja Indonesia yang dapat diterima.',
+    'Acceptable Use Policy — batasan penggunaan platform SSN Pekerja yang dapat diterima.',
 }
 
 export default function AcceptableUsePolicyPage() {
@@ -20,7 +20,7 @@ export default function AcceptableUsePolicyPage() {
           {
             heading: '1. Tujuan',
             paragraphs: [
-              'Kebijakan ini berlaku bagi semua pengguna — pencari kerja, mitra perekrut, dan pengunjung — yang mengakses layanan Rumah Pekerja Indonesia.',
+              'Kebijakan ini berlaku bagi semua pengguna — pencari kerja, mitra perekrut, dan pengunjung — yang mengakses layanan SSN Pekerja.',
             ],
           },
           {
@@ -41,7 +41,7 @@ export default function AcceptableUsePolicyPage() {
           {
             heading: '4. Pelaporan',
             paragraphs: [
-              'Laporkan dugaan penyalahgunaan ke hello@rumahpekerja.id agar dapat kami tindak lanjuti.',
+              'Laporkan dugaan penyalahgunaan ke hello@pekerja.sainskerta.net agar dapat kami tindak lanjuti.',
             ],
           },
         ]}

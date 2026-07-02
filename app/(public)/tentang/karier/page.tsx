@@ -11,9 +11,9 @@ import {
 } from '@/components/organisms/karier-sections'
 
 export const metadata: Metadata = {
-  title: 'Karier di RPI',
+  title: 'Karier di SSN',
   description:
-    'Bergabung dengan tim yang membangun infrastruktur kerja yang adil untuk Indonesia. Pelajari budaya, jalur tumbuh, dan kisah alumni RPI.',
+    'Bergabung dengan tim yang membangun infrastruktur kerja yang adil untuk Indonesia. Pelajari budaya, jalur tumbuh, dan kisah alumni SSN.',
 }
 
 export default function KarierPage() {

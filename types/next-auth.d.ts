@@ -1,5 +1,5 @@
 // Module augmentation for NextAuth.js — overrides Agent 4 placeholder.
-// Adds RPI-specific fields to Session.user, NextAuth User, and JWT.
+// Adds SSN-specific fields to Session.user, NextAuth User, and JWT.
 
 import type { DefaultSession, DefaultUser } from 'next-auth'
 import type { DefaultJWT } from 'next-auth/jwt'

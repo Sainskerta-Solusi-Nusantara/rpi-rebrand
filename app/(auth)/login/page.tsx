@@ -5,8 +5,8 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 import { LoginForm } from './login-form'
 
 export const metadata = {
-  title: 'Masuk · Rumah Pekerja Indonesia',
-  description: 'Masuk ke akun RPI Anda.',
+  title: 'Masuk · SSN Pekerja',
+  description: 'Masuk ke akun SSN Anda.',
 }
 
 export default async function LoginPage({

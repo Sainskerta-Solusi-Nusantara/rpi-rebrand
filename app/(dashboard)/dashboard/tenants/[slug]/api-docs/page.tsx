@@ -33,7 +33,7 @@ export default async function TenantApiDocsPage({
   }
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || 'https://app.rumahpekerja.id'
+    process.env.NEXT_PUBLIC_APP_URL || 'https://app.pekerja.sainskerta.net'
   const spec = buildOpenApiSpec({ slug: tenant.slug, baseUrl })
 
   const curlExample = `curl -H "Authorization: Bearer rpi_t_xxxxx..." \\

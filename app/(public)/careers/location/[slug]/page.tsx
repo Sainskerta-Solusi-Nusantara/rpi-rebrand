@@ -22,7 +22,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const location = findCareerLocation(params.slug)
   if (!location) return { title: 'Lokasi Tidak Ditemukan' }
   return {
-    title: `${location.name} — Karier di RPI`,
+    title: `${location.name} — Karier di SSN`,
     description: location.description,
   }
 }

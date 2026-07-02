@@ -15,7 +15,7 @@
  *   <description>           HTML, wrapped in CDATA
  *   <location>              free-form location string
  *   <city>                  best-effort split of location (first segment)
- *   <country>               defaults to Indonesia (RPI is Indonesia-only)
+ *   <country>               defaults to Indonesia (SSN is Indonesia-only)
  *   <jobtype>               mapped to LinkedIn job type vocabulary
  *   <workplaceTypes>        ON_SITE | REMOTE | HYBRID
  *   <listDate>              publishedAt (RFC3339)
@@ -108,7 +108,7 @@ export function buildLinkedInJobsXml(jobs: FeedJob[], baseUrl: string): string {
   const jobsXml = jobs.map((j) => buildJobElement(j, baseUrl)).join('\n')
 
   const header = [
-    `<publisher>${escapeXml('Rumah Pekerja Indonesia')}</publisher>`,
+    `<publisher>${escapeXml('SSN Pekerja')}</publisher>`,
     `<publisherurl>${escapeXml(baseUrl)}</publisherurl>`,
     `<lastBuildDate>${escapeXml(lastBuildDate)}</lastBuildDate>`,
   ].join('\n  ')

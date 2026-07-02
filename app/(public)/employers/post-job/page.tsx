@@ -5,7 +5,7 @@ import { FeatureLanding } from '@/components/organisms/feature-landing'
 export const metadata: Metadata = {
   title: 'Pasang Lowongan',
   description:
-    'Pasang lowongan kerja dan jangkau ratusan ribu kandidat berkualitas di Rumah Pekerja Indonesia.',
+    'Pasang lowongan kerja dan jangkau ratusan ribu kandidat berkualitas di SSN Pekerja.',
 }
 
 export default function PostJobPage() {

@@ -6,7 +6,7 @@ export type CareerLocationMeta = {
 }
 
 export const CAREER_LOCATIONS_META: CareerLocationMeta[] = [
-  { name: 'Jakarta', slug: 'jakarta', emoji: '🏙️', description: 'Kantor pusat RPI terletak di Jakarta. Sebagian besar tim Engineering, Product, Design, dan Partnership berbasis di sini dengan fleksibilitas hybrid.' },
+  { name: 'Jakarta', slug: 'jakarta', emoji: '🏙️', description: 'Kantor pusat SSN terletak di Jakarta. Sebagian besar tim Engineering, Product, Design, dan Partnership berbasis di sini dengan fleksibilitas hybrid.' },
   { name: 'Remote', slug: 'remote', emoji: '🌐', description: 'Bekerja dari mana saja di Indonesia. Kami menetapkan fleksibilitas penuh untuk peran-peran yang dapat dilakukan asinkron, dengan dukungan tooling kolaborasi yang matang.' },
   { name: 'Hybrid', slug: 'hybrid', emoji: '⚡', description: 'Kombinasi kerja dari kantor (umumnya Jakarta) dan jarak jauh. Tim mengatur ritme on-site mingguan sesuai kebutuhan kolaborasi.' },
   { name: 'Bandung', slug: 'bandung', emoji: '🏔️', description: 'Hub support dan beberapa peran operasional. Komunitas kerja yang erat dengan ekosistem startup dan kampus.' },

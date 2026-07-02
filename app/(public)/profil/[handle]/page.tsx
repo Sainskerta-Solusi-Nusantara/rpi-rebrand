@@ -38,19 +38,19 @@ export async function generateMetadata({
   const desc =
     profile.headline?.trim() ||
     profile.bio?.slice(0, 160).trim() ||
-    `Profil publik ${profile.displayName} di RPI.`
+    `Profil publik ${profile.displayName} di SSN.`
   return {
-    title: `${profile.displayName} — Profil RPI`,
+    title: `${profile.displayName} — Profil SSN`,
     description: desc,
     openGraph: {
-      title: `${profile.displayName} — Profil RPI`,
+      title: `${profile.displayName} — Profil SSN`,
       description: desc,
       type: 'profile',
       images: profile.image ? [{ url: profile.image }] : undefined,
     },
     twitter: {
       card: profile.image ? 'summary_large_image' : 'summary',
-      title: `${profile.displayName} — Profil RPI`,
+      title: `${profile.displayName} — Profil SSN`,
       description: desc,
     },
   }
@@ -99,7 +99,7 @@ export default async function PublicProfilePage({
       className="bg-background"
       // Deliberately-dark decorative hero palette, centralized here instead of
       // scattered hsl() literals. These stay constant across light/dark (the
-      // hero is a fixed dark "poster" with white text); /profil is RPI-global,
+      // hero is a fixed dark "poster" with white text); /profil is SSN-global,
       // not tenant-branded, so it does not flow through the branding tokens.
       style={
         {
@@ -163,7 +163,7 @@ export default async function PublicProfilePage({
             )}
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 backdrop-blur">
               <UserRound className="h-3.5 w-3.5" aria-hidden />
-              Profil publik RPI
+              Profil publik SSN
             </span>
           </div>
         </div>
@@ -427,7 +427,7 @@ export default async function PublicProfilePage({
               </h2>
             </div>
             <p className="text-muted-foreground -mt-4 mb-6 text-sm">
-              Lencana di bawah dikeluarkan oleh RPI setelah kandidat lulus
+              Lencana di bawah dikeluarkan oleh SSN setelah kandidat lulus
               asesmen keterampilan resmi.
             </p>
             <ul className="flex flex-wrap gap-2">
@@ -492,7 +492,7 @@ export default async function PublicProfilePage({
                 href="/mitra"
                 className="text-muted-foreground hover:text-foreground text-sm font-medium underline-offset-4 hover:underline"
               >
-                Jelajahi mitra RPI &rarr;
+                Jelajahi mitra SSN &rarr;
               </Link>
             </div>
             <div className="mt-5">

@@ -161,98 +161,98 @@ export default async function EmbedJobsPage({
 
   // Build inline CSS variables for the embed surface.
   const embedStyle = `
-    .rpi-embed {
-      --rpi-bg: ${bgColor};
-      --rpi-fg: ${fgColor};
-      --rpi-card: ${cardBg};
-      --rpi-border: ${borderColor};
-      --rpi-muted-fg: ${mutedFg};
-      --rpi-primary: ${primary};
-      --rpi-primary-fg: ${primaryFg};
-      --rpi-ring: ${ring};
-      --rpi-radius: ${radiusPx};
-      background: var(--rpi-bg);
-      color: var(--rpi-fg);
+    .ssn-embed {
+      --ssn-bg: ${bgColor};
+      --ssn-fg: ${fgColor};
+      --ssn-card: ${cardBg};
+      --ssn-border: ${borderColor};
+      --ssn-muted-fg: ${mutedFg};
+      --ssn-primary: ${primary};
+      --ssn-primary-fg: ${primaryFg};
+      --ssn-ring: ${ring};
+      --ssn-radius: ${radiusPx};
+      background: var(--ssn-bg);
+      color: var(--ssn-fg);
       font-family: ${safeFontName(tokens?.fontBody, 'Inter')}, ui-sans-serif, system-ui, sans-serif;
       min-height: 100vh;
       padding: 20px;
       box-sizing: border-box;
     }
-    .rpi-embed * { box-sizing: border-box; }
-    .rpi-embed-header {
+    .ssn-embed * { box-sizing: border-box; }
+    .ssn-embed-header {
       display: flex;
       align-items: center;
       gap: 12px;
       padding-bottom: 16px;
-      border-bottom: 1px solid var(--rpi-border);
+      border-bottom: 1px solid var(--ssn-border);
       margin-bottom: 20px;
     }
-    .rpi-embed-logo {
+    .ssn-embed-logo {
       height: 36px;
       width: auto;
       max-width: 160px;
       object-fit: contain;
     }
-    .rpi-embed-title {
+    .ssn-embed-title {
       font-family: ${safeFontName(tokens?.fontHeading, 'Playfair Display')}, ui-serif, serif;
       font-size: 18px;
       font-weight: 600;
       margin: 0;
       line-height: 1.2;
     }
-    .rpi-embed-subtitle {
+    .ssn-embed-subtitle {
       font-size: 12px;
-      color: var(--rpi-muted-fg);
+      color: var(--ssn-muted-fg);
       margin: 2px 0 0;
     }
-    .rpi-embed-list {
+    .ssn-embed-list {
       list-style: none;
       padding: 0;
       margin: 0;
       display: grid;
       gap: 10px;
     }
-    .rpi-embed-card {
-      background: var(--rpi-card);
-      border: 1px solid var(--rpi-border);
-      border-radius: var(--rpi-radius);
+    .ssn-embed-card {
+      background: var(--ssn-card);
+      border: 1px solid var(--ssn-border);
+      border-radius: var(--ssn-radius);
       padding: 14px 16px;
       display: flex;
       flex-direction: column;
       gap: 6px;
       transition: border-color .15s ease, transform .15s ease;
     }
-    .rpi-embed-card:hover { border-color: var(--rpi-ring); }
-    .rpi-embed-card-row {
+    .ssn-embed-card:hover { border-color: var(--ssn-ring); }
+    .ssn-embed-card-row {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
     }
-    .rpi-embed-job-title {
+    .ssn-embed-job-title {
       font-size: 15px;
       font-weight: 600;
       margin: 0;
-      color: var(--rpi-fg);
+      color: var(--ssn-fg);
     }
-    .rpi-embed-meta {
+    .ssn-embed-meta {
       font-size: 12px;
-      color: var(--rpi-muted-fg);
+      color: var(--ssn-muted-fg);
       display: flex;
       flex-wrap: wrap;
       gap: 4px 10px;
     }
-    .rpi-embed-meta span:not(:last-child)::after {
+    .ssn-embed-meta span:not(:last-child)::after {
       content: '·';
       margin-left: 10px;
-      color: var(--rpi-muted-fg);
+      color: var(--ssn-muted-fg);
     }
-    .rpi-embed-salary {
+    .ssn-embed-salary {
       font-size: 12px;
       font-weight: 600;
-      color: var(--rpi-primary);
+      color: var(--ssn-primary);
     }
-    .rpi-embed-cta {
+    .ssn-embed-cta {
       display: inline-flex;
       align-items: center;
       gap: 4px;
@@ -260,38 +260,38 @@ export default async function EmbedJobsPage({
       font-weight: 600;
       padding: 6px 12px;
       border-radius: 9999px;
-      background: var(--rpi-primary);
-      color: var(--rpi-primary-fg);
+      background: var(--ssn-primary);
+      color: var(--ssn-primary-fg);
       text-decoration: none;
       white-space: nowrap;
       transition: opacity .15s ease;
     }
-    .rpi-embed-cta:hover { opacity: .9; }
-    .rpi-embed-empty {
+    .ssn-embed-cta:hover { opacity: .9; }
+    .ssn-embed-empty {
       text-align: center;
       padding: 40px 16px;
-      color: var(--rpi-muted-fg);
+      color: var(--ssn-muted-fg);
       font-size: 13px;
-      border: 1px dashed var(--rpi-border);
-      border-radius: var(--rpi-radius);
+      border: 1px dashed var(--ssn-border);
+      border-radius: var(--ssn-radius);
     }
-    .rpi-embed-footer {
+    .ssn-embed-footer {
       margin-top: 24px;
       padding-top: 12px;
-      border-top: 1px solid var(--rpi-border);
+      border-top: 1px solid var(--ssn-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
       font-size: 11px;
-      color: var(--rpi-muted-fg);
+      color: var(--ssn-muted-fg);
     }
-    .rpi-embed-footer a {
-      color: var(--rpi-primary);
+    .ssn-embed-footer a {
+      color: var(--ssn-primary);
       text-decoration: none;
       font-weight: 600;
     }
-    .rpi-embed-footer a:hover { text-decoration: underline; }
+    .ssn-embed-footer a:hover { text-decoration: underline; }
   `
 
   // Apply page-level background so any iframe padding still matches.
@@ -300,13 +300,13 @@ export default async function EmbedJobsPage({
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: bodyVar + embedStyle }} />
-      <div className="rpi-embed" data-theme={theme}>
-        <header className="rpi-embed-header">
+      <div className="ssn-embed" data-theme={theme}>
+        <header className="ssn-embed-header">
           {logo ? (
             <Image
               src={logo}
               alt={tenant.name}
-              className="rpi-embed-logo"
+              className="ssn-embed-logo"
               width={160}
               height={36}
               unoptimized
@@ -330,19 +330,19 @@ export default async function EmbedJobsPage({
             </div>
           )}
           <div>
-            <h1 className="rpi-embed-title">{tenant.name}</h1>
-            <p className="rpi-embed-subtitle">
+            <h1 className="ssn-embed-title">{tenant.name}</h1>
+            <p className="ssn-embed-subtitle">
               Lowongan kerja oleh {tenant.name}
             </p>
           </div>
         </header>
 
         {jobs.length === 0 ? (
-          <div className="rpi-embed-empty">
+          <div className="ssn-embed-empty">
             Belum ada lowongan aktif saat ini.
           </div>
         ) : (
-          <ul className="rpi-embed-list">
+          <ul className="ssn-embed-list">
             {jobs.map((j) => {
               const sal = salaryLabel(j.salaryMin, j.salaryMax)
               const empLabel =
@@ -351,24 +351,24 @@ export default async function EmbedJobsPage({
                 LOCATION_LABELS[j.locationType] ?? j.locationType
               return (
                 <li key={j.id}>
-                  <article className="rpi-embed-card">
-                    <div className="rpi-embed-card-row">
+                  <article className="ssn-embed-card">
+                    <div className="ssn-embed-card-row">
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <h2 className="rpi-embed-job-title">{j.title}</h2>
-                        <div className="rpi-embed-meta">
+                        <h2 className="ssn-embed-job-title">{j.title}</h2>
+                        <div className="ssn-embed-meta">
                           <span>{j.location}</span>
                           <span>{locTypeLabel}</span>
                           <span>{empLabel}</span>
                         </div>
                         {sal && (
-                          <div className="rpi-embed-salary">{sal}</div>
+                          <div className="ssn-embed-salary">{sal}</div>
                         )}
                       </div>
                       <Link
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         href={`/jobs/${j.slug}` as any}
                         target="_top"
-                        className="rpi-embed-cta"
+                        className="ssn-embed-cta"
                       >
                         Lamar
                       </Link>
@@ -380,14 +380,14 @@ export default async function EmbedJobsPage({
           </ul>
         )}
 
-        <footer className="rpi-embed-footer">
-          <span>Didukung oleh Rumah Pekerja Indonesia</span>
+        <footer className="ssn-embed-footer">
+          <span>Didukung oleh SSN Pekerja</span>
           <Link
             href="/jobs"
             target="_top"
             rel="noopener"
           >
-            Lihat semua di Rumah Pekerja Indonesia →
+            Lihat semua di SSN Pekerja →
           </Link>
         </footer>
       </div>

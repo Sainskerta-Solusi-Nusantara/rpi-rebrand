@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = {
-  title: 'Verifikasi Email · Rumah Pekerja Indonesia',
+  title: 'Verifikasi Email · SSN Pekerja',
   description: 'Periksa email Anda untuk melanjutkan.',
 }
 

@@ -29,10 +29,10 @@ export async function generateMetadata({
   if (!tenant) return { title: 'Mitra tidak ditemukan' }
   const meta = tenantMeta(tenant.slug)
   return {
-    title: `${tenant.name} — Mitra RPI`,
+    title: `${tenant.name} — Mitra SSN`,
     description: meta.about.slice(0, 160),
     openGraph: {
-      title: `${tenant.name} — Mitra RPI`,
+      title: `${tenant.name} — Mitra SSN`,
       description: meta.about.slice(0, 160),
       type: 'profile',
     },

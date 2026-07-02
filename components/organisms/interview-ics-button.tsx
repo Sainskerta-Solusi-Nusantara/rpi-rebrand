@@ -46,11 +46,11 @@ function buildIcs(p: InterviewIcsPayload): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Rumah Pekerja Indonesia//Interview//ID',
+    'PRODID:-//SSN Pekerja//Interview//ID',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:${p.uid}@rumahpekerja.id`,
+    `UID:${p.uid}@pekerja.sainskerta.net`,
     `DTSTAMP:${toIcsUtc(now)}`,
     `DTSTART:${toIcsUtc(start)}`,
     `DTEND:${toIcsUtc(end)}`,

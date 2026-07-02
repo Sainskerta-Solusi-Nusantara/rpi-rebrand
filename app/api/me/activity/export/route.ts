@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
 
   const csv = toCsv(headers, data)
   const dateTag = new Date().toISOString().slice(0, 10)
-  const filename = `rpi-activity-${dateTag}.csv`
+  const filename = `ssn-activity-${dateTag}.csv`
 
   return new NextResponse(csv, {
     status: 200,

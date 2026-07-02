@@ -102,7 +102,7 @@ export default async function TenantEmbedPage({
           </li>
           <li>
             Snippet akan otomatis menampilkan lowongan terbaru. Perubahan di
-            dasbor RPI tampil langsung tanpa perlu memperbarui snippet.
+            dasbor SSN tampil langsung tanpa perlu memperbarui snippet.
           </li>
         </ol>
       </section>

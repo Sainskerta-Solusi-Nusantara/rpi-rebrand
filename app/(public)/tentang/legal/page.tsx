@@ -13,7 +13,7 @@ import {
 export const metadata: Metadata = {
   title: 'Legal & Kepatuhan',
   description:
-    'Informasi entitas hukum, kepatuhan regulasi, dokumen legal, dan kontak tim hukum Rumah Pekerja Indonesia.',
+    'Informasi entitas hukum, kepatuhan regulasi, dokumen legal, dan kontak tim hukum SSN Pekerja.',
 }
 
 export default function LegalPage() {

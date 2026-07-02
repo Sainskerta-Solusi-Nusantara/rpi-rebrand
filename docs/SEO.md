@@ -1,4 +1,4 @@
-# SEO — Rumah Pekerja Indonesia (RPI)
+# SEO — SSN Pekerja (SSN)
 
 > Strategi SEO teknis dan konten untuk platform multi-tenant job board + LMS, target domain authority kompetitif dengan Jobstreet/Indeed/Glints.
 
@@ -8,11 +8,11 @@
 
 ---
 
-## 1. Filosofi SEO RPI
+## 1. Filosofi SEO SSN
 
 1. **Server-first rendering** dengan React Server Components — semua konten primer hadir di HTML awal.
 2. **Programmatic SEO** — generate halaman terstruktur (kota × kategori × salary) yang bersaing di long-tail.
-3. **Tenant-aware** — apex domain (`rumahpekerja.id`) untuk authority utama; subdomain partner di-`noindex` opt-out.
+3. **Tenant-aware** — apex domain (`pekerja.sainskerta.net`) untuk authority utama; subdomain partner di-`noindex` opt-out.
 4. **Performance is SEO** — Core Web Vitals masuk ranking factor.
 5. **Structured data first-class** — JobPosting, Course, Organization, FAQ — agar muncul di Google Jobs & Rich Results.
 6. **Tidak hack** — white-hat only, no doorway pages, no cloaking.
@@ -23,17 +23,17 @@
 
 ### 2.1 Rendering Strategy (Next.js App Router)
 
-| Page | Strategy | Revalidate |
-|---|---|---|
-| `/` (landing) | Static (RSC build-time) | 1 jam (ISR) |
-| `/jobs` (list) | ISR | 5 menit |
-| `/jobs/[slug]` (detail) | ISR + on-demand revalidate | 1 jam, revalidate on update |
-| `/companies/[slug]` | ISR | 1 jam |
-| `/learn` | ISR | 30 menit |
-| `/learn/[course-slug]` | ISR | 1 jam |
-| `/locations/[city]` (programmatic) | ISR | 6 jam |
-| `/salary/[role]-[city]` | ISR | 12 jam |
-| `/dashboard/*` | Dynamic SSR, `noindex` | n/a |
+| Page                               | Strategy                   | Revalidate                  |
+| ---------------------------------- | -------------------------- | --------------------------- |
+| `/` (landing)                      | Static (RSC build-time)    | 1 jam (ISR)                 |
+| `/jobs` (list)                     | ISR                        | 5 menit                     |
+| `/jobs/[slug]` (detail)            | ISR + on-demand revalidate | 1 jam, revalidate on update |
+| `/companies/[slug]`                | ISR                        | 1 jam                       |
+| `/learn`                           | ISR                        | 30 menit                    |
+| `/learn/[course-slug]`             | ISR                        | 1 jam                       |
+| `/locations/[city]` (programmatic) | ISR                        | 6 jam                       |
+| `/salary/[role]-[city]`            | ISR                        | 12 jam                      |
+| `/dashboard/*`                     | Dynamic SSR, `noindex`     | n/a                         |
 
 Server actions & route handlers ditandai `dynamic = 'force-dynamic'` only when needed.
 
@@ -43,30 +43,31 @@ Generate dinamis via `app/sitemap.ts`, split jika >50k URL ke sub-sitemaps:
 
 ```ts
 // app/sitemap.ts
-import { MetadataRoute } from 'next';
-import { prisma } from '@/lib/db/prisma';
+import { MetadataRoute } from 'next'
+import { prisma } from '@/lib/db/prisma'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const jobs = await prisma.job.findMany({
     where: { status: 'published', tenant: { isPublic: true } },
     select: { slug: true, updatedAt: true },
-  });
+  })
 
   return [
-    { url: 'https://rumahpekerja.id', changeFrequency: 'daily', priority: 1 },
-    { url: 'https://rumahpekerja.id/jobs', changeFrequency: 'hourly', priority: 0.9 },
-    { url: 'https://rumahpekerja.id/learn', changeFrequency: 'daily', priority: 0.9 },
-    ...jobs.map(j => ({
-      url: `https://rumahpekerja.id/jobs/${j.slug}`,
+    { url: 'https://pekerja.sainskerta.net', changeFrequency: 'daily', priority: 1 },
+    { url: 'https://pekerja.sainskerta.net/jobs', changeFrequency: 'hourly', priority: 0.9 },
+    { url: 'https://pekerja.sainskerta.net/learn', changeFrequency: 'daily', priority: 0.9 },
+    ...jobs.map((j) => ({
+      url: `https://pekerja.sainskerta.net/jobs/${j.slug}`,
       lastModified: j.updatedAt,
       changeFrequency: 'daily' as const,
       priority: 0.7,
     })),
-  ];
+  ]
 }
 ```
 
 Untuk volume >50k, split:
+
 - `/sitemap.xml` (index) → `/sitemaps/jobs-1.xml`, `/sitemaps/jobs-2.xml`, `/sitemaps/courses.xml`, `/sitemaps/companies.xml`, `/sitemaps/locations.xml`.
 
 ### 2.3 robots.txt
@@ -82,10 +83,10 @@ Disallow: /partner/
 Disallow: /*?utm_*
 Disallow: /*?ref=*
 
-Sitemap: https://rumahpekerja.id/sitemap.xml
+Sitemap: https://pekerja.sainskerta.net/sitemap.xml
 ```
 
-Per tenant subdomain (`telkom.rumahpekerja.id`): defaultnya `noindex` kecuali partner aktif opt-in di settings → `isPublic = true`.
+Per tenant subdomain (`telkom.pekerja.sainskerta.net`): defaultnya `noindex` kecuali partner aktif opt-in di settings → `isPublic = true`.
 
 ### 2.4 Canonical URLs
 
@@ -97,8 +98,8 @@ Per tenant subdomain (`telkom.rumahpekerja.id`): defaultnya `noindex` kecuali pa
 // app/jobs/[slug]/page.tsx
 export async function generateMetadata({ params }): Promise<Metadata> {
   return {
-    alternates: { canonical: `https://rumahpekerja.id/jobs/${params.slug}` },
-  };
+    alternates: { canonical: `https://pekerja.sainskerta.net/jobs/${params.slug}` },
+  }
 }
 ```
 
@@ -108,23 +109,24 @@ export async function generateMetadata({ params }): Promise<Metadata> {
 - Phase 4: `en-ID` untuk konten profesional internasional.
 
 ```html
-<link rel="alternate" hreflang="id-ID" href="https://rumahpekerja.id/jobs/abc" />
-<link rel="alternate" hreflang="en-ID" href="https://rumahpekerja.id/en/jobs/abc" />
-<link rel="alternate" hreflang="x-default" href="https://rumahpekerja.id/jobs/abc" />
+<link rel="alternate" hreflang="id-ID" href="https://pekerja.sainskerta.net/jobs/abc" />
+<link rel="alternate" hreflang="en-ID" href="https://pekerja.sainskerta.net/en/jobs/abc" />
+<link rel="alternate" hreflang="x-default" href="https://pekerja.sainskerta.net/jobs/abc" />
 ```
 
 ### 2.6 URL Structure
 
-| Pola | Contoh | Catatan |
-|---|---|---|
-| `/jobs/[slug]` | `/jobs/backend-engineer-tokopedia-jakarta-abc123` | slug = `{role}-{company}-{city}-{shortid}` |
-| `/companies/[slug]` | `/companies/tokopedia` | |
-| `/learn/[course-slug]` | `/learn/data-analytics-fundamentals` | |
-| `/locations/[city]` | `/locations/jakarta-pusat` | programmatic |
-| `/lowongan-[role]-di-[city]` | `/lowongan-perawat-di-surabaya` | programmatic, Indonesia-vernacular |
-| `/gaji-[role]-[city]` | `/gaji-software-engineer-jakarta` | programmatic salary page |
+| Pola                         | Contoh                                            | Catatan                                    |
+| ---------------------------- | ------------------------------------------------- | ------------------------------------------ |
+| `/jobs/[slug]`               | `/jobs/backend-engineer-tokopedia-jakarta-abc123` | slug = `{role}-{company}-{city}-{shortid}` |
+| `/companies/[slug]`          | `/companies/tokopedia`                            |                                            |
+| `/learn/[course-slug]`       | `/learn/data-analytics-fundamentals`              |                                            |
+| `/locations/[city]`          | `/locations/jakarta-pusat`                        | programmatic                               |
+| `/lowongan-[role]-di-[city]` | `/lowongan-perawat-di-surabaya`                   | programmatic, Indonesia-vernacular         |
+| `/gaji-[role]-[city]`        | `/gaji-software-engineer-jakarta`                 | programmatic salary page                   |
 
 Slug rules:
+
 - Lowercase, alphanumeric + dash
 - Max 60 char (SEO)
 - Stable forever (jika title berubah, redirect 301 dari slug lama)
@@ -139,7 +141,7 @@ Wajib di setiap page tipe.
 
 ```tsx
 // components/seo/JobPostingJsonLd.tsx
-import { Job } from '@prisma/client';
+import { Job } from '@prisma/client'
 
 export function JobPostingJsonLd({ job }: { job: Job & { company: Company } }) {
   const data = {
@@ -167,36 +169,37 @@ export function JobPostingJsonLd({ job }: { job: Job & { company: Company } }) {
         addressCountry: 'ID',
       },
     },
-    baseSalary: job.salaryMin && job.salaryMax ? {
-      '@type': 'MonetaryAmount',
-      currency: 'IDR',
-      value: {
-        '@type': 'QuantitativeValue',
-        minValue: job.salaryMin,
-        maxValue: job.salaryMax,
-        unitText: 'MONTH',
-      },
-    } : undefined,
+    baseSalary:
+      job.salaryMin && job.salaryMax
+        ? {
+            '@type': 'MonetaryAmount',
+            currency: 'IDR',
+            value: {
+              '@type': 'QuantitativeValue',
+              minValue: job.salaryMin,
+              maxValue: job.salaryMax,
+              unitText: 'MONTH',
+            },
+          }
+        : undefined,
     directApply: true,
     identifier: {
       '@type': 'PropertyValue',
-      name: 'RPI',
+      name: 'SSN',
       value: job.id,
     },
-  };
+  }
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-    />
-  );
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+  )
 }
 ```
 
 Pastikan:
+
 - `validThrough` ada — Google indexed lebih agresif.
 - `description` HTML (boleh paragraf, list).
-- `directApply: true` ketika apply 1-click via RPI.
+- `directApply: true` ketika apply 1-click via SSN.
 - Remove dari index ketika `status != 'published'` → `noindex` + remove sitemap.
 
 ### 3.2 Course (Google Learn / Bing)
@@ -209,11 +212,11 @@ const data = {
   description: course.summary,
   provider: {
     '@type': 'Organization',
-    name: 'Rumah Pekerja Indonesia',
-    sameAs: 'https://rumahpekerja.id',
+    name: 'SSN Pekerja',
+    sameAs: 'https://pekerja.sainskerta.net',
   },
   educationalCredentialAwarded: course.certificateType, // 'Certificate' | 'BNSP'
-  hasCourseInstance: course.instances.map(ci => ({
+  hasCourseInstance: course.instances.map((ci) => ({
     '@type': 'CourseInstance',
     courseMode: ci.mode, // 'online' | 'blended'
     instructor: { '@type': 'Person', name: ci.instructorName },
@@ -226,7 +229,7 @@ const data = {
     priceCurrency: 'IDR',
     availability: 'https://schema.org/InStock',
   },
-};
+}
 ```
 
 ### 3.3 Organization (di layout root)
@@ -235,14 +238,14 @@ const data = {
 {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'Rumah Pekerja Indonesia',
-  alternateName: 'RPI',
-  url: 'https://rumahpekerja.id',
-  logo: 'https://rumahpekerja.id/logo.png',
+  name: 'SSN Pekerja',
+  alternateName: 'SSN',
+  url: 'https://pekerja.sainskerta.net',
+  logo: 'https://pekerja.sainskerta.net/logo.png',
   sameAs: [
     'https://www.linkedin.com/company/rumah-pekerja-indonesia',
-    'https://www.instagram.com/rumahpekerja.id',
-    'https://twitter.com/rumahpekerja',
+    'https://www.instagram.com/pekerja.sainskerta.net',
+    'https://twitter.com/ssnpekerja',
   ],
   contactPoint: {
     '@type': 'ContactPoint',
@@ -261,8 +264,8 @@ const data = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rumahpekerja.id' },
-    { '@type': 'ListItem', position: 2, name: 'Lowongan', item: 'https://rumahpekerja.id/jobs' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://pekerja.sainskerta.net' },
+    { '@type': 'ListItem', position: 2, name: 'Lowongan', item: 'https://pekerja.sainskerta.net/jobs' },
     { '@type': 'ListItem', position: 3, name: job.title },
   ],
 }
@@ -291,16 +294,17 @@ Untuk halaman programmatic (e.g. `/gaji-software-engineer-jakarta`), tambahkan F
 
 ## 4. Core Web Vitals Budget
 
-| Metric | Target | Hard Limit |
-|---|---|---|
-| **LCP** (Largest Contentful Paint) | <2.0s | 2.5s |
-| **INP** (Interaction to Next Paint) | <150ms | 200ms |
-| **CLS** (Cumulative Layout Shift) | <0.05 | 0.1 |
-| **FCP** | <1.5s | 1.8s |
-| **TTFB** | <500ms | 800ms |
-| **JS bundle (initial)** | <100KB gzip | 150KB |
+| Metric                              | Target      | Hard Limit |
+| ----------------------------------- | ----------- | ---------- |
+| **LCP** (Largest Contentful Paint)  | <2.0s       | 2.5s       |
+| **INP** (Interaction to Next Paint) | <150ms      | 200ms      |
+| **CLS** (Cumulative Layout Shift)   | <0.05       | 0.1        |
+| **FCP**                             | <1.5s       | 1.8s       |
+| **TTFB**                            | <500ms      | 800ms      |
+| **JS bundle (initial)**             | <100KB gzip | 150KB      |
 
 ### Optimisasi
+
 - **Image:** `next/image` wajib, AVIF/WebP, `priority` di LCP image, `loading="lazy"` untuk below-the-fold.
 - **Font:** Playfair + Inter via `next/font` dengan `display: swap`, preload kritis.
 - **Code splitting:** dynamic import komponen heavy (rich text editor, video player).
@@ -310,6 +314,7 @@ Untuk halaman programmatic (e.g. `/gaji-software-engineer-jakarta`), tambahkan F
 - **Defer 3rd-party:** Sentry, PostHog load deferred (`next/script strategy="lazyOnload"`).
 
 ### Monitor
+
 - Web Vitals API → PostHog event
 - Vercel Analytics RUM
 - Google Search Console Core Web Vitals report
@@ -324,11 +329,11 @@ Untuk halaman programmatic (e.g. `/gaji-software-engineer-jakarta`), tambahkan F
 ```ts
 // app/jobs/[slug]/page.tsx
 export async function generateMetadata({ params }): Promise<Metadata> {
-  const job = await getJob(params.slug);
-  if (!job) return { title: 'Lowongan Tidak Ditemukan' };
+  const job = await getJob(params.slug)
+  if (!job) return { title: 'Lowongan Tidak Ditemukan' }
 
-  const title = `${job.title} di ${job.company.name} - ${job.city} | RPI`;
-  const desc = `${job.title} di ${job.company.name}. ${job.workType}, ${job.city}. Apply sekarang via Rumah Pekerja Indonesia.`;
+  const title = `${job.title} di ${job.company.name} - ${job.city} | SSN`
+  const desc = `${job.title} di ${job.company.name}. ${job.workType}, ${job.city}. Apply sekarang via SSN Pekerja.`
 
   return {
     title,
@@ -338,22 +343,27 @@ export async function generateMetadata({ params }): Promise<Metadata> {
       title,
       description: desc,
       type: 'website',
-      url: `https://rumahpekerja.id/jobs/${job.slug}`,
+      url: `https://pekerja.sainskerta.net/jobs/${job.slug}`,
       images: [{ url: job.ogImageUrl ?? `/api/og/job?id=${job.id}`, width: 1200, height: 630 }],
       locale: 'id_ID',
-      siteName: 'Rumah Pekerja Indonesia',
+      siteName: 'SSN Pekerja',
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description: desc,
-      creator: '@rumahpekerja',
+      creator: '@ssnpekerja',
     },
-    alternates: { canonical: `https://rumahpekerja.id/jobs/${job.slug}` },
-    robots: job.status === 'published'
-      ? { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } }
-      : { index: false, follow: false },
-  };
+    alternates: { canonical: `https://pekerja.sainskerta.net/jobs/${job.slug}` },
+    robots:
+      job.status === 'published'
+        ? {
+            index: true,
+            follow: true,
+            googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+          }
+        : { index: false, follow: false },
+  }
 }
 ```
 
@@ -383,14 +393,14 @@ export async function GET(req: Request) {
 
 ### 5.3 Title Patterns
 
-| Page | Pattern |
-|---|---|
-| Job detail | `{Title} di {Company} - {City} \| RPI` |
-| Job list | `Lowongan Kerja {Category} di {City} - RPI` |
-| Course | `{Course Name} - Kursus {Category} \| RPI` |
-| Company | `Lowongan & Karir di {Company} \| RPI` |
-| Location | `Lowongan Kerja di {City} - {Count} Posisi Terbaru \| RPI` |
-| Salary | `Gaji {Role} di {City} - Rentang & Statistik 2026 \| RPI` |
+| Page       | Pattern                                                    |
+| ---------- | ---------------------------------------------------------- |
+| Job detail | `{Title} di {Company} - {City} \| SSN`                     |
+| Job list   | `Lowongan Kerja {Category} di {City} - SSN`                |
+| Course     | `{Course Name} - Kursus {Category} \| SSN`                 |
+| Company    | `Lowongan & Karir di {Company} \| SSN`                     |
+| Location   | `Lowongan Kerja di {City} - {Count} Posisi Terbaru \| SSN` |
+| Salary     | `Gaji {Role} di {City} - Rentang & Statistik 2026 \| SSN`  |
 
 Max 60 char display, sisanya boleh terpotong.
 
@@ -399,30 +409,36 @@ Max 60 char display, sisanya boleh terpotong.
 ## 6. Tenant-Aware SEO
 
 ### 6.1 Aturan Dasar
-- **Apex domain `rumahpekerja.id`** mengindex semua konten publik (jobs, courses, profiles aktif).
-- **Subdomain tenant** (`telkom.rumahpekerja.id`) default `noindex, nofollow` kecuali partner setting `isPublic = true`.
+
+- **Apex domain `pekerja.sainskerta.net`** mengindex semua konten publik (jobs, courses, profiles aktif).
+- **Subdomain tenant** (`telkom.pekerja.sainskerta.net`) default `noindex, nofollow` kecuali partner setting `isPublic = true`.
 - Jika partner public: konten **wajib unique** atau canonical menuju apex untuk hindari duplicate content.
 
 ### 6.2 Multi-tenant Sitemap
+
 - Apex sitemap include semua public jobs & courses dari semua tenant.
 - Subdomain public tenant punya sitemap sendiri yang men-canonical ke apex.
 
 ### 6.3 Robots Logic
+
 ```ts
 // app/robots.ts
 export default function robots(): MetadataRoute.Robots {
-  const host = headers().get('host') ?? '';
-  const isApex = host === 'rumahpekerja.id' || host === 'www.rumahpekerja.id';
+  const host = headers().get('host') ?? ''
+  const isApex = host === 'pekerja.sainskerta.net' || host === 'www.pekerja.sainskerta.net'
 
   if (isApex) {
-    return { rules: [{ userAgent: '*', allow: '/', disallow: ['/api', '/dashboard'] }], sitemap: '...' };
+    return {
+      rules: [{ userAgent: '*', allow: '/', disallow: ['/api', '/dashboard'] }],
+      sitemap: '...',
+    }
   }
   // Subdomain
-  const tenant = await resolveTenant(host);
+  const tenant = await resolveTenant(host)
   if (!tenant?.isPublic) {
-    return { rules: [{ userAgent: '*', disallow: '/' }] };
+    return { rules: [{ userAgent: '*', disallow: '/' }] }
   }
-  return { rules: [{ userAgent: '*', allow: '/' }], sitemap: `https://${host}/sitemap.xml` };
+  return { rules: [{ userAgent: '*', allow: '/' }], sitemap: `https://${host}/sitemap.xml` }
 }
 ```
 
@@ -433,8 +449,10 @@ export default function robots(): MetadataRoute.Robots {
 Generate halaman terstruktur dari data, target long-tail keywords.
 
 ### 7.1 Location Pages
+
 URL: `/locations/{city-slug}`
 Konten:
+
 - Heading: "Lowongan Kerja di {City}"
 - Jumlah open positions
 - Top categories di kota tsb
@@ -448,8 +466,10 @@ Konten:
 Target keyword: "lowongan kerja {city}", "kerja di {city}"
 
 ### 7.2 Salary Pages
+
 URL: `/gaji-{role}-{city}`
 Konten:
+
 - Range gaji (min, median, max, p25, p75)
 - Distribusi berdasarkan level (junior, mid, senior)
 - Skill yang paling berkorelasi dengan gaji tinggi
@@ -460,8 +480,10 @@ Konten:
 Target keyword: "gaji {role} {city}", "berapa gaji {role}"
 
 ### 7.3 Company Pages
+
 URL: `/companies/{slug}`
 Konten:
+
 - Profil perusahaan (about, industri, ukuran, alamat)
 - Open positions
 - Karyawan testimoni (jika aktif)
@@ -469,8 +491,10 @@ Konten:
 - Internal link ke role-role serupa
 
 ### 7.4 Category Pages
+
 URL: `/kategori/{slug}` (e.g. `/kategori/it-software`)
 Konten:
+
 - Definisi karir kategori
 - Sub-roles
 - Avg salary
@@ -478,6 +502,7 @@ Konten:
 - Related courses
 
 ### 7.5 Volume Targets
+
 - Phase 2: 1k programmatic pages live
 - Phase 3: 10k pages live
 - Phase 4: 50k pages live
@@ -489,12 +514,15 @@ Konten:
 ## 8. Internal Linking & Breadcrumbs
 
 ### 8.1 Breadcrumb Component
+
 Setiap page memiliki breadcrumb visual + JSON-LD:
+
 ```
 Home > Lowongan > IT & Software > Backend Engineer Tokopedia Jakarta
 ```
 
 ### 8.2 Internal Linking Strategy
+
 - Job detail → 5 related jobs (same role/city/company)
 - Job detail → company page
 - Job detail → relevant courses ("upskill untuk role ini")
@@ -503,6 +531,7 @@ Home > Lowongan > IT & Software > Backend Engineer Tokopedia Jakarta
 - Footer: link ke top 20 kota & top 20 kategori
 
 ### 8.3 Anchor Text
+
 - Variasi & natural — hindari over-optimization
 - Gunakan bahasa Indonesia kontekstual: "lihat lowongan di Surabaya", bukan exact-match "lowongan kerja Surabaya" repetitif
 
@@ -514,9 +543,9 @@ Home > Lowongan > IT & Software > Backend Engineer Tokopedia Jakarta
 
 ```ts
 // app/web-vitals.tsx
-'use client';
-import { useReportWebVitals } from 'next/web-vitals';
-import { posthog } from '@/lib/analytics';
+'use client'
+import { useReportWebVitals } from 'next/web-vitals'
+import { posthog } from '@/lib/analytics'
 
 export function WebVitals() {
   useReportWebVitals((metric) => {
@@ -525,18 +554,20 @@ export function WebVitals() {
       value: metric.value,
       rating: metric.rating,
       path: window.location.pathname,
-    });
-  });
-  return null;
+    })
+  })
+  return null
 }
 ```
 
 ### 9.2 Lighthouse CI
+
 - `lighthouserc.json` di repo
 - Run di setiap PR via GitHub Actions, fail jika perf <85 atau SEO <95
 - Track regression via Lighthouse CI Server (self-host atau Treo)
 
 ### 9.3 Search Console
+
 - Submit sitemap weekly via API
 - Monitor: indexed pages, coverage errors, query CTR, position avg
 - Alert jika indexed pages drop >10% week-over-week
@@ -576,31 +607,37 @@ Google E-E-A-T (Experience, Expertise, Authoritativeness, Trust):
 ## 13. Beyond Standard Recommendations
 
 ### 13.1 Indeed-style Job Aggregator Integration
+
 - Submit sitemap khusus ke Google for Jobs feed (gabungan apex + tenant public)
 - Google Indexing API untuk push update <1 menit untuk job baru
 - Bing IndexNow protocol untuk push ke Bing/Yandex
 
 ### 13.2 LLM Optimization (LLMO / GEO)
+
 - Konten well-structured (H1-H3 hierarchy, tabel, list) sehingga ChatGPT/Perplexity citation lebih akurat
 - File `/llms.txt` ringkasan untuk crawler LLM
 - Schema markup lengkap → meningkatkan kemungkinan dijadikan reference
 
 ### 13.3 First-party Data SEO
+
 - User-generated review perusahaan (moderated) → unique content tinggi-volume
 - Salary submission anonymous dari user (verified via employment proof) → unique data
 - Career story long-form dari user successful placement → editorial content
 
 ### 13.4 Job Expiration Strategy
+
 - Job expired → set `noindex`, hapus dari sitemap
-- Page tetap accessible via direct link tapi tampil "Posisi ini sudah ditutup", suggest similar jobs (canonical tidak diubah agar backlink tetap menjurus ke RPI)
+- Page tetap accessible via direct link tapi tampil "Posisi ini sudah ditutup", suggest similar jobs (canonical tidak diubah agar backlink tetap menjurus ke SSN)
 - Redirect 301 hanya jika job di-repost dengan slug baru
 
 ### 13.5 Voice Search
+
 - FAQ schema agresif → triggered di voice answer
 - Conversational queries di salary page ("berapa gaji ... di ...")
 
 ### 13.6 Brand SERP
-- Wikidata entry untuk Rumah Pekerja Indonesia (Phase 2)
+
+- Wikidata entry untuk SSN Pekerja (Phase 2)
 - Knowledge panel claim via Google Business Profile
 
 ---
@@ -623,18 +660,19 @@ Google E-E-A-T (Experience, Expertise, Authoritativeness, Trust):
 
 ## 15. KPI & Reporting
 
-| KPI | Baseline | 6 bulan | 12 bulan |
-|---|---|---|---|
-| Organic sessions / bulan | 0 | 50k | 500k |
-| Indexed pages | 0 | 10k | 100k |
-| Avg position top-10 keyword | n/a | 25 | 8 |
-| Top 100 ranking keywords | 0 | 50 | 500 |
-| Domain Rating (Ahrefs) | n/a | 25 | 50 |
-| Backlinks (referring domains) | n/a | 200 | 2000 |
-| Job posting Rich Result CTR | n/a | 4% | 7% |
-| Core Web Vitals "Good" % | n/a | 80% | 95% |
+| KPI                           | Baseline | 6 bulan | 12 bulan |
+| ----------------------------- | -------- | ------- | -------- |
+| Organic sessions / bulan      | 0        | 50k     | 500k     |
+| Indexed pages                 | 0        | 10k     | 100k     |
+| Avg position top-10 keyword   | n/a      | 25      | 8        |
+| Top 100 ranking keywords      | 0        | 50      | 500      |
+| Domain Rating (Ahrefs)        | n/a      | 25      | 50       |
+| Backlinks (referring domains) | n/a      | 200     | 2000     |
+| Job posting Rich Result CTR   | n/a      | 4%      | 7%       |
+| Core Web Vitals "Good" %      | n/a      | 80%     | 95%      |
 
 Reporting cadence:
+
 - Weekly: Search Console + PostHog dashboard
 - Monthly: Full audit + Ahrefs/Semrush competitor comparison
 - Quarterly: Strategi review + content roadmap update

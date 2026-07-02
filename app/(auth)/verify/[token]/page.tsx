@@ -4,8 +4,8 @@ import { auth } from '@/lib/auth/session'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = {
-  title: 'Verifikasi Email · Rumah Pekerja Indonesia',
-  description: 'Konfirmasi alamat email akun RPI Anda.',
+  title: 'Verifikasi Email · SSN Pekerja',
+  description: 'Konfirmasi alamat email akun SSN Anda.',
 }
 
 export default async function VerifyTokenPage({

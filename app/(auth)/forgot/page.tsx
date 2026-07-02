@@ -3,8 +3,8 @@ import { requestPasswordReset } from '@/lib/auth/actions'
 import { getServerT } from '@/lib/i18n/server-dictionary'
 
 export const metadata = {
-  title: 'Lupa Password · Rumah Pekerja Indonesia',
-  description: 'Atur ulang password akun RPI Anda.',
+  title: 'Lupa Password · SSN Pekerja',
+  description: 'Atur ulang password akun SSN Anda.',
 }
 
 export default async function ForgotPasswordPage({

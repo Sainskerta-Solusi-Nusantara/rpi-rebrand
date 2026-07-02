@@ -5,7 +5,7 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 import { LogoutActions } from './logout-actions'
 
 export const metadata = {
-  title: 'Keluar · Rumah Pekerja Indonesia',
+  title: 'Keluar · SSN Pekerja',
   description: 'Konfirmasi keluar dari akun.',
 }
 

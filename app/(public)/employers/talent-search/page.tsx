@@ -5,7 +5,7 @@ import { FeatureLanding } from '@/components/organisms/feature-landing'
 export const metadata: Metadata = {
   title: 'Pencarian Talenta',
   description:
-    'Cari dan jangkau kandidat berkualitas secara proaktif dengan basis data talenta Rumah Pekerja Indonesia.',
+    'Cari dan jangkau kandidat berkualitas secara proaktif dengan basis data talenta SSN Pekerja.',
 }
 
 export default function TalentSearchPage() {

@@ -139,7 +139,7 @@ export function LegalEntity() {
   const s = t.formsMarketing2.legal.entity
 
   const ENTITY_FACTS: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }[] = [
-    { icon: Building2, label: s.factLabel1, value: 'PT Rumah Pekerja Indonesia' },
+    { icon: Building2, label: s.factLabel1, value: 'PT SSN Pekerja' },
     { icon: ScrollText, label: s.factLabel2, value: 'Perseroan Terbatas (Tertutup)' },
     { icon: Landmark, label: s.factLabel3, value: 'No. 24, 17 Agustus 2021 — Notaris Rini Setiawati, S.H., M.Kn.' },
     { icon: Receipt, label: s.factLabel4, value: '91.234.567.8-073.000' },
@@ -217,7 +217,7 @@ export function LegalEntity() {
               </div>
               <address className="text-foreground/85 mt-3 not-italic text-sm leading-relaxed">
                 <strong className="text-foreground font-semibold">
-                  PT Rumah Pekerja Indonesia
+                  PT SSN Pekerja
                 </strong>
                 <br />
                 Menara Standard Chartered, Lantai 21
@@ -237,7 +237,7 @@ export function LegalEntity() {
               <ul className="mt-3 space-y-2 text-sm">
                 <li>
                   <span className="text-foreground font-medium">
-                    rumahpekerja.id
+                    pekerja.sainskerta.net
                   </span>
                   <span className="text-muted-foreground ml-2 text-xs">
                     {s.domainMainSuffix}
@@ -245,7 +245,7 @@ export function LegalEntity() {
                 </li>
                 <li>
                   <span className="text-foreground font-medium">
-                    rpi.co.id
+                    ssn.co.id
                   </span>
                   <span className="text-muted-foreground ml-2 text-xs">
                     {s.domainAltSuffix}
@@ -253,7 +253,7 @@ export function LegalEntity() {
                 </li>
                 <li>
                   <span className="text-foreground font-medium">
-                    rumahpekerjaindonesia.com
+                    pekerja.sainskerta.net
                   </span>
                   <span className="text-muted-foreground ml-2 text-xs">
                     {s.domainRedirectSuffix}
@@ -641,17 +641,17 @@ export function LegalIP() {
             <ul className="text-muted-foreground mt-3 space-y-1.5 text-sm">
               <li>
                 <strong className="text-foreground font-medium">
-                  Rumah Pekerja Indonesia&reg;
+                  SSN Pekerja&reg;
                 </strong>{' '}
                 &middot; DJKI No. IDM000789012
               </li>
               <li>
-                <strong className="text-foreground font-medium">RPI&reg;</strong>{' '}
+                <strong className="text-foreground font-medium">SSN&reg;</strong>{' '}
                 &middot; DJKI No. IDM000789015
               </li>
               <li>
                 <strong className="text-foreground font-medium">
-                  RPI Academy&trade;
+                  SSN Academy&trade;
                 </strong>{' '}
                 &middot; {s.trademarkPending}
               </li>
@@ -675,13 +675,13 @@ export function LegalIP() {
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Button asChild variant="outline" size="sm">
-                <a href="/press-kit/RPI-Brand-Guidelines.pdf">
+                <a href="/press-kit/SSN-Brand-Guidelines.pdf">
                   {s.ctaBrandGuidelines}
                   <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden />
                 </a>
               </Button>
               <Button asChild variant="outline" size="sm">
-                <a href="/press-kit/RPI-Logo-Pack.zip">
+                <a href="/press-kit/SSN-Logo-Pack.zip">
                   {s.ctaLogoPack}
                   <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden />
                 </a>
@@ -714,13 +714,13 @@ export function LegalDisclosure() {
       icon: Bug,
       title: 'Vulnerability Disclosure Program',
       desc: s.disc1Desc,
-      cta: { label: 'security@rumahpekerja.id', href: 'mailto:security@rumahpekerja.id' },
+      cta: { label: 'security@pekerja.sainskerta.net', href: 'mailto:security@pekerja.sainskerta.net' },
     },
     {
       icon: AlertTriangle,
       title: 'Laporan Insiden Keamanan',
       desc: s.disc2Desc,
-      cta: { label: 'status.rumahpekerja.id', href: 'https://status.rumahpekerja.id' },
+      cta: { label: 'status.pekerja.sainskerta.net', href: 'https://status.pekerja.sainskerta.net' },
     },
     {
       icon: FileText,
@@ -816,22 +816,22 @@ export function LegalContact() {
   const LEGAL_CONTACTS = [
     {
       label: s.contact1Label,
-      email: 'legal@rumahpekerja.id',
+      email: 'legal@pekerja.sainskerta.net',
       desc: s.contact1Desc,
     },
     {
       label: s.contact2Label,
-      email: 'privacy@rumahpekerja.id',
+      email: 'privacy@pekerja.sainskerta.net',
       desc: s.contact2Desc,
     },
     {
       label: s.contact3Label,
-      email: 'lawenforcement@rumahpekerja.id',
+      email: 'lawenforcement@pekerja.sainskerta.net',
       desc: s.contact3Desc,
     },
     {
       label: s.contact4Label,
-      email: 'security@rumahpekerja.id',
+      email: 'security@pekerja.sainskerta.net',
       desc: s.contact4Desc,
     },
   ]
@@ -903,7 +903,7 @@ export function LegalContact() {
                 {s.subpoenaNote} <em>Legal Department</em>.
               </span>
               <Button asChild variant="outline" size="sm">
-                <a href="mailto:legal@rumahpekerja.id">
+                <a href="mailto:legal@pekerja.sainskerta.net">
                   {s.ctaEmail}
                 </a>
               </Button>

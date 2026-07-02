@@ -5,7 +5,7 @@ import { LegalDocLayout } from '@/components/organisms/legal-doc-layout'
 export const metadata: Metadata = {
   title: 'Perjanjian Langganan Utama',
   description:
-    'Master Subscription Agreement — kerangka kontrak utama untuk pelanggan langganan Rumah Pekerja Indonesia.',
+    'Master Subscription Agreement — kerangka kontrak utama untuk pelanggan langganan SSN Pekerja.',
 }
 
 export default function MasterSubscriptionAgreementPage() {
@@ -20,7 +20,7 @@ export default function MasterSubscriptionAgreementPage() {
           {
             heading: '1. Lingkup Perjanjian',
             paragraphs: [
-              'Perjanjian ini mengatur hubungan antara Rumah Pekerja Indonesia dan pelanggan, mencakup seluruh order form dan adendum yang merujuk padanya.',
+              'Perjanjian ini mengatur hubungan antara SSN Pekerja dan pelanggan, mencakup seluruh order form dan adendum yang merujuk padanya.',
             ],
           },
           {

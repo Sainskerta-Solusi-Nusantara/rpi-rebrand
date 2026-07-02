@@ -11,7 +11,7 @@ export interface LogoProps {
   alt?: string
   /** Compact icon-only render. Alias for `mark`. */
   iconOnly?: boolean
-  /** Tenant name override (replaces default 'RPI' wordmark when no src). */
+  /** Tenant name override (replaces default 'SSN' wordmark when no src). */
   tenantName?: string | null
   /** Tenant-supplied logo URL (alias for `src`). */
   tenantLogoUrl?: string | null
@@ -23,7 +23,7 @@ export function Logo({
   iconOnly,
   href,
   className,
-  alt = 'Rumah Pekerja Indonesia',
+  alt = 'SSN Pekerja',
   tenantName,
   tenantLogoUrl,
 }: LogoProps) {
@@ -47,7 +47,7 @@ export function Logo({
         effectiveMark && 'text-2xl',
       )}
     >
-      <span>{tenantName ?? 'RPI'}</span>
+      <span>{tenantName ?? 'SSN'}</span>
       <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--ring)]" aria-hidden="true" />
     </span>
   )

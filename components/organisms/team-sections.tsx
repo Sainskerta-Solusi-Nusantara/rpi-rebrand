@@ -152,7 +152,7 @@ const LEADERSHIP: Leader[] = [
   {
     name: 'Arif Wibowo',
     role: 'Co-Founder & CEO',
-    bio: 'Memimpin RPI sejak 2021 dengan misi membangun infrastruktur kerja yang adil untuk Indonesia. Bertanggung jawab atas strategi, fundraising, dan kemitraan strategis.',
+    bio: 'Memimpin SSN sejak 2021 dengan misi membangun infrastruktur kerja yang adil untuk Indonesia. Bertanggung jawab atas strategi, fundraising, dan kemitraan strategis.',
     initial: 'AW',
     color: '#0A2540',
     background: 'Eks-VP Product Tokopedia · MBA Stanford GSB · S1 Teknik ITB',
@@ -170,7 +170,7 @@ const LEADERSHIP: Leader[] = [
   {
     name: 'Daniel Setiawan',
     role: 'Chief Operating Officer',
-    bio: 'Mengelola operasi RPI di 6 kota dan kemitraan strategis nasional. Fokus pada eksekusi yang ketat dan pertumbuhan yang sehat.',
+    bio: 'Mengelola operasi SSN di 6 kota dan kemitraan strategis nasional. Fokus pada eksekusi yang ketat dan pertumbuhan yang sehat.',
     initial: 'DS',
     color: '#10B981',
     background: 'Eks-Director Operations Gojek · MBA INSEAD · S1 Industrial Engineering UI',
@@ -228,7 +228,7 @@ export function TimLeadership() {
             id="tim-leadership-heading"
             className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           >
-            Yang memimpin RPI
+            Yang memimpin SSN
           </h2>
           <p className="text-muted-foreground mt-3">
             Enam pemimpin dengan latar belakang yang beragam — eks-Stripe,
@@ -356,7 +356,7 @@ const DEPARTMENTS: Department[] = [
     size: 10,
     color: '#8B5CF6',
     lead: { name: 'Eko Pratama', role: 'Head of Academy', initial: 'EP' },
-    desc: 'Curriculum design dan instructor relations — mengoperasikan RPI Academy dengan 60+ kursus.',
+    desc: 'Curriculum design dan instructor relations — mengoperasikan SSN Academy dengan 60+ kursus.',
   },
   {
     icon: TrendingUp,
@@ -725,7 +725,7 @@ export function TimOpenRoles() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="mailto:careers@rumahpekerja.id">
+                <a href="mailto:careers@pekerja.sainskerta.net">
                   <Users className="mr-2 h-4 w-4" aria-hidden />
                   Hubungi Recruiter
                 </a>
@@ -742,7 +742,7 @@ export function TimOpenRoles() {
               Bukan kebalikannya.&rdquo;
             </p>
             <footer className="text-muted-foreground mt-3 text-xs">
-              — Anya Kusumawardhani, VP People RPI
+              — Anya Kusumawardhani, VP People SSN
             </footer>
           </div>
         </motion.div>

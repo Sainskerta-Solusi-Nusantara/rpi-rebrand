@@ -273,7 +273,7 @@ export function JobsCarousel({ jobs, categories, className }: JobsCarouselProps)
           className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [&::-webkit-scrollbar]:hidden"
         >
           {data.map((job, i) => {
-            const tenantName = job.tenant?.name ?? 'RPI'
+            const tenantName = job.tenant?.name ?? 'SSN'
             const href = `/jobs/${job.slug || job.id}`
             const salary = formatSalaryShort(job.salaryMin, job.salaryMax)
 

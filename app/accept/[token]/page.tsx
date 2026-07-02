@@ -5,8 +5,8 @@ import { checkTenantInvite } from '@/lib/tenants/actions'
 import { AcceptInviteButton } from './accept-actions'
 
 export const metadata = {
-  title: 'Terima Undangan · Rumah Pekerja Indonesia',
-  description: 'Terima undangan bergabung ke tenant RPI.',
+  title: 'Terima Undangan · SSN Pekerja',
+  description: 'Terima undangan bergabung ke tenant SSN.',
 }
 
 const roleLabels: Record<string, string> = {

@@ -96,7 +96,7 @@ export function ValuesHero() {
           transition={{ duration: 0.55, delay: 0.15 }}
           className="text-muted-foreground mx-auto mt-6 max-w-2xl text-balance text-center text-lg md:text-xl"
         >
-          Empat prinsip yang dipraktikkan setiap minggu di RPI — bukan
+          Empat prinsip yang dipraktikkan setiap minggu di SSN — bukan
           dinding kantor, tetapi keputusan kecil yang kami buat saat ada
           tradeoff.
         </motion.p>
@@ -153,7 +153,7 @@ const VALUES_DEEP: ValueDeep[] = [
     longDesc:
       'Transparansi bukan kebajikan — itu mekanisme akuntabilitas. Kalau kami tutup-tutup, susah memperbaiki. Kalau terbuka, pengguna dan staf bisa pegang kami pada janji-janji kami.',
     meansWeDo: [
-      'Publikasi gaji range untuk setiap lowongan internal RPI',
+      'Publikasi gaji range untuk setiap lowongan internal SSN',
       'Audit bias AI tiap 6 bulan dengan laporan publik',
       'Post-mortem insiden dibagikan ke semua mitra dalam 5 hari kerja',
       'OKR perusahaan terbuka internal untuk semua karyawan, kuartalan',
@@ -197,9 +197,9 @@ const VALUES_DEEP: ValueDeep[] = [
     longDesc:
       'Platform kami berhasil saat pekerja Indonesia berhasil. Bertumbuh bersama berarti memikirkan jangka panjang — investasi dalam pelatihan, jalur karier, dan ekosistem yang sehat — bahkan ketika ROI jangka pendek tidak jelas.',
     meansWeDo: [
-      'RPI Academy: kursus gratis untuk semua pengguna, selamanya',
+      'SSN Academy: kursus gratis untuk semua pengguna, selamanya',
       'Partnership dengan Kemnaker untuk re-skilling 500.000 pekerja',
-      'Mentoring program: alumni RPI mentor pencari kerja dari background serupa',
+      'Mentoring program: alumni SSN mentor pencari kerja dari background serupa',
       'Investasi 30% pendapatan ke program edukasi dan komunitas',
     ],
     meansWeDont: [
@@ -208,7 +208,7 @@ const VALUES_DEEP: ValueDeep[] = [
       'Tidak melakukan growth hack yang merugikan retensi jangka panjang',
     ],
     example:
-      'RPI Academy dijalankan dengan kerugian operasional di tahun pertama. Tim finance mengusulkan menutup, tetapi kami memutuskan untuk lanjut — karena outcome alumni-nya (60K+ orang dapat sertifikasi gratis) lebih berarti daripada margin tahunan.',
+      'SSN Academy dijalankan dengan kerugian operasional di tahun pertama. Tim finance mengusulkan menutup, tetapi kami memutuskan untuk lanjut — karena outcome alumni-nya (60K+ orang dapat sertifikasi gratis) lebih berarti daripada margin tahunan.',
   },
 ]
 
@@ -779,8 +779,8 @@ export function ValuesAccountability() {
           </p>
           <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="sm">
-              <a href="mailto:values@rumahpekerja.id">
-                Email values@rumahpekerja.id
+              <a href="mailto:values@pekerja.sainskerta.net">
+                Email values@pekerja.sainskerta.net
               </a>
             </Button>
             <Button asChild size="sm" variant="outline">

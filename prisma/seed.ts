@@ -1,5 +1,5 @@
 /**
- * RPI seed.
+ * SSN seed.
  *
  * Idempotent: every record is created with `upsert` keyed by a stable
  * natural key (email/slug/composite), so running this script multiple times
@@ -140,7 +140,7 @@ const TELKOM_JOBS: JobSeed[] = [
   { title: "Talent Acquisition Partner",  cat: "hr",          type: EmploymentType.FULL_TIME, level: ExperienceLevel.MID,      locType: LocationType.HYBRID, location: "Jakarta",  min: 12_000_000, max: 18_000_000 },
 ];
 
-const RPI_COURSES: CourseSeed[] = [
+const ssnpekerjaURSES: CourseSeed[] = [
   { title: "Fundamentals of JavaScript",   level: CourseLevel.BEGINNER,    duration: 12 },
   { title: "Mastering React for Production", level: CourseLevel.INTERMEDIATE, duration: 24 },
   { title: "SQL and Postgres Deep Dive",   level: CourseLevel.INTERMEDIATE, duration: 18 },
@@ -174,11 +174,11 @@ async function seedSuperadmin() {
   console.log("Seeding superadmin...");
   const pwHash = await hash(SUPERADMIN_PASSWORD);
   const user = await prisma.user.upsert({
-    where: { email: "super@rumahpekerja.id" },
+    where: { email: "super@pekerja.sainskerta.net" },
     update: {},
     create: {
-      email: "super@rumahpekerja.id",
-      name: "RPI Superadmin",
+      email: "super@pekerja.sainskerta.net",
+      name: "SSN Superadmin",
       passwordHash: pwHash,
       globalRole: GlobalRole.SUPERADMIN,
       headline: "Platform Administrator",
@@ -192,20 +192,20 @@ async function seedSuperadmin() {
 async function seedTenants() {
   console.log("Seeding tenants + branding...");
 
-  const rpi = await prisma.tenant.upsert({
+  const ssn = await prisma.tenant.upsert({
     where: { slug: "main" },
-    update: { name: "Rumah Pekerja Indonesia", planTier: PlanTier.ENTERPRISE, status: TenantStatus.ACTIVE },
+    update: { name: "SSN Pekerja", planTier: PlanTier.ENTERPRISE, status: TenantStatus.ACTIVE },
     create: {
       slug: "main",
-      name: "Rumah Pekerja Indonesia",
+      name: "SSN Pekerja",
       planTier: PlanTier.ENTERPRISE,
       status: TenantStatus.ACTIVE,
     },
   });
   await prisma.branding.upsert({
-    where: { tenantId: rpi.id },
+    where: { tenantId: ssn.id },
     update: {},
-    create: { tenantId: rpi.id }, // defaults: navy + gold
+    create: { tenantId: ssn.id }, // defaults: navy + gold
   });
 
   const telkom = await prisma.tenant.upsert({
@@ -237,8 +237,8 @@ async function seedTenants() {
     },
   });
 
-  console.log(`  rpi(${rpi.slug}) + telkom(${telkom.slug})`);
-  return { rpi, telkom };
+  console.log(`  ssn(${ssn.slug}) + telkom(${telkom.slug})`);
+  return { ssn, telkom };
 }
 
 async function seedTenantPeople(tenantId: string, slug: string) {
@@ -365,7 +365,7 @@ async function seedJobs(
 async function seedCourses(
   tenantId: string,
   instructorId: string,
-  defs: typeof RPI_COURSES,
+  defs: typeof ssnpekerjaURSES,
 ) {
   const created = [];
   let i = 0;
@@ -531,7 +531,7 @@ async function seedCertificates(jobseekers: any[], courses: any[]) {
         courseId: course.id,
         title: `Certificate of Completion - ${course.title}`,
         fileUrl: `https://example.com/cert/${user.id}-${course.id}.pdf`,
-        issuer: "Rumah Pekerja Indonesia",
+        issuer: "SSN Pekerja",
       },
     });
     made++;
@@ -571,17 +571,17 @@ async function seedAuditLogs(actors: any[], tenants: any[]) {
   console.log(`  ${made} audit logs.`);
 }
 
-async function seedSubscriptions(rpi: any, telkom: any) {
+async function seedSubscriptions(ssn: any, telkom: any) {
   console.log("Seeding subscriptions...");
   const now = new Date();
   const periodEnd = new Date(now);
   periodEnd.setMonth(periodEnd.getMonth() + 1);
 
-  const existsRpi = await prisma.subscription.findFirst({ where: { tenantId: rpi.id } });
+  const existsRpi = await prisma.subscription.findFirst({ where: { tenantId: ssn.id } });
   if (!existsRpi) {
     await prisma.subscription.create({
       data: {
-        tenantId: rpi.id,
+        tenantId: ssn.id,
         plan: PlanTier.ENTERPRISE,
         status: "active",
         currentPeriodStart: now,
@@ -629,26 +629,26 @@ async function seedNotifications(jobseekers: any[]) {
 // -----------------------------------------------------------------------------
 
 async function main() {
-  console.log("=== RPI Seed ===");
+  console.log("=== SSN Seed ===");
 
   await seedCategories();
   const superadmin = await seedSuperadmin();
-  const { rpi, telkom } = await seedTenants();
+  const { ssn, telkom } = await seedTenants();
 
-  const rpiPeople    = await seedTenantPeople(rpi.id,    "rpi");
+  const rpiPeople    = await seedTenantPeople(ssn.id,    "ssn");
   const telkomPeople = await seedTenantPeople(telkom.id, "telkom");
 
   const jobseekers = await seedJobseekers();
 
   console.log("Seeding jobs...");
-  const rpiJobs    = await seedJobs(rpi.id,    "rpi",    rpiPeople.owner.id,    RPI_JOBS);
+  const rpiJobs    = await seedJobs(ssn.id,    "ssn",    rpiPeople.owner.id,    RPI_JOBS);
   const telkomJobs = await seedJobs(telkom.id, "telkom", telkomPeople.owner.id, TELKOM_JOBS);
-  console.log(`  ${rpiJobs.length} RPI + ${telkomJobs.length} Telkom jobs.`);
+  console.log(`  ${rpiJobs.length} SSN + ${telkomJobs.length} Telkom jobs.`);
 
   console.log("Seeding courses (3 modules x 4 lessons each)...");
-  const rpiCourses    = await seedCourses(rpi.id,    rpiPeople.owner.id,    RPI_COURSES);
+  const rpiCourses    = await seedCourses(ssn.id,    rpiPeople.owner.id,    ssnpekerjaURSES);
   const telkomCourses = await seedCourses(telkom.id, telkomPeople.owner.id, TELKOM_COURSES);
-  console.log(`  ${rpiCourses.length} RPI + ${telkomCourses.length} Telkom courses.`);
+  console.log(`  ${rpiCourses.length} SSN + ${telkomCourses.length} Telkom courses.`);
 
   const publishedJobs = [...rpiJobs, ...telkomJobs].filter((j) => j.status === JobStatus.PUBLISHED);
   const allCourses    = [...rpiCourses, ...telkomCourses];
@@ -661,10 +661,10 @@ async function main() {
 
   await seedAuditLogs(
     [superadmin, rpiPeople.owner, telkomPeople.owner, ...jobseekers.slice(0, 3)],
-    [rpi, telkom],
+    [ssn, telkom],
   );
 
-  await seedSubscriptions(rpi, telkom);
+  await seedSubscriptions(ssn, telkom);
 
   console.log("=== Seed complete ===");
 }

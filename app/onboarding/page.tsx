@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { OnboardingForm } from './onboarding-form'
 
 export const metadata = {
-  title: 'Buat Tenant · Rumah Pekerja Indonesia',
+  title: 'Buat Tenant · SSN Pekerja',
   description: 'Buat tenant baru untuk tim Anda.',
 }
 
@@ -35,7 +35,7 @@ export default function OnboardingPage() {
 
         <p className="text-muted-foreground mt-6 text-center text-xs">
           Dengan membuat tenant, Anda menyetujui Syarat &amp; Ketentuan dan
-          Kebijakan Privasi RPI.
+          Kebijakan Privasi SSN.
         </p>
       </div>
     </div>

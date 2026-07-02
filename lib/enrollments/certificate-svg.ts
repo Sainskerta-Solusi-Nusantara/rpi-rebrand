@@ -2,7 +2,7 @@
  * Pure SVG certificate builder.
  *
  * Returns an A4-landscape-ish SVG (viewBox 0 0 1280 800) with elegant
- * typography, gold accents, and an RPI-style navy header. The certificate
+ * typography, gold accents, and an SSN-style navy header. The certificate
  * id is embedded both visibly (for offline verification) and as a data
  * attribute. Indonesian copy throughout.
  *
@@ -49,8 +49,8 @@ export type BuildCertificateSvgOpts = {
 
 export function buildCertificateSvg(opts: BuildCertificateSvgOpts): string {
   const recipient = escapeXml(opts.recipientName || 'Penerima Sertifikat')
-  const course = escapeXml(opts.courseTitle || 'Kursus RPI')
-  const issuer = escapeXml(opts.issuerName || 'Rumah Pekerja Indonesia')
+  const course = escapeXml(opts.courseTitle || 'Kursus SSN')
+  const issuer = escapeXml(opts.issuerName || 'SSN Pekerja')
   const date = escapeXml(formatIssuedAt(opts.issuedAt))
   const certId = escapeXml(opts.certificateId)
 
@@ -58,11 +58,11 @@ export function buildCertificateSvg(opts: BuildCertificateSvgOpts): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800" role="img" aria-label="Sertifikat ${course}" data-certificate-id="${certId}">
   <defs>
-    <linearGradient id="rpi-navy" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="ssn-navy" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#0A2540"/>
       <stop offset="100%" stop-color="#13315A"/>
     </linearGradient>
-    <linearGradient id="rpi-gold" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="ssn-gold" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#C9A961"/>
       <stop offset="50%" stop-color="#E6CD86"/>
       <stop offset="100%" stop-color="#C9A961"/>
@@ -73,17 +73,17 @@ export function buildCertificateSvg(opts: BuildCertificateSvgOpts): string {
   <rect x="0" y="0" width="1280" height="800" fill="#FBFAF6"/>
 
   <!-- Outer gold border -->
-  <rect x="32" y="32" width="1216" height="736" fill="none" stroke="url(#rpi-gold)" stroke-width="3"/>
+  <rect x="32" y="32" width="1216" height="736" fill="none" stroke="url(#ssn-gold)" stroke-width="3"/>
   <rect x="44" y="44" width="1192" height="712" fill="none" stroke="#C9A961" stroke-width="1" opacity="0.55"/>
 
   <!-- Navy header band -->
-  <rect x="32" y="32" width="1216" height="120" fill="url(#rpi-navy)"/>
-  <text x="640" y="92" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="22" letter-spacing="8" fill="#FFFFFF">RUMAH PEKERJA INDONESIA</text>
-  <text x="640" y="124" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" letter-spacing="6" fill="#C9A961">RPI ACADEMY</text>
+  <rect x="32" y="32" width="1216" height="120" fill="url(#ssn-navy)"/>
+  <text x="640" y="92" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="22" letter-spacing="8" fill="#FFFFFF">SSN Pekerja</text>
+  <text x="640" y="124" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" letter-spacing="6" fill="#C9A961">SSN ACADEMY</text>
 
   <!-- Headline -->
   <text x="640" y="240" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="56" font-weight="bold" letter-spacing="14" fill="#0A2540">SERTIFIKAT</text>
-  <line x1="540" y1="266" x2="740" y2="266" stroke="url(#rpi-gold)" stroke-width="2"/>
+  <line x1="540" y1="266" x2="740" y2="266" stroke="url(#ssn-gold)" stroke-width="2"/>
 
   <!-- Recipient block -->
   <text x="640" y="320" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="18" fill="#4B5563" letter-spacing="3">Diberikan kepada</text>

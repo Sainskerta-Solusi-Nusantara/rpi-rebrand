@@ -1,5 +1,5 @@
 /**
- * Catalogue of webhook events emittable by RPI for a tenant subscriber.
+ * Catalogue of webhook events emittable by SSN for a tenant subscriber.
  *
  * Keep this list stable & additive: external integrators rely on exact event
  * names to filter their subscriptions. Renaming/removing values is a breaking

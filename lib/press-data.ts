@@ -44,15 +44,15 @@ export type PressRelease = {
 
 const DEFAULT_CONTACT = {
   name: 'Maya Pratiwi',
-  role: 'VP Communications, RPI',
-  email: 'press@rumahpekerja.id',
+  role: 'VP Communications, SSN',
+  email: 'press@pekerja.sainskerta.net',
   phone: '+62 21 5000 1020',
 }
 
 const BOILERPLATE_DOWNLOAD = {
   label: 'Boilerplate & Logo Pack',
   format: 'ZIP · 12 MB',
-  href: '/press-kit/RPI-Press-Kit-Full.zip',
+  href: '/press-kit/SSN-Press-Kit-Full.zip',
 }
 
 export const PRESS_RELEASES: PressRelease[] = [
@@ -62,7 +62,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     date: '15 Mei 2026',
     dateIso: '2026-05-15',
     dateline: 'Jakarta, 15 Mei 2026',
-    title: 'RPI Tutup Pendanaan Seri C Senilai USD 85 Juta untuk Skalakan Platform Multi-Tenant',
+    title: 'SSN Tutup Pendanaan Seri C Senilai USD 85 Juta untuk Skalakan Platform Multi-Tenant',
     subtitle:
       'Dipimpin oleh East Ventures dan Sequoia SEA, dengan partisipasi MDI dan BRI Ventures. Dana akan digunakan untuk ekspansi ke 5 kota baru dan investasi AI.',
     excerpt:
@@ -71,12 +71,12 @@ export const PRESS_RELEASES: PressRelease[] = [
     body: [
       {
         type: 'p',
-        text: 'Rumah Pekerja Indonesia (RPI) hari ini mengumumkan penutupan pendanaan Seri C senilai USD 85 juta. Putaran ini dipimpin oleh East Ventures dan Sequoia SEA, dengan partisipasi dari MDI Ventures, BRI Ventures, dan investor strategis lainnya. Dana baru ini akan digunakan untuk ekspansi geografis, akselerasi investasi AI, dan memperkuat tim engineering.',
+        text: 'SSN Pekerja (SSN) hari ini mengumumkan penutupan pendanaan Seri C senilai USD 85 juta. Putaran ini dipimpin oleh East Ventures dan Sequoia SEA, dengan partisipasi dari MDI Ventures, BRI Ventures, dan investor strategis lainnya. Dana baru ini akan digunakan untuk ekspansi geografis, akselerasi investasi AI, dan memperkuat tim engineering.',
       },
       { type: 'h2', text: 'Skala saat ini' },
       {
         type: 'p',
-        text: 'Sejak didirikan di 2021, RPI telah berkembang menjadi platform multi-tenant terbesar di Indonesia untuk perekrutan dan pelatihan. Pengguna platform telah tumbuh 3,4× dalam 12 bulan terakhir.',
+        text: 'Sejak didirikan di 2021, SSN telah berkembang menjadi platform multi-tenant terbesar di Indonesia untuk perekrutan dan pelatihan. Pengguna platform telah tumbuh 3,4× dalam 12 bulan terakhir.',
       },
       {
         type: 'stat',
@@ -105,19 +105,19 @@ export const PRESS_RELEASES: PressRelease[] = [
         type: 'quote',
         text: 'Investasi ini bukan tentang membuat platform yang lebih besar — tetapi tentang membuat akses ke pekerjaan layak lebih merata di seluruh Indonesia. Kami baru memulai 35% dari potensi pasar nasional.',
         author: 'Arif Wibowo',
-        role: 'Co-Founder & CEO, RPI',
+        role: 'Co-Founder & CEO, SSN',
       },
       { type: 'h2', text: 'Komentar investor' },
       {
         type: 'quote',
-        text: 'RPI adalah salah satu dari sedikit founder team yang membangun infrastructure-grade product dengan kecepatan startup. Ratenya pada metrik unit economics — gross margin di atas 78%, retention 12-bulan di angka 91% — sangat jarang di pasar talent tech.',
+        text: 'SSN adalah salah satu dari sedikit founder team yang membangun infrastructure-grade product dengan kecepatan startup. Ratenya pada metrik unit economics — gross margin di atas 78%, retention 12-bulan di angka 91% — sangat jarang di pasar talent tech.',
         author: 'Willson Cuaca',
         role: 'Managing Partner, East Ventures',
       },
-      { type: 'h2', text: 'Tentang RPI' },
+      { type: 'h2', text: 'Tentang SSN' },
       {
         type: 'p',
-        text: 'Didirikan di 2021, Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja, 12.000+ mitra perekrut, dan beroperasi di 34 provinsi. RPI telah menyalurkan lebih dari 180.000 penempatan kerja sejak didirikan.',
+        text: 'Didirikan di 2021, SSN Pekerja (SSN) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja, 12.000+ mitra perekrut, dan beroperasi di 34 provinsi. SSN telah menyalurkan lebih dari 180.000 penempatan kerja sejak didirikan.',
       },
     ],
     contact: DEFAULT_CONTACT,
@@ -129,21 +129,21 @@ export const PRESS_RELEASES: PressRelease[] = [
     ],
   },
   {
-    slug: 'rpi-academy-launch',
+    slug: 'ssn-academy-launch',
     category: 'Produk',
     date: '28 April 2026',
     dateIso: '2026-04-28',
     dateline: 'Jakarta, 28 April 2026',
-    title: 'Peluncuran RPI Academy — Platform Pembelajaran Terverifikasi Industri',
+    title: 'Peluncuran SSN Academy — Platform Pembelajaran Terverifikasi Industri',
     subtitle:
       'Kursus mikro 4–12 jam dengan sertifikasi diakui 200+ perekrut. Tersedia gratis untuk semua pengguna terdaftar.',
     excerpt:
       'Kursus mikro 4–12 jam dengan sertifikasi diakui 200+ perekrut. Tersedia gratis untuk semua pengguna terdaftar.',
-    tags: ['RPI Academy', 'Pembelajaran', 'Sertifikasi'],
+    tags: ['SSN Academy', 'Pembelajaran', 'Sertifikasi'],
     body: [
       {
         type: 'p',
-        text: 'Rumah Pekerja Indonesia hari ini meluncurkan RPI Academy, platform pembelajaran online dengan sertifikasi yang sudah diakui oleh 200+ mitra perekrut RPI. Berbeda dari platform belajar lain, RPI Academy mengintegrasikan langsung outcome belajar dengan akses ke lowongan kerja terverifikasi.',
+        text: 'SSN Pekerja hari ini meluncurkan SSN Academy, platform pembelajaran online dengan sertifikasi yang sudah diakui oleh 200+ mitra perekrut SSN. Berbeda dari platform belajar lain, SSN Academy mengintegrasikan langsung outcome belajar dengan akses ke lowongan kerja terverifikasi.',
       },
       { type: 'h2', text: 'Fitur utama' },
       {
@@ -169,27 +169,27 @@ export const PRESS_RELEASES: PressRelease[] = [
         type: 'quote',
         text: 'Banyak kursus online memberi sertifikat, tetapi tidak ada perekrut yang benar-benar menggunakannya. Kami membangun Academy dengan pendekatan berbeda — sertifikat yang dapat dipakai untuk membuktikan skill, dengan jalur langsung ke lowongan kerja yang relevan.',
         author: 'Indra Kusuma',
-        role: 'Head of Academy, RPI',
+        role: 'Head of Academy, SSN',
       },
       { type: 'h2', text: 'Konten dari praktisi industri' },
       {
         type: 'p',
-        text: 'Kurikulum RPI Academy dikembangkan bersama 40+ praktisi senior dari perusahaan seperti Telkom, Tokopedia, BCA, dan Gojek. Setiap kursus didesain untuk menghasilkan outcome yang terukur — bukan jam belajar, tetapi project portfolio yang dapat ditunjukkan ke perekrut.',
+        text: 'Kurikulum SSN Academy dikembangkan bersama 40+ praktisi senior dari perusahaan seperti Telkom, Tokopedia, BCA, dan Gojek. Setiap kursus didesain untuk menghasilkan outcome yang terukur — bukan jam belajar, tetapi project portfolio yang dapat ditunjukkan ke perekrut.',
       },
       { type: 'h2', text: 'Untuk perekrut' },
       {
         type: 'p',
-        text: 'Mitra perekrut RPI dapat melihat kandidat yang telah lulus kursus tertentu langsung di dashboard ATS mereka. Ini mempercepat skrining awal untuk role dengan skill spesifik yang sulit dievaluasi dari CV.',
+        text: 'Mitra perekrut SSN dapat melihat kandidat yang telah lulus kursus tertentu langsung di dashboard ATS mereka. Ini mempercepat skrining awal untuk role dengan skill spesifik yang sulit dievaluasi dari CV.',
       },
-      { type: 'h2', text: 'Tentang RPI' },
+      { type: 'h2', text: 'Tentang SSN' },
       {
         type: 'p',
-        text: 'Didirikan di 2021, Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
+        text: 'Didirikan di 2021, SSN Pekerja (SSN) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
       },
     ],
     contact: DEFAULT_CONTACT,
     downloads: [
-      { label: 'Siaran Pers (PDF)', format: 'PDF · 320 KB', href: '/press-kit/rpi-academy-launch.pdf' },
+      { label: 'Siaran Pers (PDF)', format: 'PDF · 320 KB', href: '/press-kit/ssn-academy-launch.pdf' },
       { label: 'Screenshot Academy', format: 'ZIP · 24 MB', href: '/press-kit/academy-screenshots.zip' },
       { label: 'Daftar Mitra Pengaku Sertifikat', format: 'PDF · 180 KB', href: '/press-kit/academy-partners.pdf' },
       BOILERPLATE_DOWNLOAD,
@@ -201,7 +201,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     date: '12 April 2026',
     dateIso: '2026-04-12',
     dateline: 'Jakarta, 12 April 2026',
-    title: 'RPI Bermitra dengan Kementerian Ketenagakerjaan untuk Program Re-skilling Nasional',
+    title: 'SSN Bermitra dengan Kementerian Ketenagakerjaan untuk Program Re-skilling Nasional',
     subtitle:
       'Inisiatif 3 tahun menargetkan 500.000 pekerja transisi dari industri tradisional ke ekonomi digital, dengan biaya pelatihan ditanggung pemerintah.',
     excerpt:
@@ -210,7 +210,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     body: [
       {
         type: 'p',
-        text: 'Rumah Pekerja Indonesia (RPI) hari ini menandatangani Memorandum of Understanding (MoU) dengan Kementerian Ketenagakerjaan untuk program re-skilling nasional bernama "Indonesia Skilled 2029". Program 3 tahun ini menargetkan 500.000 pekerja yang sedang transisi dari industri tradisional ke ekonomi digital.',
+        text: 'SSN Pekerja (SSN) hari ini menandatangani Memorandum of Understanding (MoU) dengan Kementerian Ketenagakerjaan untuk program re-skilling nasional bernama "Indonesia Skilled 2029". Program 3 tahun ini menargetkan 500.000 pekerja yang sedang transisi dari industri tradisional ke ekonomi digital.',
       },
       { type: 'h2', text: 'Skala dan target' },
       {
@@ -234,7 +234,7 @@ export const PRESS_RELEASES: PressRelease[] = [
       },
       {
         type: 'p',
-        text: 'Peserta program akan mendapatkan akses gratis ke kursus RPI Academy, sertifikasi terverifikasi, dan jalur langsung ke mitra perekrut di sektor target (e-commerce, fintech, logistik digital, agritech).',
+        text: 'Peserta program akan mendapatkan akses gratis ke kursus SSN Academy, sertifikasi terverifikasi, dan jalur langsung ke mitra perekrut di sektor target (e-commerce, fintech, logistik digital, agritech).',
       },
       {
         type: 'quote',
@@ -244,19 +244,19 @@ export const PRESS_RELEASES: PressRelease[] = [
       },
       {
         type: 'quote',
-        text: 'Ini bukan program "training kemudian harapan". Kami menjamin setiap peserta yang lulus akan mendapat minimum 3 interview dengan mitra perekrut RPI dalam 60 hari pasca-kelulusan. Akuntabilitas outcome adalah inti dari kemitraan ini.',
+        text: 'Ini bukan program "training kemudian harapan". Kami menjamin setiap peserta yang lulus akan mendapat minimum 3 interview dengan mitra perekrut SSN dalam 60 hari pasca-kelulusan. Akuntabilitas outcome adalah inti dari kemitraan ini.',
         author: 'Arif Wibowo',
-        role: 'Co-Founder & CEO, RPI',
+        role: 'Co-Founder & CEO, SSN',
       },
       { type: 'h2', text: 'Cara mendaftar' },
       {
         type: 'p',
-        text: 'Pendaftaran tahap pilot dibuka mulai 1 Juni 2026 di portal kemnaker.go.id/skilled2029. Prioritas diberikan untuk pekerja yang terdampak transisi industri di 8 provinsi pilot. Informasi lengkap tersedia di portal Kemnaker dan rumahpekerja.id/skilled2029.',
+        text: 'Pendaftaran tahap pilot dibuka mulai 1 Juni 2026 di portal kemnaker.go.id/skilled2029. Prioritas diberikan untuk pekerja yang terdampak transisi industri di 8 provinsi pilot. Informasi lengkap tersedia di portal Kemnaker dan pekerja.sainskerta.net/skilled2029.',
       },
-      { type: 'h2', text: 'Tentang RPI' },
+      { type: 'h2', text: 'Tentang SSN' },
       {
         type: 'p',
-        text: 'Didirikan di 2021, Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
+        text: 'Didirikan di 2021, SSN Pekerja (SSN) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
       },
     ],
     contact: DEFAULT_CONTACT,
@@ -282,7 +282,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     body: [
       {
         type: 'p',
-        text: 'Rumah Pekerja Indonesia (RPI) merilis laporan "State of Work Indonesia 2026" — studi tahunan terbesar tentang pasar tenaga kerja Indonesia. Tahun ini, tim riset RPI menyurvei 12.400 pekerja aktif dan 480 perekrut dari 12 industri di seluruh provinsi.',
+        text: 'SSN Pekerja (SSN) merilis laporan "State of Work Indonesia 2026" — studi tahunan terbesar tentang pasar tenaga kerja Indonesia. Tahun ini, tim riset SSN menyurvei 12.400 pekerja aktif dan 480 perekrut dari 12 industri di seluruh provinsi.',
       },
       { type: 'h2', text: 'Tiga temuan utama' },
       {
@@ -306,18 +306,18 @@ export const PRESS_RELEASES: PressRelease[] = [
       {
         type: 'quote',
         text: 'Yang paling menarik dari riset tahun ini bukan apa yang sudah berubah — tetapi seberapa cepat preferensi berubah. Jika tim TA Anda masih bekerja dengan asumsi 2024, Anda kehilangan kandidat berkualitas tinggi tanpa sadar.',
-        author: 'Tim Riset RPI',
+        author: 'Tim Riset SSN',
         role: 'Insight Editorial',
       },
       { type: 'h2', text: 'Akses laporan' },
       {
         type: 'p',
-        text: 'Laporan lengkap (84 halaman) tersedia gratis untuk semua mitra RPI di dashboard mereka. Untuk publik umum, ringkasan eksekutif (24 halaman) dapat diunduh di rumahpekerja.id/state-of-work-2026. Versi data mentah (dengan opt-in anonymized data) tersedia untuk peneliti akademik atas permintaan.',
+        text: 'Laporan lengkap (84 halaman) tersedia gratis untuk semua mitra SSN di dashboard mereka. Untuk publik umum, ringkasan eksekutif (24 halaman) dapat diunduh di pekerja.sainskerta.net/state-of-work-2026. Versi data mentah (dengan opt-in anonymized data) tersedia untuk peneliti akademik atas permintaan.',
       },
-      { type: 'h2', text: 'Tentang RPI' },
+      { type: 'h2', text: 'Tentang SSN' },
       {
         type: 'p',
-        text: 'Didirikan di 2021, Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
+        text: 'Didirikan di 2021, SSN Pekerja (SSN) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
       },
     ],
     contact: DEFAULT_CONTACT,
@@ -334,7 +334,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     date: '8 Maret 2026',
     dateIso: '2026-03-08',
     dateline: 'Jakarta, 8 Maret 2026',
-    title: 'RPI Luncurkan Talent Matching AI dengan Bias-Audit Pihak Ketiga',
+    title: 'SSN Luncurkan Talent Matching AI dengan Bias-Audit Pihak Ketiga',
     subtitle:
       'Sistem rekomendasi kandidat baru yang diaudit independen untuk meminimalkan bias gender, usia, dan asal sekolah — pertama di Indonesia.',
     excerpt:
@@ -343,18 +343,18 @@ export const PRESS_RELEASES: PressRelease[] = [
     body: [
       {
         type: 'p',
-        text: 'Rumah Pekerja Indonesia (RPI) hari ini meluncurkan Talent Matching AI generasi baru — sistem rekomendasi kandidat yang telah menjalani audit bias independen oleh pihak ketiga. Ini menjadi platform talent pertama di Indonesia yang menerbitkan laporan bias-audit publik.',
+        text: 'SSN Pekerja (SSN) hari ini meluncurkan Talent Matching AI generasi baru — sistem rekomendasi kandidat yang telah menjalani audit bias independen oleh pihak ketiga. Ini menjadi platform talent pertama di Indonesia yang menerbitkan laporan bias-audit publik.',
       },
       { type: 'h2', text: 'Mengapa audit bias penting' },
       {
         type: 'p',
-        text: 'Sistem AI matching dapat secara tidak sengaja memperkuat bias yang ada dalam data historis — preferensi gender tertentu, usia, atau asal universitas. RPI memutuskan untuk men-audit sistem secara independen sebelum scale, agar bias dapat dideteksi dan dikoreksi sebelum berdampak pada keputusan rekrutmen jutaan pengguna.',
+        text: 'Sistem AI matching dapat secara tidak sengaja memperkuat bias yang ada dalam data historis — preferensi gender tertentu, usia, atau asal universitas. SSN memutuskan untuk men-audit sistem secara independen sebelum scale, agar bias dapat dideteksi dan dikoreksi sebelum berdampak pada keputusan rekrutmen jutaan pengguna.',
       },
       { type: 'h2', text: 'Metodologi audit' },
       {
         type: 'list',
         items: [
-          'Audit dilakukan oleh Tim AI Ethics Universitas Indonesia, di luar struktur RPI',
+          'Audit dilakukan oleh Tim AI Ethics Universitas Indonesia, di luar struktur SSN',
           'Sample 50.000 keputusan matching dari produksi (anonimisasi penuh)',
           'Pengujian 14 dimensi bias: gender, usia, asal sekolah, lokasi, suku, agama, status disabilitas, dll.',
           'Disclosure lengkap di laporan publik 38 halaman',
@@ -363,7 +363,7 @@ export const PRESS_RELEASES: PressRelease[] = [
       { type: 'h2', text: 'Hasil audit awal' },
       {
         type: 'p',
-        text: 'Audit pertama menemukan 3 area bias signifikan: preferensi asal universitas (PTN top), bias usia di role senior, dan bias gender di role technical leadership. RPI telah menerapkan tindakan perbaikan dan akan menjalankan audit ulang setiap 6 bulan.',
+        text: 'Audit pertama menemukan 3 area bias signifikan: preferensi asal universitas (PTN top), bias usia di role senior, dan bias gender di role technical leadership. SSN telah menerapkan tindakan perbaikan dan akan menjalankan audit ulang setiap 6 bulan.',
       },
       {
         type: 'stat',
@@ -378,17 +378,17 @@ export const PRESS_RELEASES: PressRelease[] = [
         type: 'quote',
         text: 'Kami tidak akan mengklaim "AI tanpa bias" — itu tidak realistis. Yang kami janjikan adalah transparansi: setiap 6 bulan, laporan audit akan dipublikasikan. Anda bisa melihat di mana kami berhasil dan di mana kami masih perlu memperbaiki.',
         author: 'Siti Nurhasanah',
-        role: 'Co-Founder & CTO, RPI',
+        role: 'Co-Founder & CTO, SSN',
       },
       { type: 'h2', text: 'Akses laporan audit' },
       {
         type: 'p',
-        text: 'Laporan audit lengkap dapat diakses di rumahpekerja.id/transparency. Tim AI Ethics UI dapat dihubungi langsung untuk pertanyaan metodologi.',
+        text: 'Laporan audit lengkap dapat diakses di pekerja.sainskerta.net/transparency. Tim AI Ethics UI dapat dihubungi langsung untuk pertanyaan metodologi.',
       },
-      { type: 'h2', text: 'Tentang RPI' },
+      { type: 'h2', text: 'Tentang SSN' },
       {
         type: 'p',
-        text: 'Didirikan di 2021, Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
+        text: 'Didirikan di 2021, SSN Pekerja (SSN) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
       },
     ],
     contact: DEFAULT_CONTACT,
@@ -405,7 +405,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     date: '14 Februari 2026',
     dateIso: '2026-02-14',
     dateline: 'Jakarta, 14 Februari 2026',
-    title: 'RPI Dinobatkan sebagai LinkedIn Top Startup Indonesia 2026',
+    title: 'SSN Dinobatkan sebagai LinkedIn Top Startup Indonesia 2026',
     subtitle:
       'Pertama kalinya platform talent Indonesia masuk daftar — diukur dari pertumbuhan karyawan, engagement, dan retensi talenta.',
     excerpt:
@@ -414,7 +414,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     body: [
       {
         type: 'p',
-        text: 'Rumah Pekerja Indonesia (RPI) hari ini dinobatkan sebagai LinkedIn Top Startup Indonesia 2026, menjadi platform talent pertama yang masuk daftar bergengsi tersebut. Penghargaan tahunan ini diberikan kepada startup dengan pertumbuhan, engagement, dan retensi talenta tertinggi di pasar Indonesia.',
+        text: 'SSN Pekerja (SSN) hari ini dinobatkan sebagai LinkedIn Top Startup Indonesia 2026, menjadi platform talent pertama yang masuk daftar bergengsi tersebut. Penghargaan tahunan ini diberikan kepada startup dengan pertumbuhan, engagement, dan retensi talenta tertinggi di pasar Indonesia.',
       },
       { type: 'h2', text: 'Kriteria evaluasi' },
       {
@@ -434,23 +434,23 @@ export const PRESS_RELEASES: PressRelease[] = [
         type: 'quote',
         text: 'Penghargaan ini lebih dari sekadar pengakuan — ini adalah validasi bahwa membangun tempat kerja yang serius tentang kualitas dapat menjadi keunggulan kompetitif. Kami merekrut pelan dengan standar tinggi, dan ini hasilnya.',
         author: 'Siti Nurhasanah',
-        role: 'Co-Founder & CTO, RPI',
+        role: 'Co-Founder & CTO, SSN',
       },
-      { type: 'h2', text: 'Apa artinya untuk RPI' },
+      { type: 'h2', text: 'Apa artinya untuk SSN' },
       {
         type: 'p',
-        text: 'Penghargaan ini akan dipakai untuk meningkatkan kesadaran tentang lowongan internal RPI, terutama di tim engineering, design, dan product yang sedang scaling. RPI akan membuka 60+ posisi baru selama 12 bulan ke depan.',
+        text: 'Penghargaan ini akan dipakai untuk meningkatkan kesadaran tentang lowongan internal SSN, terutama di tim engineering, design, dan product yang sedang scaling. SSN akan membuka 60+ posisi baru selama 12 bulan ke depan.',
       },
-      { type: 'h2', text: 'Tentang RPI' },
+      { type: 'h2', text: 'Tentang SSN' },
       {
         type: 'p',
-        text: 'Didirikan di 2021, Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
+        text: 'Didirikan di 2021, SSN Pekerja (SSN) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
       },
     ],
     contact: DEFAULT_CONTACT,
     downloads: [
       { label: 'Siaran Pers (PDF)', format: 'PDF · 280 KB', href: '/press-kit/linkedin-top-startup.pdf' },
-      { label: 'Foto Tim RPI', format: 'ZIP · 28 MB', href: '/press-kit/team-photos-2026.zip' },
+      { label: 'Foto Tim SSN', format: 'ZIP · 28 MB', href: '/press-kit/team-photos-2026.zip' },
       BOILERPLATE_DOWNLOAD,
     ],
   },
@@ -460,16 +460,16 @@ export const PRESS_RELEASES: PressRelease[] = [
     date: '5 Januari 2026',
     dateIso: '2026-01-05',
     dateline: 'Jakarta, 5 Januari 2026',
-    title: 'Telkom Indonesia Pilih RPI sebagai Platform Resmi Karier Telkom Group',
+    title: 'Telkom Indonesia Pilih SSN sebagai Platform Resmi Karier Telkom Group',
     subtitle:
-      '12 anak perusahaan Telkom akan menggunakan RPI sebagai sistem ATS terkonsolidasi mereka — kontrak 5 tahun senilai USD 14 juta.',
+      '12 anak perusahaan Telkom akan menggunakan SSN sebagai sistem ATS terkonsolidasi mereka — kontrak 5 tahun senilai USD 14 juta.',
     excerpt:
-      '12 anak perusahaan Telkom akan menggunakan RPI sebagai sistem ATS terkonsolidasi mereka — kontrak 5 tahun senilai USD 14 juta.',
+      '12 anak perusahaan Telkom akan menggunakan SSN sebagai sistem ATS terkonsolidasi mereka — kontrak 5 tahun senilai USD 14 juta.',
     tags: ['Kemitraan', 'Telkom', 'Enterprise', 'ATS'],
     body: [
       {
         type: 'p',
-        text: 'PT Telkom Indonesia (TLKM) hari ini mengumumkan pemilihan Rumah Pekerja Indonesia (RPI) sebagai platform resmi perekrutan untuk Telkom Group. Kontrak 5 tahun bernilai USD 14 juta mencakup 12 anak perusahaan termasuk Telkomsel, Telkomsigma, dan Mitratel.',
+        text: 'PT Telkom Indonesia (TLKM) hari ini mengumumkan pemilihan SSN Pekerja (SSN) sebagai platform resmi perekrutan untuk Telkom Group. Kontrak 5 tahun bernilai USD 14 juta mencakup 12 anak perusahaan termasuk Telkomsel, Telkomsigma, dan Mitratel.',
       },
       { type: 'h2', text: 'Cakupan implementasi' },
       {
@@ -493,20 +493,20 @@ export const PRESS_RELEASES: PressRelease[] = [
       },
       {
         type: 'quote',
-        text: 'Telkom Group telah lama mencari platform yang dapat mendukung kompleksitas organisasi kami — multi-entitas, multi-industri, dan ketat compliance. RPI memberi kami arsitektur yang tepat dan tim implementasi yang memahami konteks lokal kami.',
+        text: 'Telkom Group telah lama mencari platform yang dapat mendukung kompleksitas organisasi kami — multi-entitas, multi-industri, dan ketat compliance. SSN memberi kami arsitektur yang tepat dan tim implementasi yang memahami konteks lokal kami.',
         author: 'Rina Adriani',
         role: 'Group Head of Talent Acquisition, Telkom',
       },
       {
         type: 'quote',
-        text: 'Ini adalah deal terbesar di sejarah RPI dan validasi penting bahwa platform multi-tenant kami siap untuk grup usaha berskala besar. Implementasi Telkom akan menjadi template untuk konglomerat lain.',
+        text: 'Ini adalah deal terbesar di sejarah SSN dan validasi penting bahwa platform multi-tenant kami siap untuk grup usaha berskala besar. Implementasi Telkom akan menjadi template untuk konglomerat lain.',
         author: 'Arif Wibowo',
-        role: 'Co-Founder & CEO, RPI',
+        role: 'Co-Founder & CEO, SSN',
       },
-      { type: 'h2', text: 'Tentang RPI' },
+      { type: 'h2', text: 'Tentang SSN' },
       {
         type: 'p',
-        text: 'Didirikan di 2021, Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
+        text: 'Didirikan di 2021, SSN Pekerja (SSN) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
       },
     ],
     contact: DEFAULT_CONTACT,
@@ -522,7 +522,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     date: '12 Desember 2025',
     dateIso: '2025-12-12',
     dateline: 'Jakarta, 12 Desember 2025',
-    title: 'RPI Meluncurkan Aplikasi Mobile untuk Pekerja Lapangan',
+    title: 'SSN Meluncurkan Aplikasi Mobile untuk Pekerja Lapangan',
     subtitle:
       'Versi mobile-first untuk industri konstruksi, logistik, dan F&B. Bisa digunakan tanpa koneksi internet stabil dan tersedia di 4 bahasa daerah.',
     excerpt:
@@ -531,7 +531,7 @@ export const PRESS_RELEASES: PressRelease[] = [
     body: [
       {
         type: 'p',
-        text: 'Rumah Pekerja Indonesia (RPI) hari ini meluncurkan aplikasi mobile yang dirancang khusus untuk pekerja lapangan — termasuk industri konstruksi, logistik, F&B, dan pertanian. Aplikasi dirancang offline-first dengan UX yang dapat dipakai di perangkat low-end yang umum di Indonesia.',
+        text: 'SSN Pekerja (SSN) hari ini meluncurkan aplikasi mobile yang dirancang khusus untuk pekerja lapangan — termasuk industri konstruksi, logistik, F&B, dan pertanian. Aplikasi dirancang offline-first dengan UX yang dapat dipakai di perangkat low-end yang umum di Indonesia.',
       },
       { type: 'h2', text: 'Fitur utama' },
       {
@@ -548,7 +548,7 @@ export const PRESS_RELEASES: PressRelease[] = [
         type: 'quote',
         text: 'Aplikasi platform global tidak dirancang untuk realitas konektivitas Indonesia. Kami membangun ulang dari nol dengan asumsi 3G dan perangkat low-end sebagai default — bukan exception.',
         author: 'Gilang Ramadhan',
-        role: 'Mobile Engineering Lead, RPI',
+        role: 'Mobile Engineering Lead, SSN',
       },
       { type: 'h2', text: 'Cakupan rilis' },
       {
@@ -564,10 +564,10 @@ export const PRESS_RELEASES: PressRelease[] = [
           { value: 'iOS + Android', label: 'Tersedia di kedua store' },
         ],
       },
-      { type: 'h2', text: 'Tentang RPI' },
+      { type: 'h2', text: 'Tentang SSN' },
       {
         type: 'p',
-        text: 'Didirikan di 2021, Rumah Pekerja Indonesia (RPI) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
+        text: 'Didirikan di 2021, SSN Pekerja (SSN) adalah platform multi-tenant terdepan di Indonesia untuk perekrutan dan pelatihan. Platform melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh Indonesia.',
       },
     ],
     contact: DEFAULT_CONTACT,

@@ -22,7 +22,7 @@ const PLANS: {
     key: 'FREE',
     name: 'Free',
     price: 'Rp 0 / bulan',
-    description: 'Untuk memulai dan menjajaki RPI.',
+    description: 'Untuk memulai dan menjajaki SSN.',
     features: [
       'Hingga 5 lowongan aktif',
       '1 admin tenant',

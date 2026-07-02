@@ -57,9 +57,9 @@ export async function attemptDelivery(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-RPI-Event': event,
-        'X-RPI-Signature': `sha256=${signature}`,
-        'X-RPI-Webhook-Id': webhook.id,
+        'X-SSN-Event': event,
+        'X-SSN-Signature': `sha256=${signature}`,
+        'X-SSN-Webhook-Id': webhook.id,
       },
       body,
       signal: AbortSignal.timeout(DELIVERY_TIMEOUT_MS),

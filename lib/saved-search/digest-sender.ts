@@ -123,7 +123,7 @@ export function buildDigestPayload(
     `Kelola alert: ${settingsUrl}`,
     `Berhenti berlangganan: ${unsubscribeUrl}`,
     '',
-    '— Tim Rumah Pekerja Indonesia',
+    '— Tim SSN Pekerja',
   ]
   const textBody = textLines.join('\n')
 
@@ -156,7 +156,7 @@ export function buildDigestPayload(
     Kelola alert: <a href="${settingsUrl}">${settingsUrl}</a><br>
     Berhenti berlangganan: <a href="${unsubscribeUrl}">${unsubscribeUrl}</a>
   </p>
-  <p style="font-size:13px;color:#475569">— Tim Rumah Pekerja Indonesia</p>
+  <p style="font-size:13px;color:#475569">— Tim SSN Pekerja</p>
 </body></html>`
 
   return { subject, htmlBody, textBody }
@@ -228,19 +228,19 @@ async function writeOutboxCopy(
   const body = [
     `Subject: ${payload.subject}`,
     'MIME-Version: 1.0',
-    'Content-Type: multipart/alternative; boundary="rpi-digest"',
+    'Content-Type: multipart/alternative; boundary="ssn-digest"',
     '',
-    '--rpi-digest',
+    '--ssn-digest',
     'Content-Type: text/plain; charset="utf-8"',
     '',
     payload.textBody,
     '',
-    '--rpi-digest',
+    '--ssn-digest',
     'Content-Type: text/html; charset="utf-8"',
     '',
     payload.htmlBody,
     '',
-    '--rpi-digest--',
+    '--ssn-digest--',
     '',
   ].join('\n')
   await fs.writeFile(file, body, 'utf8')

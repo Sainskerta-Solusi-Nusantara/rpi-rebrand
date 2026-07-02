@@ -444,7 +444,7 @@ async function issueCertificateInternal(opts: {
     const recipientName =
       enrollment.user.name ??
       enrollment.user.email?.split('@')[0] ??
-      'Peserta RPI'
+      'Peserta SSN'
     const issuerName = enrollment.course.tenant.name
 
     // Create the row first so we have the cuid to embed in the SVG.

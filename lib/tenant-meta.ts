@@ -14,7 +14,7 @@ const TENANT_META: Record<string, TenantMeta> = {
     tagline:
       'Platform multi-tenant untuk perekrutan & pelatihan Indonesia',
     about:
-      'Rumah Pekerja Indonesia adalah platform multi-tenant terdepan untuk perekrutan dan pelatihan di Indonesia. Kami melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh provinsi.',
+      'SSN Pekerja adalah platform multi-tenant terdepan untuk perekrutan dan pelatihan di Indonesia. Kami melayani 2,4 juta+ pekerja dan 12.000+ mitra perekrut di seluruh provinsi.',
     industry: 'Teknologi',
     fallbackColor: '#0A2540',
   },
@@ -28,9 +28,9 @@ const TENANT_META: Record<string, TenantMeta> = {
 }
 
 const DEFAULT_TENANT_META: TenantMeta = {
-  tagline: 'Mitra perekrut terverifikasi RPI',
+  tagline: 'Mitra perekrut terverifikasi SSN',
   about:
-    'Perusahaan ini adalah mitra perekrut terverifikasi di platform Rumah Pekerja Indonesia.',
+    'Perusahaan ini adalah mitra perekrut terverifikasi di platform SSN Pekerja.',
   industry: 'Umum',
   fallbackColor: '#0A2540',
 }

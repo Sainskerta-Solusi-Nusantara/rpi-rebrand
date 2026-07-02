@@ -12,7 +12,7 @@ import { getServerT } from '@/lib/i18n/server-dictionary'
 export const metadata: Metadata = {
   title: 'Hubungi Kami',
   description:
-    'Tim Rumah Pekerja Indonesia siap membantu pencari kerja, mitra perekrut, dan media. Hubungi kami lewat email, telepon, WhatsApp, atau kunjungi kantor di Jakarta.',
+    'Tim SSN Pekerja siap membantu pencari kerja, mitra perekrut, dan media. Hubungi kami lewat email, telepon, WhatsApp, atau kunjungi kantor di Jakarta.',
 }
 
 export default async function ContactPage() {

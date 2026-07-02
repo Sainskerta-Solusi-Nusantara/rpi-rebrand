@@ -24,9 +24,9 @@ import {
 } from '@/lib/careers-facets'
 
 export const metadata: Metadata = {
-  title: 'Karier di RPI',
+  title: 'Karier di SSN',
   description:
-    'Bergabung dengan tim Rumah Pekerja Indonesia. Bangun produk yang mempertemukan jutaan pencari kerja dengan perusahaan terverifikasi di seluruh Indonesia.',
+    'Bergabung dengan tim SSN Pekerja. Bangun produk yang mempertemukan jutaan pencari kerja dengan perusahaan terverifikasi di seluruh Indonesia.',
 }
 
 const VALID_TYPES: CareerOpening['type'][] = ['Full-time', 'Part-time', 'Contract', 'Internship']

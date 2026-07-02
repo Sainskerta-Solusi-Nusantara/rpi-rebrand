@@ -7,7 +7,7 @@ import { CTABanner } from '@/components/organisms/cta-banner'
 export const metadata: Metadata = {
   title: 'Studi Kasus: Grup Konglomerasi',
   description:
-    'Bagaimana sebuah grup konglomerasi dengan 12 anak usaha menyatukan 6 sistem ATS dan mempercepat perekrutan bersama Rumah Pekerja Indonesia.',
+    'Bagaimana sebuah grup konglomerasi dengan 12 anak usaha menyatukan 6 sistem ATS dan mempercepat perekrutan bersama SSN Pekerja.',
 }
 
 const metrics = [
@@ -24,7 +24,7 @@ const sections = [
   },
   {
     heading: 'Solusi',
-    body: 'Rumah Pekerja Indonesia menyatukan seluruh alur rekrutmen ke dalam satu platform dengan SSO, integrasi ATS dua arah, dan papan pipeline terpusat. Penyaringan berbasis AI membantu memprioritaskan kandidat paling relevan di setiap unit.',
+    body: 'SSN Pekerja menyatukan seluruh alur rekrutmen ke dalam satu platform dengan SSO, integrasi ATS dua arah, dan papan pipeline terpusat. Penyaringan berbasis AI membantu memprioritaskan kandidat paling relevan di setiap unit.',
   },
   {
     heading: 'Hasil',
@@ -50,7 +50,7 @@ export default function GroupConglomerateCaseStudyPage() {
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
             Bagaimana sebuah grup konglomerasi nasional mengonsolidasikan enam
             sistem ATS, mempercepat perekrutan, dan meningkatkan kualitas
-            kandidat bersama Rumah Pekerja Indonesia.
+            kandidat bersama SSN Pekerja.
           </p>
         </div>
       </section>

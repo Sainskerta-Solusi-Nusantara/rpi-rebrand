@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description:
     'Cerita, riset, dan panduan praktis dari dunia kerja Indonesia — untuk pencari kerja, perekrut, dan pemimpin SDM.',
   openGraph: {
-    title: 'Blog Rumah Pekerja Indonesia',
+    title: 'Blog SSN Pekerja',
     description:
       'Cerita, riset, dan panduan praktis dari dunia kerja Indonesia.',
     type: 'website',

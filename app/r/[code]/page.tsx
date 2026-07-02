@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, Gift, Sparkles } from 'lucide-react'
 import { prisma } from '@/lib/db'
 
-export const metadata = { title: 'Undangan referral — RPI' }
+export const metadata = { title: 'Undangan referral — SSN' }
 
 const REF_COOKIE_NAME = 'rpi_ref'
 const REF_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30 // 30 days
@@ -57,12 +57,12 @@ export default async function ReferralLandingPage({
         </span>
 
         <h1 className="font-heading mt-6 text-3xl md:text-4xl">
-          Selamat datang! Anda diundang ke RPI oleh{' '}
+          Selamat datang! Anda diundang ke SSN oleh{' '}
           <span className="text-primary">{referrerName}</span>.
         </h1>
 
         <p className="text-muted-foreground mt-4 max-w-xl text-base">
-          Bergabunglah di Rumah Pekerja Indonesia — temukan lowongan, kursus
+          Bergabunglah di SSN Pekerja — temukan lowongan, kursus
           gratis, dan jaringan profesional dengan kode referral{' '}
           <code className="bg-muted text-foreground rounded px-2 py-0.5 font-mono text-sm font-semibold">
             {canonicalCode}

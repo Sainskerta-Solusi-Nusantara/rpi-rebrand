@@ -408,15 +408,15 @@ const QUOTES: QuoteItem[] = [
     date: 'Mei 2026',
     headline: "Indonesia's Next Talent Powerhouse",
     quote:
-      '"RPI mengubah cara perusahaan Indonesia berburu talenta — dari hubungan personal yang lambat menjadi proses berbasis data yang transparan."',
+      '"SSN mengubah cara perusahaan Indonesia berburu talenta — dari hubungan personal yang lambat menjadi proses berbasis data yang transparan."',
     href: 'https://example.com/bloomberg',
   },
   {
     outlet: 'TechCrunch',
     date: 'April 2026',
-    headline: 'Why RPI Is Different from LinkedIn',
+    headline: 'Why SSN Is Different from LinkedIn',
     quote:
-      '"Berbeda dengan platform global yang melokalisasi, RPI dibangun dari Indonesia untuk Indonesia — perbedaan ini terasa pada setiap detail produk."',
+      '"Berbeda dengan platform global yang melokalisasi, SSN dibangun dari Indonesia untuk Indonesia — perbedaan ini terasa pada setiap detail produk."',
     href: 'https://example.com/techcrunch',
   },
   {
@@ -424,7 +424,7 @@ const QUOTES: QuoteItem[] = [
     date: 'Maret 2026',
     headline: 'Wajah Baru Pasar Kerja Indonesia',
     quote:
-      '"Lewat data publik dan riset terbuka, RPI bukan hanya menjual produk — mereka mengubah percakapan publik tentang ketenagakerjaan."',
+      '"Lewat data publik dan riset terbuka, SSN bukan hanya menjual produk — mereka mengubah percakapan publik tentang ketenagakerjaan."',
     href: 'https://example.com/tempo',
   },
 ]
@@ -744,35 +744,35 @@ export function PressKit() {
       title: 'Logo Pack',
       desc: tc.kit.logoDesc,
       format: 'SVG · ZIP',
-      href: '/press-kit/RPI-Logo-Pack.zip',
+      href: '/press-kit/SSN-Logo-Pack.zip',
     },
     {
       icon: Palette,
       title: 'Brand Guidelines',
       desc: tc.kit.brandDesc,
       format: 'PDF',
-      href: '/press-kit/RPI-Brand-Guidelines.pdf',
+      href: '/press-kit/SSN-Brand-Guidelines.pdf',
     },
     {
       icon: Camera,
       title: 'Foto & Headshot',
       desc: tc.kit.photoDesc,
       format: 'ZIP · atas permintaan',
-      href: '/press-kit/RPI-Photos.zip',
+      href: '/press-kit/SSN-Photos.zip',
     },
     {
       icon: FileText,
       title: 'Fact Sheet',
       desc: tc.kit.factDesc,
       format: 'PDF',
-      href: '/press-kit/RPI-Fact-Sheet.pdf',
+      href: '/press-kit/SSN-Fact-Sheet.pdf',
     },
     {
       icon: Type,
       title: 'Boilerplate Text',
       desc: tc.kit.boilerplateDesc,
       format: 'DOCX',
-      href: '/press-kit/RPI-Boilerplate.docx',
+      href: '/press-kit/SSN-Boilerplate.docx',
     },
     {
       icon: Award,
@@ -815,7 +815,7 @@ export function PressKit() {
 
         <div className="mb-8 text-center">
           <Button asChild size="lg">
-            <a href="/press-kit/RPI-Press-Kit-Full.zip">
+            <a href="/press-kit/SSN-Press-Kit-Full.zip">
               {tc.kit.downloadAll}
               <Download className="ml-2 h-4 w-4" aria-hidden />
             </a>
@@ -914,10 +914,10 @@ export function PressContact() {
                 <li className="flex items-center gap-3">
                   <Mail className="text-[color:var(--ring)] h-4 w-4 shrink-0" aria-hidden />
                   <a
-                    href="mailto:press@rumahpekerja.id"
+                    href="mailto:press@pekerja.sainskerta.net"
                     className="text-foreground font-medium hover:underline"
                   >
-                    press@rumahpekerja.id
+                    press@pekerja.sainskerta.net
                   </a>
                 </li>
                 <li className="flex items-center gap-3">
@@ -940,13 +940,13 @@ export function PressContact() {
 
             <div className="flex flex-col gap-3">
               <Button asChild size="lg">
-                <a href="mailto:press@rumahpekerja.id?subject=Permintaan Wawancara">
+                <a href="mailto:press@pekerja.sainskerta.net?subject=Permintaan Wawancara">
                   <Mail className="mr-2 h-4 w-4" aria-hidden />
                   {tc.contact.emailBtn}
                 </a>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="/press-kit/RPI-Press-Kit-Full.zip">
+                <a href="/press-kit/SSN-Press-Kit-Full.zip">
                   <Download className="mr-2 h-4 w-4" aria-hidden />
                   {tc.contact.kitBtn}
                 </a>

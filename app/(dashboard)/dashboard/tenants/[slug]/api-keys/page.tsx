@@ -77,7 +77,7 @@ export default async function TenantApiKeysPage({
   const active = keys.filter((k) => !k.revokedAt)
   const inactive = keys.filter((k) => k.revokedAt)
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.rumahpekerja.id'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.pekerja.sainskerta.net'
 
   return (
     <div className="p-6 space-y-8 max-w-3xl">

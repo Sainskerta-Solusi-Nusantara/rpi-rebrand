@@ -21,8 +21,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const tag = findBlogTag(params.slug)
   if (!tag) return { title: 'Tag Tidak Ditemukan' }
   return {
-    title: `#${tag.name} — Blog RPI`,
-    description: `Semua artikel dengan tag ${tag.name} di blog RPI.`,
+    title: `#${tag.name} — Blog SSN`,
+    description: `Semua artikel dengan tag ${tag.name} di blog SSN.`,
   }
 }
 

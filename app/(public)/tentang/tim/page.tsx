@@ -12,7 +12,7 @@ import {
 export const metadata: Metadata = {
   title: 'Tim Kami',
   description:
-    'Bertemu dengan 120+ orang di balik Rumah Pekerja Indonesia — eksekutif, lead, dan tim yang membangun masa depan kerja di Indonesia.',
+    'Bertemu dengan 120+ orang di balik SSN Pekerja — eksekutif, lead, dan tim yang membangun masa depan kerja di Indonesia.',
 }
 
 export default function TimPage() {
