@@ -239,8 +239,8 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
         {/* Floating notification toast */}
         {isFront && (
           <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-md">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-gold/20">
-              <Bell className="h-3.5 w-3.5 text-brand-gold" aria-hidden="true" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary/20">
+              <Bell className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-semibold text-foreground">
@@ -264,7 +264,7 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
           <span className="text-[10px] font-semibold text-foreground">
             {ta.mockupSection}
           </span>
-          <span className="text-[9px] text-brand-ink">{ta.mockupSeeAll}</span>
+          <span className="text-[9px] text-primary">{ta.mockupSeeAll}</span>
         </div>
 
         {/* Mini job cards */}
@@ -274,8 +274,8 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
               key={job.title}
               className="flex items-center gap-2 rounded-lg border border-border bg-card p-2"
             >
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-brand-ink/10">
-                <div className="h-4 w-4 rounded bg-brand-ink/40" />
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
+                <div className="h-4 w-4 rounded bg-primary/40" />
               </div>
               <div className="flex min-w-0 flex-1 flex-col leading-tight">
                 <span className="truncate text-[10px] font-semibold text-foreground">
@@ -287,7 +287,7 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
               </div>
               <div className="flex flex-col items-end gap-1">
                 <Heart className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
-                <span className="rounded-full bg-brand-gold/20 px-1.5 py-0.5 text-[8px] font-medium text-brand-gold">
+                <span className="rounded-full bg-secondary/20 px-1.5 py-0.5 text-[8px] font-medium text-secondary">
                   {job.tag}
                 </span>
               </div>
@@ -298,8 +298,8 @@ function PhoneMockup({ variant, ta }: PhoneMockupProps): JSX.Element {
         {/* Bottom nav */}
         <div className="flex h-12 items-center justify-around border-t border-border bg-card px-2">
           <div className="flex flex-col items-center gap-0.5">
-            <div className="h-3 w-3 rounded-sm bg-brand-ink" />
-            <span className="text-[8px] text-brand-ink">{ta.mockupNavHome}</span>
+            <div className="h-3 w-3 rounded-sm bg-primary" />
+            <span className="text-[8px] text-primary">{ta.mockupNavHome}</span>
           </div>
           <div className="flex flex-col items-center gap-0.5">
             <div className="h-3 w-3 rounded-sm bg-muted-foreground/40" />
